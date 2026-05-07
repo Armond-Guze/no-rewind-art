@@ -724,7 +724,50 @@ h3 {
     #e6dfd4;
 }
 
-.main-product-image img {
+.detail-artwork-shell {
+  --size-scale: 1;
+  display: grid;
+  place-items: center;
+  width: min(560px, 82%);
+  transform: scale(var(--size-scale));
+  transition:
+    transform 180ms ease,
+    padding 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.detail-artwork-shell.shape-landscape {
+  width: min(920px, 92%);
+}
+
+.detail-artwork-shell.shape-portrait {
+  width: min(520px, 82%);
+}
+
+.detail-artwork-shell.frame-none {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.detail-artwork-shell.frame-black {
+  padding: clamp(12px, 1.4vw, 22px);
+  background: #111;
+  box-shadow:
+    0 26px 48px rgba(0, 0, 0, 0.26),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.detail-artwork-shell.frame-white {
+  padding: clamp(12px, 1.4vw, 22px);
+  background: #f8f8f4;
+  box-shadow:
+    0 26px 48px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.detail-artwork-shell img {
   width: auto;
   max-width: 100%;
   height: auto;
@@ -734,7 +777,7 @@ h3 {
   filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.18));
 }
 
-.main-product-image .product-art {
+.detail-artwork-shell .product-art {
   width: min(560px, 82%);
   border: 0;
   box-shadow:
@@ -742,11 +785,11 @@ h3 {
     0 5px 12px rgba(0, 0, 0, 0.12);
 }
 
-.main-product-image .product-art.shape-landscape {
+.detail-artwork-shell .product-art.shape-landscape {
   width: min(920px, 92%);
 }
 
-.main-product-image .product-art.shape-portrait {
+.detail-artwork-shell .product-art.shape-portrait {
   width: min(520px, 82%);
 }
 

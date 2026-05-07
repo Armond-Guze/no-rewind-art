@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { Link, Route, Routes, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -442,6 +442,14 @@ function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) 
 
   const gallery = product.gallery.length ? product.gallery : [];
   const selectedOption = product.sizeOptions[selectedSize] ?? product.sizeOptions[0];
+  const selectedFrameName = product.framingOptions[selectedFrame] ?? product.framingOptions[0];
+  const frameClass =
+    selectedFrameName === 'Black Frame'
+      ? 'frame-black'
+      : selectedFrameName === 'White Frame'
+        ? 'frame-white'
+        : 'frame-none';
+  const sizeScale = 0.94 + selectedSize * 0.045;
 
   return (
     <main className="product-page">
@@ -473,11 +481,16 @@ function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) 
           </div>
 
           <div className="main-product-image">
-            {gallery[selectedImage] ? (
-              <img src={gallery[selectedImage]} alt={product.imageAlt} />
-            ) : (
-              <ProductVisual product={product} />
-            )}
+            <div
+              className={`detail-artwork-shell ${frameClass} shape-${product.artworkShape}`}
+              style={{ '--size-scale': sizeScale } as CSSProperties}
+            >
+              {gallery[selectedImage] ? (
+                <img src={gallery[selectedImage]} alt={product.imageAlt} />
+              ) : (
+                <ProductVisual product={product} />
+              )}
+            </div>
           </div>
         </div>
 
