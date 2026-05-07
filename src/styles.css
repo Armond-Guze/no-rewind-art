@@ -607,6 +607,26 @@ h3 {
   width: min(78%, 330px);
 }
 
+.raw-product-image {
+  display: block;
+  width: min(100%, 430px);
+  height: auto;
+  max-height: 340px;
+  object-fit: contain;
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.14),
+    0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.raw-product-image.shape-landscape {
+  width: min(100%, 470px);
+}
+
+.raw-product-image.shape-portrait {
+  width: min(78%, 330px);
+  max-height: 360px;
+}
+
 .listing-card-copy {
   display: flex;
   align-items: center;

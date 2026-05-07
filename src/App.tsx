@@ -43,6 +43,14 @@ function ProductVisual({ product }: { product: Product }) {
   );
 }
 
+function ProductImage({ product }: { product: Product }) {
+  if (product.image) {
+    return <img className={`raw-product-image shape-${product.artworkShape}`} src={product.image} alt={product.imageAlt} />;
+  }
+
+  return <ProductVisual product={product} />;
+}
+
 function SiteHeader({ cartCount }: { cartCount: number }) {
   return (
     <header className="site-header">
@@ -395,7 +403,7 @@ function CollectionPage({ addToCart }: { addToCart: (productId: string) => void 
         {collectionProducts.map((product) => (
           <article className="listing-card" key={product.id}>
             <Link className="listing-card-image" to={`/products/${product.slug}`}>
-              <ProductVisual product={product} />
+              <ProductImage product={product} />
             </Link>
             <div className="listing-card-copy">
               <div>
