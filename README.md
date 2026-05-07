@@ -77,6 +77,12 @@ Each product has its own listing page:
 Product page data lives in `src/data/products.ts`. Update each product's
 `slug`, `gallery`, `sizeOptions`, `framingOptions`, and `details` there.
 
+Set `artworkShape` to control how the product image is displayed:
+
+```ts
+artworkShape: 'portrait' | 'landscape' | 'square'
+```
+
 ## Collection Pages
 
 Shop/category pages live at:

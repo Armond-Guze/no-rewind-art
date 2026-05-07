@@ -1,4 +1,5 @@
 export type ProductTone = 'cassette' | 'focus' | 'space' | 'money' | 'minimal';
+export type ArtworkShape = 'portrait' | 'landscape' | 'square';
 
 export type Collection = {
   slug: string;
@@ -18,6 +19,7 @@ export type Product = {
   label: string;
   image?: string;
   imageAlt: string;
+  artworkShape: ArtworkShape;
   gallery: string[];
   tone: ProductTone;
   collectionSlugs: string[];
@@ -100,6 +102,7 @@ export const products: Product[] = [
     label: 'Life Has No Rewind',
     image: '/artwork/life.png',
     imageAlt: 'Life Has No Rewind motivational cassette canvas print',
+    artworkShape: 'landscape',
     gallery: [
       '/artwork/life.png',
       '/artwork/life.png',
@@ -136,6 +139,7 @@ export const products: Product[] = [
     label: 'Money Is Energy',
     image: '/artwork/money canvas.png',
     imageAlt: 'ATM money mindset canvas print',
+    artworkShape: 'landscape',
     gallery: [
       '/artwork/money canvas.png',
       '/artwork/money canvas.png',
@@ -171,6 +175,7 @@ export const products: Product[] = [
       'A cinematic future-focused print for dreamers, students, creators, and anyone who needs the wall to say keep moving.',
     label: 'Keep Going',
     imageAlt: 'Keep Going space-inspired motivational wall art print',
+    artworkShape: 'portrait',
     gallery: [],
     tone: 'space',
     collectionSlugs: ['new-arrivals'],
@@ -202,6 +207,7 @@ export const products: Product[] = [
     label: 'Bookshelf Mindset',
     image: '/artwork/bookshelf.png',
     imageAlt: 'Bookshelf motivational canvas print mockup',
+    artworkShape: 'landscape',
     gallery: ['/artwork/bookshelf.png'],
     tone: 'minimal',
     collectionSlugs: ['new-arrivals', 'study-creative'],
@@ -233,6 +239,7 @@ export const products: Product[] = [
     label: 'Paycheck Energy',
     image: '/artwork/paycheck.png',
     imageAlt: 'Paycheck money mindset canvas print mockup',
+    artworkShape: 'landscape',
     gallery: ['/artwork/paycheck.png'],
     tone: 'money',
     collectionSlugs: ['best-sellers', 'money-ambition', 'new-arrivals'],
@@ -264,6 +271,7 @@ export const products: Product[] = [
     label: 'One Step Higher',
     image: '/artwork/stairs.png',
     imageAlt: 'Stairs motivational canvas print mockup',
+    artworkShape: 'portrait',
     gallery: ['/artwork/stairs.png'],
     tone: 'focus',
     collectionSlugs: ['best-sellers', 'discipline-focus', 'new-arrivals'],
@@ -295,6 +303,7 @@ export const products: Product[] = [
     label: 'Books of Motivation',
     image: '/artwork/books of motivation.png',
     imageAlt: 'Books of Motivation canvas print mockup',
+    artworkShape: 'portrait',
     gallery: ['/artwork/books of motivation.png'],
     tone: 'minimal',
     collectionSlugs: ['new-arrivals', 'study-creative'],
@@ -326,6 +335,7 @@ export const products: Product[] = [
     label: 'Hello I Am',
     image: '/artwork/hello i am.png',
     imageAlt: 'Hello I Am motivational canvas print mockup',
+    artworkShape: 'landscape',
     gallery: ['/artwork/hello i am.png'],
     tone: 'focus',
     collectionSlugs: ['new-arrivals', 'discipline-focus'],
@@ -357,6 +367,7 @@ export const products: Product[] = [
     label: '97 Percent',
     image: '/artwork/97 percent.png',
     imageAlt: '97 Percent motivational canvas print mockup',
+    artworkShape: 'portrait',
     gallery: ['/artwork/97 percent.png'],
     tone: 'focus',
     collectionSlugs: ['best-sellers', 'discipline-focus', 'new-arrivals'],
@@ -388,6 +399,7 @@ export const products: Product[] = [
     label: 'Calm Under Pressure',
     image: '/artwork/calm under pressure.png',
     imageAlt: 'Calm Under Pressure motivational canvas print mockup',
+    artworkShape: 'landscape',
     gallery: ['/artwork/calm under pressure.png'],
     tone: 'focus',
     collectionSlugs: ['best-sellers', 'discipline-focus', 'new-arrivals'],
@@ -419,6 +431,7 @@ export const products: Product[] = [
     label: 'Calm Under Pressure II',
     image: '/artwork/calm under pres.png',
     imageAlt: 'Calm Under Pressure variation canvas print mockup',
+    artworkShape: 'landscape',
     gallery: ['/artwork/calm under pres.png'],
     tone: 'focus',
     collectionSlugs: ['discipline-focus', 'new-arrivals'],
@@ -450,6 +463,7 @@ export const products: Product[] = [
     label: 'Remember Who You Are',
     image: '/artwork/remember who u are.png',
     imageAlt: 'Remember Who You Are motivational canvas print mockup',
+    artworkShape: 'landscape',
     gallery: ['/artwork/remember who u are.png'],
     tone: 'focus',
     collectionSlugs: ['discipline-focus', 'new-arrivals'],

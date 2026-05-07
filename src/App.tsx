@@ -37,7 +37,7 @@ const formatPrice = (cents: number) =>
 
 function ProductVisual({ product }: { product: Product }) {
   return (
-    <div className={`product-art ${product.tone}-art`}>
+    <div className={`product-art ${product.tone}-art shape-${product.artworkShape}`}>
       {product.image ? <img src={product.image} alt={product.imageAlt} /> : <span>{product.label}</span>}
     </div>
   );
