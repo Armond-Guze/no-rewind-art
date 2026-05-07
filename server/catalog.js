@@ -55,6 +55,34 @@ export const products = [
     unitAmount: 5500,
     imagePath: '/artwork/hello i am.png',
   },
+  {
+    id: 'ninety-seven-percent-canvas',
+    name: '97 Percent',
+    description: 'Canvas print from No Rewind Art.',
+    unitAmount: 5500,
+    imagePath: '/artwork/97 percent.png',
+  },
+  {
+    id: 'calm-under-pressure-canvas',
+    name: 'Calm Under Pressure',
+    description: 'Canvas print from No Rewind Art.',
+    unitAmount: 5500,
+    imagePath: '/artwork/calm under pressure.png',
+  },
+  {
+    id: 'calm-under-pres-canvas',
+    name: 'Calm Under Pressure II',
+    description: 'Canvas print from No Rewind Art.',
+    unitAmount: 5500,
+    imagePath: '/artwork/calm under pres.png',
+  },
+  {
+    id: 'remember-who-you-are-canvas',
+    name: 'Remember Who You Are',
+    description: 'Canvas print from No Rewind Art.',
+    unitAmount: 5500,
+    imagePath: '/artwork/remember who u are.png',
+  },
 ];
 
 export function findProduct(productId) {
