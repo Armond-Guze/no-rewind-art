@@ -586,7 +586,9 @@ h3 {
 .listing-card-image .product-art {
   width: min(100%, 430px);
   border: 0;
-  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    0 18px 34px rgba(0, 0, 0, 0.18),
+    0 4px 10px rgba(0, 0, 0, 0.12);
 }
 
 .listing-card-copy {
@@ -710,11 +712,15 @@ h3 {
   height: 100%;
   object-fit: cover;
   display: block;
+  filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.18));
 }
 
 .main-product-image .product-art {
   width: min(560px, 82%);
   border: 0;
+  box-shadow:
+    0 22px 44px rgba(0, 0, 0, 0.2),
+    0 5px 12px rgba(0, 0, 0, 0.12);
 }
 
 .listing-panel {
