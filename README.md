@@ -64,6 +64,19 @@ image: '/artwork/your-file-name.jpg',
 
 Images can be `.jpg`, `.png`, `.webp`, or `.avif`.
 
+## Product Pages
+
+Each product has its own listing page:
+
+```text
+/products/life-has-no-rewind
+/products/money-is-energy
+/products/keep-going
+```
+
+Product page data lives in `src/data/products.ts`. Update each product's
+`slug`, `gallery`, `sizeOptions`, `framingOptions`, and `details` there.
+
 ## Stripe Checkout
 
 This project uses Stripe Checkout Sessions. The React app owns the shop/cart
