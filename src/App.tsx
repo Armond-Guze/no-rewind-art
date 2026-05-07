@@ -1,6 +1,11 @@
-import { ArrowUpRight, Sparkles } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ArrowUpRight, Minus, Plus, ShoppingBag, Sparkles, Trash2 } from 'lucide-react';
+import { products, type Product } from './data/products';
 
-const etsyListingUrl = 'https://www.etsy.com/listing/1666839752';
+type CartItem = {
+  productId: string;
+  quantity: number;
+};
 
 const collections = [
   {
@@ -23,28 +28,100 @@ const collections = [
   },
 ];
 
-const products = [
-  {
-    title: 'Life Has No Rewind',
-    description: 'Canvas and poster print for rooms that need a daily reset.',
-    className: 'cassette-art',
-    label: 'Life Has No Rewind',
-  },
-  {
-    title: 'Focus Is The Price',
-    description: 'Bold wall art for offices, studios, and serious workspaces.',
-    className: 'focus-art',
-    label: 'Focus',
-  },
-  {
-    title: 'Keep Going',
-    description: 'Cinematic space-inspired print for bedrooms and dorm rooms.',
-    className: 'space-art',
-    label: 'Keep Going',
-  },
-];
+const formatPrice = (cents: number) =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(cents / 100);
 
 function App() {
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const checkoutResult = new URLSearchParams(window.location.search).get('checkout');
+
+  const cartProducts = useMemo(
+    () =>
+      cart
+        .map((item) => {
+          const product = products.find((candidate) => candidate.id === item.productId);
+          return product ? { ...item, product } : null;
+        })
+        .filter((item): item is CartItem & { product: Product } => Boolean(item)),
+    [cart],
+  );
+
+  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const subtotal = cartProducts.reduce(
+    (total, item) => total + item.product.priceInCents * item.quantity,
+    0,
+  );
+
+  function addToCart(productId: string) {
+    setCart((currentCart) => {
+      const existing = currentCart.find((item) => item.productId === productId);
+
+      if (!existing) {
+        return [...currentCart, { productId, quantity: 1 }];
+      }
+
+      return currentCart.map((item) =>
+        item.productId === productId
+          ? { ...item, quantity: Math.min(item.quantity + 1, 10) }
+          : item,
+      );
+    });
+  }
+
+  function updateQuantity(productId: string, nextQuantity: number) {
+    setCart((currentCart) =>
+      currentCart
+        .map((item) =>
+          item.productId === productId
+            ? { ...item, quantity: Math.max(0, Math.min(nextQuantity, 10)) }
+            : item,
+        )
+        .filter((item) => item.quantity > 0),
+    );
+  }
+
+  async function startCheckout() {
+    if (!cart.length) {
+      return;
+    }
+
+    setCheckoutState('loading');
+
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: cart.map((item) => ({
+            id: item.productId,
+            quantity: item.quantity,
+          })),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Checkout request failed');
+      }
+
+      const data = (await response.json()) as { url?: string };
+
+      if (!data.url) {
+        throw new Error('Checkout URL missing');
+      }
+
+      window.location.assign(data.url);
+    } catch (error) {
+      console.error(error);
+      setCheckoutState('error');
+    }
+  }
+
   return (
     <>
       <header className="site-header">
@@ -56,11 +133,23 @@ function App() {
           <a href="#collections">Collections</a>
           <a href="#shop">Shop</a>
           <a href="#story">Story</a>
-          <a href="#contact">Contact</a>
+          <a href="#cart">Cart ({cartCount})</a>
         </nav>
       </header>
 
       <main id="top">
+        {checkoutResult === 'success' ? (
+          <div className="checkout-banner success">
+            Payment complete. Your order is being prepared.
+          </div>
+        ) : null}
+
+        {checkoutResult === 'cancelled' ? (
+          <div className="checkout-banner cancelled">
+            Checkout was cancelled. Your cart is still here when you are ready.
+          </div>
+        ) : null}
+
         <section className="hero" aria-labelledby="hero-title">
           <div className="hero-art" aria-hidden="true">
             <div className="poster poster-money">
@@ -133,21 +222,118 @@ function App() {
 
           <div className="product-grid">
             {products.map((product) => (
-              <article className="product" key={product.title}>
-                <div className={`product-art ${product.className}`}>
-                  <span>{product.label}</span>
+              <article className="product" key={product.id}>
+                <div className={`product-art ${product.tone}-art`}>
+                  {product.image ? (
+                    <img src={product.image} alt={product.imageAlt} />
+                  ) : (
+                    <span>{product.label}</span>
+                  )}
                 </div>
                 <div className="product-copy">
-                  <h3>{product.title}</h3>
+                  <div className="product-title-row">
+                    <div>
+                      <h3>{product.title}</h3>
+                      <span>{product.size}</span>
+                    </div>
+                    <strong>{formatPrice(product.priceInCents)}</strong>
+                  </div>
                   <p>{product.description}</p>
-                  <a href={etsyListingUrl} aria-label={`Shop ${product.title} on Etsy`}>
-                    Shop on Etsy
-                    <ArrowUpRight aria-hidden="true" size={16} />
-                  </a>
+                  <button
+                    className="text-action"
+                    type="button"
+                    onClick={() => addToCart(product.id)}
+                  >
+                    Add to Cart
+                    <Plus aria-hidden="true" size={16} />
+                  </button>
                 </div>
               </article>
             ))}
           </div>
+        </section>
+
+        <section id="cart" className="cart-section">
+          <div className="cart-copy">
+            <p className="eyebrow">Checkout</p>
+            <h2>Your Cart</h2>
+            <p>
+              Choose your prints here, then complete payment securely through
+              Stripe Checkout. Shipping, tax, and payment details are handled at
+              checkout.
+            </p>
+          </div>
+
+          <aside className="cart-panel" aria-label="Shopping cart">
+            {cartProducts.length ? (
+              <>
+                <div className="cart-items">
+                  {cartProducts.map(({ product, quantity }) => (
+                    <div className="cart-item" key={product.id}>
+                      <div>
+                        <h3>{product.title}</h3>
+                        <p>
+                          {product.size} · {formatPrice(product.priceInCents)}
+                        </p>
+                      </div>
+                      <div className="quantity-controls">
+                        <button
+                          type="button"
+                          aria-label={`Decrease ${product.title} quantity`}
+                          onClick={() => updateQuantity(product.id, quantity - 1)}
+                        >
+                          {quantity === 1 ? (
+                            <Trash2 aria-hidden="true" size={16} />
+                          ) : (
+                            <Minus aria-hidden="true" size={16} />
+                          )}
+                        </button>
+                        <span>{quantity}</span>
+                        <button
+                          type="button"
+                          aria-label={`Increase ${product.title} quantity`}
+                          onClick={() => updateQuantity(product.id, quantity + 1)}
+                        >
+                          <Plus aria-hidden="true" size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="cart-total">
+                  <span>Subtotal</span>
+                  <strong>{formatPrice(subtotal)}</strong>
+                </div>
+
+                <button
+                  className="button button-primary checkout-button"
+                  type="button"
+                  disabled={checkoutState === 'loading'}
+                  onClick={startCheckout}
+                >
+                  <ShoppingBag aria-hidden="true" size={18} />
+                  {checkoutState === 'loading' ? 'Opening Checkout' : 'Secure Checkout'}
+                </button>
+
+                {checkoutState === 'error' ? (
+                  <p className="checkout-error">
+                    Checkout is not connected yet. Add your Stripe keys in
+                    `.env` and restart the dev server.
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <div className="empty-cart">
+                <ShoppingBag aria-hidden="true" size={34} />
+                <h3>Your cart is empty</h3>
+                <p>Add a print from the first drop to start checkout.</p>
+                <a className="button button-secondary" href="#shop">
+                  Browse Prints
+                </a>
+              </div>
+            )}
+          </aside>
         </section>
 
         <section id="story" className="story-section">
@@ -174,17 +360,17 @@ function App() {
 
         <section id="contact" className="section contact-section">
           <div>
-            <p className="eyebrow">Next step</p>
-            <h2>Start with Etsy checkout. Build the brand here.</h2>
+            <p className="eyebrow">Payment setup</p>
+            <h2>Real checkout, without exposing your card system.</h2>
           </div>
           <p>
-            Replace the sample buttons with your Etsy listing links, connect
-            your print-on-demand provider, then use this site as the home base
-            for your art brand.
+            This shop uses Stripe Checkout Sessions from a backend server. Your
+            site owns the cart experience, and Stripe handles secure payment,
+            billing details, and confirmation.
           </p>
-          <a className="button button-primary" href={etsyListingUrl}>
+          <a className="button button-primary" href="#cart">
             <Sparkles aria-hidden="true" size={18} />
-            Shop the Etsy Store
+            Review Cart
           </a>
         </section>
       </main>

@@ -2,6 +2,9 @@
 .DS_Store
 Thumbs.db
 .vscode/
+.env
+.env.*
+!.env.example
 
 # Dependency folders, if this becomes a full app later
 node_modules/
@@ -9,3 +12,8 @@ dist/
 
 # Local dev logs
 vite-dev*.log
+dev-combined*.log
+
+# Generated local previews
+website-with-artwork-preview.png
+website-shop-preview.png
