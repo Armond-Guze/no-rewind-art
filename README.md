@@ -1,18 +1,35 @@
 # No Rewind Art
 
-Starter website and relaunch kit for No Rewind Art, a motivational wall art brand focused on ambition, discipline, money mindset, and future-focused spaces.
+React/Vite website and relaunch kit for No Rewind Art, a motivational wall art brand focused on ambition, discipline, money mindset, and future-focused spaces.
 
 ## Files
 
-- `index.html` - static website mockup
-- `styles.css` - site styling
+- `src/App.tsx` - main React website
+- `src/styles.css` - site styling
+- `index.html` - Vite app shell
 - `art-brand-relaunch-kit.md` - Etsy and brand relaunch plan
 - `website-desktop-preview.png` - desktop screenshot preview
 - `website-mobile-preview.png` - mobile screenshot preview
 
-## Local Preview
+## Development
 
-Open `index.html` in a browser.
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the local dev server:
+
+```bash
+npm run dev
+```
+
+Build for production:
+
+```bash
+npm run build
+```
 
 ## Next Steps
 

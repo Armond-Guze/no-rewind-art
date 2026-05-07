@@ -21,11 +21,11 @@ html {
 
 body {
   margin: 0;
+  overflow-x: hidden;
   background: var(--black);
   color: var(--paper);
   font-family: Arial, Helvetica, sans-serif;
   letter-spacing: 0;
-  overflow-x: hidden;
 }
 
 a {
@@ -230,6 +230,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   min-height: 48px;
   padding: 0 20px;
   border: 1px solid var(--paper);
@@ -369,6 +370,8 @@ h3 {
 
 .product-copy a {
   display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 8px;
   color: var(--gold);
   font-weight: 800;
