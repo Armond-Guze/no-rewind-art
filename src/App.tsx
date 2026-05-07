@@ -5,6 +5,8 @@ import {
   ArrowUpRight,
   BadgeCheck,
   Box,
+  Filter,
+  Grid2X2,
   Minus,
   Plus,
   ShieldCheck,
@@ -13,33 +15,19 @@ import {
   Star,
   Trash2,
 } from 'lucide-react';
-import { getProductBySlug, products, type Product } from './data/products';
+import {
+  collections,
+  getCollectionBySlug,
+  getProductBySlug,
+  getProductsForCollection,
+  products,
+  type Product,
+} from './data/products';
 
 type CartItem = {
   productId: string;
   quantity: number;
 };
-
-const collections = [
-  {
-    number: '01',
-    title: 'Money & Ambition',
-    text: 'For entrepreneurs, creators, and anyone building a bigger future.',
-    tone: 'money',
-  },
-  {
-    number: '02',
-    title: 'Discipline & Focus',
-    text: 'Clean reminders for offices, bedrooms, studios, and gym spaces.',
-    tone: 'discipline',
-  },
-  {
-    number: '03',
-    title: 'Space & Future',
-    text: 'Cinematic prints for dreamers, students, and people starting over.',
-    tone: 'future',
-  },
-];
 
 const formatPrice = (cents: number) =>
   new Intl.NumberFormat('en-US', {
@@ -63,8 +51,10 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
         <span>No Rewind Art</span>
       </Link>
       <nav className="nav-links" aria-label="Primary navigation">
-        <Link to="/#collections">Collections</Link>
-        <Link to="/#shop">Shop</Link>
+        <Link to="/collections/best-sellers">Best Sellers</Link>
+        <Link to="/collections/money-ambition">Money</Link>
+        <Link to="/collections/discipline-focus">Focus</Link>
+        <Link to="/collections/new-arrivals">New Arrivals</Link>
         <Link to="/#story">Story</Link>
         <Link to="/#cart">Cart ({cartCount})</Link>
       </nav>
@@ -129,10 +119,10 @@ function HomePage({
             and the future you are working toward.
           </p>
           <div className="hero-actions">
-            <a className="button button-primary" href="#shop">
+            <Link className="button button-primary" to="/collections/best-sellers">
               Shop Prints
               <ArrowUpRight aria-hidden="true" size={18} />
-            </a>
+            </Link>
             <a className="button button-secondary" href="#collections">
               View Collections
             </a>
@@ -152,12 +142,16 @@ function HomePage({
       </section>
 
       <section className="collection-grid" aria-label="Collections">
-        {collections.map((collection) => (
-          <article className={`collection ${collection.tone}`} key={collection.title}>
-            <span>{collection.number}</span>
+        {collections.slice(1, 4).map((collection, index) => (
+          <Link
+            className={`collection ${index === 0 ? 'money' : index === 1 ? 'discipline' : 'future'}`}
+            key={collection.slug}
+            to={`/collections/${collection.slug}`}
+          >
+            <span>{String(index + 1).padStart(2, '0')}</span>
             <h3>{collection.title}</h3>
-            <p>{collection.text}</p>
-          </article>
+            <p>{collection.description}</p>
+          </Link>
         ))}
       </section>
 
@@ -165,6 +159,10 @@ function HomePage({
         <div className="section-heading">
           <p className="eyebrow">First drop</p>
           <h2>No Rewind: Volume 1</h2>
+          <Link className="section-link" to="/collections/best-sellers">
+            View All Prints
+            <ArrowUpRight aria-hidden="true" size={16} />
+          </Link>
         </div>
 
         <div className="product-grid">
@@ -337,13 +335,88 @@ function CartSection({
             <ShoppingBag aria-hidden="true" size={34} />
             <h3>Your cart is empty</h3>
             <p>Add a print from the first drop to start checkout.</p>
-            <a className="button button-secondary" href="/#shop">
+            <Link className="button button-secondary" to="/collections/best-sellers">
               Browse Prints
-            </a>
+            </Link>
           </div>
         )}
       </aside>
     </section>
+  );
+}
+
+function CollectionPage({ addToCart }: { addToCart: (productId: string) => void }) {
+  const { slug } = useParams();
+  const collection = getCollectionBySlug(slug);
+  const collectionProducts = getProductsForCollection(slug);
+
+  if (!collection) {
+    return (
+      <main className="product-not-found">
+        <p className="eyebrow">Collection missing</p>
+        <h1>Category not found.</h1>
+        <Link className="button button-primary" to="/collections/best-sellers">
+          View Best Sellers
+        </Link>
+      </main>
+    );
+  }
+
+  return (
+    <main className="collection-page">
+      <section className="collection-toolbar" aria-label="Shop category controls">
+        <div className="product-count">{collectionProducts.length} Products</div>
+        <nav className="collection-tabs" aria-label="Shop categories">
+          {collections.map((item) => (
+            <Link
+              className={item.slug === collection.slug ? 'active' : ''}
+              key={item.slug}
+              to={`/collections/${item.slug}`}
+            >
+              {item.navLabel}
+            </Link>
+          ))}
+        </nav>
+        <div className="view-controls" aria-label="View controls">
+          <Grid2X2 aria-hidden="true" size={18} />
+          <span />
+          <Filter aria-hidden="true" size={16} />
+          <button type="button">Filter & Sort</button>
+        </div>
+      </section>
+
+      <section className="collection-heading">
+        <p className="eyebrow">Shop Prints</p>
+        <h1>{collection.title}</h1>
+        <p>{collection.description}</p>
+      </section>
+
+      <section className="listing-grid" aria-label={`${collection.title} products`}>
+        {collectionProducts.map((product) => (
+          <article className="listing-card" key={product.id}>
+            <Link className="listing-card-image" to={`/products/${product.slug}`}>
+              <ProductVisual product={product} />
+            </Link>
+            <div className="listing-card-copy">
+              <div>
+                <h2>
+                  <Link to={`/products/${product.slug}`}>{product.title}</Link>
+                </h2>
+                <p>From {formatPrice(product.priceInCents)}</p>
+              </div>
+              <button
+                className="quick-add"
+                type="button"
+                onClick={() => addToCart(product.id)}
+                aria-label={`Add ${product.title} to cart`}
+              >
+                <Plus aria-hidden="true" size={16} />
+              </button>
+            </div>
+          </article>
+        ))}
+      </section>
+    </main>
   );
 }
 
@@ -613,6 +686,10 @@ function App() {
               checkoutState={checkoutState}
             />
           }
+        />
+        <Route
+          path="/collections/:slug"
+          element={<CollectionPage addToCart={addToCart} />}
         />
         <Route path="/products/:slug" element={<ProductPage addToCart={addToCart} />} />
       </Routes>

@@ -1,5 +1,14 @@
 export type ProductTone = 'cassette' | 'focus' | 'space' | 'money' | 'minimal';
 
+export type Collection = {
+  slug: string;
+  title: string;
+  navLabel: string;
+  description: string;
+  productIds?: string[];
+  tones?: ProductTone[];
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -11,6 +20,7 @@ export type Product = {
   imageAlt: string;
   gallery: string[];
   tone: ProductTone;
+  collectionSlugs: string[];
   priceInCents: number;
   size: string;
   rating: number;
@@ -23,6 +33,55 @@ export type Product = {
   }>;
   details: string[];
 };
+
+export const collections: Collection[] = [
+  {
+    slug: 'best-sellers',
+    title: 'Best Sellers',
+    navLabel: 'Best Sellers',
+    description: 'The strongest first-drop prints for ambitious rooms and daily momentum.',
+    productIds: [
+      'life-has-no-rewind-canvas',
+      'money-is-energy-canvas',
+      'paycheck-canvas',
+      'stairs-canvas',
+    ],
+  },
+  {
+    slug: 'money-ambition',
+    title: 'Money & Ambition',
+    navLabel: 'Money',
+    description: 'Wall art for entrepreneurs, creators, and people building income and momentum.',
+    tones: ['money'],
+  },
+  {
+    slug: 'discipline-focus',
+    title: 'Discipline & Focus',
+    navLabel: 'Focus',
+    description: 'Clean motivational prints for offices, bedrooms, studios, and gym spaces.',
+    tones: ['focus', 'cassette'],
+  },
+  {
+    slug: 'study-creative',
+    title: 'Study & Creative',
+    navLabel: 'Study',
+    description: 'Prints for readers, students, writers, and creative workspaces.',
+    tones: ['minimal'],
+  },
+  {
+    slug: 'new-arrivals',
+    title: 'New Arrivals',
+    navLabel: 'New Arrivals',
+    description: 'Recently added artwork and dummy listings ready for refinement.',
+    productIds: [
+      'bookshelf-canvas',
+      'paycheck-canvas',
+      'stairs-canvas',
+      'books-of-motivation-canvas',
+      'hello-i-am-canvas',
+    ],
+  },
+];
 
 export const products: Product[] = [
   {
@@ -42,6 +101,7 @@ export const products: Product[] = [
       '/artwork/life.png',
     ],
     tone: 'cassette',
+    collectionSlugs: ['best-sellers', 'discipline-focus'],
     priceInCents: 5500,
     size: 'Canvas print',
     rating: 4.8,
@@ -77,6 +137,7 @@ export const products: Product[] = [
       '/artwork/money canvas.png',
     ],
     tone: 'money',
+    collectionSlugs: ['best-sellers', 'money-ambition'],
     priceInCents: 5500,
     size: 'Canvas print',
     rating: 4.7,
@@ -106,6 +167,7 @@ export const products: Product[] = [
     imageAlt: 'Keep Going space-inspired motivational wall art print',
     gallery: [],
     tone: 'space',
+    collectionSlugs: ['new-arrivals'],
     priceInCents: 5500,
     size: 'Canvas print',
     rating: 4.9,
@@ -136,6 +198,7 @@ export const products: Product[] = [
     imageAlt: 'Bookshelf motivational canvas print mockup',
     gallery: ['/artwork/bookshelf.png'],
     tone: 'minimal',
+    collectionSlugs: ['new-arrivals', 'study-creative'],
     priceInCents: 5500,
     size: 'Canvas print',
     rating: 4.8,
@@ -166,6 +229,7 @@ export const products: Product[] = [
     imageAlt: 'Paycheck money mindset canvas print mockup',
     gallery: ['/artwork/paycheck.png'],
     tone: 'money',
+    collectionSlugs: ['best-sellers', 'money-ambition', 'new-arrivals'],
     priceInCents: 5500,
     size: 'Canvas print',
     rating: 4.7,
@@ -196,6 +260,7 @@ export const products: Product[] = [
     imageAlt: 'Stairs motivational canvas print mockup',
     gallery: ['/artwork/stairs.png'],
     tone: 'focus',
+    collectionSlugs: ['best-sellers', 'discipline-focus', 'new-arrivals'],
     priceInCents: 5500,
     size: 'Canvas print',
     rating: 4.9,
@@ -226,6 +291,7 @@ export const products: Product[] = [
     imageAlt: 'Books of Motivation canvas print mockup',
     gallery: ['/artwork/books of motivation.png'],
     tone: 'minimal',
+    collectionSlugs: ['new-arrivals', 'study-creative'],
     priceInCents: 5500,
     size: 'Canvas print',
     rating: 4.8,
@@ -256,6 +322,7 @@ export const products: Product[] = [
     imageAlt: 'Hello I Am motivational canvas print mockup',
     gallery: ['/artwork/hello i am.png'],
     tone: 'focus',
+    collectionSlugs: ['new-arrivals', 'discipline-focus'],
     priceInCents: 5500,
     size: 'Canvas print',
     rating: 4.7,
@@ -278,4 +345,32 @@ export const products: Product[] = [
 
 export function getProductBySlug(slug: string | undefined) {
   return products.find((product) => product.slug === slug);
+}
+
+export function getCollectionBySlug(slug: string | undefined) {
+  return collections.find((collection) => collection.slug === slug);
+}
+
+export function getProductsForCollection(slug: string | undefined) {
+  const collection = getCollectionBySlug(slug);
+
+  if (!collection) {
+    return [];
+  }
+
+  if (collection.productIds) {
+    return collection.productIds
+      .map((productId) => products.find((product) => product.id === productId))
+      .filter((product): product is Product => Boolean(product));
+  }
+
+  if (collection.tones) {
+    return products.filter(
+      (product) =>
+        collection.tones?.includes(product.tone) ||
+        product.collectionSlugs.includes(collection.slug),
+    );
+  }
+
+  return products.filter((product) => product.collectionSlugs.includes(collection.slug));
 }

@@ -77,6 +77,21 @@ Each product has its own listing page:
 Product page data lives in `src/data/products.ts`. Update each product's
 `slug`, `gallery`, `sizeOptions`, `framingOptions`, and `details` there.
 
+## Collection Pages
+
+Shop/category pages live at:
+
+```text
+/collections/best-sellers
+/collections/money-ambition
+/collections/discipline-focus
+/collections/study-creative
+/collections/new-arrivals
+```
+
+Collection definitions live in `src/data/products.ts` under `collections`.
+Products are assigned with `collectionSlugs`, `productIds`, or `tones`.
+
 ## Stripe Checkout
 
 This project uses Stripe Checkout Sessions. The React app owns the shop/cart
