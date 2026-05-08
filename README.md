@@ -114,6 +114,7 @@ Then add your Stripe test secret key:
 ```text
 STRIPE_SECRET_KEY=sk_test_your_secret_key_here
 STRIPE_AUTOMATIC_TAX=false
+STRIPE_ALLOW_INSECURE_LOCAL_TLS=false
 CLIENT_URL=http://127.0.0.1:5173
 PORT=4242
 ```
@@ -125,3 +126,13 @@ fulfillment process are ready.
 `STRIPE_AUTOMATIC_TAX` defaults to off for local testing. Turn it on only after
 your Stripe tax settings and head office address are configured in the Stripe
 Dashboard.
+
+If local checkout fails with `UNABLE_TO_VERIFY_LEAF_SIGNATURE`, your local Node
+certificate chain is not trusting Stripe's certificate. For local Stripe test
+mode only, set:
+
+```text
+STRIPE_ALLOW_INSECURE_LOCAL_TLS=true
+```
+
+Do not use that setting in production.

@@ -3,6 +3,11 @@ import express from 'express';
 import Stripe from 'stripe';
 import { findProduct } from './catalog.js';
 
+if (process.env.STRIPE_ALLOW_INSECURE_LOCAL_TLS === 'true') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  console.warn('Stripe local TLS verification is disabled. Use this only for local test mode.');
+}
+
 const app = express();
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const clientUrl = process.env.CLIENT_URL || 'http://127.0.0.1:5173';
