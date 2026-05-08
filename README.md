@@ -113,6 +113,7 @@ Then add your Stripe test secret key:
 
 ```text
 STRIPE_SECRET_KEY=sk_test_your_secret_key_here
+STRIPE_AUTOMATIC_TAX=false
 CLIENT_URL=http://127.0.0.1:5173
 PORT=4242
 ```
@@ -120,3 +121,7 @@ PORT=4242
 Do not commit `.env` or paste your secret key into chat. Use Stripe test keys
 first, then switch to live keys only when the products, shipping, tax, and
 fulfillment process are ready.
+
+`STRIPE_AUTOMATIC_TAX` defaults to off for local testing. Turn it on only after
+your Stripe tax settings and head office address are configured in the Stripe
+Dashboard.

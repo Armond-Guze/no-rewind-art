@@ -77,6 +77,7 @@ function HomePage({
   updateQuantity,
   startCheckout,
   checkoutState,
+  checkoutError,
 }: {
   addToCart: (productId: string) => void;
   cartProducts: Array<CartItem & { product: Product }>;
@@ -84,6 +85,7 @@ function HomePage({
   updateQuantity: (productId: string, nextQuantity: number) => void;
   startCheckout: () => void;
   checkoutState: 'idle' | 'loading' | 'error';
+  checkoutError: string;
 }) {
   const checkoutResult = new URLSearchParams(window.location.search).get('checkout');
 
@@ -212,6 +214,7 @@ function HomePage({
         updateQuantity={updateQuantity}
         startCheckout={startCheckout}
         checkoutState={checkoutState}
+        checkoutError={checkoutError}
       />
 
       <section id="story" className="story-section">
@@ -261,12 +264,14 @@ function CartSection({
   updateQuantity,
   startCheckout,
   checkoutState,
+  checkoutError,
 }: {
   cartProducts: Array<CartItem & { product: Product }>;
   subtotal: number;
   updateQuantity: (productId: string, nextQuantity: number) => void;
   startCheckout: () => void;
   checkoutState: 'idle' | 'loading' | 'error';
+  checkoutError: string;
 }) {
   return (
     <section id="cart" className="cart-section">
@@ -333,8 +338,7 @@ function CartSection({
 
             {checkoutState === 'error' ? (
               <p className="checkout-error">
-                Checkout is not connected yet. Add your Stripe keys in `.env` and
-                restart the dev server.
+                {checkoutError || 'Checkout could not be started. Check your Stripe settings and try again.'}
               </p>
             ) : null}
           </>
@@ -359,12 +363,14 @@ function CartPage({
   updateQuantity,
   startCheckout,
   checkoutState,
+  checkoutError,
 }: {
   cartProducts: Array<CartItem & { product: Product }>;
   subtotal: number;
   updateQuantity: (productId: string, nextQuantity: number) => void;
   startCheckout: () => void;
   checkoutState: 'idle' | 'loading' | 'error';
+  checkoutError: string;
 }) {
   return (
     <main className="standalone-cart-page">
@@ -374,6 +380,7 @@ function CartPage({
         updateQuantity={updateQuantity}
         startCheckout={startCheckout}
         checkoutState={checkoutState}
+        checkoutError={checkoutError}
       />
     </main>
   );
@@ -641,6 +648,7 @@ function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) 
 function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [checkoutError, setCheckoutError] = useState('');
 
   const cartProducts = useMemo(
     () =>
@@ -693,6 +701,7 @@ function App() {
     }
 
     setCheckoutState('loading');
+    setCheckoutError('');
 
     try {
       const response = await fetch('/api/create-checkout-session', {
@@ -709,7 +718,8 @@ function App() {
       });
 
       if (!response.ok) {
-        throw new Error('Checkout request failed');
+        const errorData = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(errorData?.error || 'Checkout request failed');
       }
 
       const data = (await response.json()) as { url?: string };
@@ -721,6 +731,7 @@ function App() {
       window.location.assign(data.url);
     } catch (error) {
       console.error(error);
+      setCheckoutError(error instanceof Error ? error.message : 'Checkout request failed');
       setCheckoutState('error');
     }
   }
@@ -739,6 +750,7 @@ function App() {
               updateQuantity={updateQuantity}
               startCheckout={startCheckout}
               checkoutState={checkoutState}
+              checkoutError={checkoutError}
             />
           }
         />
@@ -755,6 +767,7 @@ function App() {
               updateQuantity={updateQuantity}
               startCheckout={startCheckout}
               checkoutState={checkoutState}
+              checkoutError={checkoutError}
             />
           }
         />

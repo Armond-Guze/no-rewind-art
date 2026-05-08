@@ -7,6 +7,7 @@ const app = express();
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const clientUrl = process.env.CLIENT_URL || 'http://127.0.0.1:5173';
 const port = Number(process.env.PORT || 4242);
+const automaticTaxEnabled = process.env.STRIPE_AUTOMATIC_TAX === 'true';
 
 const stripe = stripeSecretKey
   ? new Stripe(stripeSecretKey, {
@@ -93,7 +94,7 @@ app.post('/api/create-checkout-session', async (request, response) => {
         },
       ],
       automatic_tax: {
-        enabled: true,
+        enabled: automaticTaxEnabled,
       },
       success_url: `${clientUrl}/?checkout=success#cart`,
       cancel_url: `${clientUrl}/?checkout=cancelled#cart`,
@@ -105,7 +106,9 @@ app.post('/api/create-checkout-session', async (request, response) => {
     response.json({ url: session.url });
   } catch (error) {
     console.error(error);
-    response.status(500).json({ error: 'Unable to create checkout session.' });
+    response.status(500).json({
+      error: error?.message || 'Unable to create checkout session.',
+    });
   }
 });
 
