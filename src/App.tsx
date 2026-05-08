@@ -1,5 +1,5 @@
 import { useMemo, useState, type CSSProperties } from 'react';
-import { Link, Route, Routes, useParams } from 'react-router-dom';
+import { Link, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -64,7 +64,7 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
         <Link to="/collections/discipline-focus">Focus</Link>
         <Link to="/collections/new-arrivals">New Arrivals</Link>
         <Link to="/#story">Story</Link>
-        <Link to="/#cart">Cart ({cartCount})</Link>
+        <Link to="/cart">Cart ({cartCount})</Link>
       </nav>
     </header>
   );
@@ -246,10 +246,10 @@ function HomePage({
           site owns the cart experience, and Stripe handles secure payment,
           billing details, and confirmation.
         </p>
-        <a className="button button-primary" href="#cart">
+        <Link className="button button-primary" to="/cart">
           <Sparkles aria-hidden="true" size={18} />
           Review Cart
-        </a>
+        </Link>
       </section>
     </main>
   );
@@ -353,6 +353,32 @@ function CartSection({
   );
 }
 
+function CartPage({
+  cartProducts,
+  subtotal,
+  updateQuantity,
+  startCheckout,
+  checkoutState,
+}: {
+  cartProducts: Array<CartItem & { product: Product }>;
+  subtotal: number;
+  updateQuantity: (productId: string, nextQuantity: number) => void;
+  startCheckout: () => void;
+  checkoutState: 'idle' | 'loading' | 'error';
+}) {
+  return (
+    <main className="standalone-cart-page">
+      <CartSection
+        cartProducts={cartProducts}
+        subtotal={subtotal}
+        updateQuantity={updateQuantity}
+        startCheckout={startCheckout}
+        checkoutState={checkoutState}
+      />
+    </main>
+  );
+}
+
 function CollectionPage({ addToCart }: { addToCart: (productId: string) => void }) {
   const { slug } = useParams();
   const collection = getCollectionBySlug(slug);
@@ -430,6 +456,7 @@ function CollectionPage({ addToCart }: { addToCart: (productId: string) => void 
 
 function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const product = getProductBySlug(slug);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedFrame, setSelectedFrame] = useState(0);
@@ -562,11 +589,18 @@ function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) 
             Pay in 4 interest-free installments with Stripe-compatible payment methods at checkout.
           </div>
 
-          <button className="button button-primary listing-cart-button" type="button" onClick={() => addToCart(product.id)}>
+          <button
+            className="button button-primary listing-cart-button"
+            type="button"
+            onClick={() => {
+              addToCart(product.id);
+              navigate('/cart');
+            }}
+          >
             Add to Cart
           </button>
 
-          <Link className="button button-secondary listing-cart-button" to="/#cart">
+          <Link className="button button-secondary listing-cart-button" to="/cart">
             Review Cart
           </Link>
 
@@ -711,6 +745,18 @@ function App() {
         <Route
           path="/collections/:slug"
           element={<CollectionPage addToCart={addToCart} />}
+        />
+        <Route
+          path="/cart"
+          element={
+            <CartPage
+              cartProducts={cartProducts}
+              subtotal={subtotal}
+              updateQuantity={updateQuantity}
+              startCheckout={startCheckout}
+              checkoutState={checkoutState}
+            />
+          }
         />
         <Route path="/products/:slug" element={<ProductPage addToCart={addToCart} />} />
       </Routes>

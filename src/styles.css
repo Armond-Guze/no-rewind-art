@@ -1051,6 +1051,17 @@ h3 {
   border-top: 1px solid var(--line);
 }
 
+.standalone-cart-page {
+  min-height: calc(100vh - 73px);
+  background: var(--black);
+}
+
+.standalone-cart-page .cart-section {
+  min-height: calc(100vh - 73px);
+  align-items: center;
+  border-top: 0;
+}
+
 .cart-copy p:not(.eyebrow) {
   max-width: 620px;
   color: var(--muted);
