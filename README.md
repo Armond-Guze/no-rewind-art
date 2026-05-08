@@ -84,6 +84,17 @@ images later using the standard names.
 Images can be `.jpg`, `.png`, `.webp`, or `.avif`, but keep each product's
 gallery filenames consistent with the extensions used in `products.ts`.
 
+## Artwork Shadows
+
+For the clean product-grid look, export each main product image as a transparent
+PNG or WebP cutout with only the print/canvas visible. Do not bake in a room
+background or shadow for the main listing image.
+
+The site automatically adds the product shadow with CSS `drop-shadow()`, so one
+style applies to every product image. This works best when the image has real
+transparent pixels around the artwork. If an image has a solid background baked
+in, the shadow will follow that full rectangle.
+
 ## Product Pages
 
 Each product has its own listing page:
