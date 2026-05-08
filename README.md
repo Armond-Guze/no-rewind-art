@@ -95,6 +95,32 @@ style applies to every product image. This works best when the image has real
 transparent pixels around the artwork. If an image has a solid background baked
 in, the shadow will follow that full rectangle.
 
+## Generating Canvas Cutouts
+
+Use this kind of prompt when generating the main product image:
+
+```text
+Create a transparent PNG product cutout of this wall art as a real canvas print.
+No background, no wall, no room, no frame, no shadow.
+Show only the canvas/print itself, centered, with a small transparent margin.
+Make the canvas look physical and premium: subtle woven canvas texture, matte
+ink, slight fabric grain, crisp printed detail, clean stretched-canvas edges,
+and natural depth without adding a drop shadow.
+Aspect ratio 2:3, high resolution.
+```
+
+Change the aspect ratio depending on the product:
+
+```text
+Portrait: 2:3 or 3:4
+Landscape: 3:2 or 4:3
+Square: 1:1
+```
+
+For print-production files, keep a separate clean artwork master without fake
+canvas edges, product shadows, room mockups, or transparent padding. The
+canvas-cutout image is for the website listing presentation.
+
 ## Product Pages
 
 Each product has its own listing page:
