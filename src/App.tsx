@@ -29,6 +29,8 @@ type CartItem = {
   quantity: number;
 };
 
+const missingImages = new Set<string>();
+
 const formatPrice = (cents: number) =>
   new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -49,6 +51,34 @@ function ProductImage({ product }: { product: Product }) {
   }
 
   return <ProductVisual product={product} />;
+}
+
+function GalleryImage({
+  src,
+  alt,
+  className,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+}) {
+  const [hidden, setHidden] = useState(missingImages.has(src));
+
+  if (hidden) {
+    return null;
+  }
+
+  return (
+    <img
+      className={className}
+      src={src}
+      alt={alt}
+      onError={() => {
+        missingImages.add(src);
+        setHidden(true);
+      }}
+    />
+  );
 }
 
 function SiteHeader({ cartCount }: { cartCount: number }) {
@@ -482,7 +512,8 @@ function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) 
     );
   }
 
-  const gallery = product.gallery.length ? product.gallery : [];
+  const gallery = product.gallery ?? [];
+  const selectedGalleryImage = gallery[selectedImage];
   const selectedOption = product.sizeOptions[selectedSize] ?? product.sizeOptions[0];
   const selectedFrameName = product.framingOptions[selectedFrame] ?? product.framingOptions[0];
   const frameClass =
@@ -516,7 +547,7 @@ function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) 
                 {image === 'placeholder' ? (
                   <ProductVisual product={product} />
                 ) : (
-                  <img src={image} alt="" />
+                  <GalleryImage src={image} alt="" />
                 )}
               </button>
             ))}
@@ -527,11 +558,11 @@ function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) 
               className={`detail-artwork-shell ${frameClass} shape-${product.artworkShape}`}
               style={{ '--size-scale': sizeScale } as CSSProperties}
             >
-              {gallery[selectedImage] ? (
-                <img src={gallery[selectedImage]} alt={product.imageAlt} />
-              ) : (
-                <ProductVisual product={product} />
-              )}
+            {selectedGalleryImage ? (
+              <GalleryImage src={selectedGalleryImage} alt={product.imageAlt} />
+            ) : (
+              <ProductVisual product={product} />
+            )}
             </div>
           </div>
         </div>

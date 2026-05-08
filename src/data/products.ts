@@ -17,10 +17,11 @@ export type Product = {
   description: string;
   longDescription: string;
   label: string;
+  imageFolder?: string;
   image?: string;
   imageAlt: string;
   artworkShape: ArtworkShape;
-  gallery: string[];
+  gallery?: string[];
   tone: ProductTone;
   collectionSlugs: string[];
   priceInCents: number;
@@ -35,6 +36,22 @@ export type Product = {
   }>;
   details: string[];
 };
+
+const defaultGalleryFiles = [
+  '01-main.png',
+  '02-gallery.png',
+  '03-gallery.png',
+  '04-gallery.png',
+  '05-gallery.png',
+];
+
+function imagePath(folder: string, fileName: string) {
+  return `/artwork/${folder}/${fileName}`;
+}
+
+function buildGallery(folder: string, fileNames = defaultGalleryFiles) {
+  return fileNames.map((fileName) => imagePath(folder, fileName));
+}
 
 export const collections: Collection[] = [
   {
@@ -100,15 +117,11 @@ export const products: Product[] = [
     longDescription:
       'A bold cassette-inspired reminder that time only moves forward. Designed for offices, bedrooms, studios, dorm rooms, and creative spaces that need a daily push.',
     label: 'Life Has No Rewind',
-    image: '/artwork/life.png',
+    imageFolder: 'life-has-no-rewind',
+    image: imagePath('life-has-no-rewind', '01-main.png'),
     imageAlt: 'Life Has No Rewind motivational cassette canvas print',
     artworkShape: 'landscape',
-    gallery: [
-      '/artwork/life.png',
-      '/artwork/life.png',
-      '/artwork/life.png',
-      '/artwork/life.png',
-    ],
+    gallery: buildGallery('life-has-no-rewind', ['01-main.png', '02-gallery.png']),
     tone: 'cassette',
     collectionSlugs: ['best-sellers', 'discipline-focus'],
     priceInCents: 5500,
@@ -137,15 +150,11 @@ export const products: Product[] = [
     longDescription:
       'A money-mindset statement piece made for workspaces, studios, and rooms where ambition needs to stay visible.',
     label: 'Money Is Energy',
-    image: '/artwork/money canvas.png',
+    imageFolder: 'money-is-energy',
+    image: imagePath('money-is-energy', '01-main.png'),
     imageAlt: 'ATM money mindset canvas print',
     artworkShape: 'landscape',
-    gallery: [
-      '/artwork/money canvas.png',
-      '/artwork/money canvas.png',
-      '/artwork/money canvas.png',
-      '/artwork/money canvas.png',
-    ],
+    gallery: buildGallery('money-is-energy', ['01-main.png']),
     tone: 'money',
     collectionSlugs: ['best-sellers', 'money-ambition'],
     priceInCents: 5500,
@@ -205,10 +214,11 @@ export const products: Product[] = [
     longDescription:
       'A thoughtful wall-art piece for readers, builders, and anyone creating a room that keeps their mind sharp. This listing uses dummy copy for now and can be adjusted once the final title is locked in.',
     label: 'Bookshelf Mindset',
-    image: '/artwork/bookshelf.png',
+    imageFolder: 'bookshelf',
+    image: imagePath('bookshelf', '01-main.png'),
     imageAlt: 'Bookshelf motivational canvas print mockup',
     artworkShape: 'landscape',
-    gallery: ['/artwork/bookshelf.png'],
+    gallery: buildGallery('bookshelf', ['01-main.png']),
     tone: 'minimal',
     collectionSlugs: ['new-arrivals', 'study-creative'],
     priceInCents: 5500,
@@ -237,10 +247,11 @@ export const products: Product[] = [
     longDescription:
       'A direct money-mindset print for offices, studios, and rooms where the goal is simple: build, earn, repeat. This copy is placeholder copy until the final listing language is set.',
     label: 'Paycheck Energy',
-    image: '/artwork/paycheck.png',
+    imageFolder: 'paycheck',
+    image: imagePath('paycheck', '01-main.png'),
     imageAlt: 'Paycheck money mindset canvas print mockup',
     artworkShape: 'landscape',
-    gallery: ['/artwork/paycheck.png'],
+    gallery: buildGallery('paycheck', ['01-main.png']),
     tone: 'money',
     collectionSlugs: ['best-sellers', 'money-ambition', 'new-arrivals'],
     priceInCents: 5500,
@@ -269,10 +280,11 @@ export const products: Product[] = [
     longDescription:
       'A visual reminder that progress is built one step at a time. This listing is set up with placeholder copy so the product page, cart, and checkout flow can be tested now.',
     label: 'One Step Higher',
-    image: '/artwork/stairs.png',
+    imageFolder: 'stairs',
+    image: imagePath('stairs', '01-main.png'),
     imageAlt: 'Stairs motivational canvas print mockup',
     artworkShape: 'portrait',
-    gallery: ['/artwork/stairs.png'],
+    gallery: buildGallery('stairs', ['01-main.png']),
     tone: 'focus',
     collectionSlugs: ['best-sellers', 'discipline-focus', 'new-arrivals'],
     priceInCents: 5500,
@@ -301,10 +313,11 @@ export const products: Product[] = [
     longDescription:
       'A print built around learning, discipline, and the ideas that push people forward. Product details are dummy data for now so we can keep building the shop experience.',
     label: 'Books of Motivation',
-    image: '/artwork/books of motivation.png',
+    imageFolder: 'books-of-motivation',
+    image: imagePath('books-of-motivation', '01-main.png'),
     imageAlt: 'Books of Motivation canvas print mockup',
     artworkShape: 'portrait',
-    gallery: ['/artwork/books of motivation.png'],
+    gallery: buildGallery('books-of-motivation', ['01-main.png']),
     tone: 'minimal',
     collectionSlugs: ['new-arrivals', 'study-creative'],
     priceInCents: 5500,
@@ -333,10 +346,11 @@ export const products: Product[] = [
     longDescription:
       'A bold self-definition piece for anyone rebuilding identity, confidence, and direction. This is dummy product copy for now and can be sharpened once the final listing strategy is set.',
     label: 'Hello I Am',
-    image: '/artwork/hello i am.png',
+    imageFolder: 'hello-i-am',
+    image: imagePath('hello-i-am', '01-main.png'),
     imageAlt: 'Hello I Am motivational canvas print mockup',
     artworkShape: 'landscape',
-    gallery: ['/artwork/hello i am.png'],
+    gallery: buildGallery('hello-i-am', ['01-main.png']),
     tone: 'focus',
     collectionSlugs: ['new-arrivals', 'discipline-focus'],
     priceInCents: 5500,
@@ -365,10 +379,11 @@ export const products: Product[] = [
     longDescription:
       'A high-contrast discipline piece built around the idea that the small percentage who keep going create a different life. Dummy product copy is in place for now so the listing can be refined later.',
     label: '97 Percent',
-    image: '/artwork/97 percent.png',
+    imageFolder: '97-percent',
+    image: imagePath('97-percent', '01-main.png'),
     imageAlt: '97 Percent motivational canvas print mockup',
     artworkShape: 'portrait',
-    gallery: ['/artwork/97 percent.png'],
+    gallery: buildGallery('97-percent', ['01-main.png']),
     tone: 'focus',
     collectionSlugs: ['best-sellers', 'discipline-focus', 'new-arrivals'],
     priceInCents: 5500,
@@ -397,10 +412,11 @@ export const products: Product[] = [
     longDescription:
       'A clean reminder to stay steady when things get loud. This product page is wired with dummy listing data for now and can be sharpened around the final artwork angle.',
     label: 'Calm Under Pressure',
-    image: '/artwork/calm under pressure.png',
+    imageFolder: 'calm-under-pressure',
+    image: imagePath('calm-under-pressure', '01-main.png'),
     imageAlt: 'Calm Under Pressure motivational canvas print mockup',
     artworkShape: 'landscape',
-    gallery: ['/artwork/calm under pressure.png'],
+    gallery: buildGallery('calm-under-pressure', ['01-main.png']),
     tone: 'focus',
     collectionSlugs: ['best-sellers', 'discipline-focus', 'new-arrivals'],
     priceInCents: 5500,
@@ -429,10 +445,11 @@ export const products: Product[] = [
     longDescription:
       'A companion variation for the Calm Under Pressure concept. The listing uses placeholder copy and can be merged, renamed, or removed once the final catalog is curated.',
     label: 'Calm Under Pressure II',
-    image: '/artwork/calm under pres.png',
+    imageFolder: 'calm-under-pres',
+    image: imagePath('calm-under-pres', '01-main.png'),
     imageAlt: 'Calm Under Pressure variation canvas print mockup',
     artworkShape: 'landscape',
-    gallery: ['/artwork/calm under pres.png'],
+    gallery: buildGallery('calm-under-pres', ['01-main.png']),
     tone: 'focus',
     collectionSlugs: ['discipline-focus', 'new-arrivals'],
     priceInCents: 5500,
@@ -461,10 +478,11 @@ export const products: Product[] = [
     longDescription:
       'A self-reminder print for people rebuilding confidence, direction, and identity. Dummy listing data is in place so the product page is ready for review.',
     label: 'Remember Who You Are',
-    image: '/artwork/remember who u are.png',
+    imageFolder: 'remember-who-you-are',
+    image: imagePath('remember-who-you-are', '01-main.png'),
     imageAlt: 'Remember Who You Are motivational canvas print mockup',
     artworkShape: 'landscape',
-    gallery: ['/artwork/remember who u are.png'],
+    gallery: buildGallery('remember-who-you-are', ['01-main.png']),
     tone: 'focus',
     collectionSlugs: ['discipline-focus', 'new-arrivals'],
     priceInCents: 5500,

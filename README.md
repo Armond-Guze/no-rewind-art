@@ -54,15 +54,35 @@ npm run build
 
 ## Adding Artwork
 
-1. Add image files to `public/artwork/`.
+1. Create one folder per product inside `public/artwork/`.
 2. Open `src/data/products.ts`.
-3. Add an `image` value using this format:
+3. Add or update the product entry.
 
-```ts
-image: '/artwork/your-file-name.jpg',
+Use this folder naming convention:
+
+```text
+public/artwork/
+  product-slug/
+    01-main.png
+    02-gallery.png
+    03-gallery.png
+    04-gallery.png
+    05-gallery.png
 ```
 
-Images can be `.jpg`, `.png`, `.webp`, or `.avif`.
+For each product, set:
+
+```ts
+imageFolder: 'product-slug',
+image: imagePath('product-slug', '01-main.png'),
+gallery: buildGallery('product-slug'),
+```
+
+If you only have `01-main.png`, the site will still work. Add the other gallery
+images later using the standard names.
+
+Images can be `.jpg`, `.png`, `.webp`, or `.avif`, but keep each product's
+gallery filenames consistent with the extensions used in `products.ts`.
 
 ## Product Pages
 
