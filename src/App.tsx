@@ -22,12 +22,22 @@ import {
   getProductsForCollection,
   products,
   type Product,
+  type SizeOption,
 } from './data/products';
 
 type CartItem = {
+  lineKey: string;
   productId: string;
+  sizeId: string;
   quantity: number;
 };
+
+type CartLine = CartItem & {
+  product: Product;
+  sizeOption: SizeOption;
+};
+
+type AddToCart = (productId: string, sizeId?: string) => void;
 
 const missingImages = new Set<string>();
 
@@ -36,6 +46,25 @@ const formatPrice = (cents: number) =>
     style: 'currency',
     currency: 'USD',
   }).format(cents / 100);
+
+function makeCartLineKey(productId: string, sizeId: string) {
+  return `${productId}::${sizeId}`;
+}
+
+function getBaseSizeOption(product: Product) {
+  return product.sizeOptions[0];
+}
+
+function getFeaturedSizeOption(product: Product) {
+  return (
+    product.sizeOptions.find((option) => option.id === product.defaultSizeId) ??
+    product.sizeOptions[0]
+  );
+}
+
+function getSizeOption(product: Product, sizeId: string) {
+  return product.sizeOptions.find((option) => option.id === sizeId) ?? getBaseSizeOption(product);
+}
 
 function ProductVisual({ product }: { product: Product }) {
   return (
@@ -47,10 +76,38 @@ function ProductVisual({ product }: { product: Product }) {
 
 function ProductImage({ product }: { product: Product }) {
   if (product.image) {
-    return <img className={`raw-product-image shape-${product.artworkShape}`} src={product.image} alt={product.imageAlt} />;
+    return <ArtworkMockup product={product} src={product.image} alt={product.imageAlt} />;
   }
 
   return <ProductVisual product={product} />;
+}
+
+function ArtworkMockup({
+  product,
+  src,
+  alt,
+  className,
+}: {
+  product: Product;
+  src?: string;
+  alt: string;
+  className?: string;
+}) {
+  const classNames = ['artwork-mockup', `shape-${product.artworkShape}`, className]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <div className={classNames}>
+      <div className="artwork-mockup-print">
+        {src ? (
+          <GalleryImage className="artwork-mockup-image" src={src} alt={alt} />
+        ) : (
+          <ProductVisual product={product} />
+        )}
+      </div>
+    </div>
+  );
 }
 
 function GalleryImage({
@@ -109,10 +166,10 @@ function HomePage({
   checkoutState,
   checkoutError,
 }: {
-  addToCart: (productId: string) => void;
-  cartProducts: Array<CartItem & { product: Product }>;
+  addToCart: AddToCart;
+  cartProducts: CartLine[];
   subtotal: number;
-  updateQuantity: (productId: string, nextQuantity: number) => void;
+  updateQuantity: (lineKey: string, nextQuantity: number) => void;
   startCheckout: () => void;
   checkoutState: 'idle' | 'loading' | 'error';
   checkoutError: string;
@@ -209,7 +266,7 @@ function HomePage({
           {products.map((product) => (
             <article className="product" key={product.id}>
               <Link className="product-image-link" to={`/products/${product.slug}`}>
-                <ProductVisual product={product} />
+                <ProductImage product={product} />
               </Link>
               <div className="product-copy">
                 <div className="product-title-row">
@@ -296,9 +353,9 @@ function CartSection({
   checkoutState,
   checkoutError,
 }: {
-  cartProducts: Array<CartItem & { product: Product }>;
+  cartProducts: CartLine[];
   subtotal: number;
-  updateQuantity: (productId: string, nextQuantity: number) => void;
+  updateQuantity: (lineKey: string, nextQuantity: number) => void;
   startCheckout: () => void;
   checkoutState: 'idle' | 'loading' | 'error';
   checkoutError: string;
@@ -318,8 +375,8 @@ function CartSection({
         {cartProducts.length ? (
           <>
             <div className="cart-items">
-              {cartProducts.map(({ product, quantity }) => (
-                <div className="cart-item" key={product.id}>
+              {cartProducts.map(({ lineKey, product, quantity, sizeOption }) => (
+                <div className="cart-item" key={lineKey}>
                   <div>
                     <h3>{product.title}</h3>
                     <p>
@@ -330,7 +387,7 @@ function CartSection({
                     <button
                       type="button"
                       aria-label={`Decrease ${product.title} quantity`}
-                      onClick={() => updateQuantity(product.id, quantity - 1)}
+                      onClick={() => updateQuantity(lineKey, quantity - 1)}
                     >
                       {quantity === 1 ? (
                         <Trash2 aria-hidden="true" size={16} />
@@ -342,7 +399,7 @@ function CartSection({
                     <button
                       type="button"
                       aria-label={`Increase ${product.title} quantity`}
-                      onClick={() => updateQuantity(product.id, quantity + 1)}
+                      onClick={() => updateQuantity(lineKey, quantity + 1)}
                     >
                       <Plus aria-hidden="true" size={16} />
                     </button>
@@ -395,9 +452,9 @@ function CartPage({
   checkoutState,
   checkoutError,
 }: {
-  cartProducts: Array<CartItem & { product: Product }>;
+  cartProducts: CartLine[];
   subtotal: number;
-  updateQuantity: (productId: string, nextQuantity: number) => void;
+  updateQuantity: (lineKey: string, nextQuantity: number) => void;
   startCheckout: () => void;
   checkoutState: 'idle' | 'loading' | 'error';
   checkoutError: string;
@@ -416,7 +473,7 @@ function CartPage({
   );
 }
 
-function CollectionPage({ addToCart }: { addToCart: (productId: string) => void }) {
+function CollectionPage({ addToCart }: { addToCart: AddToCart }) {
   const { slug } = useParams();
   const collection = getCollectionBySlug(slug);
   const collectionProducts = getProductsForCollection(slug);
@@ -491,13 +548,13 @@ function CollectionPage({ addToCart }: { addToCart: (productId: string) => void 
   );
 }
 
-function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) {
+function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   const { slug } = useParams();
   const navigate = useNavigate();
   const product = getProductBySlug(slug);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedFrame, setSelectedFrame] = useState(0);
-  const [selectedSize, setSelectedSize] = useState(2);
+  const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(true);
 
   if (!product) {
@@ -512,9 +569,12 @@ function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) 
     );
   }
 
-  const gallery = product.gallery ?? [];
+  const gallery = product.gallery?.length ? product.gallery : product.image ? [product.image] : [];
   const selectedGalleryImage = gallery[selectedImage];
-  const selectedOption = product.sizeOptions[selectedSize] ?? product.sizeOptions[0];
+  const defaultSizeOption = getFeaturedSizeOption(product);
+  const selectedOption =
+    product.sizeOptions.find((option) => option.id === selectedSizeId) ?? defaultSizeOption;
+  const selectedSize = product.sizeOptions.findIndex((option) => option.id === selectedOption.id);
   const selectedFrameName = product.framingOptions[selectedFrame] ?? product.framingOptions[0];
   const frameClass =
     selectedFrameName === 'Black Frame'
@@ -522,7 +582,7 @@ function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) 
       : selectedFrameName === 'White Frame'
         ? 'frame-white'
         : 'frame-none';
-  const sizeScale = 0.94 + selectedSize * 0.045;
+  const sizeScale = selectedOption.previewScale ?? 0.94 + Math.max(selectedSize, 0) * 0.045;
 
   return (
     <main className="product-page">
@@ -558,11 +618,17 @@ function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) 
               className={`detail-artwork-shell ${frameClass} shape-${product.artworkShape}`}
               style={{ '--size-scale': sizeScale } as CSSProperties}
             >
-            {selectedGalleryImage ? (
-              <GalleryImage src={selectedGalleryImage} alt={product.imageAlt} />
-            ) : (
-              <ProductVisual product={product} />
-            )}
+              <div className="detail-artwork-surface">
+                {selectedGalleryImage ? (
+                  <GalleryImage
+                    className="detail-artwork-image"
+                    src={selectedGalleryImage}
+                    alt={product.imageAlt}
+                  />
+                ) : (
+                  <ProductVisual product={product} />
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -612,9 +678,9 @@ function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) 
               {product.sizeOptions.map((option, index) => (
                 <button
                   className={index === selectedSize ? 'selected' : ''}
-                  key={option.label}
+                  key={option.id}
                   type="button"
-                  onClick={() => setSelectedSize(index)}
+                  onClick={() => setSelectedSizeId(option.id)}
                 >
                   {option.badge ? <span>{option.badge}</span> : null}
                   {option.label}
@@ -631,7 +697,7 @@ function ProductPage({ addToCart }: { addToCart: (productId: string) => void }) 
             className="button button-primary listing-cart-button"
             type="button"
             onClick={() => {
-              addToCart(product.id);
+              addToCart(product.id, selectedOption.id);
               navigate('/cart');
             }}
           >
@@ -686,39 +752,53 @@ function App() {
       cart
         .map((item) => {
           const product = products.find((candidate) => candidate.id === item.productId);
-          return product ? { ...item, product } : null;
+          if (!product) {
+            return null;
+          }
+
+          const sizeOption = getSizeOption(product, item.sizeId);
+          return { ...item, product, sizeOption };
         })
-        .filter((item): item is CartItem & { product: Product } => Boolean(item)),
+        .filter((item): item is CartLine => Boolean(item)),
     [cart],
   );
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const subtotal = cartProducts.reduce(
-    (total, item) => total + item.product.priceInCents * item.quantity,
+    (total, item) => total + item.sizeOption.priceInCents * item.quantity,
     0,
   );
 
-  function addToCart(productId: string) {
+  function addToCart(productId: string, sizeId?: string) {
+    const product = products.find((candidate) => candidate.id === productId);
+
+    if (!product) {
+      return;
+    }
+
+    const sizeOption = sizeId ? getSizeOption(product, sizeId) : getBaseSizeOption(product);
+    const lineKey = makeCartLineKey(productId, sizeOption.id);
+
     setCart((currentCart) => {
-      const existing = currentCart.find((item) => item.productId === productId);
+      const existing = currentCart.find((item) => item.lineKey === lineKey);
 
       if (!existing) {
-        return [...currentCart, { productId, quantity: 1 }];
+        return [...currentCart, { lineKey, productId, sizeId: sizeOption.id, quantity: 1 }];
       }
 
       return currentCart.map((item) =>
-        item.productId === productId
+        item.lineKey === lineKey
           ? { ...item, quantity: Math.min(item.quantity + 1, 10) }
           : item,
       );
     });
   }
 
-  function updateQuantity(productId: string, nextQuantity: number) {
+  function updateQuantity(lineKey: string, nextQuantity: number) {
     setCart((currentCart) =>
       currentCart
         .map((item) =>
-          item.productId === productId
+          item.lineKey === lineKey
             ? { ...item, quantity: Math.max(0, Math.min(nextQuantity, 10)) }
             : item,
         )
@@ -743,6 +823,7 @@ function App() {
         body: JSON.stringify({
           items: cart.map((item) => ({
             id: item.productId,
+            sizeId: item.sizeId,
             quantity: item.quantity,
           })),
         }),

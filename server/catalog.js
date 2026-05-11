@@ -1,90 +1,157 @@
+const sizePresets = {
+  portraitTwoThree: [
+    { id: '12x18', label: '12 x 18', priceInCents: 5500 },
+    { id: '16x24', label: '16 x 24', priceInCents: 7900 },
+    { id: '24x36', label: '24 x 36', priceInCents: 11900 },
+    { id: '30x45', label: '30 x 45', priceInCents: 15900 },
+  ],
+  landscapeWide: [
+    { id: '24x12', label: '24 x 12', priceInCents: 5500 },
+    { id: '30x15', label: '30 x 15', priceInCents: 7900 },
+    { id: '36x18', label: '36 x 18', priceInCents: 11900 },
+    { id: '48x24', label: '48 x 24', priceInCents: 15900 },
+  ],
+};
+
+function withSizes(product, sizePreset, defaultSizeId) {
+  return {
+    ...product,
+    sizeOptions: sizePresets[sizePreset],
+    defaultSizeId,
+  };
+}
+
 export const products = [
-  {
-    id: 'life-has-no-rewind-canvas',
-    name: 'Life Has No Rewind',
-    description: 'Canvas print from No Rewind Art.',
-    unitAmount: 5500,
-    imagePath: '/artwork/life.png',
-  },
-  {
-    id: 'money-is-energy-canvas',
-    name: 'Money Is Energy',
-    description: 'Canvas print from No Rewind Art.',
-    unitAmount: 5500,
-    imagePath: '/artwork/money canvas.png',
-  },
-  {
-    id: 'keep-going-canvas',
-    name: 'Keep Going',
-    description: 'Canvas print from No Rewind Art.',
-    unitAmount: 5500,
-    imagePath: null,
-  },
-  {
-    id: 'bookshelf-canvas',
-    name: 'Bookshelf Mindset',
-    description: 'Canvas print from No Rewind Art.',
-    unitAmount: 5500,
-    imagePath: '/artwork/bookshelf.png',
-  },
-  {
-    id: 'paycheck-canvas',
-    name: 'Paycheck Energy',
-    description: 'Canvas print from No Rewind Art.',
-    unitAmount: 5500,
-    imagePath: '/artwork/paycheck.png',
-  },
-  {
-    id: 'stairs-canvas',
-    name: 'One Step Higher',
-    description: 'Canvas print from No Rewind Art.',
-    unitAmount: 5500,
-    imagePath: '/artwork/stairs.png',
-  },
-  {
-    id: 'books-of-motivation-canvas',
-    name: 'Books of Motivation',
-    description: 'Canvas print from No Rewind Art.',
-    unitAmount: 5500,
-    imagePath: '/artwork/books of motivation.png',
-  },
-  {
-    id: 'hello-i-am-canvas',
-    name: 'Hello I Am',
-    description: 'Canvas print from No Rewind Art.',
-    unitAmount: 5500,
-    imagePath: '/artwork/hello i am.png',
-  },
-  {
-    id: 'ninety-seven-percent-canvas',
-    name: '97 Percent',
-    description: 'Canvas print from No Rewind Art.',
-    unitAmount: 5500,
-    imagePath: '/artwork/97 percent.png',
-  },
-  {
-    id: 'calm-under-pressure-canvas',
-    name: 'Calm Under Pressure',
-    description: 'Canvas print from No Rewind Art.',
-    unitAmount: 5500,
-    imagePath: '/artwork/calm under pressure.png',
-  },
-  {
-    id: 'calm-under-pres-canvas',
-    name: 'Calm Under Pressure II',
-    description: 'Canvas print from No Rewind Art.',
-    unitAmount: 5500,
-    imagePath: '/artwork/calm under pres.png',
-  },
-  {
-    id: 'remember-who-you-are-canvas',
-    name: 'Remember Who You Are',
-    description: 'Canvas print from No Rewind Art.',
-    unitAmount: 5500,
-    imagePath: '/artwork/remember who u are.png',
-  },
+  withSizes(
+    {
+      id: 'life-has-no-rewind-canvas',
+      name: 'Life Has No Rewind',
+      description: 'Canvas print from No Rewind Art.',
+      imagePath: '/artwork/life.png',
+    },
+    'landscapeWide',
+    '36x18',
+  ),
+  withSizes(
+    {
+      id: 'money-is-energy-canvas',
+      name: 'Money Is Energy',
+      description: 'Canvas print from No Rewind Art.',
+      imagePath: '/artwork/money canvas.png',
+    },
+    'landscapeWide',
+    '36x18',
+  ),
+  withSizes(
+    {
+      id: 'keep-going-canvas',
+      name: 'Keep Going',
+      description: 'Canvas print from No Rewind Art.',
+      imagePath: null,
+    },
+    'portraitTwoThree',
+    '24x36',
+  ),
+  withSizes(
+    {
+      id: 'bookshelf-canvas',
+      name: 'Bookshelf Mindset',
+      description: 'Canvas print from No Rewind Art.',
+      imagePath: '/artwork/bookshelf test.png',
+    },
+    'landscapeWide',
+    '36x18',
+  ),
+  withSizes(
+    {
+      id: 'paycheck-canvas',
+      name: 'Paycheck Energy',
+      description: 'Canvas print from No Rewind Art.',
+      imagePath: '/artwork/paycheck.png',
+    },
+    'landscapeWide',
+    '36x18',
+  ),
+  withSizes(
+    {
+      id: 'stairs-canvas',
+      name: 'One Step Higher',
+      description: 'Canvas print from No Rewind Art.',
+      imagePath: '/artwork/stairs.png',
+    },
+    'portraitTwoThree',
+    '24x36',
+  ),
+  withSizes(
+    {
+      id: 'books-of-motivation-canvas',
+      name: 'Books of Motivation',
+      description: 'Canvas print from No Rewind Art.',
+      imagePath: '/artwork/books of motivation.png',
+    },
+    'portraitTwoThree',
+    '24x36',
+  ),
+  withSizes(
+    {
+      id: 'hello-i-am-canvas',
+      name: 'Hello I Am',
+      description: 'Canvas print from No Rewind Art.',
+      imagePath: '/artwork/hello i am.png',
+    },
+    'landscapeWide',
+    '36x18',
+  ),
+  withSizes(
+    {
+      id: 'ninety-seven-percent-canvas',
+      name: '97 Percent',
+      description: 'Canvas print from No Rewind Art.',
+      imagePath: '/artwork/97 percent.png',
+    },
+    'portraitTwoThree',
+    '24x36',
+  ),
+  withSizes(
+    {
+      id: 'calm-under-pressure-canvas',
+      name: 'Calm Under Pressure',
+      description: 'Canvas print from No Rewind Art.',
+      imagePath: '/artwork/calm-under-pressure/02-gallery.png',
+    },
+    'landscapeWide',
+    '36x18',
+  ),
+  withSizes(
+    {
+      id: 'calm-under-pres-canvas',
+      name: 'Calm Under Pressure II',
+      description: 'Canvas print from No Rewind Art.',
+      imagePath: '/artwork/calm under pres.png',
+    },
+    'landscapeWide',
+    '36x18',
+  ),
+  withSizes(
+    {
+      id: 'remember-who-you-are-canvas',
+      name: 'Remember Who You Are',
+      description: 'Canvas print from No Rewind Art.',
+      imagePath: '/artwork/remember who u are.png',
+    },
+    'landscapeWide',
+    '36x18',
+  ),
 ];
 
 export function findProduct(productId) {
   return products.find((product) => product.id === productId);
+}
+
+export function findSizeOption(product, sizeId) {
+  return (
+    product.sizeOptions.find((option) => option.id === sizeId) ??
+    product.sizeOptions.find((option) => option.id === product.defaultSizeId) ??
+    product.sizeOptions[0]
+  );
 }

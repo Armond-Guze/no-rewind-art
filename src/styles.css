@@ -354,6 +354,20 @@ h3 {
   display: block;
 }
 
+.product-image-link .artwork-mockup {
+  width: 100%;
+  max-width: none;
+  padding: 24px;
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 50% 22%, rgba(244, 239, 230, 0.1), transparent 36%),
+    linear-gradient(180deg, #181716, #0c0c0d);
+}
+
+.product-image-link .artwork-mockup.shape-landscape {
+  width: 100%;
+}
+
 .product-art {
   aspect-ratio: 4 / 5;
   display: grid;
@@ -377,6 +391,101 @@ h3 {
   height: 100%;
   object-fit: contain;
   display: block;
+}
+
+.artwork-mockup {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 430px);
+  aspect-ratio: 4 / 5;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+
+.artwork-mockup.shape-landscape {
+  width: min(100%, 470px);
+  aspect-ratio: 16 / 10;
+}
+
+.artwork-mockup.shape-square {
+  aspect-ratio: 1;
+}
+
+.artwork-mockup::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 5%;
+  right: 5%;
+  bottom: 0;
+  height: 24%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.58), transparent 74%);
+  filter: blur(12px);
+  transform: scaleY(0.52);
+}
+
+.artwork-mockup-print {
+  position: relative;
+  z-index: 1;
+  width: 76%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #f8f5ee;
+  box-shadow:
+    0 38px 44px rgba(0, 0, 0, 0.36),
+    0 20px 22px rgba(0, 0, 0, 0.34),
+    0 8px 9px rgba(0, 0, 0, 0.42),
+    0 2px 3px rgba(0, 0, 0, 0.32),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.34);
+}
+
+.artwork-mockup-print::before,
+.detail-artwork-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12) 0 1px, rgba(0, 0, 0, 0.08) 1px 2px, transparent 2px 4px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0 1px, rgba(255, 255, 255, 0.1) 1px 2px, transparent 2px 5px),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 38%, rgba(0, 0, 0, 0.12));
+  background-size: 4px 4px, 5px 5px, 100% 100%;
+  mix-blend-mode: overlay;
+  opacity: 0.42;
+}
+
+.artwork-mockup-print::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  box-shadow:
+    inset -14px 0 18px rgba(0, 0, 0, 0.12),
+    inset 0 -12px 18px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+
+.artwork-mockup.shape-landscape .artwork-mockup-print {
+  width: 91%;
+}
+
+.artwork-mockup.shape-portrait .artwork-mockup-print {
+  width: 68%;
+}
+
+.artwork-mockup.shape-square .artwork-mockup-print {
+  width: 78%;
+}
+
+.artwork-mockup-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 
 .product-art span {
@@ -569,7 +678,7 @@ h3 {
 
 .listing-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   border-top: 1px solid rgba(21, 21, 21, 0.1);
   border-left: 1px solid rgba(21, 21, 21, 0.1);
 }
@@ -577,7 +686,7 @@ h3 {
 .listing-card {
   display: grid;
   grid-template-rows: auto 82px;
-  min-height: 520px;
+  min-height: 610px;
   background: #fff;
   border-right: 1px solid rgba(21, 21, 21, 0.1);
   border-bottom: 1px solid rgba(21, 21, 21, 0.1);
@@ -586,13 +695,13 @@ h3 {
 .listing-card-image {
   display: grid;
   place-items: center;
-  min-height: 438px;
-  padding: clamp(20px, 3vw, 46px);
+  min-height: 528px;
+  padding: clamp(12px, 1.6vw, 28px);
   background: #f7f5f0;
 }
 
 .listing-card-image .product-art {
-  width: min(100%, 430px);
+  width: min(100%, 560px);
   border: 0;
   box-shadow: none;
   filter:
@@ -601,18 +710,30 @@ h3 {
 }
 
 .listing-card-image .product-art.shape-landscape {
-  width: min(100%, 470px);
+  width: min(100%, 680px);
 }
 
 .listing-card-image .product-art.shape-portrait {
-  width: min(78%, 330px);
+  width: min(86%, 430px);
+}
+
+.listing-card-image .artwork-mockup {
+  width: min(100%, 560px);
+}
+
+.listing-card-image .artwork-mockup.shape-landscape {
+  width: min(100%, 680px);
+}
+
+.listing-card-image .artwork-mockup.shape-portrait {
+  width: min(86%, 430px);
 }
 
 .raw-product-image {
   display: block;
-  width: min(100%, 430px);
+  width: min(100%, 560px);
   height: auto;
-  max-height: 340px;
+  max-height: 460px;
   object-fit: contain;
   background: transparent;
   filter:
@@ -621,12 +742,12 @@ h3 {
 }
 
 .raw-product-image.shape-landscape {
-  width: min(100%, 470px);
+  width: min(100%, 680px);
 }
 
 .raw-product-image.shape-portrait {
-  width: min(78%, 330px);
-  max-height: 360px;
+  width: min(86%, 430px);
+  max-height: 480px;
 }
 
 .listing-card-copy {
@@ -686,8 +807,8 @@ h3 {
 
 .listing-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
-  gap: clamp(34px, 5vw, 72px);
+  grid-template-columns: minmax(0, 1.25fr) minmax(340px, 500px);
+  gap: clamp(28px, 4vw, 56px);
   align-items: start;
   padding: 28px clamp(18px, 4vw, 56px) clamp(64px, 8vw, 110px);
 }
@@ -736,22 +857,47 @@ h3 {
 }
 
 .main-product-image {
-  min-height: min(78vh, 920px);
+  position: relative;
+  isolation: isolate;
+  min-height: min(76vh, 820px);
   display: grid;
   place-items: center;
   overflow: hidden;
-  padding: clamp(24px, 4vw, 64px);
+  padding: clamp(28px, 4vw, 64px);
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.18), rgba(0, 0, 0, 0.04)),
-    #e6dfd4;
+    radial-gradient(circle at 50% 22%, rgba(255, 255, 255, 0.46), transparent 36%),
+    linear-gradient(180deg, #f3f0e8 0%, #ebe6db 66%, #d8d1c4 66.2%, #d4cdbf 100%);
+}
+
+.main-product-image::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 66% 0 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 18%, rgba(89, 73, 54, 0.16)),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.24), transparent 42%, rgba(0, 0, 0, 0.08));
+}
+
+.main-product-image::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.06), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.08)),
+    radial-gradient(ellipse at center, transparent 34%, rgba(79, 65, 48, 0.08) 100%);
+  pointer-events: none;
 }
 
 .detail-artwork-shell {
   --size-scale: 1;
+  position: relative;
+  z-index: 1;
   display: grid;
   place-items: center;
-  width: min(560px, 82%);
-  transform: scale(var(--size-scale));
+  width: min(680px, 92%);
+  transform: translateY(-2%) scale(var(--size-scale));
   transition:
     transform 180ms ease,
     padding 180ms ease,
@@ -759,12 +905,27 @@ h3 {
     box-shadow 180ms ease;
 }
 
+.detail-artwork-shell::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -2%;
+  right: -2%;
+  bottom: -38px;
+  height: 62px;
+  background:
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.58), transparent 70%),
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.24), transparent 80%);
+  filter: blur(12px);
+  transform: scaleY(0.5);
+}
+
 .detail-artwork-shell.shape-landscape {
-  width: min(920px, 92%);
+  width: min(1100px, 98%);
 }
 
 .detail-artwork-shell.shape-portrait {
-  width: min(520px, 82%);
+  width: min(620px, 90%);
 }
 
 .detail-artwork-shell.frame-none {
@@ -777,7 +938,9 @@ h3 {
   padding: clamp(12px, 1.4vw, 22px);
   background: #111;
   box-shadow:
-    0 26px 48px rgba(0, 0, 0, 0.26),
+    0 38px 60px rgba(0, 0, 0, 0.36),
+    0 14px 18px rgba(0, 0, 0, 0.32),
+    0 4px 6px rgba(0, 0, 0, 0.34),
     inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
@@ -785,7 +948,32 @@ h3 {
   padding: clamp(12px, 1.4vw, 22px);
   background: #f8f8f4;
   box-shadow:
-    0 26px 48px rgba(0, 0, 0, 0.22),
+    0 38px 60px rgba(0, 0, 0, 0.34),
+    0 14px 18px rgba(0, 0, 0, 0.28),
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.detail-artwork-surface {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  max-width: 100%;
+  overflow: hidden;
+  line-height: 0;
+  background: #f8f5ee;
+}
+
+.detail-artwork-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  box-shadow:
+    inset -18px 0 22px rgba(0, 0, 0, 0.13),
+    inset 0 -16px 22px rgba(0, 0, 0, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
     inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
@@ -793,28 +981,30 @@ h3 {
   width: auto;
   max-width: 100%;
   height: auto;
-  max-height: min(76vh, 900px);
+  max-height: min(80vh, 940px);
   object-fit: contain;
   display: block;
   filter:
-    drop-shadow(0 22px 24px rgba(0, 0, 0, 0.18))
-    drop-shadow(0 5px 9px rgba(0, 0, 0, 0.1));
+    drop-shadow(0 30px 32px rgba(0, 0, 0, 0.28))
+    drop-shadow(0 12px 12px rgba(0, 0, 0, 0.3))
+    drop-shadow(0 3px 4px rgba(0, 0, 0, 0.32));
 }
 
 .detail-artwork-shell .product-art {
-  width: min(560px, 82%);
+  width: min(680px, 92%);
   border: 0;
   box-shadow:
-    0 22px 44px rgba(0, 0, 0, 0.2),
-    0 5px 12px rgba(0, 0, 0, 0.12);
+    0 34px 54px rgba(0, 0, 0, 0.34),
+    0 12px 14px rgba(0, 0, 0, 0.3),
+    0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 .detail-artwork-shell .product-art.shape-landscape {
-  width: min(920px, 92%);
+  width: min(1100px, 98%);
 }
 
 .detail-artwork-shell .product-art.shape-portrait {
-  width: min(520px, 82%);
+  width: min(620px, 90%);
 }
 
 .listing-panel {
@@ -1230,6 +1420,12 @@ h3 {
 
 .contact-section .button {
   justify-self: start;
+}
+
+@media (max-width: 1180px) {
+  .listing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 900px) {
