@@ -432,13 +432,15 @@ h3 {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: #f8f5ee;
+  background: #111;
   box-shadow:
     0 38px 44px rgba(0, 0, 0, 0.36),
     0 20px 22px rgba(0, 0, 0, 0.34),
     0 8px 9px rgba(0, 0, 0, 0.42),
     0 2px 3px rgba(0, 0, 0, 0.32),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.34);
+    inset 6px 6px 8px rgba(0, 0, 0, 0.06),
+    inset -7px -7px 10px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.22);
 }
 
 .artwork-mockup-print::before,
@@ -449,12 +451,12 @@ h3 {
   z-index: 2;
   pointer-events: none;
   background:
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12) 0 1px, rgba(0, 0, 0, 0.08) 1px 2px, transparent 2px 4px),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0 1px, rgba(255, 255, 255, 0.1) 1px 2px, transparent 2px 5px),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 38%, rgba(0, 0, 0, 0.12));
+    repeating-linear-gradient(0deg, transparent 0 1px, rgba(0, 0, 0, 0.1) 1px 2px, transparent 2px 4px),
+    repeating-linear-gradient(90deg, transparent 0 1px, rgba(0, 0, 0, 0.08) 1px 2px, transparent 2px 5px),
+    linear-gradient(135deg, transparent 38%, rgba(0, 0, 0, 0.16));
   background-size: 4px 4px, 5px 5px, 100% 100%;
-  mix-blend-mode: overlay;
-  opacity: 0.42;
+  mix-blend-mode: multiply;
+  opacity: 0.38;
 }
 
 .artwork-mockup-print::after {
@@ -464,9 +466,11 @@ h3 {
   z-index: 3;
   pointer-events: none;
   box-shadow:
-    inset -14px 0 18px rgba(0, 0, 0, 0.12),
-    inset 0 -12px 18px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+    inset 0 0 0 1px rgba(0, 0, 0, 0.26),
+    inset 7px 7px 8px rgba(0, 0, 0, 0.05),
+    inset -8px -8px 10px rgba(0, 0, 0, 0.22),
+    inset -14px 0 18px rgba(0, 0, 0, 0.1),
+    inset 0 -14px 18px rgba(0, 0, 0, 0.1);
 }
 
 .artwork-mockup.shape-landscape .artwork-mockup-print {
@@ -678,7 +682,7 @@ h3 {
 
 .listing-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   border-top: 1px solid rgba(21, 21, 21, 0.1);
   border-left: 1px solid rgba(21, 21, 21, 0.1);
 }
@@ -686,7 +690,7 @@ h3 {
 .listing-card {
   display: grid;
   grid-template-rows: auto 82px;
-  min-height: 610px;
+  min-height: 590px;
   background: #fff;
   border-right: 1px solid rgba(21, 21, 21, 0.1);
   border-bottom: 1px solid rgba(21, 21, 21, 0.1);
@@ -695,13 +699,13 @@ h3 {
 .listing-card-image {
   display: grid;
   place-items: center;
-  min-height: 528px;
-  padding: clamp(12px, 1.6vw, 28px);
+  min-height: 508px;
+  padding: clamp(8px, 1.2vw, 20px);
   background: #f7f5f0;
 }
 
 .listing-card-image .product-art {
-  width: min(100%, 560px);
+  width: min(100%, 720px);
   border: 0;
   box-shadow: none;
   filter:
@@ -710,30 +714,30 @@ h3 {
 }
 
 .listing-card-image .product-art.shape-landscape {
-  width: min(100%, 680px);
+  width: min(100%, 840px);
 }
 
 .listing-card-image .product-art.shape-portrait {
-  width: min(86%, 430px);
+  width: min(82%, 520px);
 }
 
 .listing-card-image .artwork-mockup {
-  width: min(100%, 560px);
+  width: min(100%, 720px);
 }
 
 .listing-card-image .artwork-mockup.shape-landscape {
-  width: min(100%, 680px);
+  width: min(100%, 840px);
 }
 
 .listing-card-image .artwork-mockup.shape-portrait {
-  width: min(86%, 430px);
+  width: min(82%, 520px);
 }
 
 .raw-product-image {
   display: block;
-  width: min(100%, 560px);
+  width: min(100%, 720px);
   height: auto;
-  max-height: 460px;
+  max-height: 450px;
   object-fit: contain;
   background: transparent;
   filter:
@@ -742,12 +746,12 @@ h3 {
 }
 
 .raw-product-image.shape-landscape {
-  width: min(100%, 680px);
+  width: min(100%, 840px);
 }
 
 .raw-product-image.shape-portrait {
-  width: min(86%, 430px);
-  max-height: 480px;
+  width: min(82%, 520px);
+  max-height: 460px;
 }
 
 .listing-card-copy {
@@ -961,7 +965,7 @@ h3 {
   max-width: 100%;
   overflow: hidden;
   line-height: 0;
-  background: #f8f5ee;
+  background: #111;
 }
 
 .detail-artwork-surface::after {
@@ -971,10 +975,11 @@ h3 {
   z-index: 3;
   pointer-events: none;
   box-shadow:
-    inset -18px 0 22px rgba(0, 0, 0, 0.13),
-    inset 0 -16px 22px rgba(0, 0, 0, 0.09),
-    inset 0 1px 0 rgba(255, 255, 255, 0.42),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+    inset 0 0 0 1px rgba(0, 0, 0, 0.26),
+    inset 7px 7px 8px rgba(0, 0, 0, 0.05),
+    inset -9px -9px 11px rgba(0, 0, 0, 0.24),
+    inset -16px 0 20px rgba(0, 0, 0, 0.1),
+    inset 0 -16px 20px rgba(0, 0, 0, 0.1);
 }
 
 .detail-artwork-shell img {
