@@ -26,7 +26,7 @@ Product focus:
 
 Best overall:
 
-1. **No Rewind Art**
+1. **Amorze**
 2. **Mindset Walls**
 3. **Ambition Canvas Co**
 
@@ -42,9 +42,9 @@ Other strong options:
 - Becoming Prints
 - Harder To Stop Studio
 
-My recommendation is **No Rewind Art**.
+My recommendation is **Amorze**.
 
-Why: it sounds memorable, it fits the motivational theme, it feels like a real brand, and one of your existing pieces already says "Life Has No Rewind." That gives you a natural brand anchor.
+Why: it sounds memorable, it fits the motivational theme, and one of your existing pieces already gives you a natural brand anchor.
 
 ## Brand Voice
 
@@ -57,7 +57,7 @@ Good words:
 - focus
 - build
 - future
-- no rewind
+- Amorze
 - keep going
 - become
 - legacy
@@ -72,7 +72,7 @@ Those phrases can appear in listings, but they should not be the whole personali
 
 ## Etsy Shop Title
 
-**No Rewind Art | Motivational Canvas Prints for Ambition, Focus, and Discipline**
+**Amorze | Motivational Canvas Prints for Ambition, Focus, and Discipline**
 
 If you choose Mindset Walls:
 
@@ -80,7 +80,7 @@ If you choose Mindset Walls:
 
 ## Etsy Announcement
 
-Welcome to No Rewind Art: wall art for people building something bigger.
+Welcome to Amorze: wall art for people building something bigger.
 
 Our prints are made for offices, bedrooms, studios, dorms, gyms, and creative spaces where motivation needs to feel real, not cheesy. Every piece is designed around ambition, focus, discipline, money mindset, and the reminder that time only moves forward.
 
@@ -88,7 +88,7 @@ New drops are added often. Favorite the shop to catch the next collection.
 
 ## Etsy About Section
 
-No Rewind Art started from a simple idea: the room you spend time in should push you forward.
+Amorze started from a simple idea: the room you spend time in should push you forward.
 
 I create motivational wall art for people who are building, studying, training, creating, healing, starting over, or chasing a future that still feels far away. The style mixes bold quotes, money mindset, cinematic visuals, space-inspired scenes, and everyday reminders to keep moving.
 
@@ -96,14 +96,14 @@ These pieces are made for bedrooms, offices, studios, dorms, gyms, and workspace
 
 ## Short Bio
 
-No Rewind Art creates motivational canvas and poster prints for ambitious spaces. Built around focus, discipline, money mindset, and forward motion.
+Amorze creates motivational canvas and poster prints for ambitious spaces. Built around focus, discipline, money mindset, and forward motion.
 
 ## Banner Text Ideas
 
 Use one of these on your Etsy banner:
 
 - **Art for people building their future**
-- **No rewind. Keep building.**
+- **Amorze. Keep building.**
 - **Motivational wall art for ambitious spaces**
 - **Focus. Discipline. Momentum.**
 - **Decor for the room where you become different**
@@ -127,7 +127,7 @@ Template 1:
 
 Example:
 
-**No Rewind Motivational Canvas Print, Discipline Wall Art for Office, Bedroom, Dorm, Entrepreneur Decor**
+**Amorze Motivational Canvas Print, Discipline Wall Art for Office, Bedroom, Dorm, Entrepreneur Decor**
 
 Template 2:
 
@@ -147,7 +147,7 @@ Example:
 
 ## Product Description Template
 
-Bring focus, discipline, and momentum into your space with this motivational wall art print from No Rewind Art.
+Bring focus, discipline, and momentum into your space with this motivational wall art print from Amorze.
 
 This piece is made for bedrooms, offices, studios, dorm rooms, gyms, and creative spaces where you want the room to remind you to keep going. The design works well as entrepreneur decor, mindset wall art, or a daily reminder for anyone building a better future.
 
@@ -213,7 +213,7 @@ Each listing should have 7-10 photos:
 6. Lifestyle mockup in bedroom or office
 7. Gift/use case image
 8. Shipping/production note
-9. Brand card with "No Rewind Art"
+9. Brand card with "Amorze"
 
 Your current product images are a start, but the shop would look more serious if the first photo style becomes consistent across every listing.
 
@@ -277,10 +277,10 @@ Week 4:
 
 ## First Collection Ideas
 
-Collection name: **No Rewind: Volume 1**
+Collection name: **Amorze: Volume 1**
 
 Pieces:
-- Life Has No Rewind
+- Amorze
 - Start Today
 - Keep Going
 - Focus Is The Price
@@ -295,7 +295,7 @@ Pieces:
 
 Headline:
 
-**No Rewind Art**
+**Amorze**
 
 Subheadline:
 
@@ -311,9 +311,8 @@ Secondary button:
 
 About section:
 
-No Rewind Art is made for the rooms where people build themselves. The work blends bold phrases, cinematic scenes, money mindset, space visuals, and daily reminders to keep moving forward.
+Amorze is made for the rooms where people build themselves. The work blends bold phrases, cinematic scenes, money mindset, space visuals, and daily reminders to keep moving forward.
 
 Product promise:
 
 Print-on-demand canvas and poster artwork made for offices, bedrooms, dorms, studios, and creative spaces.
-

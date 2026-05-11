@@ -141,9 +141,9 @@ function GalleryImage({
 function SiteHeader({ cartCount }: { cartCount: number }) {
   return (
     <header className="site-header">
-      <Link className="brand" to="/" aria-label="No Rewind Art home">
-        <span className="brand-mark">NR</span>
-        <span>No Rewind Art</span>
+      <Link className="brand" to="/" aria-label="Amorze home">
+        <img className="brand-mark" src="/amorze-logo.png" alt="" aria-hidden="true" />
+        <span>Amorze</span>
       </Link>
       <nav className="nav-links" aria-label="Primary navigation">
         <Link to="/collections/best-sellers">Best Sellers</Link>
@@ -154,6 +154,33 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
         <Link to="/cart">Cart ({cartCount})</Link>
       </nav>
     </header>
+  );
+}
+
+function SiteFooter() {
+  return (
+    <footer className="site-footer">
+      <div className="footer-brand">
+        <Link className="footer-logo" to="/" aria-label="Amorze home">
+          <img className="brand-mark" src="/amorze-logo.png" alt="" aria-hidden="true" />
+          <span>Amorze</span>
+        </Link>
+        <p>Motivational canvas prints for ambitious spaces.</p>
+      </div>
+
+      <nav className="footer-links" aria-label="Footer navigation">
+        <Link to="/collections/best-sellers">Best Sellers</Link>
+        <Link to="/collections/money-ambition">Money</Link>
+        <Link to="/collections/discipline-focus">Focus</Link>
+        <Link to="/collections/new-arrivals">New Arrivals</Link>
+      </nav>
+
+      <div className="footer-bottom">
+        <span>2026 Amorze</span>
+        <span>Made to order</span>
+        <span>Secure checkout</span>
+      </div>
+    </footer>
   );
 }
 
@@ -210,7 +237,7 @@ function HomePage({
 
         <div className="hero-copy">
           <p className="eyebrow">Canvas prints for ambitious spaces</p>
-          <h1 id="hero-title">No Rewind Art</h1>
+          <h1 id="hero-title">Amorze</h1>
           <p>
             Motivational wall art built around focus, discipline, money mindset,
             and the future you are working toward.
@@ -255,7 +282,7 @@ function HomePage({
       <section id="shop" className="section shop-section">
         <div className="section-heading">
           <p className="eyebrow">First drop</p>
-          <h2>No Rewind: Volume 1</h2>
+          <h2>Amorze: Volume 1</h2>
           <Link className="section-link" to="/collections/best-sellers">
             View All Prints
             <ArrowUpRight aria-hidden="true" size={16} />
@@ -307,9 +334,9 @@ function HomePage({
       <section id="story" className="story-section">
         <div className="story-copy">
           <p className="eyebrow">The story</p>
-          <h2>No rewind. Keep building.</h2>
+          <h2>Amorze. Keep building.</h2>
           <p>
-            No Rewind Art creates motivational canvas and poster prints for
+            Amorze creates motivational canvas and poster prints for
             ambitious spaces. The work blends bold phrases, cinematic scenes,
             money mindset, and future-focused energy for people who are building,
             studying, training, creating, or starting again.
@@ -644,7 +671,7 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
             <small>{product.reviewCount.toLocaleString()} reviews</small>
           </div>
 
-          <p className="listing-kicker">No Rewind Original</p>
+          <p className="listing-kicker">Amorze Original</p>
           <h1>{product.title}</h1>
           <p className="listing-price">{formatPrice(selectedOption.priceInCents)}</p>
           <p className="listing-description">{product.longDescription}</p>
@@ -885,6 +912,7 @@ function App() {
         />
         <Route path="/products/:slug" element={<ProductPage addToCart={addToCart} />} />
       </Routes>
+      <SiteFooter />
     </>
   );
 }
