@@ -64,10 +64,10 @@ Use this folder naming convention:
 public/artwork/
   product-slug/
     01-main.png
-    02-gallery.png
-    03-gallery.png
-    04-gallery.png
-    05-gallery.png
+    02-side.png
+    03-detail.png
+    04-room.png
+    05-scale.png
 ```
 
 For each product, set:
@@ -75,14 +75,74 @@ For each product, set:
 ```ts
 imageFolder: 'product-slug',
 image: imagePath('product-slug', '01-main.png'),
-gallery: buildGallery('product-slug'),
+gallery: buildGallery('product-slug', ['02-side.png', '03-detail.png', '04-room.png']),
 ```
 
-If you only have `01-main.png`, the site will still work. Add the other gallery
-images later using the standard names.
+The product page automatically shows `image` as the first gallery image. Put
+extra mockups in `gallery`, not a duplicate copy of the main image. If you only
+have `01-main.png`, the site will still work. Add the other gallery images later
+using the standard names.
 
 Images can be `.jpg`, `.png`, `.webp`, or `.avif`, but keep each product's
 gallery filenames consistent with the extensions used in `products.ts`.
+
+## Side Mockups
+
+Use side mockups as transparent product cutouts, not full room scenes:
+
+```text
+public/artwork/
+  bookshelf/
+    01-main.png
+    02-side.png
+    03-detail.png
+    04-room.png
+    05-scale.png
+```
+
+`01-main.png` should be the clean front-facing canvas used for the first product
+image and collection cards. `02-side.png` should be a 3/4 side-angle canvas
+cutout with no wall, no floor, no background, and preferably no baked shadow.
+The site adds its own shadow so every product feels consistent.
+
+To keep `01-main.png` and `02-side.png` the same visual size, export them from
+the same Photoshop artboard/template:
+
+```text
+Landscape mockup artboard: 4000 x 2400 px
+Portrait mockup artboard: 3000 x 4200 px
+Square mockup artboard: 3200 x 3200 px
+```
+
+Rules:
+
+- Use the same artboard size for every mockup in that product folder.
+- Keep the canvas/product centered on the same vertical center guide.
+- Put the bottom of the canvas on the same baseline guide for `01-main` and
+  `02-side`.
+- Make the visible product fill roughly 82-88% of the artboard width.
+- Export PNG/WebP with transparency.
+- Do not use "trim transparent pixels" when exporting, because different
+  transparent bounds make the browser scale each file differently.
+- Do not bake in a drop shadow. The site adds the shadow.
+
+A good file has the same transparent canvas size as the main mockup, a small
+consistent margin, and only the canvas/product visible.
+
+The product page automatically gives `01-main.*` and `02-side.*` the same clean
+mockup sizing and shadow treatment. Room scenes and detail shots can use
+`03-detail.png`, `04-room.png`, and `05-scale.png`; those are allowed to look
+different.
+
+AI prompt example:
+
+```text
+Create a transparent PNG product cutout of this canvas print from a 3/4 side
+angle. Show the stretched canvas depth and side edge. No wall, no floor, no
+room, no background, no frame, no drop shadow. Keep the product centered with a
+small transparent margin. Premium canvas texture, matte ink, crisp detail.
+Landscape 2:1 artwork, high resolution.
+```
 
 ## Artwork Shadows
 

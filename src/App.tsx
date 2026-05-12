@@ -138,6 +138,27 @@ function GalleryImage({
   );
 }
 
+function getProductGallery(product: Product) {
+  return [product.image, ...(product.gallery ?? [])].filter(
+    (image, index, gallery): image is string => Boolean(image) && gallery.indexOf(image) === index,
+  );
+}
+
+function isProductMockupImage(product: Product, image: string | undefined) {
+  if (!image) {
+    return false;
+  }
+
+  return (
+    image === product.image ||
+    /\/0[12]-(main|side)\.(png|jpe?g|webp|avif)$/i.test(image)
+  );
+}
+
+function isSideMockupImage(image: string | undefined) {
+  return /\/02-side\.(png|jpe?g|webp|avif)$/i.test(image ?? '');
+}
+
 function SiteHeader({ cartCount }: { cartCount: number }) {
   return (
     <header className="site-header">
@@ -596,8 +617,11 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
     );
   }
 
-  const gallery = product.gallery?.length ? product.gallery : product.image ? [product.image] : [];
+  const gallery = getProductGallery(product);
   const selectedGalleryImage = gallery[selectedImage];
+  const isMockupGalleryImage = isProductMockupImage(product, selectedGalleryImage);
+  const isSideGalleryImage = isSideMockupImage(selectedGalleryImage);
+  const isFrontMockupGalleryImage = isMockupGalleryImage && !isSideGalleryImage;
   const defaultSizeOption = getFeaturedSizeOption(product);
   const selectedOption =
     product.sizeOptions.find((option) => option.id === selectedSizeId) ?? defaultSizeOption;
@@ -640,9 +664,13 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
             ))}
           </div>
 
-          <div className="main-product-image">
+          <div className={`main-product-image ${isMockupGalleryImage ? 'mockup-product-image' : ''}`}>
             <div
-              className={`detail-artwork-shell ${frameClass} shape-${product.artworkShape}`}
+              className={`detail-artwork-shell ${frameClass} shape-${product.artworkShape} ${
+                isMockupGalleryImage ? 'mockup-product-shell' : ''
+              } ${isFrontMockupGalleryImage ? 'front-product-shell' : ''} ${
+                isSideGalleryImage ? 'side-product-shell' : ''
+              }`}
               style={{ '--size-scale': sizeScale } as CSSProperties}
             >
               <div className="detail-artwork-surface">

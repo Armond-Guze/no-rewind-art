@@ -44,10 +44,10 @@ export type Product = {
 
 const defaultGalleryFiles = [
   '01-main.png',
-  '02-gallery.png',
-  '03-gallery.png',
-  '04-gallery.png',
-  '05-gallery.png',
+  '02-side.png',
+  '03-detail.png',
+  '04-room.png',
+  '05-scale.png',
 ];
 
 function imagePath(folder: string, fileName: string) {
@@ -258,7 +258,7 @@ export const products: Product[] = [
     image: imagePath('bookshelf', 'bookshelf test1.png'),
     imageAlt: 'Bookshelf motivational canvas print mockup',
     artworkShape: 'landscape',
-    gallery: [imagePath('bookshelf', 'bookshelf test1.png')],
+    gallery: [imagePath('bookshelf', '02-side.png')],
     tone: 'minimal',
     collectionSlugs: ['new-arrivals', 'study-creative'],
     priceInCents: 5500,
