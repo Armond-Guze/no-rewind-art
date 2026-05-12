@@ -141,9 +141,9 @@ function GalleryImage({
 function SiteHeader({ cartCount }: { cartCount: number }) {
   return (
     <header className="site-header">
-      <Link className="brand" to="/" aria-label="Amorze home">
-        <img className="brand-mark" src="/amorze-logo.png" alt="" aria-hidden="true" />
-        <span>Amorze</span>
+      <Link className="brand" to="/" aria-label="Armoze home">
+        <img className="brand-mark" src="/armoze-logo.png" alt="" aria-hidden="true" />
+        <span>Armoze</span>
       </Link>
       <nav className="nav-links" aria-label="Primary navigation">
         <Link to="/collections/best-sellers">Best Sellers</Link>
@@ -161,9 +161,9 @@ function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="footer-brand">
-        <Link className="footer-logo" to="/" aria-label="Amorze home">
-          <img className="brand-mark" src="/amorze-logo.png" alt="" aria-hidden="true" />
-          <span>Amorze</span>
+        <Link className="footer-logo" to="/" aria-label="Armoze home">
+          <img className="brand-mark" src="/armoze-logo.png" alt="" aria-hidden="true" />
+          <span>Armoze</span>
         </Link>
         <p>Motivational canvas prints for ambitious spaces.</p>
       </div>
@@ -176,7 +176,7 @@ function SiteFooter() {
       </nav>
 
       <div className="footer-bottom">
-        <span>2026 Amorze</span>
+        <span>2026 Armoze</span>
         <span>Made to order</span>
         <span>Secure checkout</span>
       </div>
@@ -237,7 +237,7 @@ function HomePage({
 
         <div className="hero-copy">
           <p className="eyebrow">Canvas prints for ambitious spaces</p>
-          <h1 id="hero-title">Amorze</h1>
+          <h1 id="hero-title">Armoze</h1>
           <p>
             Motivational wall art built around focus, discipline, money mindset,
             and the future you are working toward.
@@ -282,7 +282,7 @@ function HomePage({
       <section id="shop" className="section shop-section">
         <div className="section-heading">
           <p className="eyebrow">First drop</p>
-          <h2>Amorze: Volume 1</h2>
+          <h2>Armoze: Volume 1</h2>
           <Link className="section-link" to="/collections/best-sellers">
             View All Prints
             <ArrowUpRight aria-hidden="true" size={16} />
@@ -334,9 +334,9 @@ function HomePage({
       <section id="story" className="story-section">
         <div className="story-copy">
           <p className="eyebrow">The story</p>
-          <h2>Amorze. Keep building.</h2>
+          <h2>Armoze. Keep building.</h2>
           <p>
-            Amorze creates motivational canvas and poster prints for
+            Armoze creates motivational canvas and poster prints for
             ambitious spaces. The work blends bold phrases, cinematic scenes,
             money mindset, and future-focused energy for people who are building,
             studying, training, creating, or starting again.
@@ -671,7 +671,7 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
             <small>{product.reviewCount.toLocaleString()} reviews</small>
           </div>
 
-          <p className="listing-kicker">Amorze Original</p>
+          <p className="listing-kicker">Armoze Original</p>
           <h1>{product.title}</h1>
           <p className="listing-price">{formatPrice(selectedOption.priceInCents)}</p>
           <p className="listing-description">{product.longDescription}</p>

@@ -1,6 +1,6 @@
-# Amorze
+# Armoze
 
-React/Vite website and relaunch kit for Amorze, a motivational wall art brand focused on ambition, discipline, money mindset, and future-focused spaces.
+React/Vite website and relaunch kit for Armoze, a motivational wall art brand focused on ambition, discipline, money mindset, and future-focused spaces.
 
 ## Files
 

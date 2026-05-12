@@ -104,7 +104,7 @@ app.post('/api/create-checkout-session', async (request, response) => {
       success_url: `${clientUrl}/?checkout=success#cart`,
       cancel_url: `${clientUrl}/?checkout=cancelled#cart`,
       metadata: {
-        brand: 'Amorze',
+        brand: 'Armoze',
       },
     });
 
@@ -118,5 +118,5 @@ app.post('/api/create-checkout-session', async (request, response) => {
 });
 
 app.listen(port, () => {
-  console.log(`Amorze checkout server running on http://127.0.0.1:${port}`);
+  console.log(`Armoze checkout server running on http://127.0.0.1:${port}`);
 });
