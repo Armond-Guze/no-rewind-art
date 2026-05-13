@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from 'react';
 import { Link, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -21,6 +29,8 @@ import {
   Sparkles,
   Star,
   Trash2,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import {
   collections,
@@ -121,6 +131,120 @@ const fulfillmentStatusOptions = [
   { value: 'cancelled', label: 'Cancelled' },
 ];
 
+const siteUrl = 'https://www.armoze.com';
+
+function absoluteUrl(path: string) {
+  if (path.startsWith('http')) {
+    return path;
+  }
+
+  return `${siteUrl}${path.startsWith('/') ? path : `/${path}`}`;
+}
+
+function upsertMeta(selector: string, attributes: Record<string, string>) {
+  let element = document.head.querySelector(selector) as HTMLMetaElement | null;
+
+  if (!element) {
+    element = document.createElement('meta');
+    document.head.appendChild(element);
+  }
+
+  Object.entries(attributes).forEach(([key, value]) => {
+    element?.setAttribute(key, value);
+  });
+}
+
+function upsertCanonical(href: string) {
+  let element = document.head.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+
+  if (!element) {
+    element = document.createElement('link');
+    element.rel = 'canonical';
+    document.head.appendChild(element);
+  }
+
+  element.href = href;
+}
+
+function usePageSeo({
+  title,
+  description,
+  canonicalPath,
+  image,
+  robots = 'index,follow',
+  structuredData,
+}: {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  image?: string;
+  robots?: string;
+  structuredData?: Record<string, unknown>;
+}) {
+  useEffect(() => {
+    const fullTitle = title === 'Armoze' ? 'Armoze' : `${title} | Armoze`;
+    const canonicalUrl = absoluteUrl(canonicalPath);
+
+    document.title = fullTitle;
+    upsertMeta('meta[name="description"]', { name: 'description', content: description });
+    upsertMeta('meta[name="robots"]', { name: 'robots', content: robots });
+    upsertMeta('meta[property="og:title"]', { property: 'og:title', content: fullTitle });
+    upsertMeta('meta[property="og:description"]', {
+      property: 'og:description',
+      content: description,
+    });
+    upsertMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl });
+    upsertMeta('meta[property="og:type"]', {
+      property: 'og:type',
+      content: structuredData ? 'product' : 'website',
+    });
+    upsertMeta('meta[name="twitter:card"]', {
+      name: 'twitter:card',
+      content: image ? 'summary_large_image' : 'summary',
+    });
+
+    if (image) {
+      upsertMeta('meta[property="og:image"]', {
+        property: 'og:image',
+        content: absoluteUrl(image),
+      });
+      upsertMeta('meta[name="twitter:image"]', {
+        name: 'twitter:image',
+        content: absoluteUrl(image),
+      });
+    }
+
+    upsertCanonical(canonicalUrl);
+
+    const existingStructuredData = document.head.querySelector('#armoze-page-structured-data');
+
+    if (existingStructuredData) {
+      existingStructuredData.remove();
+    }
+
+    if (structuredData) {
+      const script = document.createElement('script');
+      script.id = 'armoze-page-structured-data';
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify(structuredData);
+      document.head.appendChild(script);
+    }
+  }, [canonicalPath, description, image, robots, structuredData, title]);
+}
+
+function getDefaultProductOffer(product: Product) {
+  const option = getFeaturedSizeOption(product);
+
+  return {
+    '@type': 'Offer',
+    url: absoluteUrl(`/products/${product.slug}`),
+    priceCurrency: 'USD',
+    price: (option.priceInCents / 100).toFixed(2),
+    availability: 'https://schema.org/InStock',
+    itemCondition: 'https://schema.org/NewCondition',
+  };
+}
+
 function formatDateTime(value: string | null | undefined) {
   if (!value) {
     return 'Not available';
@@ -169,6 +293,61 @@ async function updateAdminOrderStatus(
   }
 
   return (await response.json()) as { order: AdminOrder };
+}
+
+let orderAudioContext: AudioContext | null = null;
+
+function getOrderAudioContext() {
+  const AudioContextClass =
+    window.AudioContext ||
+    (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
+  if (!AudioContextClass) {
+    throw new Error('This browser cannot play notification sounds.');
+  }
+
+  orderAudioContext ??= new AudioContextClass();
+
+  return orderAudioContext;
+}
+
+async function playOrderDing() {
+  const context = getOrderAudioContext();
+
+  if (context.state === 'suspended') {
+    await context.resume();
+  }
+
+  const startAt = context.currentTime + 0.02;
+  const masterGain = context.createGain();
+  masterGain.gain.setValueAtTime(0.0001, startAt);
+  masterGain.gain.exponentialRampToValueAtTime(0.28, startAt + 0.03);
+  masterGain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.9);
+  masterGain.connect(context.destination);
+
+  [
+    { frequency: 880, offset: 0, duration: 0.22 },
+    { frequency: 1174.66, offset: 0.16, duration: 0.32 },
+  ].forEach((tone) => {
+    const oscillator = context.createOscillator();
+    const toneGain = context.createGain();
+    const toneStart = startAt + tone.offset;
+    const toneEnd = toneStart + tone.duration;
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(tone.frequency, toneStart);
+    toneGain.gain.setValueAtTime(0.0001, toneStart);
+    toneGain.gain.exponentialRampToValueAtTime(0.9, toneStart + 0.025);
+    toneGain.gain.exponentialRampToValueAtTime(0.0001, toneEnd);
+    oscillator.connect(toneGain);
+    toneGain.connect(masterGain);
+    oscillator.start(toneStart);
+    oscillator.stop(toneEnd + 0.03);
+  });
+
+  window.setTimeout(() => {
+    masterGain.disconnect();
+  }, 1200);
 }
 
 function makeCartLineKey(productId: string, sizeId: string) {
@@ -347,6 +526,12 @@ function HomePage({
   checkoutError: string;
 }) {
   const checkoutResult = new URLSearchParams(window.location.search).get('checkout');
+  usePageSeo({
+    title: 'Armoze',
+    description: 'Motivational canvas and poster prints for ambitious offices, bedrooms, studios, and workspaces.',
+    canonicalPath: '/',
+    image: '/armoze-logo.png',
+  });
 
   return (
     <main id="top">
@@ -649,6 +834,12 @@ function CollectionPage({ addToCart }: { addToCart: AddToCart }) {
   const { slug } = useParams();
   const collection = getCollectionBySlug(slug);
   const collectionProducts = getProductsForCollection(slug);
+  usePageSeo({
+    title: collection ? `${collection.title} Canvas Prints` : 'Collection Not Found',
+    description: collection?.description || 'Shop motivational canvas prints from Armoze.',
+    canonicalPath: collection ? `/collections/${collection.slug}` : '/collections/best-sellers',
+    image: collectionProducts[0]?.image || '/armoze-logo.png',
+  });
 
   if (!collection) {
     return (
@@ -728,6 +919,29 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   const [selectedFrame, setSelectedFrame] = useState(0);
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(true);
+  const productStructuredData = product
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.title,
+        image: product.image ? [absoluteUrl(product.image)] : undefined,
+        description: product.longDescription,
+        brand: {
+          '@type': 'Brand',
+          name: 'Armoze',
+        },
+        sku: product.id,
+        offers: getDefaultProductOffer(product),
+      }
+    : undefined;
+
+  usePageSeo({
+    title: product ? `${product.title} Canvas Print` : 'Product Not Found',
+    description: product?.description || 'Shop motivational canvas prints from Armoze.',
+    canonicalPath: product ? `/products/${product.slug}` : '/',
+    image: product?.image || '/armoze-logo.png',
+    structuredData: productStructuredData,
+  });
 
   if (!product) {
     return (
@@ -922,6 +1136,13 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
 }
 
 function AdminDashboard() {
+  usePageSeo({
+    title: 'Admin Dashboard',
+    description: 'Private Armoze order dashboard.',
+    canonicalPath: '/admin',
+    robots: 'noindex,nofollow',
+  });
+
   const [tokenInput, setTokenInput] = useState('');
   const [adminToken, setAdminToken] = useState(() =>
     typeof window === 'undefined' ? '' : window.sessionStorage.getItem('armoze_admin_token') || '',
@@ -930,6 +1151,30 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [updatingOrderId, setUpdatingOrderId] = useState('');
+  const [notificationSoundEnabled, setNotificationSoundEnabled] = useState(false);
+  const knownNotificationIds = useRef<Set<string>>(new Set());
+
+  const commitDashboardData = useCallback(
+    (data: AdminDashboardResponse, options: { allowSound?: boolean } = {}) => {
+      const newOrderAlerts = data.notifications.filter(
+        (notification) =>
+          notification.type === 'order_paid' && !knownNotificationIds.current.has(notification.id),
+      );
+
+      data.notifications.forEach((notification) => {
+        knownNotificationIds.current.add(notification.id);
+      });
+      setDashboard(data);
+
+      if (options.allowSound && notificationSoundEnabled && newOrderAlerts.length) {
+        void playOrderDing().catch((soundError) => {
+          setError(soundError instanceof Error ? soundError.message : 'Notification sound could not play.');
+          setNotificationSoundEnabled(false);
+        });
+      }
+    },
+    [notificationSoundEnabled],
+  );
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -950,7 +1195,7 @@ function AdminDashboard() {
         const data = await fetchAdminDashboard(adminToken);
 
         if (active) {
-          setDashboard(data);
+          commitDashboardData(data, { allowSound: false });
         }
       } catch (loadError) {
         if (active) {
@@ -968,7 +1213,33 @@ function AdminDashboard() {
     return () => {
       active = false;
     };
-  }, [adminToken]);
+  }, [adminToken, commitDashboardData]);
+
+  useEffect(() => {
+    if (!adminToken) {
+      return;
+    }
+
+    let active = true;
+    const intervalId = window.setInterval(() => {
+      void (async () => {
+        try {
+          const data = await fetchAdminDashboard(adminToken);
+
+          if (active) {
+            commitDashboardData(data, { allowSound: true });
+          }
+        } catch {
+          // Keep background polling quiet; manual refresh reports errors.
+        }
+      })();
+    }, 15000);
+
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, [adminToken, commitDashboardData]);
 
   async function refreshDashboard() {
     if (!adminToken) {
@@ -979,7 +1250,7 @@ function AdminDashboard() {
     setError('');
 
     try {
-      setDashboard(await fetchAdminDashboard(adminToken));
+      commitDashboardData(await fetchAdminDashboard(adminToken), { allowSound: true });
     } catch (refreshError) {
       setError(refreshError instanceof Error ? refreshError.message : 'Dashboard could not be loaded.');
     } finally {
@@ -1001,11 +1272,30 @@ function AdminDashboard() {
     window.scrollTo({ top: 0 });
   }
 
+  async function handleNotificationSoundToggle() {
+    if (notificationSoundEnabled) {
+      setNotificationSoundEnabled(false);
+      return;
+    }
+
+    setError('');
+
+    try {
+      await playOrderDing();
+      setNotificationSoundEnabled(true);
+    } catch (soundError) {
+      setError(soundError instanceof Error ? soundError.message : 'Notification sound could not play.');
+      setNotificationSoundEnabled(false);
+    }
+  }
+
   function handleLogout() {
     window.sessionStorage.removeItem('armoze_admin_token');
     setAdminToken('');
     setDashboard(null);
     setError('');
+    setNotificationSoundEnabled(false);
+    knownNotificationIds.current.clear();
   }
 
   async function handleFulfillmentChange(orderId: string, fulfillmentStatus: string) {
@@ -1075,6 +1365,20 @@ function AdminDashboard() {
           <p>Track paid orders, fulfillment status, and owner notifications from one place.</p>
         </div>
         <div className="admin-actions">
+          <button
+            className={`button button-secondary sound-toggle ${
+              notificationSoundEnabled ? 'enabled' : ''
+            }`}
+            type="button"
+            onClick={handleNotificationSoundToggle}
+          >
+            {notificationSoundEnabled ? (
+              <Volume2 aria-hidden="true" size={17} />
+            ) : (
+              <VolumeX aria-hidden="true" size={17} />
+            )}
+            {notificationSoundEnabled ? 'Ding On' : 'Enable Ding'}
+          </button>
           <button className="button button-secondary" type="button" onClick={refreshDashboard}>
             <RefreshCw aria-hidden="true" size={17} />
             {loading ? 'Refreshing' : 'Refresh'}
