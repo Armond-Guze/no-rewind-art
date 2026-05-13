@@ -315,5 +315,6 @@ ORDER_NOTIFICATION_EMAIL=owner@example.com
 ORDER_NOTIFICATION_FROM=Armoze Orders <orders@resend.dev>
 ```
 
-Production should use `DATABASE_URL`; Vercel serverless functions should not
-depend on local JSON files for order persistence.
+Production should use `DATABASE_URL` or the Supabase/Vercel integration's
+`POSTGRES_URL`; Vercel serverless functions should not depend on local JSON
+files for order persistence.

@@ -15,6 +15,24 @@ const emptyDatabase = {
   notifications: [],
 };
 
+function getDatabaseUrl() {
+  return process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || '';
+}
+
+function normalizeDatabaseUrl(databaseUrl) {
+  try {
+    const parsedUrl = new URL(databaseUrl);
+    parsedUrl.searchParams.delete('sslcert');
+    parsedUrl.searchParams.delete('sslkey');
+    parsedUrl.searchParams.delete('sslmode');
+    parsedUrl.searchParams.delete('sslrootcert');
+
+    return parsedUrl.toString();
+  } catch {
+    return databaseUrl;
+  }
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -225,49 +243,60 @@ class PostgresOrderStore {
   type = 'postgres';
 
   constructor(databaseUrl) {
+    const ssl = process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false };
+
     this.pool = new Pool({
-      connectionString: databaseUrl,
-      ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false },
+      connectionString: normalizeDatabaseUrl(databaseUrl),
+      ssl,
     });
   }
 
   async init() {
-    await this.pool.query(`
-      create table if not exists orders (
-        id text primary key,
-        stripe_session_id text unique not null,
-        payment_intent_id text,
-        checkout_status text not null default 'open',
-        payment_status text not null default 'checkout_started',
-        fulfillment_status text not null default 'new',
-        customer_name text,
-        customer_email text,
-        currency text not null default 'usd',
-        amount_subtotal integer not null default 0,
-        amount_shipping integer not null default 0,
-        amount_tax integer not null default 0,
-        amount_total integer not null default 0,
-        items jsonb not null default '[]'::jsonb,
-        raw jsonb not null default '{}'::jsonb,
-        owner_notification_sent_at timestamptz,
-        created_at timestamptz not null default now(),
-        updated_at timestamptz not null default now()
-      );
-    `);
+    const client = await this.pool.connect();
 
-    await this.pool.query(`
-      create table if not exists notifications (
-        id text primary key,
-        type text not null,
-        order_id text,
-        title text not null,
-        body text not null,
-        channel text not null,
-        status text not null,
-        metadata jsonb not null default '{}'::jsonb,
-        created_at timestamptz not null default now()
-      );
-    `);
+    try {
+      await client.query('select pg_advisory_lock(421042, 20260513)');
+
+      await client.query(`
+        create table if not exists orders (
+          id text primary key,
+          stripe_session_id text unique not null,
+          payment_intent_id text,
+          checkout_status text not null default 'open',
+          payment_status text not null default 'checkout_started',
+          fulfillment_status text not null default 'new',
+          customer_name text,
+          customer_email text,
+          currency text not null default 'usd',
+          amount_subtotal integer not null default 0,
+          amount_shipping integer not null default 0,
+          amount_tax integer not null default 0,
+          amount_total integer not null default 0,
+          items jsonb not null default '[]'::jsonb,
+          raw jsonb not null default '{}'::jsonb,
+          owner_notification_sent_at timestamptz,
+          created_at timestamptz not null default now(),
+          updated_at timestamptz not null default now()
+        );
+      `);
+
+      await client.query(`
+        create table if not exists notifications (
+          id text primary key,
+          type text not null,
+          order_id text,
+          title text not null,
+          body text not null,
+          channel text not null,
+          status text not null,
+          metadata jsonb not null default '{}'::jsonb,
+          created_at timestamptz not null default now()
+        );
+      `);
+    } finally {
+      await client.query('select pg_advisory_unlock(421042, 20260513)').catch(() => {});
+      client.release();
+    }
   }
 
   rowToOrder(row) {
@@ -500,8 +529,10 @@ class PostgresOrderStore {
 }
 
 export function createOrderStore() {
-  if (process.env.DATABASE_URL) {
-    return new PostgresOrderStore(process.env.DATABASE_URL);
+  const databaseUrl = getDatabaseUrl();
+
+  if (databaseUrl) {
+    return new PostgresOrderStore(databaseUrl);
   }
 
   return new LocalOrderStore();
