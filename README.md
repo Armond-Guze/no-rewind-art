@@ -230,10 +230,16 @@ Then add your Stripe test secret key:
 
 ```text
 STRIPE_SECRET_KEY=sk_test_your_secret_key_here
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+STRIPE_WEBHOOK_ALLOW_UNSIGNED=false
 STRIPE_AUTOMATIC_TAX=false
 STRIPE_ALLOW_INSECURE_LOCAL_TLS=false
 CLIENT_URL=http://127.0.0.1:5173
 PORT=4242
+ADMIN_API_TOKEN=replace_with_a_long_private_admin_token
+DATABASE_URL=
+RESEND_API_KEY=
+ORDER_NOTIFICATION_EMAIL=
 ```
 
 Do not commit `.env` or paste your secret key into chat. Use Stripe test keys
@@ -253,3 +259,31 @@ STRIPE_ALLOW_INSECURE_LOCAL_TLS=true
 ```
 
 Do not use that setting in production.
+
+## Orders, Notifications, and Admin
+
+The backend stores Checkout orders after sessions are created and completes
+them from Stripe webhook events. Local development uses
+`server/data/orders.json`, which is ignored by Git. Production should set
+`DATABASE_URL` to a Postgres/Supabase connection string so orders persist
+outside the server filesystem.
+
+Admin dashboard:
+
+```text
+http://127.0.0.1:5173/admin
+```
+
+Use the `ADMIN_API_TOKEN` from `.env` to sign in locally. The dashboard shows
+paid orders, fulfillment status, notification history, revenue totals, and
+average order value.
+
+Stripe webhook endpoint:
+
+```text
+http://127.0.0.1:4242/api/webhooks/stripe
+```
+
+For owner email alerts, set `RESEND_API_KEY`, `ORDER_NOTIFICATION_EMAIL`, and
+optionally `ORDER_NOTIFICATION_FROM`. Without those values, orders still save
+and the dashboard still works; email notifications are recorded as skipped.

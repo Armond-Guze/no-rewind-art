@@ -1,14 +1,21 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import { Link, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowUpRight,
   BadgeCheck,
+  Bell,
   Box,
+  DollarSign,
   Filter,
   Grid2X2,
+  Inbox,
+  LogOut,
+  Mail,
   Minus,
+  PackageCheck,
   Plus,
+  RefreshCw,
   ShieldCheck,
   ShoppingBag,
   Sparkles,
@@ -39,13 +46,130 @@ type CartLine = CartItem & {
 
 type AddToCart = (productId: string, sizeId?: string) => void;
 
+type AdminOrderItem = {
+  productId: string;
+  title: string;
+  imagePath?: string;
+  sizeId?: string;
+  sizeLabel?: string;
+  quantity: number;
+  unitAmount: number;
+  lineTotal: number;
+};
+
+type AdminOrder = {
+  id: string;
+  stripeSessionId: string;
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  customerName: string;
+  customerEmail: string;
+  currency: string;
+  amountTotal: number;
+  items: AdminOrderItem[];
+  ownerNotificationSentAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type AdminSummary = {
+  orderCount: number;
+  paidOrderCount: number;
+  newOrderCount: number;
+  totalRevenue: number;
+  averageOrderValue: number;
+};
+
+type AdminNotification = {
+  id: string;
+  type: string;
+  orderId: string | null;
+  title: string;
+  body: string;
+  channel: string;
+  status: string;
+  createdAt: string;
+};
+
+type AdminDashboardResponse = {
+  orders: AdminOrder[];
+  summary: AdminSummary;
+  notifications: AdminNotification[];
+};
+
 const missingImages = new Set<string>();
 
-const formatPrice = (cents: number) =>
+const formatPrice = (cents: number, currency = 'USD') =>
   new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: currency.toUpperCase(),
   }).format(cents / 100);
+
+const emptyAdminSummary: AdminSummary = {
+  orderCount: 0,
+  paidOrderCount: 0,
+  newOrderCount: 0,
+  totalRevenue: 0,
+  averageOrderValue: 0,
+};
+
+const fulfillmentStatusOptions = [
+  { value: 'new', label: 'New' },
+  { value: 'printing', label: 'Printing' },
+  { value: 'shipped', label: 'Shipped' },
+  { value: 'delivered', label: 'Delivered' },
+  { value: 'cancelled', label: 'Cancelled' },
+];
+
+function formatDateTime(value: string | null | undefined) {
+  if (!value) {
+    return 'Not available';
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
+
+async function fetchAdminDashboard(adminToken: string) {
+  const response = await fetch('/api/admin/orders', {
+    headers: {
+      Authorization: `Bearer ${adminToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error || 'Dashboard could not be loaded.');
+  }
+
+  return (await response.json()) as AdminDashboardResponse;
+}
+
+async function updateAdminOrderStatus(
+  adminToken: string,
+  orderId: string,
+  fulfillmentStatus: string,
+) {
+  const response = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${adminToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ fulfillmentStatus }),
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error || 'Order status could not be updated.');
+  }
+
+  return (await response.json()) as { order: AdminOrder };
+}
 
 function makeCartLineKey(productId: string, sizeId: string) {
   return `${productId}::${sizeId}`;
@@ -428,7 +552,7 @@ function CartSection({
                   <div>
                     <h3>{product.title}</h3>
                     <p>
-                      {product.size} · {formatPrice(product.priceInCents)}
+                      {sizeOption.label} · {formatPrice(sizeOption.priceInCents)}
                     </p>
                   </div>
                   <div className="quantity-controls">
@@ -797,6 +921,320 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   );
 }
 
+function AdminDashboard() {
+  const [tokenInput, setTokenInput] = useState('');
+  const [adminToken, setAdminToken] = useState(() =>
+    typeof window === 'undefined' ? '' : window.sessionStorage.getItem('armoze_admin_token') || '',
+  );
+  const [dashboard, setDashboard] = useState<AdminDashboardResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [updatingOrderId, setUpdatingOrderId] = useState('');
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, []);
+
+  useEffect(() => {
+    if (!adminToken) {
+      return;
+    }
+
+    let active = true;
+
+    async function loadDashboard() {
+      setLoading(true);
+      setError('');
+
+      try {
+        const data = await fetchAdminDashboard(adminToken);
+
+        if (active) {
+          setDashboard(data);
+        }
+      } catch (loadError) {
+        if (active) {
+          setError(loadError instanceof Error ? loadError.message : 'Dashboard could not be loaded.');
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadDashboard();
+
+    return () => {
+      active = false;
+    };
+  }, [adminToken]);
+
+  async function refreshDashboard() {
+    if (!adminToken) {
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      setDashboard(await fetchAdminDashboard(adminToken));
+    } catch (refreshError) {
+      setError(refreshError instanceof Error ? refreshError.message : 'Dashboard could not be loaded.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextToken = tokenInput.trim();
+
+    if (!nextToken) {
+      return;
+    }
+
+    window.sessionStorage.setItem('armoze_admin_token', nextToken);
+    setAdminToken(nextToken);
+    setTokenInput('');
+    window.scrollTo({ top: 0 });
+  }
+
+  function handleLogout() {
+    window.sessionStorage.removeItem('armoze_admin_token');
+    setAdminToken('');
+    setDashboard(null);
+    setError('');
+  }
+
+  async function handleFulfillmentChange(orderId: string, fulfillmentStatus: string) {
+    if (!adminToken) {
+      return;
+    }
+
+    setUpdatingOrderId(orderId);
+    setError('');
+
+    try {
+      const { order } = await updateAdminOrderStatus(adminToken, orderId, fulfillmentStatus);
+
+      setDashboard((currentDashboard) => {
+        if (!currentDashboard) {
+          return currentDashboard;
+        }
+
+        return {
+          ...currentDashboard,
+          orders: currentDashboard.orders.map((candidate) =>
+            candidate.id === order.id ? order : candidate,
+          ),
+        };
+      });
+    } catch (statusError) {
+      setError(statusError instanceof Error ? statusError.message : 'Order status could not be updated.');
+    } finally {
+      setUpdatingOrderId('');
+    }
+  }
+
+  const summary = dashboard?.summary ?? emptyAdminSummary;
+  const orders = dashboard?.orders ?? [];
+  const notifications = dashboard?.notifications ?? [];
+
+  if (!adminToken) {
+    return (
+      <main className="admin-page admin-login-page">
+        <section className="admin-login-panel">
+          <p className="eyebrow">Armoze Admin</p>
+          <h1>Store dashboard</h1>
+          <form onSubmit={handleLogin}>
+            <label htmlFor="admin-token">Admin token</label>
+            <input
+              id="admin-token"
+              type="password"
+              value={tokenInput}
+              onChange={(event) => setTokenInput(event.target.value)}
+              autoComplete="current-password"
+            />
+            <button className="button button-primary" type="submit">
+              Open Dashboard
+            </button>
+          </form>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="admin-page">
+      <section className="admin-hero">
+        <div>
+          <p className="eyebrow">Armoze Admin</p>
+          <h1>Orders and alerts</h1>
+          <p>Track paid orders, fulfillment status, and owner notifications from one place.</p>
+        </div>
+        <div className="admin-actions">
+          <button className="button button-secondary" type="button" onClick={refreshDashboard}>
+            <RefreshCw aria-hidden="true" size={17} />
+            {loading ? 'Refreshing' : 'Refresh'}
+          </button>
+          <button className="button button-secondary" type="button" onClick={handleLogout}>
+            <LogOut aria-hidden="true" size={17} />
+            Log Out
+          </button>
+        </div>
+      </section>
+
+      {error ? <div className="admin-alert">{error}</div> : null}
+
+      <section className="admin-stat-grid" aria-label="Store summary">
+        <div className="admin-stat">
+          <DollarSign aria-hidden="true" size={24} />
+          <span>Total Revenue</span>
+          <strong>{formatPrice(summary.totalRevenue)}</strong>
+        </div>
+        <div className="admin-stat">
+          <ShoppingBag aria-hidden="true" size={24} />
+          <span>Paid Orders</span>
+          <strong>{summary.paidOrderCount}</strong>
+        </div>
+        <div className="admin-stat">
+          <Inbox aria-hidden="true" size={24} />
+          <span>New Orders</span>
+          <strong>{summary.newOrderCount}</strong>
+        </div>
+        <div className="admin-stat">
+          <PackageCheck aria-hidden="true" size={24} />
+          <span>Average Order</span>
+          <strong>{formatPrice(summary.averageOrderValue)}</strong>
+        </div>
+      </section>
+
+      <section className="admin-layout">
+        <div className="admin-orders">
+          <div className="admin-section-heading">
+            <div>
+              <p className="eyebrow">Fulfillment</p>
+              <h2>Orders</h2>
+            </div>
+            <span>{orders.length} shown</span>
+          </div>
+
+          {orders.length ? (
+            <div className="admin-order-list">
+              {orders.map((order) => (
+                <article className="admin-order" key={order.id}>
+                  <div className="admin-order-topline">
+                    <div>
+                      <h3>{order.customerName || order.customerEmail || 'Customer'}</h3>
+                      <p>{order.customerEmail || 'No email captured'}</p>
+                    </div>
+                    <div className="admin-order-money">
+                      <strong>{formatPrice(order.amountTotal, order.currency)}</strong>
+                      <span>{formatDateTime(order.updatedAt)}</span>
+                    </div>
+                  </div>
+
+                  <div className="admin-order-meta">
+                    <span className={`status-pill ${order.paymentStatus}`}>
+                      {order.paymentStatus}
+                    </span>
+                    <span>{order.id}</span>
+                    <span>
+                      {order.ownerNotificationSentAt ? (
+                        <>
+                          <Mail aria-hidden="true" size={14} />
+                          Alert sent
+                        </>
+                      ) : (
+                        <>
+                          <Bell aria-hidden="true" size={14} />
+                          Alert pending
+                        </>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="admin-order-items">
+                    {order.items.map((item) => (
+                      <div className="admin-order-item" key={`${order.id}-${item.productId}-${item.sizeId}`}>
+                        {item.imagePath ? <img src={item.imagePath} alt="" aria-hidden="true" /> : <span />}
+                        <div>
+                          <strong>{item.title}</strong>
+                          <small>
+                            {item.quantity} x {item.sizeLabel || 'Canvas'} ·{' '}
+                            {formatPrice(item.unitAmount, order.currency)}
+                          </small>
+                        </div>
+                        <b>{formatPrice(item.lineTotal, order.currency)}</b>
+                      </div>
+                    ))}
+                  </div>
+
+                  <label className="admin-status-select">
+                    <span>Fulfillment</span>
+                    <select
+                      value={order.fulfillmentStatus}
+                      disabled={updatingOrderId === order.id}
+                      onChange={(event) => {
+                        void handleFulfillmentChange(order.id, event.target.value);
+                      }}
+                    >
+                      {fulfillmentStatusOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="admin-empty">
+              <ShoppingBag aria-hidden="true" size={34} />
+              <h3>No orders yet</h3>
+              <p>Paid Stripe orders will appear here after the webhook receives them.</p>
+            </div>
+          )}
+        </div>
+
+        <aside className="admin-notifications">
+          <div className="admin-section-heading">
+            <div>
+              <p className="eyebrow">Signals</p>
+              <h2>Notifications</h2>
+            </div>
+          </div>
+
+          {notifications.length ? (
+            <div className="notification-list">
+              {notifications.map((notification) => (
+                <article className="notification-row" key={notification.id}>
+                  <div>
+                    <strong>{notification.title}</strong>
+                    <p>{notification.body}</p>
+                  </div>
+                  <span>
+                    {notification.channel} · {notification.status}
+                  </span>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="admin-empty compact">
+              <Bell aria-hidden="true" size={30} />
+              <h3>No alerts yet</h3>
+              <p>Order and email events will collect here.</p>
+            </div>
+          )}
+        </aside>
+      </section>
+    </main>
+  );
+}
+
 function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
@@ -939,6 +1377,7 @@ function App() {
           }
         />
         <Route path="/products/:slug" element={<ProductPage addToCart={addToCart} />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
       <SiteFooter />
     </>

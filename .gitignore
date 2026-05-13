@@ -13,6 +13,7 @@ dist/
 # Local dev logs
 vite-dev*.log
 dev-combined*.log
+server/data/
 
 # Generated local previews
 website-with-artwork-preview.png

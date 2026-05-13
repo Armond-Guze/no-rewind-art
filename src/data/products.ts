@@ -54,10 +54,6 @@ function imagePath(folder: string, fileName: string) {
   return `/artwork/${folder}/${fileName}`;
 }
 
-function artworkFile(fileName: string) {
-  return `/artwork/${fileName}`;
-}
-
 function buildGallery(folder: string, fileNames = defaultGalleryFiles) {
   return fileNames.map((fileName) => imagePath(folder, fileName));
 }

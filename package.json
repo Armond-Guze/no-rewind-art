@@ -16,9 +16,11 @@
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "lucide-react": "latest",
+    "pg": "^8.20.0",
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "^7.15.0",
+    "resend": "^6.12.3",
     "stripe": "^17.7.0"
   },
   "devDependencies": {
