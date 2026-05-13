@@ -14,8 +14,10 @@ dist/
 vite-dev*.log
 dev-combined*.log
 server/data/
+.local-data/
 
 # Generated local previews
 website-with-artwork-preview.png
 website-shop-preview.png
 website-product-page-preview.png
+.vercel

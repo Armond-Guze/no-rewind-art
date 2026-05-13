@@ -1,12 +1,13 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 
 const { Pool } = pg;
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dataDir = path.join(__dirname, 'data');
+const dataDir =
+  process.env.LOCAL_ORDER_STORE_DIR ||
+  (process.env.VERCEL ? path.join(os.tmpdir(), 'armoze-orders') : path.join(os.homedir(), '.armoze', 'orders'));
 const ordersFile = path.join(dataDir, 'orders.json');
 
 const emptyDatabase = {

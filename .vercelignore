@@ -1,0 +1,12 @@
+server/data/
+.local-data/
+.env
+.env.*
+!.env.example
+
+# Source design files should stay local/private, not in production deploys.
+public/artwork/**/*.psd
+public/artwork/**/*.psb
+public/artwork/**/*.ai
+public/artwork/**/MOCKUP DIMENSIONS*/
+public/artwork/**/MOCKUP DIMENSIONS - Copy*/

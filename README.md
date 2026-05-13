@@ -264,7 +264,7 @@ Do not use that setting in production.
 
 The backend stores Checkout orders after sessions are created and completes
 them from Stripe webhook events. Local development uses
-`server/data/orders.json`, which is ignored by Git. Production should set
+`~/.armoze/orders/orders.json` by default. Production should set
 `DATABASE_URL` to a Postgres/Supabase connection string so orders persist
 outside the server filesystem.
 
@@ -284,6 +284,36 @@ Stripe webhook endpoint:
 http://127.0.0.1:4242/api/webhooks/stripe
 ```
 
+Production webhook endpoint:
+
+```text
+https://www.armoze.com/api/webhooks/stripe
+```
+
 For owner email alerts, set `RESEND_API_KEY`, `ORDER_NOTIFICATION_EMAIL`, and
 optionally `ORDER_NOTIFICATION_FROM`. Without those values, orders still save
 and the dashboard still works; email notifications are recorded as skipped.
+
+## Vercel Production Checkout
+
+The storefront deploys to Vercel and includes serverless API functions in
+`api/`. Set these variables in Vercel Project Settings -> Environment Variables
+for Production before deploying checkout live:
+
+```text
+STRIPE_SECRET_KEY=sk_live_or_test_key
+STRIPE_WEBHOOK_SECRET=whsec_from_the_armoze_com_webhook_endpoint
+STRIPE_AUTOMATIC_TAX=false
+STRIPE_ALLOW_INSECURE_LOCAL_TLS=false
+STRIPE_WEBHOOK_ALLOW_UNSIGNED=false
+CLIENT_URL=https://www.armoze.com
+DATABASE_URL=postgresql://...
+DATABASE_SSL=true
+ADMIN_API_TOKEN=long_private_admin_token
+RESEND_API_KEY=re_...
+ORDER_NOTIFICATION_EMAIL=owner@example.com
+ORDER_NOTIFICATION_FROM=Armoze Orders <orders@resend.dev>
+```
+
+Production should use `DATABASE_URL`; Vercel serverless functions should not
+depend on local JSON files for order persistence.
