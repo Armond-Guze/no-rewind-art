@@ -957,23 +957,33 @@ h3 {
 }
 
 .detail-artwork-shell.frame-black {
-  padding: clamp(12px, 1.4vw, 22px);
-  background: #111;
+  padding: clamp(18px, 2.25vw, 34px);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 18%),
+    linear-gradient(315deg, rgba(0, 0, 0, 0.42), transparent 24%),
+    linear-gradient(90deg, #050505, #292b28 18%, #10110f 50%, #3a3c37 82%, #080808);
   box-shadow:
     0 38px 60px rgba(0, 0, 0, 0.36),
     0 14px 18px rgba(0, 0, 0, 0.32),
     0 4px 6px rgba(0, 0, 0, 0.34),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 12px 12px 18px rgba(255, 255, 255, 0.08),
+    inset -13px -13px 20px rgba(0, 0, 0, 0.5);
 }
 
 .detail-artwork-shell.frame-white {
-  padding: clamp(12px, 1.4vw, 22px);
-  background: #f8f8f4;
+  padding: clamp(18px, 2.25vw, 34px);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), transparent 22%),
+    linear-gradient(315deg, rgba(0, 0, 0, 0.12), transparent 28%),
+    linear-gradient(90deg, #efeee7, #ffffff 20%, #e6e5dd 50%, #ffffff 82%, #dfded5);
   box-shadow:
     0 38px 60px rgba(0, 0, 0, 0.34),
     0 14px 18px rgba(0, 0, 0, 0.28),
     0 4px 6px rgba(0, 0, 0, 0.3),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+    inset 12px 12px 18px rgba(255, 255, 255, 0.62),
+    inset -13px -13px 20px rgba(0, 0, 0, 0.14);
 }
 
 .detail-artwork-surface {
@@ -996,9 +1006,38 @@ h3 {
   box-shadow: none;
 }
 
+.detail-artwork-shell.frame-black .detail-artwork-surface,
+.detail-artwork-shell.frame-white .detail-artwork-surface {
+  padding: clamp(10px, 1.05vw, 18px);
+  overflow: hidden;
+}
+
+.detail-artwork-shell.frame-black .detail-artwork-surface {
+  background: #070806;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 10px 10px 18px rgba(0, 0, 0, 0.78),
+    inset -8px -8px 16px rgba(255, 255, 255, 0.08);
+}
+
+.detail-artwork-shell.frame-white .detail-artwork-surface {
+  background: #ecebe5;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+    inset 10px 10px 16px rgba(0, 0, 0, 0.18),
+    inset -8px -8px 16px rgba(255, 255, 255, 0.8);
+}
+
 .detail-artwork-shell.mockup-product-shell .detail-artwork-surface::before,
 .detail-artwork-shell.mockup-product-shell .detail-artwork-surface::after {
   display: none;
+}
+
+.detail-artwork-shell.frame-black .detail-artwork-image,
+.detail-artwork-shell.frame-white .detail-artwork-image {
+  box-shadow:
+    0 10px 16px rgba(0, 0, 0, 0.34),
+    -2px -2px 5px rgba(255, 255, 255, 0.12);
 }
 
 .detail-artwork-surface::after {
@@ -1061,6 +1100,28 @@ h3 {
   filter: none;
 }
 
+.detail-artwork-shell.front-product-shell.frame-black .detail-artwork-surface {
+  background: #070806;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 12px 12px 20px rgba(0, 0, 0, 0.78),
+    inset -10px -10px 18px rgba(255, 255, 255, 0.08),
+    0 30px 28px -18px rgba(0, 0, 0, 0.48),
+    0 12px 12px -8px rgba(0, 0, 0, 0.36),
+    0 2px 4px rgba(0, 0, 0, 0.24);
+}
+
+.detail-artwork-shell.front-product-shell.frame-white .detail-artwork-surface {
+  background: #ecebe5;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+    inset 12px 12px 18px rgba(0, 0, 0, 0.18),
+    inset -10px -10px 18px rgba(255, 255, 255, 0.82),
+    0 30px 28px -18px rgba(0, 0, 0, 0.42),
+    0 12px 12px -8px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 .detail-artwork-shell.side-product-shell::before {
   display: block;
   left: 8%;
@@ -1075,6 +1136,7 @@ h3 {
 }
 
 .detail-artwork-shell.side-product-shell .detail-artwork-surface {
+  padding: 0;
   overflow: visible;
   background: transparent;
   box-shadow: none;
@@ -1226,6 +1288,17 @@ h3 {
   height: 1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
+}
+
+.frame-options small {
+  position: absolute;
+  left: 50%;
+  bottom: -24px;
+  transform: translateX(-50%);
+  min-width: max-content;
+  color: #151515;
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .size-options button {

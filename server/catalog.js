@@ -1,148 +1,59 @@
-const sizePresets = {
-  portraitTwoThree: [
-    { id: '12x18', label: '12 x 18', priceInCents: 5500 },
-    { id: '16x24', label: '16 x 24', priceInCents: 7900 },
-    { id: '24x36', label: '24 x 36', priceInCents: 11900 },
-    { id: '30x45', label: '30 x 45', priceInCents: 15900 },
-  ],
-  landscapeWide: [
-    { id: '24x12', label: '24 x 12', priceInCents: 5500 },
-    { id: '30x15', label: '30 x 15', priceInCents: 7900 },
-    { id: '36x18', label: '36 x 18', priceInCents: 11900 },
-    { id: '48x24', label: '48 x 24', priceInCents: 15900 },
-  ],
-};
+import { readFileSync } from 'node:fs';
 
-function withSizes(product, sizePreset, defaultSizeId) {
+const catalog = JSON.parse(
+  readFileSync(new URL('../src/data/catalog.json', import.meta.url), 'utf8'),
+);
+
+const fallbackFrameOptions = [
+  { id: 'canvas', label: 'Canvas', priceDeltaInCents: 0 },
+];
+
+function slugify(value) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function normalizeFrameOptions(product) {
+  if (Array.isArray(product.frameOptions) && product.frameOptions.length) {
+    return product.frameOptions;
+  }
+
+  if (Array.isArray(product.framingOptions) && product.framingOptions.length) {
+    return product.framingOptions.map((label) => ({
+      id: slugify(label),
+      label,
+      priceDeltaInCents: 0,
+    }));
+  }
+
+  return fallbackFrameOptions;
+}
+
+function normalizeProduct(product) {
+  const sizeOptions =
+    product.sizeOptions ||
+    (product.sizePreset ? catalog.sizePresets[product.sizePreset] : undefined) ||
+    catalog.sizePresets.landscapeWide ||
+    [];
+  const frameOptions = normalizeFrameOptions(product);
+  const lowestSizePrice = Math.min(...sizeOptions.map((option) => option.priceInCents));
+  const lowestFrameDelta = Math.min(
+    ...frameOptions.map((option) => option.priceDeltaBySizeIndexInCents?.[0] ?? option.priceDeltaInCents ?? 0),
+  );
+
   return {
     ...product,
-    sizeOptions: sizePresets[sizePreset],
-    defaultSizeId,
+    name: product.title,
+    imagePath: product.image || '',
+    priceInCents: product.priceInCents ?? lowestSizePrice + lowestFrameDelta,
+    sizeOptions,
+    frameOptions,
   };
 }
 
-export const products = [
-  withSizes(
-    {
-      id: 'life-has-no-rewind-canvas',
-      name: 'Life Has No Rewind',
-      description: 'Canvas print from Armoze.',
-      imagePath: '/artwork/life-has-no-rewind/life-has-no-rewind-main.jpg',
-    },
-    'landscapeWide',
-    '36x18',
-  ),
-  withSizes(
-    {
-      id: 'money-is-energy-canvas',
-      name: 'Money Is Energy',
-      description: 'Canvas print from Armoze.',
-      imagePath: '/artwork/money canvas.png',
-    },
-    'landscapeWide',
-    '36x18',
-  ),
-  withSizes(
-    {
-      id: 'keep-going-canvas',
-      name: 'Keep Going',
-      description: 'Canvas print from Armoze.',
-      imagePath: null,
-    },
-    'portraitTwoThree',
-    '24x36',
-  ),
-  withSizes(
-    {
-      id: 'bookshelf-canvas',
-      name: 'Bookshelf Mindset',
-      description: 'Canvas print from Armoze.',
-      imagePath: '/artwork/bookshelf/bookshelf test1.png',
-    },
-    'landscapeWide',
-    '36x18',
-  ),
-  withSizes(
-    {
-      id: 'paycheck-canvas',
-      name: 'Paycheck Energy',
-      description: 'Canvas print from Armoze.',
-      imagePath: '/artwork/paycheck.png',
-    },
-    'landscapeWide',
-    '36x18',
-  ),
-  withSizes(
-    {
-      id: 'stairs-canvas',
-      name: 'One Step Higher',
-      description: 'Canvas print from Armoze.',
-      imagePath: '/artwork/stairs.png',
-    },
-    'portraitTwoThree',
-    '24x36',
-  ),
-  withSizes(
-    {
-      id: 'books-of-motivation-canvas',
-      name: 'Books of Motivation',
-      description: 'Canvas print from Armoze.',
-      imagePath: '/artwork/New folder (2)/books of motivation file.png',
-    },
-    'portraitTwoThree',
-    '24x36',
-  ),
-  withSizes(
-    {
-      id: 'hello-i-am-canvas',
-      name: 'Hello I Am',
-      description: 'Canvas print from Armoze.',
-      imagePath: '/artwork/hello-i-am/hello i am mockup file.png',
-    },
-    'landscapeWide',
-    '36x18',
-  ),
-  withSizes(
-    {
-      id: 'ninety-seven-percent-canvas',
-      name: '97 Percent',
-      description: 'Canvas print from Armoze.',
-      imagePath: '/artwork/97-percent/97 percent file.png',
-    },
-    'portraitTwoThree',
-    '24x36',
-  ),
-  withSizes(
-    {
-      id: 'calm-under-pressure-canvas',
-      name: 'Calm Under Pressure',
-      description: 'Canvas print from Armoze.',
-      imagePath: '/artwork/calm-under-pressure/02-gallery.png',
-    },
-    'landscapeWide',
-    '36x18',
-  ),
-  withSizes(
-    {
-      id: 'calm-under-pres-canvas',
-      name: 'Calm Under Pressure II',
-      description: 'Canvas print from Armoze.',
-      imagePath: '/artwork/calm under pres.png',
-    },
-    'landscapeWide',
-    '36x18',
-  ),
-  withSizes(
-    {
-      id: 'remember-who-you-are-canvas',
-      name: 'Remember Who You Are',
-      description: 'Canvas print from Armoze.',
-      imagePath: '/artwork/remember who u are.png',
-    },
-    'landscapeWide',
-    '36x18',
-  ),
-];
+export const products = catalog.products.map(normalizeProduct);
 
 export function findProduct(productId) {
   return products.find((product) => product.id === productId);
@@ -154,4 +65,31 @@ export function findSizeOption(product, sizeId) {
     product.sizeOptions.find((option) => option.id === product.defaultSizeId) ??
     product.sizeOptions[0]
   );
+}
+
+export function findFrameOption(product, frameId) {
+  return (
+    product.frameOptions.find((option) => option.id === frameId) ??
+    product.frameOptions[0] ??
+    fallbackFrameOptions[0]
+  );
+}
+
+export function getFramePriceDelta(product, sizeOption, frameOption) {
+  if (Array.isArray(frameOption.priceDeltaBySizeIndexInCents)) {
+    const sizeIndex = Math.max(
+      0,
+      product.sizeOptions.findIndex((option) => option.id === sizeOption.id),
+    );
+    const fallbackIndex = frameOption.priceDeltaBySizeIndexInCents.length - 1;
+
+    return Number(
+      frameOption.priceDeltaBySizeIndexInCents[sizeIndex] ??
+        frameOption.priceDeltaBySizeIndexInCents[fallbackIndex] ??
+        frameOption.priceDeltaInCents ??
+        0,
+    );
+  }
+
+  return Number(frameOption.priceDeltaInCents || 0);
 }

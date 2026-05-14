@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import Stripe from 'stripe';
-import { findProduct, findSizeOption } from './catalog.js';
+import { findFrameOption, findProduct, findSizeOption, getFramePriceDelta } from './catalog.js';
 import { sendOwnerOrderNotification } from './notifications.js';
 import { createOrderStore } from './order-store.js';
 
@@ -66,6 +66,9 @@ function normalizeCartItems(items) {
     }
 
     const sizeOption = findSizeOption(product, item.sizeId);
+    const frameOption = findFrameOption(product, item.frameId);
+    const framePriceDelta = getFramePriceDelta(product, sizeOption, frameOption);
+    const unitAmount = sizeOption.priceInCents + framePriceDelta;
 
     return {
       productId: product.id,
@@ -74,31 +77,49 @@ function normalizeCartItems(items) {
       imagePath: product.imagePath || '',
       sizeId: sizeOption.id,
       sizeLabel: sizeOption.label,
+      frameId: frameOption.id,
+      frameLabel: frameOption.label,
+      framePriceDelta,
       quantity,
-      unitAmount: sizeOption.priceInCents,
-      lineTotal: sizeOption.priceInCents * quantity,
+      unitAmount,
+      lineTotal: unitAmount * quantity,
     };
   });
 }
 
+function getCheckoutImageUrls(item) {
+  if (!item.imagePath || !clientUrl.startsWith('https://')) {
+    return undefined;
+  }
+
+  return [new URL(item.imagePath, clientUrl).toString()];
+}
+
 function buildLineItems(cartItems) {
-  return cartItems.map((item) => ({
-    quantity: item.quantity,
-    price_data: {
-      currency: 'usd',
-      unit_amount: item.unitAmount,
-      product_data: {
-        name: item.title,
-        description: `${item.description} Size: ${item.sizeLabel}.`,
-        metadata: {
-          productId: item.productId,
-          sizeId: item.sizeId,
-          sizeLabel: item.sizeLabel,
-          imagePath: item.imagePath,
+  return cartItems.map((item) => {
+    const images = getCheckoutImageUrls(item);
+
+    return {
+      quantity: item.quantity,
+      price_data: {
+        currency: 'usd',
+        unit_amount: item.unitAmount,
+        product_data: {
+          name: item.title,
+          description: `${item.description} Size: ${item.sizeLabel}. Frame: ${item.frameLabel}.`,
+          ...(images ? { images } : {}),
+          metadata: {
+            productId: item.productId,
+            sizeId: item.sizeId,
+            sizeLabel: item.sizeLabel,
+            frameId: item.frameId,
+            frameLabel: item.frameLabel,
+            imagePath: item.imagePath,
+          },
         },
       },
-    },
-  }));
+    };
+  });
 }
 
 function buildCheckoutDraft(session, cartItems) {
@@ -151,6 +172,8 @@ async function getLineItemsFromStripe(sessionId) {
       imagePath: metadata.imagePath || '',
       sizeId: metadata.sizeId || '',
       sizeLabel: metadata.sizeLabel || '',
+      frameId: metadata.frameId || '',
+      frameLabel: metadata.frameLabel || '',
       quantity,
       unitAmount: quantity ? Math.round(lineTotal / quantity) : lineTotal,
       lineTotal,

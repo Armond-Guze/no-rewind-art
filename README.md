@@ -55,7 +55,7 @@ npm run build
 ## Adding Artwork
 
 1. Create one folder per product inside `public/artwork/`.
-2. Open `src/data/products.ts`.
+2. Open `src/data/catalog.json`.
 3. Add or update the product entry.
 
 Use this folder naming convention:
@@ -84,7 +84,47 @@ have `01-main.png`, the site will still work. Add the other gallery images later
 using the standard names.
 
 Images can be `.jpg`, `.png`, `.webp`, or `.avif`, but keep each product's
-gallery filenames consistent with the extensions used in `products.ts`.
+gallery filenames consistent with the extensions used in `catalog.json`.
+
+## Editing Sizes, Prices, and Frames
+
+Product size and frame data now lives in `src/data/catalog.json`, and both the
+storefront and Stripe checkout read from that same file.
+
+To change a product from a 2:1 shape to a 2:3 shape, edit that product's
+`sizePreset`:
+
+```json
+"sizePreset": "portraitTwoThree",
+"defaultSizeId": "24x36"
+```
+
+Common presets:
+
+```text
+landscapeWide      2:1 sizes such as 24 x 12, 36 x 18
+portraitTwoThree   2:3 sizes such as 12 x 18, 24 x 36
+landscapeThreeTwo  3:2 sizes such as 18 x 12, 36 x 24
+squareStandard     square sizes such as 12 x 12, 24 x 24
+```
+
+To change prices, edit `priceInCents` inside `sizePresets` or add a custom
+`sizeOptions` array directly to one product. To price frames, edit the product's
+`frameOptions`. Black and white frames can use size-tiered deltas:
+
+```json
+{
+  "id": "black-frame",
+  "label": "Black Frame",
+  "priceDeltaInCents": 0,
+  "priceDeltaBySizeIndexInCents": [2000, 3000, 4000, 5000, 6000]
+}
+```
+
+Stripe checkout uses the selected size plus the selected frame price delta. The
+array matches the size list order, so the first size gets `+2000` cents, the
+second gets `+3000`, and so on. If a product only has four sizes, the fifth
+value is simply unused.
 
 ## Side Mockups
 
@@ -191,8 +231,9 @@ Each product has its own listing page:
 /products/keep-going
 ```
 
-Product page data lives in `src/data/products.ts`. Update each product's
-`slug`, `gallery`, `sizeOptions`, `framingOptions`, and `details` there.
+Product page data lives in `src/data/catalog.json`. Update each product's
+`slug`, `gallery`, `sizePreset` or `sizeOptions`, `frameOptions`, and `details`
+there.
 
 Set `artworkShape` to control how the product image is displayed:
 

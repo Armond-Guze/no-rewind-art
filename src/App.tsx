@@ -38,6 +38,7 @@ import {
   getProductBySlug,
   getProductsForCollection,
   products,
+  type FrameOption,
   type Product,
   type SizeOption,
 } from './data/products';
@@ -46,15 +47,17 @@ type CartItem = {
   lineKey: string;
   productId: string;
   sizeId: string;
+  frameId: string;
   quantity: number;
 };
 
 type CartLine = CartItem & {
   product: Product;
   sizeOption: SizeOption;
+  frameOption: FrameOption;
 };
 
-type AddToCart = (productId: string, sizeId?: string) => void;
+type AddToCart = (productId: string, sizeId?: string, frameId?: string) => void;
 
 type AdminOrderItem = {
   productId: string;
@@ -62,6 +65,8 @@ type AdminOrderItem = {
   imagePath?: string;
   sizeId?: string;
   sizeLabel?: string;
+  frameId?: string;
+  frameLabel?: string;
   quantity: number;
   unitAmount: number;
   lineTotal: number;
@@ -350,8 +355,8 @@ async function playOrderDing() {
   }, 1200);
 }
 
-function makeCartLineKey(productId: string, sizeId: string) {
-  return `${productId}::${sizeId}`;
+function makeCartLineKey(productId: string, sizeId: string, frameId: string) {
+  return `${productId}::${sizeId}::${frameId}`;
 }
 
 function getBaseSizeOption(product: Product) {
@@ -367,6 +372,47 @@ function getFeaturedSizeOption(product: Product) {
 
 function getSizeOption(product: Product, sizeId: string) {
   return product.sizeOptions.find((option) => option.id === sizeId) ?? getBaseSizeOption(product);
+}
+
+function getBaseFrameOption(product: Product) {
+  return product.frameOptions[0];
+}
+
+function getFrameOption(product: Product, frameId: string) {
+  return product.frameOptions.find((option) => option.id === frameId) ?? getBaseFrameOption(product);
+}
+
+function getFramePriceDelta(product: Product, sizeOption: SizeOption, frameOption: FrameOption) {
+  if (frameOption.priceDeltaBySizeIndexInCents?.length) {
+    const sizeIndex = Math.max(
+      0,
+      product.sizeOptions.findIndex((option) => option.id === sizeOption.id),
+    );
+    const fallbackIndex = frameOption.priceDeltaBySizeIndexInCents.length - 1;
+
+    return (
+      frameOption.priceDeltaBySizeIndexInCents[sizeIndex] ??
+      frameOption.priceDeltaBySizeIndexInCents[fallbackIndex] ??
+      frameOption.priceDeltaInCents ??
+      0
+    );
+  }
+
+  return frameOption.priceDeltaInCents ?? 0;
+}
+
+function getConfiguredUnitPrice(product: Product, sizeOption: SizeOption, frameOption: FrameOption) {
+  return sizeOption.priceInCents + getFramePriceDelta(product, sizeOption, frameOption);
+}
+
+function formatFramePriceDelta(product: Product, sizeOption: SizeOption, frameOption: FrameOption) {
+  const framePriceDelta = getFramePriceDelta(product, sizeOption, frameOption);
+
+  if (!framePriceDelta) {
+    return '';
+  }
+
+  return `+${formatPrice(framePriceDelta)}`;
 }
 
 function ProductVisual({ product }: { product: Product }) {
@@ -732,12 +778,13 @@ function CartSection({
         {cartProducts.length ? (
           <>
             <div className="cart-items">
-              {cartProducts.map(({ lineKey, product, quantity, sizeOption }) => (
+              {cartProducts.map(({ lineKey, product, quantity, sizeOption, frameOption }) => (
                 <div className="cart-item" key={lineKey}>
                   <div>
                     <h3>{product.title}</h3>
                     <p>
-                      {sizeOption.label} · {formatPrice(sizeOption.priceInCents)}
+                      {sizeOption.label} · {frameOption.label} ·{' '}
+                      {formatPrice(getConfiguredUnitPrice(product, sizeOption, frameOption))}
                     </p>
                   </div>
                   <div className="quantity-controls">
@@ -964,7 +1011,9 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   const selectedOption =
     product.sizeOptions.find((option) => option.id === selectedSizeId) ?? defaultSizeOption;
   const selectedSize = product.sizeOptions.findIndex((option) => option.id === selectedOption.id);
-  const selectedFrameName = product.framingOptions[selectedFrame] ?? product.framingOptions[0];
+  const selectedFrameOption = product.frameOptions[selectedFrame] ?? getBaseFrameOption(product);
+  const selectedFrameName = selectedFrameOption.label;
+  const selectedUnitPrice = getConfiguredUnitPrice(product, selectedOption, selectedFrameOption);
   const frameClass =
     selectedFrameName === 'Black Frame'
       ? 'frame-black'
@@ -1039,24 +1088,27 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
 
           <p className="listing-kicker">Armoze Original</p>
           <h1>{product.title}</h1>
-          <p className="listing-price">{formatPrice(selectedOption.priceInCents)}</p>
+          <p className="listing-price">{formatPrice(selectedUnitPrice)}</p>
           <p className="listing-description">{product.longDescription}</p>
 
           <div className="option-group">
             <div className="option-label">
               <span>Framing Options:</span>
-              <strong>{product.framingOptions[selectedFrame]}</strong>
+              <strong>{selectedFrameName}</strong>
             </div>
             <div className="frame-options">
-              {product.framingOptions.map((option, index) => (
+              {product.frameOptions.map((option, index) => (
                 <button
                   className={index === selectedFrame ? 'selected' : ''}
-                  key={option}
+                  key={option.id}
                   type="button"
                   onClick={() => setSelectedFrame(index)}
-                  aria-label={`Select ${option}`}
+                  aria-label={`Select ${option.label}`}
                 >
-                  <span>{option}</span>
+                  <span>{option.label}</span>
+                  {formatFramePriceDelta(product, selectedOption, option) ? (
+                    <small>{formatFramePriceDelta(product, selectedOption, option)}</small>
+                  ) : null}
                 </button>
               ))}
             </div>
@@ -1090,7 +1142,7 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
             className="button button-primary listing-cart-button"
             type="button"
             onClick={() => {
-              addToCart(product.id, selectedOption.id);
+              addToCart(product.id, selectedOption.id, selectedFrameOption.id);
               navigate('/cart');
             }}
           >
@@ -1462,12 +1514,16 @@ function AdminDashboard() {
 
                   <div className="admin-order-items">
                     {order.items.map((item) => (
-                      <div className="admin-order-item" key={`${order.id}-${item.productId}-${item.sizeId}`}>
+                      <div
+                        className="admin-order-item"
+                        key={`${order.id}-${item.productId}-${item.sizeId}-${item.frameId || 'frame'}`}
+                      >
                         {item.imagePath ? <img src={item.imagePath} alt="" aria-hidden="true" /> : <span />}
                         <div>
                           <strong>{item.title}</strong>
                           <small>
                             {item.quantity} x {item.sizeLabel || 'Canvas'} ·{' '}
+                            {item.frameLabel || 'Canvas'} ·{' '}
                             {formatPrice(item.unitAmount, order.currency)}
                           </small>
                         </div>
@@ -1554,7 +1610,8 @@ function App() {
           }
 
           const sizeOption = getSizeOption(product, item.sizeId);
-          return { ...item, product, sizeOption };
+          const frameOption = getFrameOption(product, item.frameId);
+          return { ...item, product, sizeOption, frameOption };
         })
         .filter((item): item is CartLine => Boolean(item)),
     [cart],
@@ -1562,11 +1619,12 @@ function App() {
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const subtotal = cartProducts.reduce(
-    (total, item) => total + item.sizeOption.priceInCents * item.quantity,
+    (total, item) =>
+      total + getConfiguredUnitPrice(item.product, item.sizeOption, item.frameOption) * item.quantity,
     0,
   );
 
-  function addToCart(productId: string, sizeId?: string) {
+  function addToCart(productId: string, sizeId?: string, frameId?: string) {
     const product = products.find((candidate) => candidate.id === productId);
 
     if (!product) {
@@ -1574,13 +1632,23 @@ function App() {
     }
 
     const sizeOption = sizeId ? getSizeOption(product, sizeId) : getBaseSizeOption(product);
-    const lineKey = makeCartLineKey(productId, sizeOption.id);
+    const frameOption = frameId ? getFrameOption(product, frameId) : getBaseFrameOption(product);
+    const lineKey = makeCartLineKey(productId, sizeOption.id, frameOption.id);
 
     setCart((currentCart) => {
       const existing = currentCart.find((item) => item.lineKey === lineKey);
 
       if (!existing) {
-        return [...currentCart, { lineKey, productId, sizeId: sizeOption.id, quantity: 1 }];
+        return [
+          ...currentCart,
+          {
+            lineKey,
+            productId,
+            sizeId: sizeOption.id,
+            frameId: frameOption.id,
+            quantity: 1,
+          },
+        ];
       }
 
       return currentCart.map((item) =>
@@ -1621,6 +1689,7 @@ function App() {
           items: cart.map((item) => ({
             id: item.productId,
             sizeId: item.sizeId,
+            frameId: item.frameId,
             quantity: item.quantity,
           })),
         }),
