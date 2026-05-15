@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-const catalog = JSON.parse(
+export const seedCatalog = JSON.parse(
   readFileSync(new URL('../src/data/catalog.json', import.meta.url), 'utf8'),
 );
 
@@ -31,11 +31,11 @@ function normalizeFrameOptions(product) {
   return fallbackFrameOptions;
 }
 
-function normalizeProduct(product) {
+export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets) {
   const sizeOptions =
     product.sizeOptions ||
-    (product.sizePreset ? catalog.sizePresets[product.sizePreset] : undefined) ||
-    catalog.sizePresets.landscapeWide ||
+    (product.sizePreset ? sizePresets[product.sizePreset] : undefined) ||
+    sizePresets.landscapeWide ||
     [];
   const frameOptions = normalizeFrameOptions(product);
   const lowestSizePrice = Math.min(...sizeOptions.map((option) => option.priceInCents));
@@ -50,13 +50,23 @@ function normalizeProduct(product) {
     priceInCents: product.priceInCents ?? lowestSizePrice + lowestFrameDelta,
     sizeOptions,
     frameOptions,
+    published: product.published !== false,
   };
 }
 
-export const products = catalog.products.map(normalizeProduct);
+export function normalizeCatalogData(catalog = seedCatalog) {
+  return {
+    sizePresets: catalog.sizePresets,
+    collections: catalog.collections,
+    products: catalog.products.map((product) => normalizeProduct(product, catalog.sizePresets)),
+  };
+}
 
-export function findProduct(productId) {
-  return products.find((product) => product.id === productId);
+export const catalog = normalizeCatalogData(seedCatalog);
+export const products = catalog.products;
+
+export function findProduct(productId, productList = products) {
+  return productList.find((product) => product.id === productId && product.published !== false);
 }
 
 export function findSizeOption(product, sizeId) {

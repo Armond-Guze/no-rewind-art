@@ -179,7 +179,7 @@
       "slug": "new-arrivals",
       "title": "New Arrivals",
       "navLabel": "New Arrivals",
-      "description": "Recently added artwork and dummy listings ready for refinement.",
+      "description": "Recently added artwork, new mockups, and fresh motivational canvas prints from the current Armoze drop.",
       "productIds": [
         "bookshelf-canvas",
         "reminder-life-has-no-rewind-canvas",
@@ -199,12 +199,12 @@
       "id": "life-has-no-rewind-canvas",
       "slug": "life-has-no-rewind",
       "title": "Life Has No Rewind",
-      "description": "Canvas and poster print for rooms that need a daily reset.",
-      "longDescription": "A bold cassette-inspired reminder that time only moves forward. Designed for offices, bedrooms, studios, dorm rooms, and creative spaces that need a daily push.",
+      "description": "Cassette-inspired motivational canvas print for daily perspective and momentum.",
+      "longDescription": "A bold cassette-inspired reminder that time only moves forward. Designed for offices, bedrooms, studios, dorm rooms, and creative spaces that need a daily push to stay present and keep building.",
       "label": "Life Has No Rewind",
       "imageFolder": "life-has-no-rewind",
       "image": "/artwork/life-has-no-rewind/life-has-no-rewind-main.jpg",
-      "imageAlt": "Life Has No Rewind motivational cassette canvas print",
+      "imageAlt": "Life Has No Rewind cassette artwork shown as an Armoze motivational canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
         "/artwork/life-has-no-rewind/01-main.png",
@@ -257,18 +257,20 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "Life Has No Rewind Motivational Canvas Print",
+      "seoDescription": "Shop Life Has No Rewind by Armoze, a cassette-inspired motivational canvas print for offices, bedrooms, studios, and creative spaces."
     },
     {
       "id": "reminder-life-has-no-rewind-canvas",
       "slug": "reminder-life-has-no-rewind",
       "title": "Reminder: Life Has No Rewind",
-      "description": "A reminder-style Life Has No Rewind canvas with its own artwork set.",
-      "longDescription": "A separate reminder version of Life Has No Rewind, built as its own listing so it can use its own mockups, gallery images, product page, and checkout option.",
+      "description": "Reminder-style cassette canvas print for focus, perspective, and daily urgency.",
+      "longDescription": "A reminder-driven version of Life Has No Rewind with a sharper message-forward layout. Built for rooms where you want the wall to push presence, focus, and forward motion every day.",
       "label": "Reminder Life Has No Rewind",
       "imageFolder": "reminder life has no rewind",
       "image": "/artwork/reminder life has no rewind/reminder life has no rewind main-1.png",
-      "imageAlt": "Reminder Life Has No Rewind canvas print mockup",
+      "imageAlt": "Reminder Life Has No Rewind cassette artwork displayed as a landscape canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
         "/artwork/reminder life has no rewind/reminder life has no rewind slide 2.png",
@@ -320,18 +322,20 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "Reminder Life Has No Rewind Canvas Print",
+      "seoDescription": "Shop Reminder: Life Has No Rewind, a bold cassette-style canvas print for focus, discipline, and everyday perspective."
     },
     {
       "id": "money-is-energy-canvas",
       "slug": "money-is-energy",
       "title": "Money Is Energy",
-      "description": "Ambition-focused wall art for offices, studios, and money mindset spaces.",
-      "longDescription": "A money-mindset statement piece made for workspaces, studios, and rooms where ambition needs to stay visible.",
+      "description": "Money-mindset wall art for offices, studios, and entrepreneurial spaces.",
+      "longDescription": "A money-mindset statement piece made for workspaces, studios, and rooms where ambition needs to stay visible. The design keeps the goal in front of you without feeling like ordinary office decor.",
       "label": "Money Is Energy",
       "imageFolder": "money-is-energy",
       "image": "/artwork/money-is-energy/01-main.png",
-      "imageAlt": "ATM money mindset canvas print",
+      "imageAlt": "Money Is Energy ATM-inspired artwork shown as an Armoze canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
         "/artwork/money-is-energy/01-main.png"
@@ -382,16 +386,18 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "Money Is Energy Canvas Print for Offices and Studios",
+      "seoDescription": "Shop Money Is Energy by Armoze, a money mindset canvas print for offices, studios, entrepreneurs, and ambitious workspaces."
     },
     {
       "id": "keep-going-canvas",
       "slug": "keep-going",
       "title": "Keep Going",
-      "description": "Cinematic space-inspired print for bedrooms and dorm rooms.",
-      "longDescription": "A cinematic future-focused print for dreamers, students, creators, and anyone who needs the wall to say keep moving.",
+      "description": "Cinematic future-focused canvas print for bedrooms, dorms, and creative spaces.",
+      "longDescription": "A cinematic future-focused print for dreamers, students, creators, and anyone who needs the wall to say keep moving. The space-inspired mood makes it feel calm, wide open, and forward-looking.",
       "label": "Keep Going",
-      "imageAlt": "Keep Going space-inspired motivational wall art print",
+      "imageAlt": "Keep Going space-inspired motivational artwork shown as a portrait canvas print mockup",
       "artworkShape": "portrait",
       "gallery": [],
       "tone": "space",
@@ -439,18 +445,20 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "Keep Going Space Motivational Canvas Print",
+      "seoDescription": "Shop Keep Going by Armoze, a cinematic future-focused canvas print for bedrooms, dorm rooms, studios, and creative spaces."
     },
     {
       "id": "bookshelf-canvas",
       "slug": "bookshelf",
       "title": "Bookshelf Mindset",
-      "description": "A clean motivational print for reading corners, offices, and study spaces.",
-      "longDescription": "A thoughtful wall-art piece for readers, builders, and anyone creating a room that keeps their mind sharp. This listing uses dummy copy for now and can be adjusted once the final title is locked in.",
+      "description": "Clean study-room canvas print for readers, builders, and creative thinkers.",
+      "longDescription": "A thoughtful wall-art piece for readers, builders, and anyone creating a room that keeps their mind sharp. Made for reading corners, home offices, study spaces, and quiet places where ideas stack up over time.",
       "label": "Bookshelf Mindset",
       "imageFolder": "bookshelf",
       "image": "/artwork/bookshelf/bookshelf test1.png",
-      "imageAlt": "Bookshelf motivational canvas print mockup",
+      "imageAlt": "Bookshelf Mindset artwork displayed as an Armoze study room canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
         "/artwork/bookshelf/02-side.png"
@@ -501,18 +509,20 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "Bookshelf Mindset Canvas Print for Study Rooms",
+      "seoDescription": "Shop Bookshelf Mindset by Armoze, a clean motivational canvas print for reading corners, offices, libraries, and study rooms."
     },
     {
       "id": "paycheck-canvas",
       "slug": "paycheck",
       "title": "Paycheck Energy",
-      "description": "Money-mindset canvas art for people building income and momentum.",
-      "longDescription": "A direct money-mindset print for offices, studios, and rooms where the goal is simple: build, earn, repeat. This copy is placeholder copy until the final listing language is set.",
+      "description": "Income-focused canvas art for people building momentum and money discipline.",
+      "longDescription": "A direct money-mindset print for offices, studios, and rooms where the goal is simple: build, earn, repeat. Designed to keep income, discipline, and forward motion visible without softening the message.",
       "label": "Paycheck Energy",
       "imageFolder": "paycheck",
       "image": "/artwork/paycheck/01-main.png",
-      "imageAlt": "Paycheck money mindset canvas print mockup",
+      "imageAlt": "Paycheck Energy money mindset artwork shown as a landscape canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
         "/artwork/paycheck/01-main.png"
@@ -530,8 +540,8 @@
       "details": [
         "Designed for entrepreneur offices, studios, and workspaces.",
         "Money-focused artwork with a bold room presence.",
-        "Canvas options are ready for dummy checkout testing.",
-        "Final price, title, and details can be adjusted later."
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
       ],
       "sizePreset": "landscapeWide",
       "frameOptions": [
@@ -564,18 +574,20 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "Paycheck Energy Money Mindset Canvas Print",
+      "seoDescription": "Shop Paycheck Energy by Armoze, a money mindset canvas print for workspaces, studios, entrepreneurs, and income-focused rooms."
     },
     {
       "id": "stairs-canvas",
       "slug": "stairs",
       "title": "One Step Higher",
-      "description": "A discipline-focused print about progress, patience, and climbing.",
-      "longDescription": "A visual reminder that progress is built one step at a time. This listing is set up with placeholder copy so the product page, cart, and checkout flow can be tested now.",
+      "description": "Discipline-focused canvas print about progress, patience, and climbing higher.",
+      "longDescription": "A visual reminder that progress is built one step at a time. Designed for workspaces, bedrooms, gyms, and study rooms where the next step matters more than the perfect moment.",
       "label": "One Step Higher",
       "imageFolder": "stairs",
       "image": "/artwork/stairs/01-main.png",
-      "imageAlt": "Stairs motivational canvas print mockup",
+      "imageAlt": "One Step Higher stairs artwork displayed as a portrait motivational canvas print mockup",
       "artworkShape": "portrait",
       "gallery": [
         "/artwork/stairs/01-main.png"
@@ -627,18 +639,20 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "One Step Higher Discipline Canvas Print",
+      "seoDescription": "Shop One Step Higher by Armoze, a discipline-focused canvas print about progress, patience, and daily improvement."
     },
     {
       "id": "books-of-motivation-canvas",
       "slug": "books-of-motivation",
       "title": "Books of Motivation",
-      "description": "Motivational wall art for readers, students, and creators.",
-      "longDescription": "A print built around learning, discipline, and the ideas that push people forward. Product details are dummy data for now so we can keep building the shop experience.",
+      "description": "Learning-focused wall art for readers, students, writers, and creators.",
+      "longDescription": "A print built around learning, discipline, and the ideas that push people forward. Made for study desks, reading spaces, offices, dorm rooms, and creative corners that need a little more direction.",
       "label": "Books of Motivation",
       "imageFolder": "books-of-motivation",
       "image": "/artwork/New folder (2)/books of motivation file.png",
-      "imageAlt": "Books of Motivation canvas print mockup",
+      "imageAlt": "Books of Motivation artwork shown as an Armoze canvas print mockup for study spaces",
       "artworkShape": "portrait",
       "gallery": [
         "/artwork/New folder (2)/books of motivation file.png",
@@ -690,18 +704,20 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "Books of Motivation Canvas Print for Readers and Students",
+      "seoDescription": "Shop Books of Motivation by Armoze, a learning-focused canvas print for readers, students, writers, and creative workspaces."
     },
     {
       "id": "hello-i-am-canvas",
       "slug": "hello-i-am",
       "title": "Hello I Am",
-      "description": "Identity-focused motivational canvas art for personal spaces.",
-      "longDescription": "A bold self-definition piece for anyone rebuilding identity, confidence, and direction. This is dummy product copy for now and can be sharpened once the final listing strategy is set.",
+      "description": "Identity-focused motivational canvas art for confidence and self-definition.",
+      "longDescription": "A bold self-definition piece for anyone rebuilding identity, confidence, and direction. The simple statement format makes it feel personal, direct, and easy to place in a bedroom, office, or studio.",
       "label": "Hello I Am",
       "imageFolder": "hello-i-am",
       "image": "/artwork/hello-i-am/hello i am mockup file.png",
-      "imageAlt": "Hello I Am motivational canvas print mockup",
+      "imageAlt": "Hello I Am identity-focused motivational artwork shown as a landscape canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
         "/artwork/hello-i-am/hello i am mockup file.png",
@@ -720,8 +736,8 @@
       "details": [
         "Identity and confidence-focused motivational wall art.",
         "Built for bedrooms, studios, offices, and personal reset spaces.",
-        "Canvas print options use dummy pricing for now.",
-        "Final copy and product naming can be adjusted later."
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
       ],
       "sizePreset": "landscapeWide",
       "frameOptions": [
@@ -754,18 +770,20 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "Hello I Am Identity Motivational Canvas Print",
+      "seoDescription": "Shop Hello I Am by Armoze, an identity-focused motivational canvas print for bedrooms, offices, studios, and personal spaces."
     },
     {
       "id": "ninety-seven-percent-canvas",
       "slug": "97-percent",
       "title": "97 Percent",
-      "description": "A sharp motivational print for people who want to separate from average.",
-      "longDescription": "A high-contrast discipline piece built around the idea that the small percentage who keep going create a different life. Dummy product copy is in place for now so the listing can be refined later.",
+      "description": "Sharp discipline canvas print for focus, separation, and daily momentum.",
+      "longDescription": "A high-contrast discipline piece built around the idea that the small percentage who keep going create a different life. Made for ambitious rooms where average energy does not belong.",
       "label": "97 Percent",
       "imageFolder": "97-percent",
       "image": "/artwork/97-percent/97 percent file.png",
-      "imageAlt": "97 Percent motivational canvas print mockup",
+      "imageAlt": "97 Percent discipline artwork displayed as an Armoze motivational canvas print mockup",
       "artworkShape": "portrait",
       "gallery": [
         "/artwork/97-percent/97 percent file.png",
@@ -818,18 +836,20 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "97 Percent Discipline Motivational Canvas Print",
+      "seoDescription": "Shop 97 Percent by Armoze, a sharp discipline canvas print for people who want focus, separation, and daily momentum."
     },
     {
       "id": "calm-under-pressure-canvas",
       "slug": "calm-under-pressure",
       "title": "Calm Under Pressure",
-      "description": "A composed mindset print for focus, patience, and pressure moments.",
-      "longDescription": "A clean reminder to stay steady when things get loud. This product page is wired with dummy listing data for now and can be sharpened around the final artwork angle.",
+      "description": "Composed mindset canvas print for focus, patience, and pressure moments.",
+      "longDescription": "A clean reminder to stay steady when things get loud. Designed for offices, studios, bedrooms, and focus spaces where calm decision-making matters.",
       "label": "Calm Under Pressure",
       "imageFolder": "calm-under-pressure",
       "image": "/artwork/calm-under-pressure/02-gallery.png",
-      "imageAlt": "Calm Under Pressure motivational canvas print mockup",
+      "imageAlt": "Calm Under Pressure artwork shown as a landscape motivational canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
         "/artwork/calm-under-pressure/02-gallery.png",
@@ -882,18 +902,20 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "Calm Under Pressure Canvas Print for Focused Rooms",
+      "seoDescription": "Shop Calm Under Pressure by Armoze, a composed motivational canvas print for offices, studios, bedrooms, and focus spaces."
     },
     {
       "id": "calm-under-pres-canvas",
       "slug": "calm-under-pres",
       "title": "Calm Under Pressure II",
-      "description": "A second calm-under-pressure variation for focused rooms.",
-      "longDescription": "A companion variation for the Calm Under Pressure concept. The listing uses placeholder copy and can be merged, renamed, or removed once the final catalog is curated.",
+      "description": "Second calm-under-pressure canvas variation for focused rooms and workspaces.",
+      "longDescription": "A companion variation for the Calm Under Pressure concept with the same steady, focused mood. Built for rooms where the message needs to be simple: stay composed and keep moving.",
       "label": "Calm Under Pressure II",
       "imageFolder": "calm-under-pres",
       "image": "/artwork/calm-under-pres/01-main.png",
-      "imageAlt": "Calm Under Pressure variation canvas print mockup",
+      "imageAlt": "Calm Under Pressure II artwork displayed as an Armoze canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
         "/artwork/calm-under-pres/01-main.png"
@@ -944,18 +966,20 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "Calm Under Pressure II Motivational Canvas Print",
+      "seoDescription": "Shop Calm Under Pressure II by Armoze, a focused wall art variation for offices, studios, and calm workspaces."
     },
     {
       "id": "remember-who-you-are-canvas",
       "slug": "remember-who-you-are",
       "title": "Remember Who You Are",
       "description": "Identity-focused wall art for confidence, grounding, and self-belief.",
-      "longDescription": "A self-reminder print for people rebuilding confidence, direction, and identity. Dummy listing data is in place so the product page is ready for review.",
+      "longDescription": "A self-reminder print for people rebuilding confidence, direction, and identity. Designed for bedrooms, studios, offices, and personal spaces where the message needs to feel grounding and direct.",
       "label": "Remember Who You Are",
       "imageFolder": "remember-who-you-are",
       "image": "/artwork/remember-who-you-are/01-main.png",
-      "imageAlt": "Remember Who You Are motivational canvas print mockup",
+      "imageAlt": "Remember Who You Are identity artwork shown as a landscape motivational canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
         "/artwork/remember-who-you-are/01-main.png"
@@ -1006,7 +1030,9 @@
             6000
           ]
         }
-      ]
+      ],
+      "seoTitle": "Remember Who You Are Motivational Canvas Print",
+      "seoDescription": "Shop Remember Who You Are by Armoze, an identity-focused motivational canvas print for confidence, grounding, and self-belief."
     }
   ]
 }

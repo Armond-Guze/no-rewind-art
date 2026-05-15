@@ -34,3 +34,16 @@ create table if not exists notifications (
 create index if not exists orders_updated_at_idx on orders (updated_at desc);
 create index if not exists orders_payment_status_idx on orders (payment_status);
 create index if not exists notifications_created_at_idx on notifications (created_at desc);
+
+create table if not exists products (
+  id text primary key,
+  slug text unique not null,
+  published boolean not null default true,
+  sort_order integer not null default 0,
+  data jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists products_published_idx on products (published);
+create index if not exists products_sort_order_idx on products (sort_order);

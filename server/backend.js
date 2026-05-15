@@ -1,8 +1,12 @@
 import 'dotenv/config';
+import { readdir } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import Stripe from 'stripe';
 import { findFrameOption, findProduct, findSizeOption, getFramePriceDelta } from './catalog.js';
 import { sendOwnerOrderNotification } from './notifications.js';
 import { createOrderStore } from './order-store.js';
+import { createProductStore } from './product-store.js';
 
 if (process.env.STRIPE_ALLOW_INSECURE_LOCAL_TLS === 'true') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -15,6 +19,9 @@ const clientUrl = process.env.CLIENT_URL || 'http://127.0.0.1:5173';
 const automaticTaxEnabled = process.env.STRIPE_AUTOMATIC_TAX === 'true';
 const adminApiToken = process.env.ADMIN_API_TOKEN;
 const allowUnsignedWebhooks = process.env.STRIPE_WEBHOOK_ALLOW_UNSIGNED === 'true';
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseStorageBucket = process.env.SUPABASE_STORAGE_BUCKET || 'artwork';
 
 const stripe = stripeSecretKey
   ? new Stripe(stripeSecretKey, {
@@ -23,7 +30,10 @@ const stripe = stripeSecretKey
   : null;
 
 const orderStore = createOrderStore();
+const productStore = createProductStore();
 const orderStoreReady = orderStore.init();
+const productStoreReady = productStore.init();
+const artworkDir = fileURLToPath(new URL('../public/artwork', import.meta.url));
 
 function formatPrice(cents, currency = 'usd') {
   return new Intl.NumberFormat('en-US', {
@@ -39,7 +49,7 @@ export function httpError(message, status = 400) {
 }
 
 async function ensureReady() {
-  await orderStoreReady;
+  await Promise.all([orderStoreReady, productStoreReady]);
 }
 
 function getPaymentIntentId(session) {
@@ -52,13 +62,15 @@ function getPaymentIntentId(session) {
     : session.payment_intent.id;
 }
 
-function normalizeCartItems(items) {
+async function normalizeCartItems(items) {
   if (!Array.isArray(items) || !items.length) {
     throw httpError('Cart is empty.');
   }
 
+  const catalogProducts = await productStore.listProducts();
+
   return items.map((item) => {
-    const product = findProduct(item.id);
+    const product = findProduct(item.id, catalogProducts);
     const quantity = Number(item.quantity);
 
     if (!product || !Number.isInteger(quantity) || quantity < 1 || quantity > 10) {
@@ -85,6 +97,59 @@ function normalizeCartItems(items) {
       lineTotal: unitAmount * quantity,
     };
   });
+}
+
+async function scanArtworkAssets(directory = artworkDir, prefix = '/artwork') {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const assets = [];
+  const imageExtensions = new Set(['.avif', '.gif', '.jpg', '.jpeg', '.png', '.webp']);
+
+  for (const entry of entries) {
+    const entryPath = path.join(directory, entry.name);
+    const publicPath = `${prefix}/${entry.name}`;
+
+    if (entry.isDirectory()) {
+      assets.push(...(await scanArtworkAssets(entryPath, publicPath)));
+      continue;
+    }
+
+    if (imageExtensions.has(path.extname(entry.name).toLowerCase())) {
+      assets.push(publicPath);
+    }
+  }
+
+  return assets.sort((a, b) => a.localeCompare(b));
+}
+
+function sanitizeUploadName(value) {
+  return String(value || 'artwork')
+    .toLowerCase()
+    .replace(/\.[a-z0-9]+$/i, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80) || 'artwork';
+}
+
+function getFileExtension(file) {
+  const fromName = path.extname(file.name || '').toLowerCase();
+
+  if (fromName) {
+    return fromName;
+  }
+
+  if (file.type === 'image/jpeg') {
+    return '.jpg';
+  }
+
+  if (file.type === 'image/png') {
+    return '.png';
+  }
+
+  if (file.type === 'image/webp') {
+    return '.webp';
+  }
+
+  return '';
 }
 
 function getCheckoutImageUrls(item) {
@@ -268,9 +333,16 @@ export async function getHealth() {
     stripeConfigured: Boolean(stripe),
     stripeWebhookConfigured: Boolean(stripeWebhookSecret),
     storage: orderStore.type,
+    catalogStorage: productStore.type,
     notificationsConfigured: Boolean(process.env.RESEND_API_KEY && process.env.ORDER_NOTIFICATION_EMAIL),
     adminConfigured: Boolean(adminApiToken),
   };
+}
+
+export async function listPublicCatalog() {
+  await ensureReady();
+
+  return productStore.listCatalog();
 }
 
 export async function createCheckoutSession(body) {
@@ -280,7 +352,7 @@ export async function createCheckoutSession(body) {
     throw httpError('Stripe is not configured. Set STRIPE_SECRET_KEY in .env.', 500);
   }
 
-  const cartItems = normalizeCartItems(body?.items);
+  const cartItems = await normalizeCartItems(body?.items);
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     line_items: buildLineItems(cartItems),
@@ -385,6 +457,70 @@ export async function listAdminOrders({ limit = 50 } = {}) {
   return {
     ...result,
     notifications,
+  };
+}
+
+export async function listAdminProducts() {
+  await ensureReady();
+
+  return productStore.listCatalog({ includeUnpublished: true });
+}
+
+export async function updateAdminProduct(productId, productUpdate) {
+  await ensureReady();
+
+  const product = await productStore.updateProduct(productId, productUpdate || {});
+
+  if (!product) {
+    throw httpError('Product not found.', 404);
+  }
+
+  return { product };
+}
+
+export async function listAdminAssets() {
+  const assets = await scanArtworkAssets();
+
+  return { assets };
+}
+
+export async function uploadAdminAsset(formData) {
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    throw httpError('Image upload needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the server environment.', 501);
+  }
+
+  const file = formData.get('file');
+  const productSlug = sanitizeUploadName(formData.get('productSlug'));
+
+  if (!file || typeof file.arrayBuffer !== 'function') {
+    throw httpError('Upload a valid image file.');
+  }
+
+  if (!String(file.type || '').startsWith('image/')) {
+    throw httpError('Only image uploads are supported.');
+  }
+
+  const extension = getFileExtension(file);
+  const storagePath = `products/${productSlug}/${Date.now()}-${sanitizeUploadName(file.name)}${extension}`;
+  const uploadUrl = `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/${supabaseStorageBucket}/${storagePath}`;
+  const uploadResponse = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${supabaseServiceRoleKey}`,
+      apikey: supabaseServiceRoleKey,
+      'Content-Type': file.type || 'application/octet-stream',
+      'x-upsert': 'false',
+    },
+    body: Buffer.from(await file.arrayBuffer()),
+  });
+
+  if (!uploadResponse.ok) {
+    const message = await uploadResponse.text().catch(() => '');
+    throw httpError(message || 'Image upload failed.', uploadResponse.status);
+  }
+
+  return {
+    asset: `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${supabaseStorageBucket}/${storagePath}`,
   };
 }
 

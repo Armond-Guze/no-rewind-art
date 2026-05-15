@@ -28,10 +28,12 @@ export type Collection = {
   tones?: ProductTone[];
 };
 
-type CatalogProduct = {
+export type CatalogProduct = {
   id: string;
   slug: string;
   title: string;
+  seoTitle?: string;
+  seoDescription?: string;
   description: string;
   longDescription: string;
   label: string;
@@ -52,18 +54,26 @@ type CatalogProduct = {
   frameOptions?: FrameOption[];
   framingOptions?: string[];
   details: string[];
+  published?: boolean;
 };
 
 export type Product = Omit<CatalogProduct, 'frameOptions' | 'framingOptions' | 'priceInCents'> & {
   priceInCents: number;
   sizeOptions: SizeOption[];
   frameOptions: FrameOption[];
+  published: boolean;
 };
 
-type CatalogData = {
+export type CatalogData = {
   sizePresets: Record<string, SizeOption[]>;
   collections: Collection[];
   products: CatalogProduct[];
+};
+
+export type NormalizedCatalog = {
+  sizePresets: Record<string, SizeOption[]>;
+  collections: Collection[];
+  products: Product[];
 };
 
 const catalogData = catalog as CatalogData;
@@ -95,11 +105,14 @@ function normalizeFrameOptions(product: CatalogProduct): FrameOption[] {
   return fallbackFrameOptions;
 }
 
-function normalizeProduct(product: CatalogProduct): Product {
+export function normalizeProduct(
+  product: CatalogProduct,
+  sizePresets: Record<string, SizeOption[]> = catalogData.sizePresets,
+): Product {
   const sizeOptions =
     product.sizeOptions ||
-    (product.sizePreset ? catalogData.sizePresets[product.sizePreset] : undefined) ||
-    catalogData.sizePresets.landscapeWide ||
+    (product.sizePreset ? sizePresets[product.sizePreset] : undefined) ||
+    sizePresets.landscapeWide ||
     [];
   const frameOptions = normalizeFrameOptions(product);
   const lowestSizePrice = Math.min(...sizeOptions.map((option) => option.priceInCents));
@@ -112,41 +125,74 @@ function normalizeProduct(product: CatalogProduct): Product {
     priceInCents: product.priceInCents ?? lowestSizePrice + lowestFrameDelta,
     sizeOptions,
     frameOptions,
+    published: product.published !== false,
   };
 }
 
-export const sizePresets = catalogData.sizePresets;
-export const collections = catalogData.collections;
-export const products = catalogData.products.map(normalizeProduct);
-
-export function getProductBySlug(slug: string | undefined) {
-  return products.find((product) => product.slug === slug);
+export function normalizeCatalogData(data: CatalogData): NormalizedCatalog {
+  return {
+    sizePresets: data.sizePresets,
+    collections: data.collections,
+    products: data.products.map((product) => normalizeProduct(product, data.sizePresets)),
+  };
 }
 
-export function getCollectionBySlug(slug: string | undefined) {
-  return collections.find((collection) => collection.slug === slug);
+export const initialCatalog = normalizeCatalogData(catalogData);
+export const sizePresets = initialCatalog.sizePresets;
+export const collections = initialCatalog.collections;
+export const products = initialCatalog.products;
+
+export function getProductBySlugFromCatalog(
+  catalogState: NormalizedCatalog,
+  slug: string | undefined,
+) {
+  return catalogState.products.find((product) => product.slug === slug && product.published);
 }
 
-export function getProductsForCollection(slug: string | undefined) {
-  const collection = getCollectionBySlug(slug);
+export function getCollectionBySlugFromCatalog(
+  catalogState: NormalizedCatalog,
+  slug: string | undefined,
+) {
+  return catalogState.collections.find((collection) => collection.slug === slug);
+}
+
+export function getProductsForCollectionFromCatalog(
+  catalogState: NormalizedCatalog,
+  slug: string | undefined,
+) {
+  const collection = getCollectionBySlugFromCatalog(catalogState, slug);
 
   if (!collection) {
     return [];
   }
 
+  const publishedProducts = catalogState.products.filter((product) => product.published);
+
   if (collection.productIds) {
     return collection.productIds
-      .map((productId) => products.find((product) => product.id === productId))
+      .map((productId) => publishedProducts.find((product) => product.id === productId))
       .filter((product): product is Product => Boolean(product));
   }
 
   if (collection.tones) {
-    return products.filter(
+    return publishedProducts.filter(
       (product) =>
         collection.tones?.includes(product.tone) ||
         product.collectionSlugs.includes(collection.slug),
     );
   }
 
-  return products.filter((product) => product.collectionSlugs.includes(collection.slug));
+  return publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug));
+}
+
+export function getProductBySlug(slug: string | undefined) {
+  return getProductBySlugFromCatalog(initialCatalog, slug);
+}
+
+export function getCollectionBySlug(slug: string | undefined) {
+  return getCollectionBySlugFromCatalog(initialCatalog, slug);
+}
+
+export function getProductsForCollection(slug: string | undefined) {
+  return getProductsForCollectionFromCatalog(initialCatalog, slug);
 }

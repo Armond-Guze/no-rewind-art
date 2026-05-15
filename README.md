@@ -319,6 +319,25 @@ Use the `ADMIN_API_TOKEN` from `.env` to sign in locally. The dashboard shows
 paid orders, fulfillment status, notification history, revenue totals, and
 average order value.
 
+The admin dashboard also includes a product editor. It can update product
+titles, SEO titles, descriptions, image alt text, gallery paths, product
+details, size prices, frame add-on prices, and publish status. Product data is
+seeded from `src/data/catalog.json`, then stored in Postgres/Supabase in
+production. Local development stores edited products in
+`~/.armoze/products/products.json`.
+
+Catalog APIs:
+
+```text
+GET /api/products
+GET /api/admin/products
+PATCH /api/admin/products/:productId
+GET /api/admin/assets
+```
+
+The storefront and Stripe checkout both read from the same product catalog
+service. This keeps visible prices, cart totals, and checkout totals aligned.
+
 Stripe webhook endpoint:
 
 ```text

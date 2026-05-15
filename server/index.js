@@ -3,9 +3,13 @@ import {
   assertAdmin,
   createCheckoutSession,
   getHealth,
+  listAdminAssets,
   listAdminOrders,
+  listAdminProducts,
+  listPublicCatalog,
   processStripeWebhook,
   updateAdminOrder,
+  updateAdminProduct,
 } from './backend.js';
 
 const app = express();
@@ -44,6 +48,14 @@ app.get('/api/health', async (_request, response) => {
   }
 });
 
+app.get('/api/products', async (_request, response) => {
+  try {
+    response.json(await listPublicCatalog());
+  } catch (error) {
+    sendError(response, error);
+  }
+});
+
 app.post('/api/create-checkout-session', async (request, response) => {
   try {
     response.json(await createCheckoutSession(request.body));
@@ -63,6 +75,30 @@ app.get('/api/admin/orders', requireAdmin, async (request, response) => {
 app.patch('/api/admin/orders/:orderId', requireAdmin, async (request, response) => {
   try {
     response.json(await updateAdminOrder(request.params.orderId, request.body));
+  } catch (error) {
+    sendError(response, error);
+  }
+});
+
+app.get('/api/admin/products', requireAdmin, async (_request, response) => {
+  try {
+    response.json(await listAdminProducts());
+  } catch (error) {
+    sendError(response, error);
+  }
+});
+
+app.patch('/api/admin/products/:productId', requireAdmin, async (request, response) => {
+  try {
+    response.json(await updateAdminProduct(request.params.productId, request.body));
+  } catch (error) {
+    sendError(response, error);
+  }
+});
+
+app.get('/api/admin/assets', requireAdmin, async (_request, response) => {
+  try {
+    response.json(await listAdminAssets());
   } catch (error) {
     sendError(response, error);
   }

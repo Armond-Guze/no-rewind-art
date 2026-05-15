@@ -1,5 +1,7 @@
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -26,19 +28,20 @@ import {
   RefreshCw,
   ShieldCheck,
   ShoppingBag,
-  Sparkles,
   Star,
   Trash2,
   Volume2,
   VolumeX,
 } from 'lucide-react';
 import {
-  collections,
-  getCollectionBySlug,
-  getProductBySlug,
-  getProductsForCollection,
-  products,
+  getCollectionBySlugFromCatalog,
+  getProductBySlugFromCatalog,
+  getProductsForCollectionFromCatalog,
+  initialCatalog,
+  normalizeCatalogData,
+  type CatalogData,
   type FrameOption,
+  type NormalizedCatalog,
   type Product,
   type SizeOption,
 } from './data/products';
@@ -112,6 +115,18 @@ type AdminDashboardResponse = {
   notifications: AdminNotification[];
 };
 
+type AdminProductDraft = Product & {
+  galleryText: string;
+  detailsText: string;
+  collectionSlugsText: string;
+};
+
+const CatalogContext = createContext<NormalizedCatalog>(initialCatalog);
+
+function useCatalog() {
+  return useContext(CatalogContext);
+}
+
 const missingImages = new Set<string>();
 
 const formatPrice = (cents: number, currency = 'USD') =>
@@ -137,6 +152,180 @@ const fulfillmentStatusOptions = [
 ];
 
 const siteUrl = 'https://www.armoze.com';
+const supportEmail = 'support@armoze.com';
+
+type PolicyPageKey = 'shipping' | 'returns' | 'privacy' | 'terms';
+
+type PolicyPageContent = {
+  title: string;
+  description: string;
+  updated: string;
+  sections: Array<{
+    title: string;
+    body: string[];
+  }>;
+};
+
+const policyPages: Record<PolicyPageKey, PolicyPageContent> = {
+  shipping: {
+    title: 'Shipping Policy',
+    description:
+      'Learn how Armoze ships made-to-order canvas prints, including processing times, delivery estimates, tracking, and address changes.',
+    updated: 'May 2026',
+    sections: [
+      {
+        title: 'Made-to-order processing',
+        body: [
+          'Armoze prints are made to order. Production usually begins shortly after checkout is completed and payment is confirmed.',
+          'Most orders are prepared for shipment within 2 to 5 business days. During busy periods or supplier delays, production may take longer.',
+        ],
+      },
+      {
+        title: 'Shipping estimates',
+        body: [
+          'Standard shipping is currently offered for U.S. orders through Stripe Checkout. Estimated delivery is typically 5 to 10 business days after production is complete.',
+          'Delivery dates are estimates, not guarantees. Carrier delays, weather, holidays, incorrect addresses, or production issues may affect timing.',
+        ],
+      },
+      {
+        title: 'Tracking and address changes',
+        body: [
+          'When tracking is available, it will be sent to the email address used at checkout.',
+          `If you entered the wrong shipping address, contact ${supportEmail} as soon as possible. Address changes cannot be guaranteed after an order enters production or ships.`,
+        ],
+      },
+      {
+        title: 'Lost or delayed packages',
+        body: [
+          'If tracking shows a package was delivered but you cannot locate it, check nearby delivery areas and contact the carrier first.',
+          `If the issue continues, email ${supportEmail} with your order details so the order can be reviewed.`,
+        ],
+      },
+    ],
+  },
+  returns: {
+    title: 'Returns & Refunds',
+    description:
+      'Review the Armoze returns and refunds policy for made-to-order canvas prints, damaged orders, cancellations, and replacement requests.',
+    updated: 'May 2026',
+    sections: [
+      {
+        title: 'Made-to-order items',
+        body: [
+          'Armoze prints are produced after an order is placed. Because each item is made to order, returns for buyer’s remorse, size changes, or preference changes are not guaranteed once production begins.',
+          'If you need to change or cancel an order, contact us quickly. Cancellation requests are easiest to handle within 24 hours of purchase and before production starts.',
+        ],
+      },
+      {
+        title: 'Damaged, defective, or wrong items',
+        body: [
+          `If your item arrives damaged, defective, or different from what you ordered, email ${supportEmail} within 7 days of delivery.`,
+          'Include your order number, photos of the product, photos of the packaging, and a short description of the issue. After review, Armoze may provide a replacement, refund, or other resolution.',
+        ],
+      },
+      {
+        title: 'Refund timing',
+        body: [
+          'Approved refunds are sent back to the original payment method used at checkout.',
+          'After a refund is issued, your bank or card provider may take additional time to post the funds to your account.',
+        ],
+      },
+      {
+        title: 'Returned packages',
+        body: [
+          'If an order is returned because of an incorrect address, failed delivery, or refusal of delivery, additional shipping or replacement costs may apply.',
+          'Armoze reviews returned-package situations individually based on the order status and carrier information.',
+        ],
+      },
+    ],
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    description:
+      'Learn what information Armoze collects, how order and payment data is handled, and how service providers like Stripe support checkout.',
+    updated: 'May 2026',
+    sections: [
+      {
+        title: 'Information we collect',
+        body: [
+          'When you place an order, Armoze may receive information such as your name, email address, shipping address, order details, and payment confirmation status.',
+          'Payment card details are processed by Stripe. Armoze does not store full card numbers on this website.',
+        ],
+      },
+      {
+        title: 'How we use information',
+        body: [
+          'Order information is used to process payments, prepare and ship products, provide customer support, prevent fraud, maintain the website, and meet business or legal requirements.',
+          'If email notifications are enabled, order information may be used to send customer or owner order updates.',
+        ],
+      },
+      {
+        title: 'Service providers',
+        body: [
+          'Armoze uses service providers to operate the store, including hosting, database, payment, shipping, and email tools.',
+          'Stripe processes payments and may collect information according to its own privacy policy. You can review Stripe’s privacy policy at stripe.com/privacy.',
+        ],
+      },
+      {
+        title: 'Cookies and local storage',
+        body: [
+          'The site may use browser storage for basic storefront features such as cart behavior and session state.',
+          'If analytics, advertising, or additional tracking tools are added later, this policy should be updated to describe those tools.',
+        ],
+      },
+      {
+        title: 'Contact and updates',
+        body: [
+          `For privacy questions, email ${supportEmail}.`,
+          'This policy may be updated as the store changes, especially if new analytics, email, advertising, or fulfillment tools are added.',
+        ],
+      },
+    ],
+  },
+  terms: {
+    title: 'Terms of Service',
+    description:
+      'Read the Armoze terms covering storefront use, orders, payments, product presentation, intellectual property, and checkout.',
+    updated: 'May 2026',
+    sections: [
+      {
+        title: 'About Armoze',
+        body: [
+          'Armoze is an online storefront for motivational canvas prints and wall art. Armoze is operated by Guze LLC.',
+          'By using this website or placing an order, you agree to these terms and the policies linked on this site.',
+        ],
+      },
+      {
+        title: 'Products and presentation',
+        body: [
+          'Product images, room mockups, frame previews, and colors are shown for presentation. Actual print colors, scale, texture, and framing may vary based on screen settings, production materials, and selected size.',
+          'Prices, sizes, availability, and product details may change without notice before an order is placed.',
+        ],
+      },
+      {
+        title: 'Orders and payments',
+        body: [
+          'Checkout is processed through Stripe. Orders are not accepted until payment is completed and confirmed.',
+          'Armoze may cancel or refund orders when necessary, including suspected fraud, incorrect pricing, unavailable products, or fulfillment issues.',
+        ],
+      },
+      {
+        title: 'Intellectual property',
+        body: [
+          'Artwork, branding, product copy, images, and site content belong to Armoze or its respective owners.',
+          'You may not copy, reproduce, resell, or use Armoze artwork or content for commercial purposes without written permission.',
+        ],
+      },
+      {
+        title: 'Limitation of liability',
+        body: [
+          'The website is provided as available. Armoze is not responsible for delays, interruptions, carrier issues, payment provider outages, or indirect losses beyond the amount paid for the affected order.',
+          `For order questions or support, contact ${supportEmail}.`,
+        ],
+      },
+    ],
+  },
+};
 
 function absoluteUrl(path: string) {
   if (path.startsWith('http')) {
@@ -276,6 +465,115 @@ async function fetchAdminDashboard(adminToken: string) {
   }
 
   return (await response.json()) as AdminDashboardResponse;
+}
+
+async function fetchPublicCatalog() {
+  const response = await fetch('/api/products');
+
+  if (!response.ok) {
+    throw new Error('Catalog could not be loaded.');
+  }
+
+  return normalizeCatalogData((await response.json()) as CatalogData);
+}
+
+async function fetchAdminProducts(adminToken: string) {
+  const response = await fetch('/api/admin/products', {
+    headers: {
+      Authorization: `Bearer ${adminToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error || 'Products could not be loaded.');
+  }
+
+  return normalizeCatalogData((await response.json()) as CatalogData).products;
+}
+
+async function fetchAdminAssets(adminToken: string) {
+  const response = await fetch('/api/admin/assets', {
+    headers: {
+      Authorization: `Bearer ${adminToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error || 'Assets could not be loaded.');
+  }
+
+  return ((await response.json()) as { assets: string[] }).assets;
+}
+
+async function updateAdminProduct(adminToken: string, productId: string, product: Product) {
+  const response = await fetch(`/api/admin/products/${encodeURIComponent(productId)}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${adminToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(product),
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error || 'Product could not be saved.');
+  }
+
+  return ((await response.json()) as { product: Product }).product;
+}
+
+function splitEditableLines(value: string) {
+  return value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function productToDraft(product: Product): AdminProductDraft {
+  return {
+    ...product,
+    galleryText: (product.gallery || []).join('\n'),
+    detailsText: product.details.join('\n'),
+    collectionSlugsText: product.collectionSlugs.join('\n'),
+  };
+}
+
+function draftToProduct(draft: AdminProductDraft): Product {
+  return {
+    ...draft,
+    gallery: splitEditableLines(draft.galleryText),
+    details: splitEditableLines(draft.detailsText),
+    collectionSlugs: splitEditableLines(draft.collectionSlugsText),
+  };
+}
+
+function parseDollarsToCents(value: string) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.round(number * 100));
+}
+
+function centsToDollars(value: number | undefined) {
+  return ((value || 0) / 100).toFixed(2);
+}
+
+function centsListToDollars(value: number[] | undefined) {
+  return (value || []).map((amount) => String((amount || 0) / 100)).join(', ');
+}
+
+function dollarsListToCents(value: string) {
+  return value
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map(parseDollarsToCents);
 }
 
 async function updateAdminOrderStatus(
@@ -543,6 +841,10 @@ function SiteFooter() {
         <Link to="/collections/money-ambition">Money</Link>
         <Link to="/collections/discipline-focus">Focus</Link>
         <Link to="/collections/new-arrivals">New Arrivals</Link>
+        <Link to="/shipping">Shipping</Link>
+        <Link to="/returns">Returns</Link>
+        <Link to="/privacy">Privacy</Link>
+        <Link to="/terms">Terms</Link>
       </nav>
 
       <div className="footer-bottom">
@@ -556,27 +858,62 @@ function SiteFooter() {
 
 function HomePage({
   addToCart,
-  cartProducts,
-  subtotal,
-  updateQuantity,
-  startCheckout,
-  checkoutState,
-  checkoutError,
 }: {
   addToCart: AddToCart;
-  cartProducts: CartLine[];
-  subtotal: number;
-  updateQuantity: (lineKey: string, nextQuantity: number) => void;
-  startCheckout: () => void;
-  checkoutState: 'idle' | 'loading' | 'error';
-  checkoutError: string;
 }) {
+  const catalog = useCatalog();
   const checkoutResult = new URLSearchParams(window.location.search).get('checkout');
+  const featuredProducts = useMemo(
+    () => getProductsForCollectionFromCatalog(catalog, 'best-sellers').slice(0, 6),
+    [catalog],
+  );
+  const heroProduct = featuredProducts[0] ?? catalog.products.find((product) => product.published);
+  const supportingHeroProducts = featuredProducts.slice(1, 4);
+  const homeCollections = catalog.collections.filter((collection) =>
+    ['best-sellers', 'money-ambition', 'discipline-focus', 'study-creative'].includes(collection.slug),
+  );
+  const homeStructuredData = useMemo(
+    () => ({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Organization',
+          '@id': `${siteUrl}/#organization`,
+          name: 'Armoze',
+          url: siteUrl,
+          logo: absoluteUrl('/armoze-logo.png'),
+        },
+        {
+          '@type': 'WebSite',
+          '@id': `${siteUrl}/#website`,
+          name: 'Armoze',
+          url: siteUrl,
+          publisher: {
+            '@id': `${siteUrl}/#organization`,
+          },
+        },
+        {
+          '@type': 'ItemList',
+          name: 'Armoze best selling motivational canvas prints',
+          itemListElement: featuredProducts.map((product, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: product.title,
+            url: absoluteUrl(`/products/${product.slug}`),
+          })),
+        },
+      ],
+    }),
+    [featuredProducts],
+  );
+
   usePageSeo({
-    title: 'Armoze',
-    description: 'Motivational canvas and poster prints for ambitious offices, bedrooms, studios, and workspaces.',
+    title: 'Motivational Canvas Prints',
+    description:
+      'Shop Armoze motivational canvas prints for offices, bedrooms, studios, dorms, and creative workspaces. Choose canvas, black frame, or white frame.',
     canonicalPath: '/',
-    image: '/armoze-logo.png',
+    image: heroProduct?.image || '/armoze-logo.png',
+    structuredData: homeStructuredData,
   });
 
   return (
@@ -592,31 +929,13 @@ function HomePage({
       ) : null}
 
       <section className="hero" aria-labelledby="hero-title">
-        <div className="hero-art" aria-hidden="true">
-          <div className="poster poster-money">
-            <span>ATM</span>
-            <strong>MONEY IS ENERGY</strong>
-          </div>
-          <div className="poster poster-cassette">
-            <span>LIFE HAS NO REWIND</span>
-            <strong>ENJOY EVERY MOMENT</strong>
-          </div>
-          <div className="poster poster-space">
-            <span>KEEP GOING</span>
-            <strong>THE FUTURE IS LOADING</strong>
-          </div>
-          <div className="poster poster-focus">
-            <span>FOCUS</span>
-            <strong>THE PRICE OF ACHIEVEMENT</strong>
-          </div>
-        </div>
-
         <div className="hero-copy">
-          <p className="eyebrow">Canvas prints for ambitious spaces</p>
-          <h1 id="hero-title">Armoze</h1>
+          <p className="eyebrow">Armoze Originals</p>
+          <h1 id="hero-title">Motivational Canvas Prints</h1>
           <p>
-            Motivational wall art built around focus, discipline, money mindset,
-            and the future you are working toward.
+            Wall art for the room where you work, reset, and build momentum.
+            Shop bold canvas prints for focus, discipline, money mindset, and
+            creative spaces.
           </p>
           <div className="hero-actions">
             <Link className="button button-primary" to="/collections/best-sellers">
@@ -627,46 +946,87 @@ function HomePage({
               View Collections
             </a>
           </div>
+          <div className="hero-proof-row" aria-label="Store benefits">
+            <span>
+              <BadgeCheck aria-hidden="true" size={16} />
+              Made to order
+            </span>
+            <span>
+              <ShieldCheck aria-hidden="true" size={16} />
+              Secure checkout
+            </span>
+            <span>
+              <Box aria-hidden="true" size={16} />
+              Canvas and framed options
+            </span>
+          </div>
+        </div>
+
+        <div className="hero-showcase" aria-label="Featured Armoze artwork">
+          {heroProduct ? (
+            <Link className="hero-featured-product" to={`/products/${heroProduct.slug}`}>
+              <ProductImage product={heroProduct} />
+              <div className="hero-featured-meta">
+                <span>Featured print</span>
+                <strong>{heroProduct.title}</strong>
+                <small>From {formatPrice(heroProduct.priceInCents)}</small>
+              </div>
+            </Link>
+          ) : null}
+
+          <div className="hero-product-strip" aria-label="More best sellers">
+            {supportingHeroProducts.map((product) => (
+              <Link className="hero-mini-product" key={product.id} to={`/products/${product.slug}`}>
+                <ProductImage product={product} />
+                <span>{product.title}</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section id="collections" className="section intro-section">
+      <section id="collections" className="section intro-section home-intro">
         <div>
-          <p className="eyebrow">Brand direction</p>
-          <h2>Art for the room where you become different.</h2>
+          <p className="eyebrow">Shop by mindset</p>
+          <h2>Choose the energy your wall needs.</h2>
         </div>
         <p>
-          Built for bedrooms, offices, studios, dorms, gyms, and workspaces. Each
-          collection gives the buyer a clear reason to connect with the print.
+          Every collection is built around a clear mood, so customers can find a
+          print by purpose instead of scrolling through everything at once.
         </p>
       </section>
 
-      <section className="collection-grid" aria-label="Collections">
-        {collections.slice(1, 4).map((collection, index) => (
+      <section className="collection-grid home-collections" aria-label="Collections">
+        {homeCollections.map((collection, index) => (
           <Link
-            className={`collection ${index === 0 ? 'money' : index === 1 ? 'discipline' : 'future'}`}
+            className={`collection home-collection ${
+              index === 0 ? 'money' : index === 1 ? 'discipline' : index === 2 ? 'future' : 'study'
+            }`}
             key={collection.slug}
             to={`/collections/${collection.slug}`}
           >
             <span>{String(index + 1).padStart(2, '0')}</span>
             <h3>{collection.title}</h3>
             <p>{collection.description}</p>
+            <strong>{getProductsForCollectionFromCatalog(catalog, collection.slug).length} prints</strong>
           </Link>
         ))}
       </section>
 
       <section id="shop" className="section shop-section">
         <div className="section-heading">
-          <p className="eyebrow">First drop</p>
-          <h2>Armoze: Volume 1</h2>
+          <div>
+            <p className="eyebrow">Best sellers</p>
+            <h2>Start with the strongest prints.</h2>
+          </div>
           <Link className="section-link" to="/collections/best-sellers">
-            View All Prints
+            View Collection
             <ArrowUpRight aria-hidden="true" size={16} />
           </Link>
         </div>
 
         <div className="product-grid">
-          {products.map((product) => (
+          {featuredProducts.map((product) => (
             <article className="product" key={product.id}>
               <Link className="product-image-link" to={`/products/${product.slug}`}>
                 <ProductImage product={product} />
@@ -698,14 +1058,36 @@ function HomePage({
         </div>
       </section>
 
-      <CartSection
-        cartProducts={cartProducts}
-        subtotal={subtotal}
-        updateQuantity={updateQuantity}
-        startCheckout={startCheckout}
-        checkoutState={checkoutState}
-        checkoutError={checkoutError}
-      />
+      <section className="section home-value-section" aria-labelledby="value-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">What buyers choose</p>
+            <h2 id="value-title">Canvas now. Frame when it fits.</h2>
+          </div>
+          <Link className="section-link" to="/collections/new-arrivals">
+            New Arrivals
+            <ArrowUpRight aria-hidden="true" size={16} />
+          </Link>
+        </div>
+
+        <div className="value-grid">
+          <div>
+            <Box aria-hidden="true" size={26} />
+            <h3>Multiple sizes</h3>
+            <p>Each print uses size options matched to the artwork ratio.</p>
+          </div>
+          <div>
+            <BadgeCheck aria-hidden="true" size={26} />
+            <h3>Canvas or frame</h3>
+            <p>Customers can choose canvas, black frame, or white frame.</p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" size={26} />
+            <h3>Secure checkout</h3>
+            <p>Checkout runs through Stripe with shipping details collected there.</p>
+          </div>
+        </div>
+      </section>
 
       <section id="story" className="story-section">
         <div className="story-copy">
@@ -729,19 +1111,18 @@ function HomePage({
         </div>
       </section>
 
-      <section id="contact" className="section contact-section">
+      <section id="contact" className="section contact-section shop-ready-section">
         <div>
-          <p className="eyebrow">Payment setup</p>
-          <h2>Real checkout, without exposing your card system.</h2>
+          <p className="eyebrow">Ready when your wall is</p>
+          <h2>Pick a print, choose the size, and checkout securely.</h2>
         </div>
         <p>
-          This shop uses Stripe Checkout Sessions from a backend server. Your
-          site owns the cart experience, and Stripe handles secure payment,
-          billing details, and confirmation.
+          Start with best sellers, then refine the size and frame on each
+          product page before checking out.
         </p>
-        <Link className="button button-primary" to="/cart">
-          <Sparkles aria-hidden="true" size={18} />
-          Review Cart
+        <Link className="button button-primary" to="/collections/best-sellers">
+          <ShoppingBag aria-hidden="true" size={18} />
+          Shop Best Sellers
         </Link>
       </section>
     </main>
@@ -877,10 +1258,44 @@ function CartPage({
   );
 }
 
+function PolicyPage({ pageKey }: { pageKey: PolicyPageKey }) {
+  const page = policyPages[pageKey];
+
+  usePageSeo({
+    title: page.title,
+    description: page.description,
+    canonicalPath: `/${pageKey}`,
+    image: '/armoze-logo.png',
+  });
+
+  return (
+    <main className="policy-page">
+      <section className="policy-hero">
+        <p className="eyebrow">Store policy</p>
+        <h1>{page.title}</h1>
+        <p>{page.description}</p>
+        <span>Last updated: {page.updated}</span>
+      </section>
+
+      <section className="policy-content" aria-label={page.title}>
+        {page.sections.map((section) => (
+          <article className="policy-section" key={section.title}>
+            <h2>{section.title}</h2>
+            {section.body.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </article>
+        ))}
+      </section>
+    </main>
+  );
+}
+
 function CollectionPage({ addToCart }: { addToCart: AddToCart }) {
   const { slug } = useParams();
-  const collection = getCollectionBySlug(slug);
-  const collectionProducts = getProductsForCollection(slug);
+  const catalog = useCatalog();
+  const collection = getCollectionBySlugFromCatalog(catalog, slug);
+  const collectionProducts = getProductsForCollectionFromCatalog(catalog, slug);
   usePageSeo({
     title: collection ? `${collection.title} Canvas Prints` : 'Collection Not Found',
     description: collection?.description || 'Shop motivational canvas prints from Armoze.',
@@ -905,7 +1320,7 @@ function CollectionPage({ addToCart }: { addToCart: AddToCart }) {
       <section className="collection-toolbar" aria-label="Shop category controls">
         <div className="product-count">{collectionProducts.length} Products</div>
         <nav className="collection-tabs" aria-label="Shop categories">
-          {collections.map((item) => (
+          {catalog.collections.map((item) => (
             <Link
               className={item.slug === collection.slug ? 'active' : ''}
               key={item.slug}
@@ -961,7 +1376,8 @@ function CollectionPage({ addToCart }: { addToCart: AddToCart }) {
 function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const product = getProductBySlug(slug);
+  const catalog = useCatalog();
+  const product = getProductBySlugFromCatalog(catalog, slug);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedFrame, setSelectedFrame] = useState(0);
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
@@ -972,7 +1388,7 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
         '@type': 'Product',
         name: product.title,
         image: product.image ? [absoluteUrl(product.image)] : undefined,
-        description: product.longDescription,
+        description: product.seoDescription || product.longDescription,
         brand: {
           '@type': 'Brand',
           name: 'Armoze',
@@ -983,8 +1399,8 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
     : undefined;
 
   usePageSeo({
-    title: product ? `${product.title} Canvas Print` : 'Product Not Found',
-    description: product?.description || 'Shop motivational canvas prints from Armoze.',
+    title: product ? product.seoTitle || `${product.title} Canvas Print` : 'Product Not Found',
+    description: product?.seoDescription || product?.description || 'Shop motivational canvas prints from Armoze.',
     canonicalPath: product ? `/products/${product.slug}` : '/',
     image: product?.image || '/armoze-logo.png',
     structuredData: productStructuredData,
@@ -1187,7 +1603,7 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   );
 }
 
-function AdminDashboard() {
+function AdminDashboard({ onCatalogUpdated }: { onCatalogUpdated: (catalog: NormalizedCatalog) => void }) {
   usePageSeo({
     title: 'Admin Dashboard',
     description: 'Private Armoze order dashboard.',
@@ -1204,6 +1620,12 @@ function AdminDashboard() {
   const [error, setError] = useState('');
   const [updatingOrderId, setUpdatingOrderId] = useState('');
   const [notificationSoundEnabled, setNotificationSoundEnabled] = useState(false);
+  const [adminProducts, setAdminProducts] = useState<Product[]>([]);
+  const [assetPaths, setAssetPaths] = useState<string[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState('');
+  const [productDraft, setProductDraft] = useState<AdminProductDraft | null>(null);
+  const [savingProduct, setSavingProduct] = useState(false);
+  const [productNotice, setProductNotice] = useState('');
   const knownNotificationIds = useRef<Set<string>>(new Set());
 
   const commitDashboardData = useCallback(
@@ -1244,10 +1666,26 @@ function AdminDashboard() {
       setError('');
 
       try {
-        const data = await fetchAdminDashboard(adminToken);
+        const [data, productData, assets] = await Promise.all([
+          fetchAdminDashboard(adminToken),
+          fetchAdminProducts(adminToken),
+          fetchAdminAssets(adminToken),
+        ]);
 
         if (active) {
           commitDashboardData(data, { allowSound: false });
+          setAdminProducts(productData);
+          setAssetPaths(assets);
+          setSelectedProductId((currentSelectedProductId) => {
+            const nextProductId = currentSelectedProductId || productData[0]?.id || '';
+            const nextProduct = productData.find((product) => product.id === nextProductId) || productData[0];
+
+            if (nextProduct) {
+              setProductDraft(productToDraft(nextProduct));
+            }
+
+            return nextProduct?.id || '';
+          });
         }
       } catch (loadError) {
         if (active) {
@@ -1380,6 +1818,148 @@ function AdminDashboard() {
     }
   }
 
+  function selectProductForEditing(productId: string) {
+    const product = adminProducts.find((candidate) => candidate.id === productId);
+
+    if (!product) {
+      return;
+    }
+
+    setSelectedProductId(product.id);
+    setProductDraft(productToDraft(product));
+    setProductNotice('');
+  }
+
+  function updateProductDraftField<Key extends keyof AdminProductDraft>(
+    field: Key,
+    value: AdminProductDraft[Key],
+  ) {
+    setProductDraft((currentDraft) => (currentDraft ? { ...currentDraft, [field]: value } : currentDraft));
+  }
+
+  function updateDraftSizeOption(index: number, update: Partial<SizeOption>) {
+    setProductDraft((currentDraft) => {
+      if (!currentDraft) {
+        return currentDraft;
+      }
+
+      return {
+        ...currentDraft,
+        sizeOptions: currentDraft.sizeOptions.map((option, optionIndex) =>
+          optionIndex === index ? { ...option, ...update } : option,
+        ),
+      };
+    });
+  }
+
+  function addDraftSizeOption() {
+    setProductDraft((currentDraft) => {
+      if (!currentDraft) {
+        return currentDraft;
+      }
+
+      return {
+        ...currentDraft,
+        sizeOptions: [
+          ...currentDraft.sizeOptions,
+          {
+            id: 'new-size',
+            label: 'New Size',
+            priceInCents: 0,
+          },
+        ],
+      };
+    });
+  }
+
+  function removeDraftSizeOption(index: number) {
+    setProductDraft((currentDraft) => {
+      if (!currentDraft || currentDraft.sizeOptions.length <= 1) {
+        return currentDraft;
+      }
+
+      return {
+        ...currentDraft,
+        sizeOptions: currentDraft.sizeOptions.filter((_, optionIndex) => optionIndex !== index),
+      };
+    });
+  }
+
+  function updateDraftFrameOption(index: number, update: Partial<FrameOption>) {
+    setProductDraft((currentDraft) => {
+      if (!currentDraft) {
+        return currentDraft;
+      }
+
+      return {
+        ...currentDraft,
+        frameOptions: currentDraft.frameOptions.map((option, optionIndex) =>
+          optionIndex === index ? { ...option, ...update } : option,
+        ),
+      };
+    });
+  }
+
+  function addDraftFrameOption() {
+    setProductDraft((currentDraft) => {
+      if (!currentDraft) {
+        return currentDraft;
+      }
+
+      return {
+        ...currentDraft,
+        frameOptions: [
+          ...currentDraft.frameOptions,
+          {
+            id: 'new-frame',
+            label: 'New Frame',
+            priceDeltaInCents: 0,
+            priceDeltaBySizeIndexInCents: [],
+          },
+        ],
+      };
+    });
+  }
+
+  function removeDraftFrameOption(index: number) {
+    setProductDraft((currentDraft) => {
+      if (!currentDraft || currentDraft.frameOptions.length <= 1) {
+        return currentDraft;
+      }
+
+      return {
+        ...currentDraft,
+        frameOptions: currentDraft.frameOptions.filter((_, optionIndex) => optionIndex !== index),
+      };
+    });
+  }
+
+  async function saveProductDraft() {
+    if (!adminToken || !productDraft) {
+      return;
+    }
+
+    setSavingProduct(true);
+    setError('');
+    setProductNotice('');
+
+    try {
+      const savedProduct = await updateAdminProduct(adminToken, productDraft.id, draftToProduct(productDraft));
+      const nextProducts = adminProducts.map((product) =>
+        product.id === savedProduct.id ? savedProduct : product,
+      );
+
+      setAdminProducts(nextProducts);
+      setProductDraft(productToDraft(savedProduct));
+      setProductNotice('Product saved. Storefront and checkout are using the updated data.');
+      onCatalogUpdated(await fetchPublicCatalog());
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Product could not be saved.');
+    } finally {
+      setSavingProduct(false);
+    }
+  }
+
   const summary = dashboard?.summary ?? emptyAdminSummary;
   const orders = dashboard?.orders ?? [];
   const notifications = dashboard?.notifications ?? [];
@@ -1464,6 +2044,313 @@ function AdminDashboard() {
           <PackageCheck aria-hidden="true" size={24} />
           <span>Average Order</span>
           <strong>{formatPrice(summary.averageOrderValue)}</strong>
+        </div>
+      </section>
+
+      <section className="admin-product-editor" aria-label="Product editor">
+        <div className="admin-section-heading">
+          <div>
+            <p className="eyebrow">Catalog</p>
+            <h2>Product editor</h2>
+          </div>
+          <span>{adminProducts.length} products</span>
+        </div>
+
+        <datalist id="admin-asset-paths">
+          {assetPaths.map((assetPath) => (
+            <option key={assetPath} value={assetPath} />
+          ))}
+        </datalist>
+
+        <div className="admin-product-workbench">
+          <aside className="admin-product-list" aria-label="Products">
+            {adminProducts.map((product) => (
+              <button
+                className={product.id === selectedProductId ? 'active' : ''}
+                key={product.id}
+                type="button"
+                onClick={() => selectProductForEditing(product.id)}
+              >
+                <span>{product.title}</span>
+                <small>{product.published ? 'Published' : 'Hidden'}</small>
+              </button>
+            ))}
+          </aside>
+
+          {productDraft ? (
+            <div className="admin-product-form">
+              <div className="admin-product-form-topline">
+                <div>
+                  <h3>{productDraft.title}</h3>
+                  <p>{productDraft.id}</p>
+                </div>
+                <label className="publish-toggle">
+                  <input
+                    type="checkbox"
+                    checked={productDraft.published}
+                    onChange={(event) => updateProductDraftField('published', event.target.checked)}
+                  />
+                  Published
+                </label>
+              </div>
+
+              <div className="admin-form-grid">
+                <label>
+                  Product title
+                  <input
+                    value={productDraft.title}
+                    onChange={(event) => updateProductDraftField('title', event.target.value)}
+                  />
+                </label>
+                <label>
+                  Slug
+                  <input
+                    value={productDraft.slug}
+                    onChange={(event) => updateProductDraftField('slug', event.target.value)}
+                  />
+                </label>
+                <label>
+                  SEO title
+                  <input
+                    value={productDraft.seoTitle || ''}
+                    onChange={(event) => updateProductDraftField('seoTitle', event.target.value)}
+                  />
+                </label>
+                <label>
+                  Main image path
+                  <input
+                    list="admin-asset-paths"
+                    value={productDraft.image || ''}
+                    onChange={(event) => updateProductDraftField('image', event.target.value)}
+                  />
+                </label>
+              </div>
+
+              <label className="admin-field">
+                Short description
+                <textarea
+                  rows={2}
+                  value={productDraft.description}
+                  onChange={(event) => updateProductDraftField('description', event.target.value)}
+                />
+              </label>
+
+              <label className="admin-field">
+                SEO description
+                <textarea
+                  rows={2}
+                  value={productDraft.seoDescription || ''}
+                  onChange={(event) => updateProductDraftField('seoDescription', event.target.value)}
+                />
+              </label>
+
+              <label className="admin-field">
+                Long product description
+                <textarea
+                  rows={4}
+                  value={productDraft.longDescription}
+                  onChange={(event) => updateProductDraftField('longDescription', event.target.value)}
+                />
+              </label>
+
+              <label className="admin-field">
+                Exact image alt text
+                <textarea
+                  rows={2}
+                  value={productDraft.imageAlt}
+                  onChange={(event) => updateProductDraftField('imageAlt', event.target.value)}
+                />
+              </label>
+
+              <div className="admin-form-grid">
+                <label>
+                  Artwork shape
+                  <select
+                    value={productDraft.artworkShape}
+                    onChange={(event) =>
+                      updateProductDraftField('artworkShape', event.target.value as Product['artworkShape'])
+                    }
+                  >
+                    <option value="landscape">Landscape</option>
+                    <option value="portrait">Portrait</option>
+                    <option value="square">Square</option>
+                  </select>
+                </label>
+                <label>
+                  Tone
+                  <select
+                    value={productDraft.tone}
+                    onChange={(event) => updateProductDraftField('tone', event.target.value as Product['tone'])}
+                  >
+                    <option value="cassette">Cassette</option>
+                    <option value="focus">Focus</option>
+                    <option value="space">Space</option>
+                    <option value="money">Money</option>
+                    <option value="minimal">Minimal</option>
+                  </select>
+                </label>
+                <label>
+                  Default size id
+                  <input
+                    value={productDraft.defaultSizeId || ''}
+                    onChange={(event) => updateProductDraftField('defaultSizeId', event.target.value)}
+                  />
+                </label>
+                <label>
+                  Product type label
+                  <input
+                    value={productDraft.size}
+                    onChange={(event) => updateProductDraftField('size', event.target.value)}
+                  />
+                </label>
+              </div>
+
+              <div className="admin-editor-columns">
+                <label className="admin-field">
+                  Gallery image paths
+                  <textarea
+                    rows={5}
+                    value={productDraft.galleryText}
+                    onChange={(event) => updateProductDraftField('galleryText', event.target.value)}
+                  />
+                </label>
+                <label className="admin-field">
+                  Product details
+                  <textarea
+                    rows={5}
+                    value={productDraft.detailsText}
+                    onChange={(event) => updateProductDraftField('detailsText', event.target.value)}
+                  />
+                </label>
+                <label className="admin-field">
+                  Collection slugs
+                  <textarea
+                    rows={5}
+                    value={productDraft.collectionSlugsText}
+                    onChange={(event) => updateProductDraftField('collectionSlugsText', event.target.value)}
+                  />
+                </label>
+              </div>
+
+              <div className="admin-nested-editor">
+                <div className="admin-nested-heading">
+                  <h3>Sizes and prices</h3>
+                  <button type="button" onClick={addDraftSizeOption}>
+                    <Plus aria-hidden="true" size={15} />
+                    Add size
+                  </button>
+                </div>
+                {productDraft.sizeOptions.map((option, index) => (
+                  <div className="admin-size-row" key={`${option.id}-${index}`}>
+                    <input
+                      aria-label="Size id"
+                      value={option.id}
+                      onChange={(event) => updateDraftSizeOption(index, { id: event.target.value })}
+                    />
+                    <input
+                      aria-label="Size label"
+                      value={option.label}
+                      onChange={(event) => updateDraftSizeOption(index, { label: event.target.value })}
+                    />
+                    <input
+                      aria-label="Size price dollars"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={centsToDollars(option.priceInCents)}
+                      onChange={(event) =>
+                        updateDraftSizeOption(index, { priceInCents: parseDollarsToCents(event.target.value) })
+                      }
+                    />
+                    <input
+                      aria-label="Size badge"
+                      value={option.badge || ''}
+                      onChange={(event) => updateDraftSizeOption(index, { badge: event.target.value || undefined })}
+                    />
+                    <button type="button" aria-label="Remove size" onClick={() => removeDraftSizeOption(index)}>
+                      <Trash2 aria-hidden="true" size={15} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="admin-nested-editor">
+                <div className="admin-nested-heading">
+                  <h3>Frames and add-on prices</h3>
+                  <button type="button" onClick={addDraftFrameOption}>
+                    <Plus aria-hidden="true" size={15} />
+                    Add frame
+                  </button>
+                </div>
+                {productDraft.frameOptions.map((option, index) => (
+                  <div className="admin-frame-row" key={`${option.id}-${index}`}>
+                    <input
+                      aria-label="Frame id"
+                      value={option.id}
+                      onChange={(event) => updateDraftFrameOption(index, { id: event.target.value })}
+                    />
+                    <input
+                      aria-label="Frame label"
+                      value={option.label}
+                      onChange={(event) => updateDraftFrameOption(index, { label: event.target.value })}
+                    />
+                    <input
+                      aria-label="Frame base price dollars"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={centsToDollars(option.priceDeltaInCents)}
+                      onChange={(event) =>
+                        updateDraftFrameOption(index, {
+                          priceDeltaInCents: parseDollarsToCents(event.target.value),
+                        })
+                      }
+                    />
+                    <input
+                      aria-label="Frame tier prices dollars"
+                      value={centsListToDollars(option.priceDeltaBySizeIndexInCents)}
+                      onChange={(event) =>
+                        updateDraftFrameOption(index, {
+                          priceDeltaBySizeIndexInCents: dollarsListToCents(event.target.value),
+                        })
+                      }
+                    />
+                    <button type="button" aria-label="Remove frame" onClick={() => removeDraftFrameOption(index)}>
+                      <Trash2 aria-hidden="true" size={15} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="admin-product-actions">
+                <button
+                  className="button button-secondary"
+                  type="button"
+                  onClick={() => selectProductForEditing(selectedProductId)}
+                >
+                  Reset
+                </button>
+                <button
+                  className="button button-primary"
+                  type="button"
+                  disabled={savingProduct}
+                  onClick={() => {
+                    void saveProductDraft();
+                  }}
+                >
+                  {savingProduct ? 'Saving' : 'Save Product'}
+                </button>
+              </div>
+
+              {productNotice ? <p className="admin-product-notice">{productNotice}</p> : null}
+            </div>
+          ) : (
+            <div className="admin-empty compact">
+              <Box aria-hidden="true" size={30} />
+              <h3>No product selected</h3>
+              <p>Choose a product to edit catalog, pricing, and SEO fields.</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1596,15 +2483,36 @@ function AdminDashboard() {
 }
 
 function App() {
+  const [catalogState, setCatalogState] = useState<NormalizedCatalog>(initialCatalog);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [checkoutError, setCheckoutError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+
+    void (async () => {
+      try {
+        const nextCatalog = await fetchPublicCatalog();
+
+        if (active) {
+          setCatalogState(nextCatalog);
+        }
+      } catch {
+        // The bundled catalog keeps the storefront usable if the API is temporarily unavailable.
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const cartProducts = useMemo(
     () =>
       cart
         .map((item) => {
-          const product = products.find((candidate) => candidate.id === item.productId);
+          const product = catalogState.products.find((candidate) => candidate.id === item.productId);
           if (!product) {
             return null;
           }
@@ -1614,7 +2522,7 @@ function App() {
           return { ...item, product, sizeOption, frameOption };
         })
         .filter((item): item is CartLine => Boolean(item)),
-    [cart],
+    [cart, catalogState.products],
   );
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -1625,7 +2533,7 @@ function App() {
   );
 
   function addToCart(productId: string, sizeId?: string, frameId?: string) {
-    const product = products.find((candidate) => candidate.id === productId);
+    const product = catalogState.products.find((candidate) => candidate.id === productId);
 
     if (!product) {
       return;
@@ -1715,22 +2623,12 @@ function App() {
   }
 
   return (
-    <>
+    <CatalogContext.Provider value={catalogState}>
       <SiteHeader cartCount={cartCount} />
       <Routes>
         <Route
           path="/"
-          element={
-            <HomePage
-              addToCart={addToCart}
-              cartProducts={cartProducts}
-              subtotal={subtotal}
-              updateQuantity={updateQuantity}
-              startCheckout={startCheckout}
-              checkoutState={checkoutState}
-              checkoutError={checkoutError}
-            />
-          }
+          element={<HomePage addToCart={addToCart} />}
         />
         <Route
           path="/collections/:slug"
@@ -1749,11 +2647,15 @@ function App() {
             />
           }
         />
+        <Route path="/shipping" element={<PolicyPage pageKey="shipping" />} />
+        <Route path="/returns" element={<PolicyPage pageKey="returns" />} />
+        <Route path="/privacy" element={<PolicyPage pageKey="privacy" />} />
+        <Route path="/terms" element={<PolicyPage pageKey="terms" />} />
         <Route path="/products/:slug" element={<ProductPage addToCart={addToCart} />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin" element={<AdminDashboard onCatalogUpdated={setCatalogState} />} />
       </Routes>
       <SiteFooter />
-    </>
+    </CatalogContext.Provider>
   );
 }
 

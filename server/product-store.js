@@ -1,0 +1,389 @@
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import pg from 'pg';
+import { normalizeCatalogData, normalizeProduct, seedCatalog } from './catalog.js';
+
+const { Pool } = pg;
+
+const dataDir =
+  process.env.LOCAL_PRODUCT_STORE_DIR ||
+  (process.env.VERCEL ? path.join(os.tmpdir(), 'armoze-products') : path.join(os.homedir(), '.armoze', 'products'));
+const productsFile = path.join(dataDir, 'products.json');
+
+function getDatabaseUrl() {
+  return process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || '';
+}
+
+function normalizeDatabaseUrl(databaseUrl) {
+  try {
+    const parsedUrl = new URL(databaseUrl);
+    parsedUrl.searchParams.delete('sslcert');
+    parsedUrl.searchParams.delete('sslkey');
+    parsedUrl.searchParams.delete('sslmode');
+    parsedUrl.searchParams.delete('sslrootcert');
+
+    return parsedUrl.toString();
+  } catch {
+    return databaseUrl;
+  }
+}
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function seedRows() {
+  return seedCatalog.products.map((product, index) => ({
+    id: product.id,
+    slug: product.slug,
+    published: product.published !== false,
+    sortOrder: index,
+    data: {
+      ...product,
+      published: product.published !== false,
+    },
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+  }));
+}
+
+function normalizeRowsToCatalog(rows, { includeUnpublished = false } = {}) {
+  const products = rows
+    .filter((row) => includeUnpublished || row.published !== false)
+    .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))
+    .map((row) =>
+      normalizeProduct(
+        {
+          ...row.data,
+          published: row.published !== false,
+        },
+        seedCatalog.sizePresets,
+      ),
+    );
+
+  return {
+    ...normalizeCatalogData({
+      ...seedCatalog,
+      products: [],
+    }),
+    products,
+  };
+}
+
+function sanitizeText(value, fallback = '') {
+  return typeof value === 'string' ? value.trim() : fallback;
+}
+
+function sanitizeTextArray(value) {
+  return Array.isArray(value)
+    ? value.map((item) => sanitizeText(item)).filter(Boolean)
+    : [];
+}
+
+function sanitizeNumber(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function sanitizeSizeOptions(value) {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  return value
+    .map((option) => ({
+      id: sanitizeText(option.id),
+      label: sanitizeText(option.label),
+      priceInCents: Math.max(0, Math.round(sanitizeNumber(option.priceInCents))),
+      ...(sanitizeText(option.badge) ? { badge: sanitizeText(option.badge) } : {}),
+      ...(option.previewScale === '' || option.previewScale == null
+        ? {}
+        : { previewScale: sanitizeNumber(option.previewScale, 1) }),
+    }))
+    .filter((option) => option.id && option.label && option.priceInCents >= 0);
+}
+
+function sanitizeFrameOptions(value) {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  return value
+    .map((option) => ({
+      id: sanitizeText(option.id),
+      label: sanitizeText(option.label),
+      priceDeltaInCents: Math.max(0, Math.round(sanitizeNumber(option.priceDeltaInCents))),
+      priceDeltaBySizeIndexInCents: Array.isArray(option.priceDeltaBySizeIndexInCents)
+        ? option.priceDeltaBySizeIndexInCents.map((amount) => Math.max(0, Math.round(sanitizeNumber(amount))))
+        : undefined,
+      ...(sanitizeText(option.badge) ? { badge: sanitizeText(option.badge) } : {}),
+    }))
+    .filter((option) => option.id && option.label);
+}
+
+export function sanitizeProductUpdate(existingProduct, update) {
+  const next = {
+    ...existingProduct,
+    id: existingProduct.id,
+  };
+
+  const stringFields = [
+    'slug',
+    'title',
+    'seoTitle',
+    'seoDescription',
+    'description',
+    'longDescription',
+    'label',
+    'imageFolder',
+    'image',
+    'imageAlt',
+    'artworkShape',
+    'tone',
+    'size',
+    'sizePreset',
+    'defaultSizeId',
+  ];
+
+  stringFields.forEach((field) => {
+    if (field in update) {
+      next[field] = sanitizeText(update[field]);
+    }
+  });
+
+  if ('published' in update) {
+    next.published = update.published !== false;
+  }
+
+  if ('rating' in update) {
+    next.rating = sanitizeNumber(update.rating, existingProduct.rating || 0);
+  }
+
+  if ('reviewCount' in update) {
+    next.reviewCount = Math.max(0, Math.round(sanitizeNumber(update.reviewCount, existingProduct.reviewCount || 0)));
+  }
+
+  if ('gallery' in update) {
+    next.gallery = sanitizeTextArray(update.gallery);
+  }
+
+  if ('collectionSlugs' in update) {
+    next.collectionSlugs = sanitizeTextArray(update.collectionSlugs);
+  }
+
+  if ('details' in update) {
+    next.details = sanitizeTextArray(update.details);
+  }
+
+  if ('sizeOptions' in update) {
+    const sizeOptions = sanitizeSizeOptions(update.sizeOptions);
+    if (sizeOptions?.length) {
+      next.sizeOptions = sizeOptions;
+    }
+  }
+
+  if ('frameOptions' in update) {
+    const frameOptions = sanitizeFrameOptions(update.frameOptions);
+    if (frameOptions?.length) {
+      next.frameOptions = frameOptions;
+    }
+  }
+
+  if (!next.slug || !next.title || !next.description || !next.longDescription || !next.imageAlt) {
+    const error = new Error('Product must include slug, title, description, long description, and image alt text.');
+    error.status = 400;
+    throw error;
+  }
+
+  return next;
+}
+
+async function readLocalDatabase() {
+  try {
+    const raw = await readFile(productsFile, 'utf8');
+    const parsed = JSON.parse(raw);
+
+    return {
+      products: Array.isArray(parsed.products) ? parsed.products : [],
+    };
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return { products: [] };
+    }
+
+    throw error;
+  }
+}
+
+async function writeLocalDatabase(database) {
+  await mkdir(dataDir, { recursive: true });
+  await writeFile(productsFile, `${JSON.stringify(database, null, 2)}\n`);
+}
+
+class LocalProductStore {
+  type = 'local-json';
+
+  async init() {
+    const database = await readLocalDatabase();
+    const existingIds = new Set(database.products.map((product) => product.id));
+    const missingSeedRows = seedRows().filter((product) => !existingIds.has(product.id));
+    const nextDatabase = {
+      products: [...database.products, ...missingSeedRows],
+    };
+
+    await writeLocalDatabase(nextDatabase);
+  }
+
+  async listCatalog(options = {}) {
+    const database = await readLocalDatabase();
+    return normalizeRowsToCatalog(database.products, options);
+  }
+
+  async listProducts(options = {}) {
+    return (await this.listCatalog(options)).products;
+  }
+
+  async updateProduct(productId, update) {
+    const database = await readLocalDatabase();
+    const existingIndex = database.products.findIndex((product) => product.id === productId);
+
+    if (existingIndex < 0) {
+      return null;
+    }
+
+    const existingRow = database.products[existingIndex];
+    const data = sanitizeProductUpdate(existingRow.data, update);
+    const nextRow = {
+      ...existingRow,
+      slug: data.slug,
+      published: data.published !== false,
+      data,
+      updatedAt: nowIso(),
+    };
+
+    database.products[existingIndex] = nextRow;
+    await writeLocalDatabase(database);
+
+    return normalizeProduct({ ...nextRow.data, published: nextRow.published }, seedCatalog.sizePresets);
+  }
+}
+
+class PostgresProductStore {
+  type = 'postgres';
+
+  constructor(databaseUrl) {
+    const ssl = process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false };
+
+    this.pool = new Pool({
+      connectionString: normalizeDatabaseUrl(databaseUrl),
+      ssl,
+    });
+  }
+
+  async init() {
+    const client = await this.pool.connect();
+
+    try {
+      await client.query('select pg_advisory_lock(421042, 20260515)');
+      await client.query(`
+        create table if not exists products (
+          id text primary key,
+          slug text unique not null,
+          published boolean not null default true,
+          sort_order integer not null default 0,
+          data jsonb not null default '{}'::jsonb,
+          created_at timestamptz not null default now(),
+          updated_at timestamptz not null default now()
+        );
+      `);
+
+      for (const row of seedRows()) {
+        await client.query(
+          `
+            insert into products (id, slug, published, sort_order, data, created_at, updated_at)
+            values ($1, $2, $3, $4, $5::jsonb, $6, $7)
+            on conflict (id) do nothing
+          `,
+          [
+            row.id,
+            row.slug,
+            row.published,
+            row.sortOrder,
+            JSON.stringify(row.data),
+            row.createdAt,
+            row.updatedAt,
+          ],
+        );
+      }
+    } finally {
+      await client.query('select pg_advisory_unlock(421042, 20260515)').catch(() => {});
+      client.release();
+    }
+  }
+
+  rowToStoreRow(row) {
+    if (!row) {
+      return null;
+    }
+
+    return {
+      id: row.id,
+      slug: row.slug,
+      published: row.published,
+      sortOrder: row.sort_order,
+      data: row.data || {},
+      createdAt: row.created_at?.toISOString?.() || row.created_at,
+      updatedAt: row.updated_at?.toISOString?.() || row.updated_at,
+    };
+  }
+
+  async listCatalog(options = {}) {
+    const result = await this.pool.query('select * from products order by sort_order asc, created_at asc');
+    return normalizeRowsToCatalog(result.rows.map((row) => this.rowToStoreRow(row)), options);
+  }
+
+  async listProducts(options = {}) {
+    return (await this.listCatalog(options)).products;
+  }
+
+  async getRow(productId) {
+    const result = await this.pool.query('select * from products where id = $1 limit 1', [productId]);
+    return this.rowToStoreRow(result.rows[0]);
+  }
+
+  async updateProduct(productId, update) {
+    const existingRow = await this.getRow(productId);
+
+    if (!existingRow) {
+      return null;
+    }
+
+    const data = sanitizeProductUpdate(existingRow.data, update);
+    const result = await this.pool.query(
+      `
+        update products
+        set slug = $2,
+            published = $3,
+            data = $4::jsonb,
+            updated_at = now()
+        where id = $1
+        returning *
+      `,
+      [productId, data.slug, data.published !== false, JSON.stringify(data)],
+    );
+    const row = this.rowToStoreRow(result.rows[0]);
+
+    return normalizeProduct({ ...row.data, published: row.published }, seedCatalog.sizePresets);
+  }
+}
+
+export function createProductStore() {
+  const databaseUrl = getDatabaseUrl();
+
+  if (databaseUrl) {
+    return new PostgresProductStore(databaseUrl);
+  }
+
+  return new LocalProductStore();
+}
