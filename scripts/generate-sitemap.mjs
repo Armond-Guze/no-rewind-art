@@ -4,7 +4,7 @@ const catalog = JSON.parse(
   readFileSync(new URL('../src/data/catalog.json', import.meta.url), 'utf8'),
 );
 
-const siteUrl = 'https://www.armoze.com';
+const siteUrl = 'https://armoze.com';
 const lastmod = process.env.SITEMAP_LASTMOD || new Date().toISOString().slice(0, 10);
 
 function escapeXml(value) {

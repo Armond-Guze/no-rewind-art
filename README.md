@@ -277,6 +277,9 @@ STRIPE_AUTOMATIC_TAX=false
 STRIPE_ALLOW_INSECURE_LOCAL_TLS=false
 CLIENT_URL=http://127.0.0.1:5173
 PORT=4242
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+VITE_SUPABASE_ANON_KEY=your_supabase_publishable_or_anon_key
 ADMIN_API_TOKEN=replace_with_a_long_private_admin_token
 DATABASE_URL=
 RESEND_API_KEY=
@@ -319,6 +322,27 @@ Use the `ADMIN_API_TOKEN` from `.env` to sign in locally. The dashboard shows
 paid orders, fulfillment status, notification history, revenue totals, and
 average order value.
 
+Customer accounts:
+
+```text
+http://127.0.0.1:5173/account
+```
+
+The storefront uses Supabase Auth through `@supabase/supabase-js`. Set
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` locally and in Vercel so
+customers can create accounts, sign in, sign out, and request password reset
+emails. These are public browser keys; do not use the Supabase service-role key
+in any `VITE_` variable. `VITE_SUPABASE_ANON_KEY` is also supported if your
+Supabase project still labels the browser key as an anon key.
+
+In Supabase Dashboard -> Authentication -> URL Configuration, set the production
+site URL to `https://armoze.com` and allow these redirects:
+
+```text
+https://armoze.com/account
+http://127.0.0.1:5173/account
+```
+
 The admin dashboard also includes a product editor. It can update product
 titles, SEO titles, descriptions, image alt text, gallery paths, product
 details, size prices, frame add-on prices, and publish status. Product data is
@@ -347,7 +371,7 @@ http://127.0.0.1:4242/api/webhooks/stripe
 Production webhook endpoint:
 
 ```text
-https://www.armoze.com/api/webhooks/stripe
+https://armoze.com/api/webhooks/stripe
 ```
 
 For owner email alerts, set `RESEND_API_KEY`, `ORDER_NOTIFICATION_EMAIL`, and
@@ -366,7 +390,10 @@ STRIPE_WEBHOOK_SECRET=whsec_from_the_armoze_com_webhook_endpoint
 STRIPE_AUTOMATIC_TAX=false
 STRIPE_ALLOW_INSECURE_LOCAL_TLS=false
 STRIPE_WEBHOOK_ALLOW_UNSIGNED=false
-CLIENT_URL=https://www.armoze.com
+CLIENT_URL=https://armoze.com
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+VITE_SUPABASE_ANON_KEY=your_supabase_publishable_or_anon_key
 DATABASE_URL=postgresql://...
 DATABASE_SSL=true
 ADMIN_API_TOKEN=long_private_admin_token
