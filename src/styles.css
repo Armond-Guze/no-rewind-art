@@ -119,6 +119,17 @@ a {
   color: var(--paper);
 }
 
+.mobile-menu-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(244, 239, 230, 0.3);
+  background: transparent;
+  color: var(--paper);
+  cursor: pointer;
+}
+
 .account-nav-link {
   width: 38px;
   height: 38px;
@@ -1440,39 +1451,101 @@ h3 {
 
 .frame-options button {
   position: relative;
-  width: 72px;
-  height: 72px;
-  border: 1px solid rgba(21, 21, 21, 0.14);
-  background:
-    linear-gradient(90deg, #cfcfcf 0 45%, #f7f7f7 45% 58%, #8a8a8a 58%),
-    #ddd;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  padding: 0;
+  border: 1px solid rgba(21, 21, 21, 0.18);
+  background: #fff;
   cursor: pointer;
+  overflow: visible;
 }
 
-.frame-options button:nth-child(2) {
-  background:
-    linear-gradient(90deg, #111 0 45%, #303030 45% 58%, #a5a5a5 58%),
-    #222;
+.frame-option-preview {
+  position: relative;
+  display: block;
+  width: 54px;
+  height: 54px;
+  overflow: hidden;
+  background: #f2eee5;
+  box-shadow:
+    inset 0 0 0 1px rgba(21, 21, 21, 0.16),
+    0 10px 18px rgba(21, 21, 21, 0.14);
 }
 
-.frame-options button:nth-child(3) {
+.frame-option-preview::before {
+  content: "";
+  position: absolute;
+  inset: 0;
   background:
-    linear-gradient(90deg, #f8f8f8 0 45%, #dadada 45% 58%, #9d9d9d 58%),
-    #fff;
+    repeating-linear-gradient(90deg, rgba(21, 21, 21, 0.05) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.38) 0 1px, transparent 1px 6px);
+  opacity: 0.72;
+}
+
+.frame-option-preview::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(21, 21, 21, 0.08), rgba(21, 21, 21, 0.28));
+}
+
+.frame-preview-corner,
+.frame-preview-artwork {
+  position: absolute;
+  display: block;
+}
+
+.frame-option-preview.canvas .frame-preview-corner {
+  inset: 0;
+}
+
+.frame-option-preview.canvas .frame-preview-artwork {
+  inset: 0 12px 0 0;
+}
+
+.frame-option-preview.black,
+.frame-option-preview.white {
+  background: #ebe7dc;
+}
+
+.frame-option-preview.black .frame-preview-corner,
+.frame-option-preview.white .frame-preview-corner {
+  inset: 0;
+  border-top: 13px solid var(--frame-color);
+  border-left: 13px solid var(--frame-color);
+  box-shadow:
+    inset 7px 7px 8px rgba(0, 0, 0, 0.3),
+    inset -2px -2px 0 rgba(255, 255, 255, 0.2);
+}
+
+.frame-option-preview.black {
+  --frame-color: #080808;
+}
+
+.frame-option-preview.white {
+  --frame-color: #f8f8f4;
+}
+
+.frame-option-preview.black .frame-preview-artwork,
+.frame-option-preview.white .frame-preview-artwork {
+  inset: 19px 7px 6px 19px;
+  background:
+    repeating-linear-gradient(90deg, rgba(21, 21, 21, 0.05) 0 1px, transparent 1px 5px),
+    #f7f2e8;
+  box-shadow:
+    -4px -4px 7px rgba(0, 0, 0, 0.28),
+    2px 2px 4px rgba(255, 255, 255, 0.25);
 }
 
 .frame-options button.selected,
 .size-options button.selected {
   outline: 2px solid #151515;
   outline-offset: 2px;
-}
-
-.frame-options span {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
 }
 
 .frame-options small {
@@ -1523,6 +1596,16 @@ h3 {
 .listing-cart-button {
   width: 100%;
   margin-top: 14px;
+}
+
+.listing-panel .listing-cart-button.button-primary {
+  border-color: #151515;
+  background: #151515;
+  color: #fff;
+}
+
+.listing-panel .listing-cart-button.button-primary:hover {
+  background: #000;
 }
 
 .listing-panel .button-secondary {
@@ -2580,6 +2663,99 @@ h3 {
   color: var(--paper);
 }
 
+.footer-newsletter {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(280px, 0.7fr);
+  gap: 18px clamp(28px, 5vw, 72px);
+  align-items: end;
+  padding: 28px 0;
+  border-top: 1px solid rgba(244, 239, 230, 0.1);
+}
+
+.footer-newsletter span {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.footer-newsletter h2 {
+  margin: 0;
+  max-width: 460px;
+  color: var(--paper);
+  font-size: clamp(1.6rem, 3.4vw, 3.4rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.footer-newsletter p {
+  max-width: 430px;
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.footer-newsletter form {
+  display: grid;
+  gap: 10px;
+}
+
+.newsletter-form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.newsletter-form-row input,
+.newsletter-form-row button {
+  min-height: 48px;
+  border: 1px solid rgba(244, 239, 230, 0.24);
+  font: inherit;
+}
+
+.newsletter-form-row input {
+  width: 100%;
+  background: rgba(244, 239, 230, 0.04);
+  color: var(--paper);
+  padding: 0 16px;
+}
+
+.newsletter-form-row input::placeholder {
+  color: rgba(244, 239, 230, 0.5);
+}
+
+.newsletter-form-row button {
+  padding: 0 20px;
+  background: var(--paper);
+  color: var(--black);
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.newsletter-form-row button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.newsletter-message {
+  min-height: 20px;
+  margin: 0;
+  color: rgba(244, 239, 230, 0.62);
+  font-size: 0.78rem;
+}
+
+.newsletter-message.success {
+  color: #c8f7d8;
+}
+
+.newsletter-message.error {
+  color: #ffb6a9;
+}
+
 .footer-bottom {
   grid-column: 1 / -1;
   display: flex;
@@ -2625,14 +2801,40 @@ h3 {
 
 @media (max-width: 900px) {
   .site-header {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .mobile-menu-toggle {
+    display: grid;
+    margin-left: auto;
   }
 
   .nav-links {
+    display: none;
     width: 100%;
-    justify-content: space-between;
-    overflow-x: auto;
+    grid-template-columns: 1fr;
+    gap: 0;
+    align-items: stretch;
+    padding-top: 10px;
+    border-top: 1px solid rgba(244, 239, 230, 0.12);
+    overflow: visible;
+  }
+
+  .nav-links.open {
+    display: grid;
+  }
+
+  .nav-links a {
+    padding: 13px 0;
+    border-bottom: 1px solid rgba(244, 239, 230, 0.08);
+  }
+
+  .nav-links .account-nav-link {
+    width: 100%;
+    height: 46px;
+    margin-top: 6px;
   }
 
   .hero {
@@ -2723,13 +2925,7 @@ h3 {
   }
 
   .nav-links {
-    gap: 18px;
     font-size: 0.84rem;
-  }
-
-  .account-nav-link {
-    width: 34px;
-    height: 34px;
   }
 
   .account-shell,
@@ -2817,6 +3013,14 @@ h3 {
   }
 
   .site-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-newsletter {
+    grid-template-columns: 1fr;
+  }
+
+  .newsletter-form-row {
     grid-template-columns: 1fr;
   }
 

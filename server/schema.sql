@@ -47,3 +47,15 @@ create table if not exists products (
 
 create index if not exists products_published_idx on products (published);
 create index if not exists products_sort_order_idx on products (sort_order);
+
+create table if not exists newsletter_subscribers (
+  id text primary key,
+  email text unique not null,
+  source text not null default 'footer',
+  status text not null default 'active',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists newsletter_subscribers_updated_at_idx
+  on newsletter_subscribers (updated_at desc);

@@ -25,6 +25,7 @@ import {
   Inbox,
   LogOut,
   Mail,
+  Menu,
   Minus,
   PackageCheck,
   Plus,
@@ -35,6 +36,7 @@ import {
   Trash2,
   Volume2,
   VolumeX,
+  X,
 } from 'lucide-react';
 import {
   getCollectionBySlugFromCatalog,
@@ -909,9 +911,38 @@ function isSideMockupImage(image: string | undefined) {
   return /\/02-side\.(png|jpe?g|webp|avif)$/i.test(image ?? '');
 }
 
+function getFramePreviewVariant(option: FrameOption) {
+  const value = `${option.id} ${option.label}`.toLowerCase();
+
+  if (value.includes('black')) {
+    return 'black';
+  }
+
+  if (value.includes('white')) {
+    return 'white';
+  }
+
+  return 'canvas';
+}
+
+function FrameOptionPreview({ option }: { option: FrameOption }) {
+  return (
+    <span
+      className={`frame-option-preview ${getFramePreviewVariant(option)}`}
+      aria-hidden="true"
+    >
+      <span className="frame-preview-corner">
+        <span className="frame-preview-artwork" />
+      </span>
+    </span>
+  );
+}
+
 function SiteHeader({ cartCount }: { cartCount: number }) {
   const { user, loading } = useCustomerAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
   const accountLabel = user ? 'View account' : 'Sign in or create account';
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <header className="site-header">
@@ -919,18 +950,33 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
         <img className="brand-mark" src="/armoze-logo.png" alt="" aria-hidden="true" />
         <span>Armoze</span>
       </Link>
-      <nav className="nav-links" aria-label="Primary navigation">
-        <Link to="/collections/best-sellers">Best Sellers</Link>
-        <Link to="/collections/money-ambition">Money</Link>
-        <Link to="/collections/discipline-focus">Focus</Link>
-        <Link to="/collections/new-arrivals">New Arrivals</Link>
-        <Link to="/#story">Story</Link>
-        <Link to="/cart">Cart ({cartCount})</Link>
+      <button
+        className="mobile-menu-toggle"
+        type="button"
+        aria-controls="primary-navigation"
+        aria-expanded={menuOpen}
+        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        {menuOpen ? <X aria-hidden="true" size={22} /> : <Menu aria-hidden="true" size={22} />}
+      </button>
+      <nav
+        className={`nav-links${menuOpen ? ' open' : ''}`}
+        id="primary-navigation"
+        aria-label="Primary navigation"
+      >
+        <Link to="/collections/best-sellers" onClick={closeMenu}>Best Sellers</Link>
+        <Link to="/collections/money-ambition" onClick={closeMenu}>Money</Link>
+        <Link to="/collections/discipline-focus" onClick={closeMenu}>Focus</Link>
+        <Link to="/collections/new-arrivals" onClick={closeMenu}>New Arrivals</Link>
+        <Link to="/#story" onClick={closeMenu}>Story</Link>
+        <Link to="/cart" onClick={closeMenu}>Cart ({cartCount})</Link>
         <Link
           className={`account-nav-link${user ? ' signed-in' : ''}`}
           to="/sign-in"
           aria-label={accountLabel}
           title={accountLabel}
+          onClick={closeMenu}
         >
           <CircleUserRound aria-hidden="true" size={22} />
           <span className="sr-only">{loading ? 'Checking account' : accountLabel}</span>
@@ -941,6 +987,38 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
 }
 
 function SiteFooter() {
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [newsletterMessage, setNewsletterMessage] = useState('New drops, restocks, and studio updates. No spam.');
+
+  async function handleNewsletterSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setNewsletterStatus('loading');
+    setNewsletterMessage('Adding you to the Armoze list...');
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: newsletterEmail }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Newsletter signup failed.');
+      }
+
+      setNewsletterStatus('success');
+      setNewsletterMessage('You are on the list. First looks will land in your inbox.');
+      setNewsletterEmail('');
+    } catch (error) {
+      setNewsletterStatus('error');
+      setNewsletterMessage(error instanceof Error ? error.message : 'Newsletter signup failed.');
+    }
+  }
+
   return (
     <footer className="site-footer">
       <div className="footer-brand">
@@ -961,6 +1039,34 @@ function SiteFooter() {
         <Link to="/privacy">Privacy</Link>
         <Link to="/terms">Terms</Link>
       </nav>
+
+      <section className="footer-newsletter" aria-label="Newsletter signup">
+        <div>
+          <span>Newsletter</span>
+          <h2>Get the next drop first.</h2>
+          <p>Join the Armoze list for new artwork releases, restocks, and shop updates.</p>
+        </div>
+        <form onSubmit={handleNewsletterSubmit}>
+          <label className="sr-only" htmlFor="newsletter-email">
+            Email address
+          </label>
+          <div className="newsletter-form-row">
+            <input
+              id="newsletter-email"
+              type="email"
+              value={newsletterEmail}
+              onChange={(event) => setNewsletterEmail(event.target.value)}
+              placeholder="Email address"
+              autoComplete="email"
+              required
+            />
+            <button type="submit" disabled={newsletterStatus === 'loading'}>
+              {newsletterStatus === 'loading' ? 'Joining' : 'Sign Up'}
+            </button>
+          </div>
+          <p className={`newsletter-message ${newsletterStatus}`}>{newsletterMessage}</p>
+        </form>
+      </section>
 
       <div className="footer-bottom">
         <span>2026 Armoze</span>
@@ -1652,7 +1758,8 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
                   onClick={() => setSelectedFrame(index)}
                   aria-label={`Select ${option.label}`}
                 >
-                  <span>{option.label}</span>
+                  <FrameOptionPreview option={option} />
+                  <span className="sr-only">{option.label}</span>
                   {formatFramePriceDelta(product, selectedOption, option) ? (
                     <small>{formatFramePriceDelta(product, selectedOption, option)}</small>
                   ) : null}

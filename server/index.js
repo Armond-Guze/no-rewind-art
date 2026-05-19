@@ -8,6 +8,7 @@ import {
   listAdminProducts,
   listPublicCatalog,
   processStripeWebhook,
+  subscribeToNewsletter,
   updateAdminOrder,
   updateAdminProduct,
 } from './backend.js';
@@ -59,6 +60,14 @@ app.get('/api/products', async (_request, response) => {
 app.post('/api/create-checkout-session', async (request, response) => {
   try {
     response.json(await createCheckoutSession(request.body));
+  } catch (error) {
+    sendError(response, error);
+  }
+});
+
+app.post('/api/newsletter', async (request, response) => {
+  try {
+    response.json(await subscribeToNewsletter(request.body));
   } catch (error) {
     sendError(response, error);
   }

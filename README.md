@@ -378,6 +378,32 @@ For owner email alerts, set `RESEND_API_KEY`, `ORDER_NOTIFICATION_EMAIL`, and
 optionally `ORDER_NOTIFICATION_FROM`. Without those values, orders still save
 and the dashboard still works; email notifications are recorded as skipped.
 
+## Newsletter Signup
+
+The footer newsletter form posts to:
+
+```text
+POST /api/newsletter
+```
+
+Local development stores subscribers in:
+
+```text
+~/.armoze/newsletter/subscribers.json
+```
+
+Production uses the same `DATABASE_URL`/Supabase Postgres connection as orders
+and creates a `newsletter_subscribers` table automatically. To set it up
+properly:
+
+1. Make sure Vercel has `DATABASE_URL` and `DATABASE_SSL=true`.
+2. Redeploy so the API can create the `newsletter_subscribers` table.
+3. Submit your own email in the footer and confirm the row appears in Supabase.
+4. When you are ready to send campaigns, export that table to Resend, Mailchimp,
+   Klaviyo, or another email platform.
+5. For a more advanced setup later, add double opt-in emails and an unsubscribe
+   link before sending regular marketing campaigns.
+
 ## Vercel Production Checkout
 
 The storefront deploys to Vercel and includes serverless API functions in

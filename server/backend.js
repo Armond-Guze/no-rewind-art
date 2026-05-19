@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Stripe from 'stripe';
 import { findFrameOption, findProduct, findSizeOption, getFramePriceDelta } from './catalog.js';
+import { createNewsletterStore } from './newsletter-store.js';
 import { sendOwnerOrderNotification } from './notifications.js';
 import { createOrderStore } from './order-store.js';
 import { createProductStore } from './product-store.js';
@@ -31,8 +32,10 @@ const stripe = stripeSecretKey
 
 const orderStore = createOrderStore();
 const productStore = createProductStore();
+const newsletterStore = createNewsletterStore();
 const orderStoreReady = orderStore.init();
 const productStoreReady = productStore.init();
+const newsletterStoreReady = newsletterStore.init();
 const artworkDir = fileURLToPath(new URL('../public/artwork', import.meta.url));
 
 function formatPrice(cents, currency = 'usd') {
@@ -49,7 +52,17 @@ export function httpError(message, status = 400) {
 }
 
 async function ensureReady() {
-  await Promise.all([orderStoreReady, productStoreReady]);
+  await Promise.all([orderStoreReady, productStoreReady, newsletterStoreReady]);
+}
+
+function normalizeNewsletterEmail(value) {
+  const email = String(value || '').trim().toLowerCase();
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw httpError('Enter a valid email address.');
+  }
+
+  return email;
 }
 
 function getPaymentIntentId(session) {
@@ -334,6 +347,7 @@ export async function getHealth() {
     stripeWebhookConfigured: Boolean(stripeWebhookSecret),
     storage: orderStore.type,
     catalogStorage: productStore.type,
+    newsletterStorage: newsletterStore.type,
     notificationsConfigured: Boolean(process.env.RESEND_API_KEY && process.env.ORDER_NOTIFICATION_EMAIL),
     adminConfigured: Boolean(adminApiToken),
   };
@@ -396,6 +410,23 @@ export async function createCheckoutSession(body) {
   await orderStore.upsertOrder(buildCheckoutDraft(session, cartItems));
 
   return { url: session.url };
+}
+
+export async function subscribeToNewsletter(body) {
+  await ensureReady();
+
+  const subscriber = await newsletterStore.subscribe({
+    email: normalizeNewsletterEmail(body?.email),
+    source: body?.source || 'footer',
+  });
+
+  return {
+    ok: true,
+    subscriber: {
+      email: subscriber.email,
+      status: subscriber.status,
+    },
+  };
 }
 
 export async function processStripeWebhook(rawBody, stripeSignature) {
