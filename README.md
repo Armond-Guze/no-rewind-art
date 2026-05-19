@@ -325,7 +325,7 @@ average order value.
 Customer accounts:
 
 ```text
-http://127.0.0.1:5173/account
+http://127.0.0.1:5173/sign-in
 ```
 
 The storefront uses Supabase Auth through `@supabase/supabase-js`. Set
@@ -339,8 +339,8 @@ In Supabase Dashboard -> Authentication -> URL Configuration, set the production
 site URL to `https://armoze.com` and allow these redirects:
 
 ```text
-https://armoze.com/account
-http://127.0.0.1:5173/account
+https://armoze.com/sign-in
+http://127.0.0.1:5173/sign-in
 ```
 
 The admin dashboard also includes a product editor. It can update product

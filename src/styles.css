@@ -1,3 +1,7 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
 :root {
   color-scheme: dark;
   --ink: #101113;
@@ -42,6 +46,33 @@ a {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.auth-shell h1,
+.auth-shell h2 {
+  max-width: none;
+  text-transform: none;
+}
+
+.auth-shell h1,
+.auth-shell h2 {
+  margin: 0;
+}
+
+.auth-shell h1 {
+  font-size: 1.02rem;
+  line-height: 1.25;
+}
+
+.auth-shell h2 {
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+@media (min-width: 640px) {
+  .auth-shell h1 {
+    font-size: 2.15rem;
+  }
 }
 
 .site-header {
@@ -1058,6 +1089,8 @@ h3 {
 
 .detail-artwork-shell {
   --size-scale: 1;
+  --frame-rail: clamp(9px, 1.15vw, 18px);
+  --frame-reveal: clamp(7px, 0.65vw, 11px);
   position: relative;
   z-index: 1;
   display: grid;
@@ -1109,7 +1142,7 @@ h3 {
 }
 
 .detail-artwork-shell.frame-black {
-  padding: clamp(18px, 2.25vw, 34px);
+  padding: var(--frame-rail);
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 18%),
     linear-gradient(315deg, rgba(0, 0, 0, 0.42), transparent 24%),
@@ -1119,12 +1152,12 @@ h3 {
     0 14px 18px rgba(0, 0, 0, 0.32),
     0 4px 6px rgba(0, 0, 0, 0.34),
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 12px 12px 18px rgba(255, 255, 255, 0.08),
-    inset -13px -13px 20px rgba(0, 0, 0, 0.5);
+    inset 6px 6px 10px rgba(255, 255, 255, 0.08),
+    inset -7px -7px 12px rgba(0, 0, 0, 0.5);
 }
 
 .detail-artwork-shell.frame-white {
-  padding: clamp(18px, 2.25vw, 34px);
+  padding: var(--frame-rail);
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.92), transparent 22%),
     linear-gradient(315deg, rgba(0, 0, 0, 0.12), transparent 28%),
@@ -1134,8 +1167,8 @@ h3 {
     0 14px 18px rgba(0, 0, 0, 0.28),
     0 4px 6px rgba(0, 0, 0, 0.3),
     inset 0 0 0 1px rgba(0, 0, 0, 0.08),
-    inset 12px 12px 18px rgba(255, 255, 255, 0.62),
-    inset -13px -13px 20px rgba(0, 0, 0, 0.14);
+    inset 6px 6px 10px rgba(255, 255, 255, 0.62),
+    inset -7px -7px 12px rgba(0, 0, 0, 0.14);
 }
 
 .detail-artwork-surface {
@@ -1160,7 +1193,7 @@ h3 {
 
 .detail-artwork-shell.frame-black .detail-artwork-surface,
 .detail-artwork-shell.frame-white .detail-artwork-surface {
-  padding: clamp(10px, 1.05vw, 18px);
+  padding: var(--frame-reveal);
   overflow: hidden;
 }
 
@@ -1168,16 +1201,16 @@ h3 {
   background: #070806;
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 10px 10px 18px rgba(0, 0, 0, 0.78),
-    inset -8px -8px 16px rgba(255, 255, 255, 0.08);
+    inset 6px 6px 11px rgba(0, 0, 0, 0.78),
+    inset -5px -5px 10px rgba(255, 255, 255, 0.08);
 }
 
 .detail-artwork-shell.frame-white .detail-artwork-surface {
   background: #ecebe5;
   box-shadow:
     inset 0 0 0 1px rgba(0, 0, 0, 0.08),
-    inset 10px 10px 16px rgba(0, 0, 0, 0.18),
-    inset -8px -8px 16px rgba(255, 255, 255, 0.8);
+    inset 6px 6px 10px rgba(0, 0, 0, 0.18),
+    inset -5px -5px 10px rgba(255, 255, 255, 0.8);
 }
 
 .detail-artwork-shell.mockup-product-shell .detail-artwork-surface::before,
@@ -1256,8 +1289,8 @@ h3 {
   background: #070806;
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 12px 12px 20px rgba(0, 0, 0, 0.78),
-    inset -10px -10px 18px rgba(255, 255, 255, 0.08),
+    inset 6px 6px 11px rgba(0, 0, 0, 0.78),
+    inset -5px -5px 10px rgba(255, 255, 255, 0.08),
     0 30px 28px -18px rgba(0, 0, 0, 0.48),
     0 12px 12px -8px rgba(0, 0, 0, 0.36),
     0 2px 4px rgba(0, 0, 0, 0.24);
@@ -1267,8 +1300,8 @@ h3 {
   background: #ecebe5;
   box-shadow:
     inset 0 0 0 1px rgba(0, 0, 0, 0.08),
-    inset 12px 12px 18px rgba(0, 0, 0, 0.18),
-    inset -10px -10px 18px rgba(255, 255, 255, 0.82),
+    inset 6px 6px 10px rgba(0, 0, 0, 0.18),
+    inset -5px -5px 10px rgba(255, 255, 255, 0.82),
     0 30px 28px -18px rgba(0, 0, 0, 0.42),
     0 12px 12px -8px rgba(0, 0, 0, 0.3),
     0 2px 4px rgba(0, 0, 0, 0.2);

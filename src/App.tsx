@@ -10,7 +10,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from 'react';
-import { Link, Route, Routes, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import {
   ArrowLeft,
@@ -23,8 +23,6 @@ import {
   Filter,
   Grid2X2,
   Inbox,
-  KeyRound,
-  LogIn,
   LogOut,
   Mail,
   Minus,
@@ -35,7 +33,6 @@ import {
   ShoppingBag,
   Star,
   Trash2,
-  UserPlus,
   Volume2,
   VolumeX,
 } from 'lucide-react';
@@ -52,6 +49,8 @@ import {
   type SizeOption,
 } from './data/products';
 import { isSupabaseAuthConfigured, supabaseClient } from './lib/supabase';
+import { AuthShell } from './components/auth/AuthShell';
+import { CustomAuthFlow } from './components/auth/CustomAuthFlow';
 
 type CartItem = {
   lineKey: string;
@@ -929,7 +928,7 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
         <Link to="/cart">Cart ({cartCount})</Link>
         <Link
           className={`account-nav-link${user ? ' signed-in' : ''}`}
-          to="/account"
+          to="/sign-in"
           aria-label={accountLabel}
           title={accountLabel}
         >
@@ -1407,340 +1406,19 @@ function PolicyPage({ pageKey }: { pageKey: PolicyPageKey }) {
   );
 }
 
-function getCustomerDisplayName(user: User) {
-  const fullName = user.user_metadata?.full_name;
-
-  if (typeof fullName === 'string' && fullName.trim()) {
-    return fullName.trim();
-  }
-
-  return user.email ?? 'Customer';
-}
-
-function AccountPage() {
-  const { configured, loading, user, lastAuthEvent, signOut } = useCustomerAuth();
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [notice, setNotice] = useState('');
-  const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const isSignup = mode === 'signup';
-  const isRecoveringPassword = lastAuthEvent === 'PASSWORD_RECOVERY';
-
+function SignInPage() {
   usePageSeo({
-    title: 'Account',
-    description: 'Sign in to your Armoze account or create a new customer account.',
-    canonicalPath: '/account',
+    title: 'Log In',
+    description: 'Log in or sign up for your Armoze customer account.',
+    canonicalPath: '/sign-in',
     image: '/armoze-logo.png',
     robots: 'noindex,nofollow',
   });
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!supabaseClient) {
-      setError('Customer accounts are not configured yet.');
-      return;
-    }
-
-    setSubmitting(true);
-    setNotice('');
-    setError('');
-
-    try {
-      if (isSignup) {
-        const { data, error: signUpError } = await supabaseClient.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/account`,
-            data: {
-              full_name: fullName.trim(),
-            },
-          },
-        });
-
-        if (signUpError) {
-          throw signUpError;
-        }
-
-        setNotice(
-          data.session
-            ? 'Your account is ready.'
-            : 'Account created. Check your email to confirm your sign in.',
-        );
-      } else {
-        const { error: signInError } = await supabaseClient.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (signInError) {
-          throw signInError;
-        }
-
-        setNotice('You are signed in.');
-      }
-    } catch (authError) {
-      setError(authError instanceof Error ? authError.message : 'Account request failed.');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handlePasswordReset() {
-    if (!supabaseClient) {
-      setError('Customer accounts are not configured yet.');
-      return;
-    }
-
-    if (!email.trim()) {
-      setError('Enter your email first, then request a reset link.');
-      return;
-    }
-
-    setSubmitting(true);
-    setNotice('');
-    setError('');
-
-    try {
-      const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/account`,
-      });
-
-      if (resetError) {
-        throw resetError;
-      }
-
-      setNotice('Password reset link sent.');
-    } catch (resetError) {
-      setError(resetError instanceof Error ? resetError.message : 'Reset link could not be sent.');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handlePasswordUpdate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!supabaseClient) {
-      setError('Customer accounts are not configured yet.');
-      return;
-    }
-
-    setSubmitting(true);
-    setNotice('');
-    setError('');
-
-    try {
-      const { error: updateError } = await supabaseClient.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (updateError) {
-        throw updateError;
-      }
-
-      setNewPassword('');
-      setNotice('Password updated.');
-    } catch (updateError) {
-      setError(updateError instanceof Error ? updateError.message : 'Password could not be updated.');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handleSignOut() {
-    setSubmitting(true);
-    setNotice('');
-    setError('');
-
-    try {
-      await signOut();
-      setNotice('You are signed out.');
-    } catch (signOutError) {
-      setError(signOutError instanceof Error ? signOutError.message : 'Sign out failed.');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   return (
-    <main className="account-page">
-      <section className="account-hero">
-        <p className="eyebrow">Customer account</p>
-        <h1>Account</h1>
-        <p>Sign in to keep your Armoze customer profile ready for orders and support.</p>
-      </section>
-
-      <section className="account-shell" aria-label="Customer account">
-        <div className="account-benefits">
-          <article>
-            <ShieldCheck aria-hidden="true" size={26} />
-            <h2>Secure sign in</h2>
-            <p>Use a secure customer account for sign in, recovery, and future order support.</p>
-          </article>
-          <article>
-            <ShoppingBag aria-hidden="true" size={26} />
-            <h2>Order-ready profile</h2>
-            <p>This gives us the foundation for saved order history, support, and customer updates.</p>
-          </article>
-          <article>
-            <Mail aria-hidden="true" size={26} />
-            <h2>Email recovery</h2>
-            <p>Customers can request a password reset without needing a store admin.</p>
-          </article>
-        </div>
-
-        <div className="account-panel">
-          {!configured ? (
-            <div className="account-state">
-              <KeyRound aria-hidden="true" size={32} />
-              <h2>Customer accounts are coming online</h2>
-              <p>Account sign in is almost ready. Store setup still needs to be completed.</p>
-            </div>
-          ) : loading ? (
-            <div className="account-state">
-              <CircleUserRound aria-hidden="true" size={32} />
-              <h2>Checking account</h2>
-              <p>One moment while your session loads.</p>
-            </div>
-          ) : user && !isRecoveringPassword ? (
-            <div className="account-state signed-in-account">
-              <BadgeCheck aria-hidden="true" size={34} />
-              <p className="eyebrow">Signed in</p>
-              <h2>{getCustomerDisplayName(user)}</h2>
-              <p>{user.email}</p>
-              <button
-                className="button button-secondary"
-                type="button"
-                onClick={handleSignOut}
-                disabled={submitting}
-              >
-                <LogOut aria-hidden="true" size={18} />
-                Sign Out
-              </button>
-            </div>
-          ) : isRecoveringPassword ? (
-            <form className="account-form" onSubmit={handlePasswordUpdate}>
-              <div>
-                <p className="eyebrow">Password recovery</p>
-                <h2>Set a new password</h2>
-              </div>
-              <label>
-                New password
-                <input
-                  type="password"
-                  minLength={8}
-                  value={newPassword}
-                  onChange={(event) => setNewPassword(event.target.value)}
-                  autoComplete="new-password"
-                  required
-                />
-              </label>
-              <button className="button button-primary" type="submit" disabled={submitting}>
-                <KeyRound aria-hidden="true" size={18} />
-                Update Password
-              </button>
-            </form>
-          ) : (
-            <form className="account-form" onSubmit={handleSubmit}>
-              <div className="account-mode-tabs" role="tablist" aria-label="Account mode">
-                <button
-                  className={!isSignup ? 'active' : ''}
-                  type="button"
-                  onClick={() => setMode('signin')}
-                  role="tab"
-                  aria-selected={!isSignup}
-                >
-                  <LogIn aria-hidden="true" size={17} />
-                  Login
-                </button>
-                <button
-                  className={isSignup ? 'active' : ''}
-                  type="button"
-                  onClick={() => setMode('signup')}
-                  role="tab"
-                  aria-selected={isSignup}
-                >
-                  <UserPlus aria-hidden="true" size={17} />
-                  Sign Up
-                </button>
-              </div>
-
-              <div>
-                <p className="eyebrow">{isSignup ? 'Create account' : 'Welcome back'}</p>
-                <h2>{isSignup ? 'Start your account' : 'Login'}</h2>
-              </div>
-
-              {isSignup ? (
-                <label>
-                  Full name
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(event) => setFullName(event.target.value)}
-                    autoComplete="name"
-                    required
-                  />
-                </label>
-              ) : null}
-
-              <label>
-                Email
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  autoComplete="email"
-                  required
-                />
-              </label>
-
-              <label>
-                Password
-                <input
-                  type="password"
-                  minLength={8}
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  autoComplete={isSignup ? 'new-password' : 'current-password'}
-                  required
-                />
-              </label>
-
-              <button className="button button-primary" type="submit" disabled={submitting}>
-                {isSignup ? (
-                  <UserPlus aria-hidden="true" size={18} />
-                ) : (
-                  <LogIn aria-hidden="true" size={18} />
-                )}
-                {submitting ? 'Working' : isSignup ? 'Create Account' : 'Login'}
-              </button>
-
-              {!isSignup ? (
-                <button
-                  className="account-reset-button"
-                  type="button"
-                  onClick={handlePasswordReset}
-                  disabled={submitting}
-                >
-                  Send password reset link
-                </button>
-              ) : null}
-            </form>
-          )}
-
-          <div className="account-message-area" aria-live="polite">
-            {notice ? <p className="account-notice">{notice}</p> : null}
-            {error ? <p className="account-error">{error}</p> : null}
-          </div>
-        </div>
-      </section>
-    </main>
+    <AuthShell>
+      <CustomAuthFlow />
+    </AuthShell>
   );
 }
 
@@ -2936,10 +2614,12 @@ function AdminDashboard({ onCatalogUpdated }: { onCatalogUpdated: (catalog: Norm
 }
 
 function App() {
+  const location = useLocation();
   const [catalogState, setCatalogState] = useState<NormalizedCatalog>(initialCatalog);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [checkoutError, setCheckoutError] = useState('');
+  const isAuthRoute = ['/sign-in', '/sign-up', '/account'].includes(location.pathname);
 
   useEffect(() => {
     let active = true;
@@ -3078,7 +2758,7 @@ function App() {
   return (
     <CatalogContext.Provider value={catalogState}>
       <CustomerAuthProvider>
-        <SiteHeader cartCount={cartCount} />
+        {isAuthRoute ? null : <SiteHeader cartCount={cartCount} />}
         <Routes>
           <Route
             path="/"
@@ -3101,7 +2781,9 @@ function App() {
               />
             }
           />
-          <Route path="/account" element={<AccountPage />} />
+          <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/sign-up" element={<Navigate to="/sign-in" replace />} />
+          <Route path="/account" element={<Navigate to="/sign-in" replace />} />
           <Route path="/shipping" element={<PolicyPage pageKey="shipping" />} />
           <Route path="/returns" element={<PolicyPage pageKey="returns" />} />
           <Route path="/privacy" element={<PolicyPage pageKey="privacy" />} />
@@ -3109,7 +2791,7 @@ function App() {
           <Route path="/products/:slug" element={<ProductPage addToCart={addToCart} />} />
           <Route path="/admin" element={<AdminDashboard onCatalogUpdated={setCatalogState} />} />
         </Routes>
-        <SiteFooter />
+        {isAuthRoute ? null : <SiteFooter />}
       </CustomerAuthProvider>
     </CatalogContext.Provider>
   );
