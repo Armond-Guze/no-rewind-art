@@ -940,12 +940,14 @@ function FrameOptionPreview({ option }: { option: FrameOption }) {
 
 function SiteHeader({ cartCount }: { cartCount: number }) {
   const { user, loading } = useCustomerAuth();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const accountLabel = user ? 'View account' : 'Sign in or create account';
   const closeMenu = () => setMenuOpen(false);
+  const isHome = location.pathname === '/';
 
   return (
-    <header className="site-header">
+    <header className={`site-header${isHome ? ' home-header' : ''}`}>
       <Link className="brand" to="/" aria-label="Armoze home">
         <img className="brand-mark" src="/armoze-logo.png" alt="" aria-hidden="true" />
         <span>Armoze</span>
@@ -1138,7 +1140,7 @@ function HomePage({
   });
 
   return (
-    <main id="top">
+    <main id="top" className="home-page">
       {checkoutResult === 'success' ? (
         <div className="checkout-banner success">Payment complete. Your order is being prepared.</div>
       ) : null}
@@ -1152,15 +1154,15 @@ function HomePage({
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero-copy">
           <p className="eyebrow">Armoze Originals</p>
-          <h1 id="hero-title">Motivational Canvas Prints</h1>
+          <h1 id="hero-title">Canvas Prints for Ambitious Rooms</h1>
           <p>
-            Wall art for the room where you work, reset, and build momentum.
-            Shop bold canvas prints for focus, discipline, money mindset, and
-            creative spaces.
+            Clean, bold wall art for workspaces, bedrooms, studios, and
+            creative corners built around focus, discipline, money mindset, and
+            momentum.
           </p>
           <div className="hero-actions">
             <Link className="button button-primary" to="/collections/best-sellers">
-              Shop Prints
+              Shop Best Sellers
               <ArrowUpRight aria-hidden="true" size={18} />
             </Link>
             <a className="button button-secondary" href="#collections">
@@ -1188,7 +1190,7 @@ function HomePage({
             <Link className="hero-featured-product" to={`/products/${heroProduct.slug}`}>
               <ProductImage product={heroProduct} />
               <div className="hero-featured-meta">
-                <span>Featured print</span>
+                <span>Featured canvas</span>
                 <strong>{heroProduct.title}</strong>
                 <small>From {formatPrice(heroProduct.priceInCents)}</small>
               </div>
@@ -1209,11 +1211,12 @@ function HomePage({
       <section id="collections" className="section intro-section home-intro">
         <div>
           <p className="eyebrow">Shop by mindset</p>
-          <h2>Choose the energy your wall needs.</h2>
+          <h2>Find the print by the room’s purpose.</h2>
         </div>
         <p>
-          Every collection is built around a clear mood, so customers can find a
-          print by purpose instead of scrolling through everything at once.
+          Best sellers for the first buy, Money for ambition, Focus for deep work,
+          and Study for the creative reset. Clear paths make the shop easier to
+          browse.
         </p>
       </section>
 
@@ -1238,7 +1241,7 @@ function HomePage({
         <div className="section-heading">
           <div>
             <p className="eyebrow">Best sellers</p>
-            <h2>Start with the strongest prints.</h2>
+            <h2>The easiest first picks.</h2>
           </div>
           <Link className="section-link" to="/collections/best-sellers">
             View Collection
@@ -1283,7 +1286,7 @@ function HomePage({
         <div className="section-heading">
           <div>
             <p className="eyebrow">What buyers choose</p>
-            <h2 id="value-title">Canvas now. Frame when it fits.</h2>
+            <h2 id="value-title">Simple options, cleaner decisions.</h2>
           </div>
           <Link className="section-link" to="/collections/new-arrivals">
             New Arrivals
@@ -1335,7 +1338,7 @@ function HomePage({
       <section id="contact" className="section contact-section shop-ready-section">
         <div>
           <p className="eyebrow">Ready when your wall is</p>
-          <h2>Pick a print, choose the size, and checkout securely.</h2>
+          <h2>Pick the print, choose the size, checkout securely.</h2>
         </div>
         <p>
           Start with best sellers, then refine the size and frame on each
@@ -1618,7 +1621,7 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedFrame, setSelectedFrame] = useState(0);
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
-  const [detailsOpen, setDetailsOpen] = useState(true);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const productStructuredData = product
     ? {
         '@context': 'https://schema.org',
@@ -1822,17 +1825,39 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
             </div>
           </div>
 
-          <div className="details-accordion">
-            <button type="button" onClick={() => setDetailsOpen((open) => !open)}>
-              Product Details
-              <span>{detailsOpen ? '−' : '+'}</span>
+          <div className="product-details-drawer">
+            <button
+              type="button"
+              aria-expanded={detailsOpen}
+              aria-controls={`${product.id}-details`}
+              onClick={() => setDetailsOpen((open) => !open)}
+            >
+              <span>Product Details</span>
+              <span aria-hidden="true">{detailsOpen ? '−' : '+'}</span>
             </button>
             {detailsOpen ? (
-              <ul>
-                {product.details.map((detail) => (
-                  <li key={detail}>{detail}</li>
-                ))}
-              </ul>
+              <div className="product-details-content" id={`${product.id}-details`}>
+                <h2>{product.title}</h2>
+                <p>{product.title} - Armoze canvas art</p>
+
+                <h3>Canvas Details</h3>
+                <ul>
+                  <li>Fully assembled</li>
+                  <li>Ready to hang</li>
+                  <li>Made to order</li>
+                  <li>Premium canvas materials</li>
+                  <li>Secure packaging to protect corners and surface quality</li>
+                  <li>Processing time: 3-5 business days</li>
+                  <li>Shipping time in the US: 5-10 business days</li>
+                </ul>
+
+                <h3>Artwork Notes</h3>
+                <ul>
+                  {product.details.map((detail) => (
+                    <li key={detail}>{detail}</li>
+                  ))}
+                </ul>
+              </div>
             ) : null}
           </div>
         </aside>
