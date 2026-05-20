@@ -139,9 +139,10 @@ a {
   width: 36px;
   height: 36px;
   display: block;
-  background: var(--paper);
+  background: #050506;
   object-fit: contain;
-  padding: 5px;
+  padding: 0;
+  border: 1px solid rgba(244, 239, 230, 0.22);
 }
 
 .nav-links {
