@@ -26,6 +26,20 @@ function getSanityConfig() {
   };
 }
 
+function getSanityClient(config = getSanityConfig()) {
+  if (!config.enabled || !config.projectId || !config.dataset) {
+    return null;
+  }
+
+  return createClient({
+    projectId: config.projectId,
+    dataset: config.dataset,
+    apiVersion: config.apiVersion,
+    useCdn: false,
+    token: config.token || undefined,
+  });
+}
+
 function normalizeDatabaseUrl(databaseUrl) {
   try {
     const parsedUrl = new URL(databaseUrl);
@@ -476,13 +490,7 @@ class SanityProductStore {
   type = 'sanity';
 
   constructor(config, fallbackStore) {
-    this.client = createClient({
-      projectId: config.projectId,
-      dataset: config.dataset,
-      apiVersion: config.apiVersion,
-      useCdn: false,
-      token: config.token || undefined,
-    });
+    this.client = getSanityClient(config);
     this.fallbackStore = fallbackStore;
   }
 
@@ -531,4 +539,54 @@ export function createProductStore() {
   }
 
   return fallbackStore;
+}
+
+export async function getSanityCatalogDiagnostics() {
+  const config = getSanityConfig();
+  const client = getSanityClient(config);
+
+  if (!client) {
+    return {
+      enabled: config.enabled,
+      configured: false,
+      projectId: Boolean(config.projectId),
+      dataset: config.dataset,
+      tokenPresent: Boolean(config.token),
+      readable: false,
+      count: 0,
+    };
+  }
+
+  try {
+    const result = await client.fetch(`{
+      "count": count(*[_type == "artworkProduct" && defined(slug.current)]),
+      "sample": *[_type == "artworkProduct" && defined(slug.current)] | order(coalesce(sortOrder, 9999) asc, title asc)[0]{
+        title,
+        "image": mainImage.asset->url
+      }
+    }`);
+
+    return {
+      enabled: config.enabled,
+      configured: true,
+      projectId: config.projectId,
+      dataset: config.dataset,
+      tokenPresent: Boolean(config.token),
+      readable: true,
+      count: result.count || 0,
+      sample: result.sample || null,
+    };
+  } catch (error) {
+    return {
+      enabled: config.enabled,
+      configured: true,
+      projectId: config.projectId,
+      dataset: config.dataset,
+      tokenPresent: Boolean(config.token),
+      readable: false,
+      count: 0,
+      error: error?.message || 'Sanity request failed.',
+      statusCode: error?.statusCode,
+    };
+  }
 }
