@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { createClient } from '@sanity/client';
 import pg from 'pg';
 import { normalizeCatalogData, normalizeProduct, seedCatalog } from './catalog.js';
 
@@ -13,6 +14,16 @@ const productsFile = path.join(dataDir, 'products.json');
 
 function getDatabaseUrl() {
   return process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || '';
+}
+
+function getSanityConfig() {
+  return {
+    enabled: process.env.SANITY_CATALOG_ENABLED === 'true',
+    projectId: process.env.SANITY_PROJECT_ID || '',
+    dataset: process.env.SANITY_DATASET || 'production',
+    apiVersion: process.env.SANITY_API_VERSION || '2025-05-21',
+    token: process.env.SANITY_READ_TOKEN || process.env.SANITY_API_READ_TOKEN || '',
+  };
 }
 
 function normalizeDatabaseUrl(databaseUrl) {
@@ -121,6 +132,89 @@ function sanitizeFrameOptions(value) {
     }))
     .filter((option) => option.id && option.label);
 }
+
+function withSanityImageParams(url, { width = 1600, quality = 85 } = {}) {
+  if (!url) {
+    return '';
+  }
+
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}auto=format&w=${width}&q=${quality}`;
+}
+
+function normalizeSanityProduct(document) {
+  const mainImageUrl = document.mainImageUrl || '';
+  const gallery = Array.isArray(document.galleryImages)
+    ? document.galleryImages
+        .map((image) => withSanityImageParams(image?.url, { width: 2000, quality: 88 }))
+        .filter(Boolean)
+    : [];
+
+  return normalizeProduct(
+    {
+      id: document.productId || document._id,
+      slug: document.slug,
+      title: document.title,
+      seoTitle: document.seoTitle,
+      seoDescription: document.seoDescription,
+      description: document.description,
+      longDescription: document.longDescription,
+      label: document.label || document.title,
+      image: withSanityImageParams(mainImageUrl, { width: 1600, quality: 88 }),
+      imageAlt: document.imageAlt || document.mainImageAlt || document.title,
+      artworkShape: document.artworkShape || 'landscape',
+      gallery,
+      tone: document.tone || 'minimal',
+      collectionSlugs: Array.isArray(document.collectionSlugs) ? document.collectionSlugs : [],
+      priceInCents: document.priceInCents,
+      size: document.size || 'Canvas print',
+      sizePreset: document.sizePreset,
+      sizeOptions: document.sizeOptions,
+      defaultSizeId: document.defaultSizeId,
+      rating: Number(document.rating ?? 5),
+      reviewCount: Number(document.reviewCount ?? 0),
+      frameOptions: document.frameOptions,
+      details: Array.isArray(document.details) ? document.details : [],
+      published: document.published !== false,
+    },
+    seedCatalog.sizePresets,
+  );
+}
+
+const SANITY_PRODUCTS_QUERY = `*[
+  _type == "artworkProduct"
+  && defined(slug.current)
+] | order(coalesce(sortOrder, 9999) asc, title asc) {
+  _id,
+  productId,
+  "slug": slug.current,
+  title,
+  seoTitle,
+  seoDescription,
+  description,
+  longDescription,
+  label,
+  imageAlt,
+  "mainImageUrl": mainImage.asset->url,
+  "mainImageAlt": mainImage.alt,
+  "galleryImages": galleryImages[]{
+    "url": asset->url,
+    alt
+  },
+  artworkShape,
+  tone,
+  collectionSlugs,
+  priceInCents,
+  size,
+  sizePreset,
+  sizeOptions,
+  defaultSizeId,
+  rating,
+  reviewCount,
+  frameOptions,
+  details,
+  published
+}`;
 
 export function sanitizeProductUpdate(existingProduct, update) {
   const next = {
@@ -378,12 +472,63 @@ class PostgresProductStore {
   }
 }
 
-export function createProductStore() {
-  const databaseUrl = getDatabaseUrl();
+class SanityProductStore {
+  type = 'sanity';
 
-  if (databaseUrl) {
-    return new PostgresProductStore(databaseUrl);
+  constructor(config, fallbackStore) {
+    this.client = createClient({
+      projectId: config.projectId,
+      dataset: config.dataset,
+      apiVersion: config.apiVersion,
+      useCdn: false,
+      token: config.token || undefined,
+    });
+    this.fallbackStore = fallbackStore;
   }
 
-  return new LocalProductStore();
+  async init() {
+    await this.fallbackStore.init();
+  }
+
+  async listCatalog(options = {}) {
+    try {
+      const documents = await this.client.fetch(SANITY_PRODUCTS_QUERY);
+      const products = documents.map(normalizeSanityProduct);
+
+      if (!products.length) {
+        return this.fallbackStore.listCatalog(options);
+      }
+
+      return {
+        ...normalizeCatalogData({
+          ...seedCatalog,
+          products: [],
+        }),
+        products: options.includeUnpublished ? products : products.filter((product) => product.published),
+      };
+    } catch (error) {
+      console.warn('Sanity catalog unavailable; using local catalog fallback.', error?.message || error);
+      return this.fallbackStore.listCatalog(options);
+    }
+  }
+
+  async listProducts(options = {}) {
+    return (await this.listCatalog(options)).products;
+  }
+
+  async updateProduct(productId, update) {
+    return this.fallbackStore.updateProduct(productId, update);
+  }
+}
+
+export function createProductStore() {
+  const sanityConfig = getSanityConfig();
+  const databaseUrl = getDatabaseUrl();
+  const fallbackStore = databaseUrl ? new PostgresProductStore(databaseUrl) : new LocalProductStore();
+
+  if (sanityConfig.enabled && sanityConfig.projectId && sanityConfig.dataset) {
+    return new SanityProductStore(sanityConfig, fallbackStore);
+  }
+
+  return fallbackStore;
 }
