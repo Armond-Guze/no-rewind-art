@@ -106,7 +106,6 @@ a {
   color: var(--gold);
 }
 
-.site-header.home-header .account-nav-link,
 .site-header.home-header .mobile-menu-toggle {
   border-color: rgba(244, 239, 230, 0.28);
 }
@@ -122,7 +121,6 @@ a {
 .site-header.home-header .account-nav-link:hover,
 .site-header.home-header .mobile-menu-toggle:hover {
   background: rgba(244, 239, 230, 0.08);
-  border-color: rgba(243, 178, 51, 0.7);
   color: var(--gold);
 }
 
@@ -142,7 +140,7 @@ a {
   background: #050506;
   object-fit: contain;
   padding: 0;
-  border: 1px solid rgba(244, 239, 230, 0.22);
+  border: 0;
 }
 
 .nav-links {
@@ -174,18 +172,16 @@ a {
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
-  border: 1px solid rgba(244, 239, 230, 0.32);
+  border: 0;
   color: var(--paper);
 }
 
 .account-nav-link.signed-in {
-  border-color: rgba(80, 216, 144, 0.7);
   color: #c8f7d8;
-  box-shadow: inset 0 0 0 1px rgba(80, 216, 144, 0.18);
+  box-shadow: none;
 }
 
 .account-nav-link:hover {
-  border-color: var(--paper);
   background: rgba(244, 239, 230, 0.08);
 }
 
