@@ -55,6 +55,10 @@ async function ensureReady() {
   await Promise.all([orderStoreReady, productStoreReady, newsletterStoreReady]);
 }
 
+async function ensureProductStoreReady() {
+  await productStoreReady;
+}
+
 function normalizeNewsletterEmail(value) {
   const email = String(value || '').trim().toLowerCase();
 
@@ -354,7 +358,7 @@ export async function getHealth() {
 }
 
 export async function listPublicCatalog() {
-  await ensureReady();
+  await ensureProductStoreReady();
 
   return productStore.listCatalog();
 }
