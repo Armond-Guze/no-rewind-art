@@ -492,10 +492,18 @@ class SanityProductStore {
   constructor(config, fallbackStore) {
     this.client = getSanityClient(config);
     this.fallbackStore = fallbackStore;
+    this.fallbackReady = null;
   }
 
   async init() {
-    await this.fallbackStore.init();
+    // Defer fallback setup so a slow Postgres connection cannot block Sanity-backed reads.
+  }
+
+  async getFallbackCatalog(options = {}) {
+    this.fallbackReady ??= this.fallbackStore.init();
+    await this.fallbackReady;
+
+    return this.fallbackStore.listCatalog(options);
   }
 
   async listCatalog(options = {}) {
@@ -504,7 +512,7 @@ class SanityProductStore {
       const products = documents.map(normalizeSanityProduct);
 
       if (!products.length) {
-        return this.fallbackStore.listCatalog(options);
+        return this.getFallbackCatalog(options);
       }
 
       return {
@@ -516,7 +524,7 @@ class SanityProductStore {
       };
     } catch (error) {
       console.warn('Sanity catalog unavailable; using local catalog fallback.', error?.message || error);
-      return this.fallbackStore.listCatalog(options);
+      return this.getFallbackCatalog(options);
     }
   }
 
