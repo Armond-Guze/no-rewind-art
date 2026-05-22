@@ -1381,6 +1381,14 @@ h3 {
   background: transparent;
 }
 
+.main-product-image.gallery-product-image {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.main-product-image.gallery-product-image::before,
+.main-product-image.gallery-product-image::after,
 .main-product-image.mockup-product-image::before {
   display: none;
 }

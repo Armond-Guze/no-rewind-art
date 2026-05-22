@@ -1670,6 +1670,7 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   const selectedFrameOption = product.frameOptions[selectedFrame] ?? getBaseFrameOption(product);
   const selectedFrameName = selectedFrameOption.label;
   const selectedUnitPrice = getConfiguredUnitPrice(product, selectedOption, selectedFrameOption);
+  const shouldScaleSelectedImage = selectedImage === 0;
   const frameClass =
     selectedFrameName === 'Black Frame'
       ? 'frame-black'
@@ -1707,14 +1708,18 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
             ))}
           </div>
 
-          <div className={`main-product-image ${isMockupGalleryImage ? 'mockup-product-image' : ''}`}>
+          <div
+            className={`main-product-image ${selectedGalleryImage ? 'gallery-product-image' : ''} ${
+              isMockupGalleryImage ? 'mockup-product-image' : ''
+            }`}
+          >
             <div
               className={`detail-artwork-shell ${frameClass} shape-${product.artworkShape} ${
                 isMockupGalleryImage ? 'mockup-product-shell' : ''
               } ${isFrontMockupGalleryImage ? 'front-product-shell' : ''} ${
                 isSideGalleryImage ? 'side-product-shell' : ''
               }`}
-              style={{ '--size-scale': sizeScale } as CSSProperties}
+              style={{ '--size-scale': shouldScaleSelectedImage ? sizeScale : 1 } as CSSProperties}
             >
               <div className="detail-artwork-surface">
                 {selectedGalleryImage ? (
