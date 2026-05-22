@@ -129,6 +129,25 @@ function sanitizeSizeOptions(value) {
     .filter((option) => option.id && option.label && option.priceInCents >= 0);
 }
 
+function normalizeSanitySizePresets(settings) {
+  const sizePresets = { ...seedCatalog.sizePresets };
+  const configuredPresets = settings?.sizePresets;
+
+  if (!configuredPresets || typeof configuredPresets !== 'object') {
+    return sizePresets;
+  }
+
+  Object.entries(configuredPresets).forEach(([presetKey, value]) => {
+    const options = sanitizeSizeOptions(value);
+
+    if (options?.length) {
+      sizePresets[presetKey] = options;
+    }
+  });
+
+  return sizePresets;
+}
+
 function sanitizeFrameOptions(value) {
   if (!Array.isArray(value)) {
     return undefined;
@@ -156,7 +175,7 @@ function withSanityImageParams(url, { width = 1600, quality = 85 } = {}) {
   return `${url}${separator}auto=format&w=${width}&q=${quality}`;
 }
 
-function normalizeSanityProduct(document) {
+function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets) {
   const mainImageUrl = document.mainImageUrl || '';
   const gallery = Array.isArray(document.galleryImages)
     ? document.galleryImages
@@ -183,6 +202,7 @@ function normalizeSanityProduct(document) {
       priceInCents: document.priceInCents,
       size: document.size || 'Canvas print',
       sizePreset: document.sizePreset,
+      useCustomSizeOptions: document.useCustomSizeOptions === true,
       sizeOptions: document.sizeOptions,
       defaultSizeId: document.defaultSizeId,
       rating: Number(document.rating ?? 5),
@@ -191,9 +211,19 @@ function normalizeSanityProduct(document) {
       details: Array.isArray(document.details) ? document.details : [],
       published: document.published !== false,
     },
-    seedCatalog.sizePresets,
+    sizePresets,
   );
 }
+
+const SANITY_CATALOG_SETTINGS_QUERY = `*[_type == "catalogSettings"][0]{
+  sizePresets{
+    portraitTwoThree[]{id, label, priceInCents, badge, previewScale},
+    landscapeWide[]{id, label, priceInCents, badge, previewScale},
+    landscapeThreeTwo[]{id, label, priceInCents, badge, previewScale},
+    landscapeFourThree[]{id, label, priceInCents, badge, previewScale},
+    squareStandard[]{id, label, priceInCents, badge, previewScale}
+  }
+}`;
 
 const SANITY_PRODUCTS_QUERY = `*[
   _type == "artworkProduct"
@@ -221,6 +251,7 @@ const SANITY_PRODUCTS_QUERY = `*[
   priceInCents,
   size,
   sizePreset,
+  useCustomSizeOptions,
   sizeOptions,
   defaultSizeId,
   rating,
@@ -262,6 +293,10 @@ export function sanitizeProductUpdate(existingProduct, update) {
 
   if ('published' in update) {
     next.published = update.published !== false;
+  }
+
+  if ('useCustomSizeOptions' in update) {
+    next.useCustomSizeOptions = update.useCustomSizeOptions === true;
   }
 
   if ('rating' in update) {
@@ -508,8 +543,12 @@ class SanityProductStore {
 
   async listCatalog(options = {}) {
     try {
-      const documents = await this.client.fetch(SANITY_PRODUCTS_QUERY);
-      const products = documents.map(normalizeSanityProduct);
+      const [settings, documents] = await Promise.all([
+        this.client.fetch(SANITY_CATALOG_SETTINGS_QUERY),
+        this.client.fetch(SANITY_PRODUCTS_QUERY),
+      ]);
+      const sizePresets = normalizeSanitySizePresets(settings);
+      const products = documents.map((document) => normalizeSanityProduct(document, sizePresets));
 
       if (!products.length) {
         return this.getFallbackCatalog(options);
@@ -518,6 +557,7 @@ class SanityProductStore {
       return {
         ...normalizeCatalogData({
           ...seedCatalog,
+          sizePresets,
           products: [],
         }),
         products: options.includeUnpublished ? products : products.filter((product) => product.published),

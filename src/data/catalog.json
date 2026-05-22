@@ -103,6 +103,40 @@
         "previewScale": 1.21
       }
     ],
+    "landscapeFourThree": [
+      {
+        "id": "16x12",
+        "label": "16 x 12",
+        "priceInCents": 6500,
+        "previewScale": 0.94
+      },
+      {
+        "id": "24x18",
+        "label": "24 x 18",
+        "priceInCents": 9500,
+        "previewScale": 1
+      },
+      {
+        "id": "32x24",
+        "label": "32 x 24",
+        "priceInCents": 12500,
+        "badge": "Best Value",
+        "previewScale": 1.08
+      },
+      {
+        "id": "40x30",
+        "label": "40 x 30",
+        "priceInCents": 15500,
+        "previewScale": 1.15
+      },
+      {
+        "id": "48x36",
+        "label": "48 x 36",
+        "priceInCents": 19500,
+        "badge": "Statement",
+        "previewScale": 1.21
+      }
+    ],
     "squareStandard": [
       {
         "id": "12x12",

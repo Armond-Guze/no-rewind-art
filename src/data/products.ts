@@ -47,6 +47,7 @@ export type CatalogProduct = {
   priceInCents?: number;
   size: string;
   sizePreset?: string;
+  useCustomSizeOptions?: boolean;
   sizeOptions?: SizeOption[];
   defaultSizeId?: string;
   rating: number;
@@ -105,17 +106,30 @@ function normalizeFrameOptions(product: CatalogProduct): FrameOption[] {
   return fallbackFrameOptions;
 }
 
+function getSizeOptionsForProduct(
+  product: CatalogProduct,
+  sizePresets: Record<string, SizeOption[]>,
+) {
+  if (product.useCustomSizeOptions && product.sizeOptions?.length) {
+    return product.sizeOptions;
+  }
+
+  return (
+    (product.sizePreset ? sizePresets[product.sizePreset] : undefined) ||
+    sizePresets.landscapeWide ||
+    []
+  );
+}
+
 export function normalizeProduct(
   product: CatalogProduct,
   sizePresets: Record<string, SizeOption[]> = catalogData.sizePresets,
 ): Product {
-  const sizeOptions =
-    product.sizeOptions ||
-    (product.sizePreset ? sizePresets[product.sizePreset] : undefined) ||
-    sizePresets.landscapeWide ||
-    [];
+  const sizeOptions = getSizeOptionsForProduct(product, sizePresets);
   const frameOptions = normalizeFrameOptions(product);
-  const lowestSizePrice = Math.min(...sizeOptions.map((option) => option.priceInCents));
+  const lowestSizePrice = sizeOptions.length
+    ? Math.min(...sizeOptions.map((option) => option.priceInCents))
+    : Number(product.priceInCents ?? 0);
   const lowestFrameDelta = Math.min(
     ...frameOptions.map((option) => option.priceDeltaBySizeIndexInCents?.[0] ?? option.priceDeltaInCents ?? 0),
   );

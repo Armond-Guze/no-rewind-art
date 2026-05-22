@@ -31,14 +31,24 @@ function normalizeFrameOptions(product) {
   return fallbackFrameOptions;
 }
 
-export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets) {
-  const sizeOptions =
-    product.sizeOptions ||
+function getSizeOptionsForProduct(product, sizePresets) {
+  if (product.useCustomSizeOptions && Array.isArray(product.sizeOptions) && product.sizeOptions.length) {
+    return product.sizeOptions;
+  }
+
+  return (
     (product.sizePreset ? sizePresets[product.sizePreset] : undefined) ||
     sizePresets.landscapeWide ||
-    [];
+    []
+  );
+}
+
+export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets) {
+  const sizeOptions = getSizeOptionsForProduct(product, sizePresets);
   const frameOptions = normalizeFrameOptions(product);
-  const lowestSizePrice = Math.min(...sizeOptions.map((option) => option.priceInCents));
+  const lowestSizePrice = sizeOptions.length
+    ? Math.min(...sizeOptions.map((option) => option.priceInCents))
+    : Number(product.priceInCents ?? 0);
   const lowestFrameDelta = Math.min(
     ...frameOptions.map((option) => option.priceDeltaBySizeIndexInCents?.[0] ?? option.priceDeltaInCents ?? 0),
   );

@@ -62,7 +62,25 @@ The important fields are:
 - `sizePreset`
 - `details`
 
-## 3. Turn on Sanity in the site
+For normal products, set `sizePreset` and leave `Use Custom Size Options` off. That makes the product use the shared pricing from `Catalog Settings`, so a single price edit can update every artwork using that preset.
+
+Only turn `Use Custom Size Options` on when one product truly needs different sizes or prices from the rest of the store.
+
+## 3. Set shared size pricing
+
+Create one `Catalog Settings` document in Sanity and fill out `Global Size Pricing`.
+
+This is the best place to edit size prices because each preset is shared:
+
+- `Portrait 2:3`: 12 x 18, 16 x 24, 24 x 36, etc.
+- `Landscape Wide 2:1`: 20 x 10, 30 x 15, 60 x 30, etc.
+- `Landscape 3:2`: 18 x 12, 24 x 16, 36 x 24, etc.
+- `Landscape 4:3`: 16 x 12, 24 x 18, 32 x 24, etc.
+- `Square Standard`: 12 x 12, 16 x 16, 24 x 24, etc.
+
+Prices are stored in cents, so `$75.00` is `7500`.
+
+## 4. Turn on Sanity in the site
 
 Add these to `.env` locally and to Vercel environment variables:
 
@@ -78,7 +96,7 @@ The site reads Sanity through `/api/products`. If Sanity is not configured, has 
 
 If your dataset is private, create a read token in Sanity Manage under API settings and use it for `SANITY_READ_TOKEN`. Do not prefix this variable with `VITE_`; it should stay server-only.
 
-## 4. Migration rhythm
+## 5. Migration rhythm
 
 Start with one artwork, verify it appears on the storefront, then migrate the rest.
 
