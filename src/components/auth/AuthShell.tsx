@@ -19,12 +19,12 @@ export function AuthShell({ children }: AuthShellProps) {
         </Link>
       </div>
 
-      <div className="h-[2px] bg-[linear-gradient(90deg,rgba(14,165,233,0)_0%,rgba(56,189,248,0.28)_16%,rgba(56,189,248,0.72)_50%,rgba(56,189,248,0.28)_84%,rgba(14,165,233,0)_100%)]" />
+      <div className="h-[2px] bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.24)_16%,rgba(255,255,255,0.72)_50%,rgba(255,255,255,0.24)_84%,rgba(255,255,255,0)_100%)]" />
 
-      <div className="mx-auto flex min-h-[calc(100svh-73px)] w-full max-w-6xl items-start justify-center px-5 pt-7 pb-12 sm:pt-9">
+      <div className="mx-auto flex min-h-[calc(100svh-73px)] w-full max-w-6xl items-start justify-center px-5 pt-5 pb-12 sm:pt-6">
         <div className="w-full max-w-[500px] text-center">
           <img
-            className="mx-auto mb-7 w-[144px] sm:w-[168px]"
+            className="mx-auto mb-5 w-[144px] sm:mb-6 sm:w-[168px]"
             src="/armoze-logo.png"
             alt="Armoze"
           />
