@@ -1729,6 +1729,7 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   const selectedFrameName = selectedFrameOption.label;
   const selectedUnitPrice = getConfiguredUnitPrice(product, selectedOption, selectedFrameOption);
   const shouldScaleSelectedImage = selectedImage === 0;
+  const shouldShowFramePreview = selectedImage === 0;
   const relatedProducts = catalog.products
     .filter((candidate) => candidate.id !== product.id && candidate.published)
     .map((candidate) => {
@@ -1747,7 +1748,9 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
     .slice(0, 4)
     .map((item) => item.product);
   const frameClass =
-    selectedFrameName === 'Black Frame'
+    !shouldShowFramePreview
+      ? 'frame-none'
+      : selectedFrameName === 'Black Frame'
       ? 'frame-black'
       : selectedFrameName === 'White Frame'
         ? 'frame-white'
@@ -1838,7 +1841,10 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
                   className={index === selectedFrame ? 'selected' : ''}
                   key={option.id}
                   type="button"
-                  onClick={() => setSelectedFrame(index)}
+                  onClick={() => {
+                    setSelectedFrame(index);
+                    setSelectedImage(0);
+                  }}
                   aria-label={`Select ${option.label}`}
                 >
                   <FrameOptionPreview option={option} />
