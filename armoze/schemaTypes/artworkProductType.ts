@@ -157,14 +157,26 @@ export const artworkProductType = defineType({
           {title: 'Portrait 2:3', value: 'portraitTwoThree'},
           {title: 'Landscape Wide', value: 'landscapeWide'},
           {title: 'Landscape 3:2', value: 'landscapeThreeTwo'},
+          {title: 'Landscape 4:3', value: 'landscapeFourThree'},
           {title: 'Square Standard', value: 'squareStandard'},
         ],
       },
     }),
     defineField({
+      name: 'useCustomSizeOptions',
+      title: 'Use Custom Size Options',
+      type: 'boolean',
+      description:
+        'Leave off for normal products so this artwork uses the shared prices from Catalog Settings. Turn on only when this product needs its own sizes or prices.',
+      initialValue: false,
+    }),
+    defineField({
       name: 'sizeOptions',
       title: 'Custom Size Options',
       type: 'array',
+      description:
+        'Only used when Use Custom Size Options is turned on. Otherwise the storefront uses the Size Preset prices from Catalog Settings.',
+      hidden: ({document}) => document?.useCustomSizeOptions !== true,
       of: [defineArrayMember({type: 'object', fields: sizeOptionFields})],
     }),
     defineField({name: 'defaultSizeId', title: 'Default Size ID', type: 'string'}),
