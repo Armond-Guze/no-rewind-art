@@ -1671,6 +1671,23 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   const selectedFrameName = selectedFrameOption.label;
   const selectedUnitPrice = getConfiguredUnitPrice(product, selectedOption, selectedFrameOption);
   const shouldScaleSelectedImage = selectedImage === 0;
+  const relatedProducts = catalog.products
+    .filter((candidate) => candidate.id !== product.id && candidate.published)
+    .map((candidate) => {
+      const sharedCollections = candidate.collectionSlugs.filter((slug) =>
+        product.collectionSlugs.includes(slug),
+      ).length;
+      const toneMatch = candidate.tone === product.tone ? 1 : 0;
+
+      return {
+        product: candidate,
+        score: sharedCollections * 2 + toneMatch,
+      };
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score || a.product.title.localeCompare(b.product.title))
+    .slice(0, 4)
+    .map((item) => item.product);
   const frameClass =
     selectedFrameName === 'Black Frame'
       ? 'frame-black'
@@ -1866,6 +1883,65 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
             ) : null}
           </div>
         </aside>
+      </section>
+
+      {relatedProducts.length ? (
+        <section className="related-products-section" aria-labelledby="related-products-title">
+          <div className="product-section-heading">
+            <p className="eyebrow">More to consider</p>
+            <h2 id="related-products-title">Canvases in the same lane.</h2>
+          </div>
+          <div className="related-products-grid">
+            {relatedProducts.map((relatedProduct) => (
+              <Link
+                className="related-product"
+                key={relatedProduct.id}
+                to={`/products/${relatedProduct.slug}`}
+              >
+                <ProductImage product={relatedProduct} />
+                <span>{relatedProduct.title}</span>
+                <strong>{formatPrice(relatedProduct.priceInCents)}</strong>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="product-proof-section" aria-labelledby="product-proof-title">
+        <div className="product-section-heading">
+          <p className="eyebrow">What arrives</p>
+          <h2 id="product-proof-title">Built to feel finished before it hits the wall.</h2>
+        </div>
+
+        <div className="product-proof-grid">
+          <article>
+            <img
+              src="/product-support/canvas-unboxing-back.png"
+              alt="Back of a stretched canvas print being unboxed from protective packaging"
+            />
+            <div>
+              <h3>Protected from box to wall</h3>
+              <p>
+                Each canvas is packed to protect the surface, corners, and back side while it
+                moves through shipping.
+              </p>
+            </div>
+          </article>
+
+          <article>
+            <img
+              src="/product-support/canvas-quality-closeup.png"
+              alt="Close-up of canvas print texture and wrapped canvas edge"
+            />
+            <div>
+              <h3>Texture you can actually see</h3>
+              <p>
+                A close-up look at the woven canvas surface, wrapped edge, and sturdy print
+                construction.
+              </p>
+            </div>
+          </article>
+        </div>
       </section>
     </main>
   );
