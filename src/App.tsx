@@ -257,7 +257,8 @@ const fulfillmentStatusOptions = [
 ];
 
 const siteUrl = 'https://armoze.com';
-const supportEmail = 'support@armoze.com';
+const supportEmail = 'hello@armoze.com';
+const supportMailto = `mailto:${supportEmail}`;
 
 type PolicyPageKey = 'shipping' | 'returns' | 'privacy' | 'terms';
 
@@ -972,6 +973,7 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
         <Link to="/collections/discipline-focus" onClick={closeMenu}>Focus</Link>
         <Link to="/collections/new-arrivals" onClick={closeMenu}>New Arrivals</Link>
         <Link to="/#story" onClick={closeMenu}>Story</Link>
+        <Link to="/#support" onClick={closeMenu}>Support</Link>
         <Link to="/cart" onClick={closeMenu}>Cart ({cartCount})</Link>
         <Link
           className={`account-nav-link${user ? ' signed-in' : ''}`}
@@ -1036,11 +1038,20 @@ function SiteFooter() {
         <Link to="/collections/money-ambition">Money</Link>
         <Link to="/collections/discipline-focus">Focus</Link>
         <Link to="/collections/new-arrivals">New Arrivals</Link>
+        <Link to="/#support">Support</Link>
         <Link to="/shipping">Shipping</Link>
         <Link to="/returns">Returns</Link>
         <Link to="/privacy">Privacy</Link>
         <Link to="/terms">Terms</Link>
       </nav>
+
+      <section className="footer-support" aria-label="Customer support">
+        <div>
+          <span>Need help?</span>
+          <p>Email order questions, damage photos, sizing help, or address changes to:</p>
+        </div>
+        <a href={supportMailto}>{supportEmail}</a>
+      </section>
 
       <section className="footer-newsletter" aria-label="Newsletter signup">
         <div>
@@ -1332,6 +1343,53 @@ function HomePage({
             <li>Momentum</li>
             <li>Ambition</li>
           </ul>
+        </div>
+      </section>
+
+      <section id="support" className="section support-faq-section" aria-labelledby="support-title">
+        <div className="support-card">
+          <p className="eyebrow">Support</p>
+          <h2 id="support-title">Questions before or after checkout?</h2>
+          <p>
+            For order help, sizing questions, address changes, or damage replacement requests,
+            email the Armoze support inbox.
+          </p>
+          <a className="button button-primary" href={supportMailto}>
+            <Mail aria-hidden="true" size={18} />
+            {supportEmail}
+          </a>
+        </div>
+
+        <div className="faq-list" aria-label="Frequently asked questions">
+          <p className="eyebrow">FAQ</p>
+          <details open>
+            <summary>How long does production take?</summary>
+            <p>
+              Armoze prints are made to order. Production usually takes 2 to 5 business days
+              after checkout is completed.
+            </p>
+          </details>
+          <details>
+            <summary>How long does shipping take?</summary>
+            <p>
+              Standard U.S. shipping is typically 5 to 10 business days after production is
+              complete. Tracking is sent when it is available.
+            </p>
+          </details>
+          <details>
+            <summary>What if my canvas arrives damaged?</summary>
+            <p>
+              Email {supportEmail} within 7 days of delivery with your order number, photos of
+              the canvas, and photos of the packaging so the issue can be reviewed.
+            </p>
+          </details>
+          <details>
+            <summary>What is the difference between canvas and framed options?</summary>
+            <p>
+              Canvas is a ready-to-hang stretched print. Black frame and white frame options add
+              a clean framed edge around the artwork for a more finished wall look.
+            </p>
+          </details>
         </div>
       </section>
 

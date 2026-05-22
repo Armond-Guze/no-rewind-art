@@ -11,6 +11,16 @@
       ],
       "destination": "https://armoze.com/:path*",
       "permanent": true
+    },
+    {
+      "source": "/sanity",
+      "destination": "https://sanity.io/@o8e9CGiAz/studio/vydy99zsxkte1uvjidscpvc2/default/structure/artworkProduct",
+      "permanent": false
+    },
+    {
+      "source": "/sanity/:path*",
+      "destination": "https://sanity.io/@o8e9CGiAz/studio/vydy99zsxkte1uvjidscpvc2/default/structure/artworkProduct",
+      "permanent": false
     }
   ],
   "rewrites": [
