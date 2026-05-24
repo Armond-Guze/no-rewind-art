@@ -10,7 +10,16 @@ import {
   type FormEvent,
   type ReactNode,
 } from 'react';
-import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
+import {
+  Link,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import {
   ArrowLeft,
@@ -1673,11 +1682,14 @@ function CollectionPage({ addToCart }: { addToCart: AddToCart }) {
 
 function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   const { slug } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const catalog = useCatalog();
   const product = getProductBySlugFromCatalog(catalog, slug);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedFrame, setSelectedFrame] = useState(0);
+  const requestedSizeId = searchParams.get('size');
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const productStructuredData = product
@@ -1704,6 +1716,12 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
     structuredData: productStructuredData,
   });
 
+  useEffect(() => {
+    if (product && slug && slug !== product.slug) {
+      navigate(`/products/${product.slug}${location.search}`, { replace: true });
+    }
+  }, [location.search, navigate, product, slug]);
+
   if (!product) {
     return (
       <main className="product-not-found">
@@ -1722,8 +1740,11 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   const isSideGalleryImage = isSideMockupImage(selectedGalleryImage);
   const isFrontMockupGalleryImage = isMockupGalleryImage && !isSideGalleryImage;
   const defaultSizeOption = getFeaturedSizeOption(product);
+  const requestedSizeOption = product.sizeOptions.find((option) => option.id === requestedSizeId);
   const selectedOption =
-    product.sizeOptions.find((option) => option.id === selectedSizeId) ?? defaultSizeOption;
+    product.sizeOptions.find((option) => option.id === selectedSizeId) ??
+    requestedSizeOption ??
+    defaultSizeOption;
   const selectedSize = product.sizeOptions.findIndex((option) => option.id === selectedOption.id);
   const selectedFrameOption = product.frameOptions[selectedFrame] ?? getBaseFrameOption(product);
   const selectedFrameName = selectedFrameOption.label;

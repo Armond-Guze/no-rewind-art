@@ -187,6 +187,7 @@ function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets)
     {
       id: document.productId || document._id,
       slug: document.slug,
+      previousSlugs: Array.isArray(document.previousSlugs) ? document.previousSlugs : [],
       title: document.title,
       seoTitle: document.seoTitle,
       seoDescription: document.seoDescription,
@@ -232,6 +233,7 @@ const SANITY_PRODUCTS_QUERY = `*[
   _id,
   productId,
   "slug": slug.current,
+  previousSlugs,
   title,
   seoTitle,
   seoDescription,
@@ -309,6 +311,10 @@ export function sanitizeProductUpdate(existingProduct, update) {
 
   if ('gallery' in update) {
     next.gallery = sanitizeTextArray(update.gallery);
+  }
+
+  if ('previousSlugs' in update) {
+    next.previousSlugs = sanitizeTextArray(update.previousSlugs);
   }
 
   if ('collectionSlugs' in update) {

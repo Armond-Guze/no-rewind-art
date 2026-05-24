@@ -51,6 +51,7 @@ The important fields are:
 
 - `productId`
 - `slug`
+- `previousSlugs`
 - `title`
 - `description`
 - `longDescription`
@@ -66,6 +67,8 @@ For normal products, set `sizePreset` and leave `Use Custom Size Options` off. T
 
 Only turn `Use Custom Size Options` on when one product truly needs different sizes or prices from the rest of the store.
 
+If you rename artwork and want the URL to change, update the `slug` field too. Add the old slug to `previousSlugs` so older product links redirect to the new product URL.
+
 ## 3. Set shared size pricing
 
 Create one `Catalog Settings` document in Sanity and fill out `Global Size Pricing`.
@@ -79,6 +82,16 @@ This is the best place to edit size prices because each preset is shared:
 - `Square Standard`: 12 x 12, 16 x 16, 24 x 24, etc.
 
 Prices are stored in cents, so `$75.00` is `7500`.
+
+## Google Merchant feed
+
+After deployment, Google Merchant Center can use this scheduled feed URL:
+
+```text
+https://armoze.com/merchant-feed.xml
+```
+
+The feed is generated from the same Sanity-backed catalog as the storefront. Each size is sent as its own variant with the product as the shared item group.
 
 ## 4. Turn on Sanity in the site
 

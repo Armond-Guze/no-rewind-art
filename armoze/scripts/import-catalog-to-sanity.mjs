@@ -91,6 +91,7 @@ async function productToDocument(product, index) {
     _type: 'artworkProduct',
     productId: product.id,
     slug: {_type: 'slug', current: product.slug},
+    previousSlugs: product.previousSlugs,
     title: product.title,
     seoTitle: product.seoTitle,
     seoDescription: product.seoDescription,

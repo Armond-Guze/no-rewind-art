@@ -1,4 +1,5 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
+import {SizePresetInput} from './SizePresetInput'
 
 const sizeOptionFields = [
   defineField({name: 'id', title: 'ID', type: 'string', validation: (rule) => rule.required()}),
@@ -48,8 +49,18 @@ export const artworkProductType = defineType({
       name: 'slug',
       title: 'Slug',
       type: 'slug',
+      description:
+        'Changing the title will not automatically change this after the product exists. Click Generate or edit this when you want the storefront URL to change.',
       options: {source: 'title'},
       validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'previousSlugs',
+      title: 'Previous Slugs',
+      type: 'array',
+      description:
+        'Add old slug values here when changing a product URL. Example: old-artwork-name. The storefront will redirect old URLs to the current slug.',
+      of: [defineArrayMember({type: 'string'})],
     }),
     defineField({
       name: 'published',
@@ -154,13 +165,14 @@ export const artworkProductType = defineType({
       type: 'string',
       options: {
         list: [
+          {title: 'Landscape 2:1', value: 'landscapeWide'},
           {title: 'Portrait 2:3', value: 'portraitTwoThree'},
-          {title: 'Landscape Wide', value: 'landscapeWide'},
           {title: 'Landscape 3:2', value: 'landscapeThreeTwo'},
           {title: 'Landscape 4:3', value: 'landscapeFourThree'},
           {title: 'Square Standard', value: 'squareStandard'},
         ],
       },
+      components: {input: SizePresetInput},
     }),
     defineField({
       name: 'useCustomSizeOptions',

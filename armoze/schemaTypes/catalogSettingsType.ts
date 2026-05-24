@@ -54,19 +54,19 @@ export const catalogSettingsType = defineType({
       description:
         'Edit these once to update every product using the matching Size Preset. Product-specific Custom Size Options only apply when a product has Use Custom Size Options turned on.',
       fields: [
+        sizePresetField('landscapeWide', 'Landscape 2:1', 'For sizes like 20 x 10, 30 x 15, and 60 x 30.', [
+          {id: '24x12', label: '20 x 10', priceInCents: 7500, previewScale: 0.94},
+          {id: '30x15', label: '30 x 15', priceInCents: 9500, previewScale: 1},
+          {id: '40x20', label: '40 x 20', priceInCents: 11500, previewScale: 1.08},
+          {id: '48x20', label: '48 x 24', priceInCents: 13500, badge: 'Best Value', previewScale: 1.16},
+          {id: '60x30', label: '60 x 30', priceInCents: 16500, badge: 'Museum', previewScale: 1.22},
+        ]),
         sizePresetField('portraitTwoThree', 'Portrait 2:3', 'For sizes like 12 x 18, 16 x 24, and 24 x 36.', [
           {id: '12x18', label: '12 x 18', priceInCents: 7500, previewScale: 0.94},
           {id: '16x24', label: '16 x 24', priceInCents: 9500, previewScale: 1},
           {id: '24x36', label: '24 x 36', priceInCents: 11500, badge: 'Best Value', previewScale: 1.08},
           {id: '32x48', label: '32 x 48', priceInCents: 13500, previewScale: 1.15},
           {id: '40x60', label: '40 x 60', priceInCents: 19500, badge: 'Statement', previewScale: 1.21},
-        ]),
-        sizePresetField('landscapeWide', 'Landscape Wide 2:1', 'For sizes like 20 x 10, 30 x 15, and 60 x 30.', [
-          {id: '24x12', label: '20 x 10', priceInCents: 7500, previewScale: 0.94},
-          {id: '30x15', label: '30 x 15', priceInCents: 9500, previewScale: 1},
-          {id: '40x20', label: '40 x 20', priceInCents: 11500, previewScale: 1.08},
-          {id: '48x20', label: '48 x 24', priceInCents: 13500, badge: 'Best Value', previewScale: 1.16},
-          {id: '60x30', label: '60 x 30', priceInCents: 16500, badge: 'Museum', previewScale: 1.22},
         ]),
         sizePresetField('landscapeThreeTwo', 'Landscape 3:2', 'For sizes like 18 x 12, 24 x 16, and 36 x 24.', [
           {id: '18x12', label: '18 x 12', priceInCents: 7500, previewScale: 0.94},

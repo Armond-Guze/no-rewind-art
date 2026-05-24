@@ -31,6 +31,7 @@ export type Collection = {
 export type CatalogProduct = {
   id: string;
   slug: string;
+  previousSlugs?: string[];
   title: string;
   seoTitle?: string;
   seoDescription?: string;
@@ -160,7 +161,9 @@ export function getProductBySlugFromCatalog(
   catalogState: NormalizedCatalog,
   slug: string | undefined,
 ) {
-  return catalogState.products.find((product) => product.slug === slug && product.published);
+  return catalogState.products.find(
+    (product) => product.published && (product.slug === slug || product.previousSlugs?.includes(slug || '')),
+  );
 }
 
 export function getCollectionBySlugFromCatalog(

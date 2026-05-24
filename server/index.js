@@ -1,4 +1,5 @@
 import express from 'express';
+import { buildGoogleMerchantFeedXml } from './google-merchant-feed.js';
 import {
   assertAdmin,
   createCheckoutSession,
@@ -56,6 +57,19 @@ app.get('/api/products', async (_request, response) => {
     sendError(response, error);
   }
 });
+
+async function sendGoogleMerchantFeed(_request, response) {
+  try {
+    response.set('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+    response.type('application/xml');
+    response.send(await buildGoogleMerchantFeedXml());
+  } catch (error) {
+    sendError(response, error);
+  }
+}
+
+app.get('/merchant-feed.xml', sendGoogleMerchantFeed);
+app.get('/api/google-merchant-feed.xml', sendGoogleMerchantFeed);
 
 app.post('/api/create-checkout-session', async (request, response) => {
   try {
