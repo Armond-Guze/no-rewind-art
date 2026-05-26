@@ -1443,7 +1443,6 @@ h3 {
 }
 
 .detail-artwork-shell {
-  --size-scale: 1;
   --frame-rail: clamp(9px, 1.15vw, 18px);
   --frame-reveal: clamp(7px, 0.65vw, 11px);
   position: relative;
@@ -1451,7 +1450,7 @@ h3 {
   display: grid;
   place-items: center;
   width: min(680px, 92%);
-  transform: translateY(-2%) scale(var(--size-scale));
+  transform: translateY(-2%);
   transition:
     transform 180ms ease,
     padding 180ms ease,
@@ -1626,22 +1625,21 @@ h3 {
 
 .detail-artwork-shell.mockup-product-shell img {
   filter:
-    drop-shadow(0 16px 14px rgba(0, 0, 0, 0.22))
-    drop-shadow(0 5px 6px rgba(0, 0, 0, 0.18))
-    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.22));
+    drop-shadow(0 8px 8px rgba(0, 0, 0, 0.2))
+    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.18));
 }
 
 .detail-artwork-shell.front-product-shell::before {
   display: block;
-  left: 6%;
-  right: 6%;
-  bottom: -26px;
-  height: 48px;
+  left: 12%;
+  right: 12%;
+  bottom: -16px;
+  height: 30px;
   background:
-    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.32), transparent 68%),
-    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.14), transparent 82%);
-  filter: blur(10px);
-  transform: scaleY(0.4);
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.26), transparent 66%),
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.11), transparent 78%);
+  filter: blur(7px);
+  transform: scaleY(0.32);
 }
 
 .detail-artwork-shell.front-product-shell .detail-artwork-surface {
@@ -1652,9 +1650,8 @@ h3 {
 
 .detail-artwork-shell.front-product-shell img {
   filter:
-    drop-shadow(0 17px 15px rgba(0, 0, 0, 0.22))
-    drop-shadow(0 5px 6px rgba(0, 0, 0, 0.18))
-    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.22));
+    drop-shadow(0 8px 8px rgba(0, 0, 0, 0.2))
+    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.18));
 }
 
 .detail-artwork-shell.front-product-shell .detail-artwork-surface::before {
@@ -1682,8 +1679,8 @@ h3 {
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     inset 6px 6px 11px rgba(0, 0, 0, 0.78),
     inset -5px -5px 10px rgba(255, 255, 255, 0.08),
-    0 30px 28px -18px rgba(0, 0, 0, 0.48),
-    0 12px 12px -8px rgba(0, 0, 0, 0.36),
+    0 14px 16px -10px rgba(0, 0, 0, 0.46),
+    0 6px 8px -6px rgba(0, 0, 0, 0.34),
     0 2px 4px rgba(0, 0, 0, 0.24);
 }
 
@@ -1693,22 +1690,22 @@ h3 {
     inset 0 0 0 1px rgba(0, 0, 0, 0.08),
     inset 6px 6px 10px rgba(0, 0, 0, 0.18),
     inset -5px -5px 10px rgba(255, 255, 255, 0.82),
-    0 30px 28px -18px rgba(0, 0, 0, 0.42),
-    0 12px 12px -8px rgba(0, 0, 0, 0.3),
+    0 14px 16px -10px rgba(0, 0, 0, 0.38),
+    0 6px 8px -6px rgba(0, 0, 0, 0.28),
     0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .detail-artwork-shell.side-product-shell::before {
   display: block;
-  left: 8%;
-  right: 8%;
-  bottom: -30px;
-  height: 52px;
+  left: 14%;
+  right: 14%;
+  bottom: -18px;
+  height: 34px;
   background:
-    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.3), transparent 68%),
-    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.14), transparent 84%);
-  filter: blur(11px);
-  transform: scaleY(0.34);
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.24), transparent 66%),
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0.1), transparent 80%);
+  filter: blur(7px);
+  transform: scaleY(0.3);
 }
 
 .detail-artwork-shell.side-product-shell .detail-artwork-surface {
@@ -1720,9 +1717,8 @@ h3 {
 
 .detail-artwork-shell.side-product-shell img {
   filter:
-    drop-shadow(0 20px 16px rgba(0, 0, 0, 0.28))
-    drop-shadow(0 7px 6px rgba(0, 0, 0, 0.24))
-    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.22));
+    drop-shadow(0 9px 8px rgba(0, 0, 0, 0.24))
+    drop-shadow(0 3px 3px rgba(0, 0, 0, 0.2));
 }
 
 .detail-artwork-shell .product-art {

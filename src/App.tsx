@@ -6,7 +6,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type FormEvent,
   type ReactNode,
 } from 'react';
@@ -79,6 +78,7 @@ type CartLine = CartItem & {
 };
 
 type AddToCart = (productId: string, sizeId?: string, frameId?: string) => void;
+type StartBuyNow = (productId: string, sizeId?: string, frameId?: string) => Promise<void>;
 
 type AdminOrderItem = {
   productId: string;
@@ -1681,7 +1681,17 @@ function CollectionPage({ addToCart }: { addToCart: AddToCart }) {
   );
 }
 
-function ProductPage({ addToCart }: { addToCart: AddToCart }) {
+function ProductPage({
+  addToCart,
+  startBuyNow,
+  checkoutState,
+  checkoutError,
+}: {
+  addToCart: AddToCart;
+  startBuyNow: StartBuyNow;
+  checkoutState: 'idle' | 'loading' | 'error';
+  checkoutError: string;
+}) {
   const { slug } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -1750,7 +1760,6 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   const selectedFrameOption = product.frameOptions[selectedFrame] ?? getBaseFrameOption(product);
   const selectedFrameName = selectedFrameOption.label;
   const selectedUnitPrice = getConfiguredUnitPrice(product, selectedOption, selectedFrameOption);
-  const shouldScaleSelectedImage = selectedImage === 0;
   const shouldShowFramePreview = selectedImage === 0;
   const relatedProducts = catalog.products
     .filter((candidate) => candidate.id !== product.id && candidate.published)
@@ -1777,8 +1786,6 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
       : selectedFrameName === 'White Frame'
         ? 'frame-white'
         : 'frame-none';
-  const sizeScale = selectedOption.previewScale ?? 0.94 + Math.max(selectedSize, 0) * 0.045;
-
   return (
     <main className="product-page">
       <div className="product-page-header">
@@ -1819,7 +1826,6 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
               } ${isFrontMockupGalleryImage ? 'front-product-shell' : ''} ${
                 isSideGalleryImage ? 'side-product-shell' : ''
               }`}
-              style={{ '--size-scale': shouldScaleSelectedImage ? sizeScale : 1 } as CSSProperties}
             >
               <div className="detail-artwork-surface">
                 {selectedGalleryImage ? (
@@ -1914,9 +1920,20 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
             Add to Cart
           </button>
 
-          <Link className="button button-secondary listing-cart-button" to="/cart">
-            Review Cart
-          </Link>
+          <button
+            className="button button-secondary listing-cart-button"
+            type="button"
+            disabled={checkoutState === 'loading'}
+            onClick={() => void startBuyNow(product.id, selectedOption.id, selectedFrameOption.id)}
+          >
+            {checkoutState === 'loading' ? 'Opening Checkout' : 'Buy Now'}
+          </button>
+
+          {checkoutState === 'error' ? (
+            <p className="checkout-error">
+              {checkoutError || 'Checkout could not be started. Please try again.'}
+            </p>
+          ) : null}
 
           <div className="trust-grid">
             <div>
@@ -3074,8 +3091,8 @@ function App() {
     );
   }
 
-  async function startCheckout() {
-    if (!cart.length) {
+  async function startCheckoutWithItems(items: CartItem[]) {
+    if (!items.length) {
       return;
     }
 
@@ -3089,7 +3106,7 @@ function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          items: cart.map((item) => ({
+          items: items.map((item) => ({
             id: item.productId,
             sizeId: item.sizeId,
             frameId: item.frameId,
@@ -3115,6 +3132,31 @@ function App() {
       setCheckoutError(error instanceof Error ? error.message : 'Checkout request failed');
       setCheckoutState('error');
     }
+  }
+
+  async function startCheckout() {
+    await startCheckoutWithItems(cart);
+  }
+
+  async function startBuyNow(productId: string, sizeId?: string, frameId?: string) {
+    const product = catalogState.products.find((candidate) => candidate.id === productId);
+
+    if (!product) {
+      return;
+    }
+
+    const sizeOption = sizeId ? getSizeOption(product, sizeId) : getBaseSizeOption(product);
+    const frameOption = frameId ? getFrameOption(product, frameId) : getBaseFrameOption(product);
+
+    await startCheckoutWithItems([
+      {
+        lineKey: makeCartLineKey(product.id, sizeOption.id, frameOption.id),
+        productId: product.id,
+        sizeId: sizeOption.id,
+        frameId: frameOption.id,
+        quantity: 1,
+      },
+    ]);
   }
 
   return (
@@ -3151,7 +3193,17 @@ function App() {
           <Route path="/privacy" element={<PolicyPage pageKey="privacy" />} />
           <Route path="/terms" element={<PolicyPage pageKey="terms" />} />
           <Route path="/google-checkout/:itemId" element={<GoogleCheckoutRedirect />} />
-          <Route path="/products/:slug" element={<ProductPage addToCart={addToCart} />} />
+          <Route
+            path="/products/:slug"
+            element={
+              <ProductPage
+                addToCart={addToCart}
+                startBuyNow={startBuyNow}
+                checkoutState={checkoutState}
+                checkoutError={checkoutError}
+              />
+            }
+          />
           <Route path="/admin" element={<AdminDashboard onCatalogUpdated={setCatalogState} />} />
         </Routes>
         {isAuthRoute ? null : <SiteFooter />}
