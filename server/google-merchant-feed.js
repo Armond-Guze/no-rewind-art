@@ -6,14 +6,24 @@ const productStore = createProductStore();
 const productStoreReady = productStore.init();
 
 function getPublicSiteUrl() {
-  const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '';
   const configuredUrl =
     process.env.PUBLIC_SITE_URL ||
     process.env.SITE_URL ||
-    vercelUrl ||
     defaultSiteUrl;
 
-  return String(configuredUrl).replace(/\/$/, '');
+  let siteUrl = String(configuredUrl).replace(/\/$/, '');
+
+  try {
+    const url = new URL(siteUrl);
+
+    if (url.hostname.endsWith('.vercel.app')) {
+      siteUrl = defaultSiteUrl;
+    }
+  } catch {
+    siteUrl = defaultSiteUrl;
+  }
+
+  return siteUrl;
 }
 
 function escapeXml(value) {
@@ -41,6 +51,13 @@ function absoluteUrl(value, siteUrl) {
   }
 }
 
+function absoluteTemplateUrl(value, siteUrl) {
+  return absoluteUrl(value.replace('{id}', '__GOOGLE_ITEM_ID__'), siteUrl).replace(
+    '__GOOGLE_ITEM_ID__',
+    '{id}',
+  );
+}
+
 function formatFeedPrice(cents) {
   return `${(Number(cents || 0) / 100).toFixed(2)} USD`;
 }
@@ -56,6 +73,7 @@ function xmlTag(name, value) {
 function buildFeedItem(product, sizeOption, siteUrl) {
   const itemId = `${product.id}-${sizeOption.id}`;
   const productUrl = absoluteUrl(`/products/${product.slug}?size=${encodeURIComponent(sizeOption.id)}`, siteUrl);
+  const checkoutUrl = absoluteTemplateUrl('/google-checkout/{id}', siteUrl);
   const imageUrl = absoluteUrl(product.image, siteUrl);
   const description = stripHtml(product.seoDescription || product.longDescription || product.description);
   const additionalImages = (product.gallery || [])
@@ -70,6 +88,7 @@ function buildFeedItem(product, sizeOption, siteUrl) {
     xmlTag('g:title', `${product.title} Canvas Print - ${sizeOption.label}`),
     xmlTag('g:description', description),
     xmlTag('g:link', productUrl),
+    xmlTag('g:checkout_link_template', checkoutUrl),
     xmlTag('g:image_link', imageUrl),
     ...additionalImages.map((image) => xmlTag('g:additional_image_link', image)),
     xmlTag('g:availability', 'in_stock'),

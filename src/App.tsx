@@ -49,6 +49,7 @@ import {
 } from 'lucide-react';
 import {
   getCollectionBySlugFromCatalog,
+  getProductByGoogleItemIdFromCatalog,
   getProductBySlugFromCatalog,
   getProductsForCollectionFromCatalog,
   initialCatalog,
@@ -2032,6 +2033,23 @@ function ProductPage({ addToCart }: { addToCart: AddToCart }) {
   );
 }
 
+function GoogleCheckoutRedirect() {
+  const { itemId } = useParams();
+  const catalog = useCatalog();
+  const match = getProductByGoogleItemIdFromCatalog(catalog, itemId);
+
+  if (!match) {
+    return <Navigate to="/#shop" replace />;
+  }
+
+  return (
+    <Navigate
+      to={`/products/${match.product.slug}?size=${encodeURIComponent(match.sizeOption.id)}`}
+      replace
+    />
+  );
+}
+
 function AdminDashboard({ onCatalogUpdated }: { onCatalogUpdated: (catalog: NormalizedCatalog) => void }) {
   usePageSeo({
     title: 'Admin Dashboard',
@@ -2913,6 +2931,7 @@ function AdminDashboard({ onCatalogUpdated }: { onCatalogUpdated: (catalog: Norm
 
 function App() {
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [catalogState, setCatalogState] = useState<NormalizedCatalog>(initialCatalog);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
@@ -2938,6 +2957,51 @@ function App() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    const merchantItemId = searchParams.get('item');
+
+    if (!merchantItemId) {
+      return;
+    }
+
+    const selection = getProductByGoogleItemIdFromCatalog(catalogState, merchantItemId);
+
+    if (!selection) {
+      return;
+    }
+
+    const frameOption = getBaseFrameOption(selection.product);
+    const lineKey = makeCartLineKey(selection.product.id, selection.sizeOption.id, frameOption.id);
+
+    queueMicrotask(() => {
+      setCart((currentCart) => {
+        if (currentCart.some((item) => item.lineKey === lineKey)) {
+          return currentCart;
+        }
+
+        return [
+          ...currentCart,
+          {
+            lineKey,
+            productId: selection.product.id,
+            sizeId: selection.sizeOption.id,
+            frameId: frameOption.id,
+            quantity: 1,
+          },
+        ];
+      });
+
+      setSearchParams(
+        (currentParams) => {
+          const nextParams = new URLSearchParams(currentParams);
+          nextParams.delete('item');
+          return nextParams;
+        },
+        { replace: true },
+      );
+    });
+  }, [catalogState, searchParams, setSearchParams]);
 
   const cartProducts = useMemo(
     () =>
@@ -3086,6 +3150,7 @@ function App() {
           <Route path="/returns" element={<PolicyPage pageKey="returns" />} />
           <Route path="/privacy" element={<PolicyPage pageKey="privacy" />} />
           <Route path="/terms" element={<PolicyPage pageKey="terms" />} />
+          <Route path="/google-checkout/:itemId" element={<GoogleCheckoutRedirect />} />
           <Route path="/products/:slug" element={<ProductPage addToCart={addToCart} />} />
           <Route path="/admin" element={<AdminDashboard onCatalogUpdated={setCatalogState} />} />
         </Routes>

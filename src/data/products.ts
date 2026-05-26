@@ -209,6 +209,29 @@ export function getProductsForCollectionFromCatalog(
   return publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug));
 }
 
+export function getProductByGoogleItemIdFromCatalog(
+  catalogState: NormalizedCatalog,
+  itemId: string | undefined,
+) {
+  if (!itemId) {
+    return null;
+  }
+
+  for (const product of catalogState.products) {
+    if (!product.published) {
+      continue;
+    }
+
+    const sizeOption = product.sizeOptions.find((option) => itemId === `${product.id}-${option.id}`);
+
+    if (sizeOption) {
+      return { product, sizeOption };
+    }
+  }
+
+  return null;
+}
+
 export function getProductBySlug(slug: string | undefined) {
   return getProductBySlugFromCatalog(initialCatalog, slug);
 }
