@@ -6,12 +6,10 @@ const productStore = createProductStore();
 const productStoreReady = productStore.init();
 
 function getPublicSiteUrl() {
-  const clientUrl = String(process.env.CLIENT_URL || '');
   const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '';
   const configuredUrl =
     process.env.PUBLIC_SITE_URL ||
     process.env.SITE_URL ||
-    (clientUrl && !clientUrl.includes('localhost') && !clientUrl.includes('127.0.0.1') ? clientUrl : '') ||
     vercelUrl ||
     defaultSiteUrl;
 
@@ -79,6 +77,10 @@ function buildFeedItem(product, sizeOption, siteUrl) {
     xmlTag('g:brand', 'Armoze'),
     xmlTag('g:condition', 'new'),
     xmlTag('g:size', sizeOption.label),
+    xmlTag('g:color', 'Multicolor'),
+    xmlTag('g:gender', 'unisex'),
+    xmlTag('g:age_group', 'adult'),
+    xmlTag('g:material', 'Canvas'),
     xmlTag('g:product_type', `Canvas Prints > ${product.tone || 'Motivational'} Wall Art`),
     xmlTag('g:google_product_category', merchantCategory),
     xmlTag('g:identifier_exists', 'no'),
