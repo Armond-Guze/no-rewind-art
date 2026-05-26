@@ -982,7 +982,6 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
         <Link to="/collections/money-ambition" onClick={closeMenu}>Money</Link>
         <Link to="/collections/discipline-focus" onClick={closeMenu}>Focus</Link>
         <Link to="/collections/new-arrivals" onClick={closeMenu}>New Arrivals</Link>
-        <Link to="/#story" onClick={closeMenu}>Story</Link>
         <Link to="/#support" onClick={closeMenu}>Support</Link>
         <Link to="/cart" onClick={closeMenu}>Cart ({cartCount})</Link>
         <Link
@@ -1112,10 +1111,6 @@ function HomePage({
     [catalog],
   );
   const heroProduct = featuredProducts[0] ?? catalog.products.find((product) => product.published);
-  const supportingHeroProducts = featuredProducts.slice(1, 4);
-  const homeCollections = catalog.collections.filter((collection) =>
-    ['best-sellers', 'money-ambition', 'discipline-focus', 'study-creative'].includes(collection.slug),
-  );
   const homeStructuredData = useMemo(
     () => ({
       '@context': 'https://schema.org',
@@ -1175,34 +1170,16 @@ function HomePage({
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero-copy">
           <p className="eyebrow">Armoze Originals</p>
-          <h1 id="hero-title">Canvas Prints for Ambitious Rooms</h1>
+          <h1 id="hero-title">Motivational Canvas Prints</h1>
           <p>
-            Clean, bold wall art for workspaces, bedrooms, studios, and
-            creative corners built around focus, discipline, money mindset, and
-            momentum.
+            Bold wall art for workspaces, bedrooms, studios, and creative corners.
+            Pick a print, choose the size, and checkout securely.
           </p>
           <div className="hero-actions">
             <Link className="button button-primary" to="/collections/best-sellers">
               Shop Best Sellers
               <ArrowUpRight aria-hidden="true" size={18} />
             </Link>
-            <a className="button button-secondary" href="#collections">
-              View Collections
-            </a>
-          </div>
-          <div className="hero-proof-row" aria-label="Store benefits">
-            <span>
-              <BadgeCheck aria-hidden="true" size={16} />
-              Made to order
-            </span>
-            <span>
-              <ShieldCheck aria-hidden="true" size={16} />
-              Secure checkout
-            </span>
-            <span>
-              <Box aria-hidden="true" size={16} />
-              Canvas and framed options
-            </span>
           </div>
         </div>
 
@@ -1218,51 +1195,14 @@ function HomePage({
             </Link>
           ) : null}
 
-          <div className="hero-product-strip" aria-label="More best sellers">
-            {supportingHeroProducts.map((product) => (
-              <Link className="hero-mini-product" key={product.id} to={`/products/${product.slug}`}>
-                <ProductImage product={product} />
-                <span>{product.title}</span>
-              </Link>
-            ))}
-          </div>
         </div>
-      </section>
-
-      <section id="collections" className="section intro-section home-intro">
-        <div>
-          <p className="eyebrow">Shop by mindset</p>
-          <h2>Find the print by the room’s purpose.</h2>
-        </div>
-        <p>
-          Best sellers for the first buy, Money for ambition, Focus for deep work,
-          and Study for the creative reset. Clear paths make the shop easier to
-          browse.
-        </p>
-      </section>
-
-      <section className="collection-grid home-collections" aria-label="Collections">
-        {homeCollections.map((collection, index) => (
-          <Link
-            className={`collection home-collection ${
-              index === 0 ? 'money' : index === 1 ? 'discipline' : index === 2 ? 'future' : 'study'
-            }`}
-            key={collection.slug}
-            to={`/collections/${collection.slug}`}
-          >
-            <span>{String(index + 1).padStart(2, '0')}</span>
-            <h3>{collection.title}</h3>
-            <p>{collection.description}</p>
-            <strong>{getProductsForCollectionFromCatalog(catalog, collection.slug).length} prints</strong>
-          </Link>
-        ))}
       </section>
 
       <section id="shop" className="section shop-section">
         <div className="section-heading">
           <div>
             <p className="eyebrow">Best sellers</p>
-            <h2>The easiest first picks.</h2>
+            <h2>Start here.</h2>
           </div>
           <Link className="section-link" to="/collections/best-sellers">
             View Collection
@@ -1300,59 +1240,6 @@ function HomePage({
               </div>
             </article>
           ))}
-        </div>
-      </section>
-
-      <section className="section home-value-section" aria-labelledby="value-title">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">What buyers choose</p>
-            <h2 id="value-title">Simple options, cleaner decisions.</h2>
-          </div>
-          <Link className="section-link" to="/collections/new-arrivals">
-            New Arrivals
-            <ArrowUpRight aria-hidden="true" size={16} />
-          </Link>
-        </div>
-
-        <div className="value-grid">
-          <div>
-            <Box aria-hidden="true" size={26} />
-            <h3>Multiple sizes</h3>
-            <p>Each print uses size options matched to the artwork ratio.</p>
-          </div>
-          <div>
-            <BadgeCheck aria-hidden="true" size={26} />
-            <h3>Canvas or frame</h3>
-            <p>Customers can choose canvas, black frame, or white frame.</p>
-          </div>
-          <div>
-            <ShieldCheck aria-hidden="true" size={26} />
-            <h3>Secure checkout</h3>
-            <p>Checkout runs through Stripe with shipping details collected there.</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="story" className="story-section">
-        <div className="story-copy">
-          <p className="eyebrow">The story</p>
-          <h2>Armoze. Keep building.</h2>
-          <p>
-            Armoze creates motivational canvas and poster prints for
-            ambitious spaces. The work blends bold phrases, cinematic scenes,
-            money mindset, and future-focused energy for people who are building,
-            studying, training, creating, or starting again.
-          </p>
-        </div>
-        <div className="story-panel">
-          <span>Brand Pillars</span>
-          <ul>
-            <li>Focus</li>
-            <li>Discipline</li>
-            <li>Momentum</li>
-            <li>Ambition</li>
-          </ul>
         </div>
       </section>
 
@@ -1401,21 +1288,6 @@ function HomePage({
             </p>
           </details>
         </div>
-      </section>
-
-      <section id="contact" className="section contact-section shop-ready-section">
-        <div>
-          <p className="eyebrow">Ready when your wall is</p>
-          <h2>Pick the print, choose the size, checkout securely.</h2>
-        </div>
-        <p>
-          Start with best sellers, then refine the size and frame on each
-          product page before checking out.
-        </p>
-        <Link className="button button-primary" to="/collections/best-sellers">
-          <ShoppingBag aria-hidden="true" size={18} />
-          Shop Best Sellers
-        </Link>
       </section>
     </main>
   );

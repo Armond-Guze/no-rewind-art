@@ -245,30 +245,25 @@ a {
 }
 
 .home-page .hero {
-  min-height: 68vh;
-  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 0.78fr);
-  padding-top: clamp(54px, 7vw, 92px);
-  padding-bottom: clamp(32px, 5vw, 56px);
+  min-height: auto;
+  grid-template-columns: minmax(0, 0.82fr) minmax(320px, 0.58fr);
+  padding-top: clamp(42px, 6vw, 72px);
+  padding-bottom: clamp(36px, 5vw, 64px);
   background:
-    linear-gradient(180deg, #ffffff 0%, #f8f8f5 72%, #f1f1ec 100%);
+    linear-gradient(180deg, #ffffff 0%, #f8f8f5 100%);
   border-bottom-color: var(--home-line);
   color: var(--home-slate);
 }
 
 .home-page .hero::after {
-  background:
-    linear-gradient(90deg, rgba(5, 5, 6, 0.045) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(5, 5, 6, 0.045) 1px, transparent 1px);
-  background-size: 88px 88px;
-  mask-image: linear-gradient(90deg, #000, transparent 70%);
-  opacity: 0.78;
+  display: none;
 }
 
 .home-page .hero h1 {
-  max-width: 12ch;
+  max-width: 11ch;
   color: var(--home-slate);
-  font-size: clamp(3.4rem, 6.7vw, 7.1rem);
-  line-height: 0.92;
+  font-size: clamp(3rem, 5.5vw, 5.8rem);
+  line-height: 0.95;
 }
 
 .home-page .eyebrow {
@@ -327,11 +322,11 @@ a {
 .home-page .hero-featured-product {
   border-color: var(--home-line);
   background: var(--home-panel);
-  box-shadow: 0 28px 70px rgba(5, 5, 6, 0.12);
+  box-shadow: 0 16px 34px rgba(5, 5, 6, 0.08);
 }
 
 .home-page .hero-featured-product .artwork-mockup::before {
-  background: radial-gradient(ellipse at center, rgba(5, 5, 6, 0.24), transparent 74%);
+  display: none;
 }
 
 .home-page .hero-featured-meta {
@@ -601,13 +596,13 @@ h3 {
 .hero-featured-product {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  gap: 16px;
-  padding: 16px;
+  gap: 12px;
+  padding: 14px;
   border: 1px solid rgba(244, 239, 230, 0.22);
   background:
     linear-gradient(180deg, rgba(244, 239, 230, 0.1), rgba(244, 239, 230, 0.03)),
     #101113;
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
 }
 
 .hero-featured-product .artwork-mockup {
@@ -881,17 +876,21 @@ h3 {
   background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.58), transparent 74%);
   filter: blur(15px);
   transform: scaleY(0.48);
+  display: none;
 }
 
 .artwork-mockup-print {
   position: relative;
   z-index: 1;
   width: 76%;
+  aspect-ratio: 4 / 5;
   display: grid;
   place-items: center;
-  overflow: visible;
-  background: transparent;
-  box-shadow: none;
+  overflow: hidden;
+  background: #fff;
+  box-shadow:
+    0 16px 18px -12px rgba(0, 0, 0, 0.36),
+    0 5px 8px -5px rgba(0, 0, 0, 0.24);
 }
 
 .artwork-mockup-print::before,
@@ -920,26 +919,26 @@ h3 {
 
 .artwork-mockup.shape-landscape .artwork-mockup-print {
   width: 91%;
+  aspect-ratio: 16 / 10;
 }
 
 .artwork-mockup.shape-portrait .artwork-mockup-print {
   width: 68%;
+  aspect-ratio: 2 / 3;
 }
 
 .artwork-mockup.shape-square .artwork-mockup-print {
   width: 78%;
+  aspect-ratio: 1;
 }
 
 .artwork-mockup-image {
   display: block;
   width: 100%;
-  height: auto;
-  object-fit: contain;
+  height: 100%;
+  object-fit: cover;
   border-radius: 2px;
-  filter:
-    drop-shadow(18px 34px 30px rgba(0, 0, 0, 0.34))
-    drop-shadow(6px 14px 12px rgba(0, 0, 0, 0.28))
-    drop-shadow(1px 4px 4px rgba(0, 0, 0, 0.24));
+  filter: none;
 }
 
 .product-art span {
@@ -1540,12 +1539,29 @@ h3 {
 }
 
 .detail-artwork-shell.mockup-product-shell .detail-artwork-surface {
-  overflow: visible;
-  background: transparent;
+  overflow: hidden;
+  background: #fff;
   box-shadow:
+    0 18px 22px -14px rgba(0, 0, 0, 0.4),
+    0 6px 9px -6px rgba(0, 0, 0, 0.28),
     inset 0 0 0 1px rgba(255, 255, 255, 0.22),
     inset 4px 4px 7px rgba(255, 255, 255, 0.16),
     inset -5px -6px 9px rgba(0, 0, 0, 0.2);
+}
+
+.detail-artwork-shell.mockup-product-shell.shape-landscape .detail-artwork-surface {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+}
+
+.detail-artwork-shell.mockup-product-shell.shape-portrait .detail-artwork-surface {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+}
+
+.detail-artwork-shell.mockup-product-shell.shape-square .detail-artwork-surface {
+  width: 100%;
+  aspect-ratio: 1;
 }
 
 .detail-artwork-shell.frame-black .detail-artwork-surface,
@@ -1624,13 +1640,14 @@ h3 {
 }
 
 .detail-artwork-shell.mockup-product-shell img {
-  filter:
-    drop-shadow(0 8px 8px rgba(0, 0, 0, 0.2))
-    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.18));
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: none;
 }
 
 .detail-artwork-shell.front-product-shell::before {
-  display: block;
+  display: none;
   left: 12%;
   right: 12%;
   bottom: -16px;
@@ -1643,15 +1660,18 @@ h3 {
 }
 
 .detail-artwork-shell.front-product-shell .detail-artwork-surface {
-  overflow: visible;
-  background: transparent;
-  box-shadow: none;
+  overflow: hidden;
+  background: #fff;
+  box-shadow:
+    0 18px 22px -14px rgba(0, 0, 0, 0.4),
+    0 6px 9px -6px rgba(0, 0, 0, 0.28);
 }
 
 .detail-artwork-shell.front-product-shell img {
-  filter:
-    drop-shadow(0 8px 8px rgba(0, 0, 0, 0.2))
-    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.18));
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: none;
 }
 
 .detail-artwork-shell.front-product-shell .detail-artwork-surface::before {
@@ -1664,6 +1684,8 @@ h3 {
 
 .detail-artwork-shell.mockup-product-shell.front-product-shell .detail-artwork-surface {
   box-shadow:
+    0 18px 22px -14px rgba(0, 0, 0, 0.4),
+    0 6px 9px -6px rgba(0, 0, 0, 0.28),
     inset 0 0 0 1px rgba(255, 255, 255, 0.22),
     inset 4px 4px 7px rgba(255, 255, 255, 0.16),
     inset -5px -6px 9px rgba(0, 0, 0, 0.2);
@@ -1676,27 +1698,27 @@ h3 {
 .detail-artwork-shell.front-product-shell.frame-black .detail-artwork-surface {
   background: #070806;
   box-shadow:
+    0 18px 22px -14px rgba(0, 0, 0, 0.46),
+    0 6px 9px -6px rgba(0, 0, 0, 0.32),
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     inset 6px 6px 11px rgba(0, 0, 0, 0.78),
     inset -5px -5px 10px rgba(255, 255, 255, 0.08),
-    0 14px 16px -10px rgba(0, 0, 0, 0.46),
-    0 6px 8px -6px rgba(0, 0, 0, 0.34),
     0 2px 4px rgba(0, 0, 0, 0.24);
 }
 
 .detail-artwork-shell.front-product-shell.frame-white .detail-artwork-surface {
   background: #ecebe5;
   box-shadow:
+    0 18px 22px -14px rgba(0, 0, 0, 0.4),
+    0 6px 9px -6px rgba(0, 0, 0, 0.28),
     inset 0 0 0 1px rgba(0, 0, 0, 0.08),
     inset 6px 6px 10px rgba(0, 0, 0, 0.18),
     inset -5px -5px 10px rgba(255, 255, 255, 0.82),
-    0 14px 16px -10px rgba(0, 0, 0, 0.38),
-    0 6px 8px -6px rgba(0, 0, 0, 0.28),
     0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .detail-artwork-shell.side-product-shell::before {
-  display: block;
+  display: none;
   left: 14%;
   right: 14%;
   bottom: -18px;
@@ -1716,9 +1738,7 @@ h3 {
 }
 
 .detail-artwork-shell.side-product-shell img {
-  filter:
-    drop-shadow(0 9px 8px rgba(0, 0, 0, 0.24))
-    drop-shadow(0 3px 3px rgba(0, 0, 0, 0.2));
+  filter: none;
 }
 
 .detail-artwork-shell .product-art {
