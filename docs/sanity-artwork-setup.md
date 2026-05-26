@@ -67,6 +67,8 @@ For normal products, set `sizePreset` and leave `Use Custom Size Options` off. T
 
 Only turn `Use Custom Size Options` on when one product truly needs different sizes or prices from the rest of the store.
 
+Leave `Use Custom Frame Options` off for normal products. The storefront automatically gives every size Canvas, Black Frame, and White Frame options. Turn it on only when one product needs different frame pricing.
+
 If you rename artwork and want the URL to change, update the `slug` field too. Add the old slug to `previousSlugs` so older product links redirect to the new product URL.
 
 ## 3. Set shared size pricing

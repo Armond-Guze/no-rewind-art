@@ -53,6 +53,7 @@ export type CatalogProduct = {
   defaultSizeId?: string;
   rating: number;
   reviewCount: number;
+  useCustomFrameOptions?: boolean;
   frameOptions?: FrameOption[];
   framingOptions?: string[];
   details: string[];
@@ -82,6 +83,18 @@ const catalogData = catalog as CatalogData;
 
 const fallbackFrameOptions: FrameOption[] = [
   { id: 'canvas', label: 'Canvas', priceDeltaInCents: 0 },
+  {
+    id: 'black-frame',
+    label: 'Black Frame',
+    priceDeltaInCents: 0,
+    priceDeltaBySizeIndexInCents: [2000, 3000, 4000, 5000, 6000],
+  },
+  {
+    id: 'white-frame',
+    label: 'White Frame',
+    priceDeltaInCents: 0,
+    priceDeltaBySizeIndexInCents: [2000, 3000, 4000, 5000, 6000],
+  },
 ];
 
 function slugify(value: string) {
@@ -92,7 +105,7 @@ function slugify(value: string) {
 }
 
 function normalizeFrameOptions(product: CatalogProduct): FrameOption[] {
-  if (product.frameOptions?.length) {
+  if (product.useCustomFrameOptions && product.frameOptions?.length) {
     return product.frameOptions;
   }
 

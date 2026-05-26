@@ -208,6 +208,7 @@ function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets)
       defaultSizeId: document.defaultSizeId,
       rating: Number(document.rating ?? 5),
       reviewCount: Number(document.reviewCount ?? 0),
+      useCustomFrameOptions: document.useCustomFrameOptions === true,
       frameOptions: document.frameOptions,
       details: Array.isArray(document.details) ? document.details : [],
       published: document.published !== false,
@@ -259,6 +260,7 @@ const SANITY_PRODUCTS_QUERY = `*[
   rating,
   reviewCount,
   frameOptions,
+  useCustomFrameOptions,
   details,
   published
 }`;
@@ -299,6 +301,10 @@ export function sanitizeProductUpdate(existingProduct, update) {
 
   if ('useCustomSizeOptions' in update) {
     next.useCustomSizeOptions = update.useCustomSizeOptions === true;
+  }
+
+  if ('useCustomFrameOptions' in update) {
+    next.useCustomFrameOptions = update.useCustomFrameOptions === true;
   }
 
   if ('rating' in update) {

@@ -193,9 +193,20 @@ export const artworkProductType = defineType({
     }),
     defineField({name: 'defaultSizeId', title: 'Default Size ID', type: 'string'}),
     defineField({
+      name: 'useCustomFrameOptions',
+      title: 'Use Custom Frame Options',
+      type: 'boolean',
+      description:
+        'Leave off for normal products so every size gets Canvas, Black Frame, and White Frame automatically. Turn on only when this product needs different frame pricing.',
+      initialValue: false,
+    }),
+    defineField({
       name: 'frameOptions',
       title: 'Frame Options',
       type: 'array',
+      description:
+        'Only used when Use Custom Frame Options is turned on. Otherwise the storefront uses the shared frame options for every size.',
+      hidden: ({document}) => document?.useCustomFrameOptions !== true,
       of: [defineArrayMember({type: 'object', fields: frameOptionFields})],
     }),
     defineField({name: 'rating', title: 'Rating', type: 'number'}),

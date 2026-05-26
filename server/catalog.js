@@ -6,6 +6,18 @@ export const seedCatalog = JSON.parse(
 
 const fallbackFrameOptions = [
   { id: 'canvas', label: 'Canvas', priceDeltaInCents: 0 },
+  {
+    id: 'black-frame',
+    label: 'Black Frame',
+    priceDeltaInCents: 0,
+    priceDeltaBySizeIndexInCents: [2000, 3000, 4000, 5000, 6000],
+  },
+  {
+    id: 'white-frame',
+    label: 'White Frame',
+    priceDeltaInCents: 0,
+    priceDeltaBySizeIndexInCents: [2000, 3000, 4000, 5000, 6000],
+  },
 ];
 
 function slugify(value) {
@@ -16,7 +28,7 @@ function slugify(value) {
 }
 
 function normalizeFrameOptions(product) {
-  if (Array.isArray(product.frameOptions) && product.frameOptions.length) {
+  if (product.useCustomFrameOptions && Array.isArray(product.frameOptions) && product.frameOptions.length) {
     return product.frameOptions;
   }
 

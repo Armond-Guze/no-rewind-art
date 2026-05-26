@@ -109,6 +109,7 @@ async function productToDocument(product, index) {
     sizePreset: product.sizePreset,
     sizeOptions: product.sizeOptions,
     defaultSizeId: product.defaultSizeId,
+    useCustomFrameOptions: product.useCustomFrameOptions,
     frameOptions: product.frameOptions,
     rating: product.rating,
     reviewCount: product.reviewCount,
