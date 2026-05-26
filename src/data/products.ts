@@ -97,27 +97,20 @@ const fallbackFrameOptions: FrameOption[] = [
   },
 ];
 
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
+function normalizeFrameOptions(): FrameOption[] {
+  return fallbackFrameOptions;
 }
 
-function normalizeFrameOptions(product: CatalogProduct): FrameOption[] {
-  if (product.useCustomFrameOptions && product.frameOptions?.length) {
-    return product.frameOptions;
+function getArtworkShapeFromSizePreset(sizePreset?: string): ArtworkShape {
+  if (sizePreset === 'portraitTwoThree') {
+    return 'portrait';
   }
 
-  if (product.framingOptions?.length) {
-    return product.framingOptions.map((label) => ({
-      id: slugify(label),
-      label,
-      priceDeltaInCents: 0,
-    }));
+  if (sizePreset === 'squareStandard') {
+    return 'square';
   }
 
-  return fallbackFrameOptions;
+  return 'landscape';
 }
 
 function getSizeOptionsForProduct(
@@ -140,7 +133,7 @@ export function normalizeProduct(
   sizePresets: Record<string, SizeOption[]> = catalogData.sizePresets,
 ): Product {
   const sizeOptions = getSizeOptionsForProduct(product, sizePresets);
-  const frameOptions = normalizeFrameOptions(product);
+  const frameOptions = normalizeFrameOptions();
   const lowestSizePrice = sizeOptions.length
     ? Math.min(...sizeOptions.map((option) => option.priceInCents))
     : Number(product.priceInCents ?? 0);
@@ -150,6 +143,7 @@ export function normalizeProduct(
 
   return {
     ...product,
+    artworkShape: product.artworkShape || getArtworkShapeFromSizePreset(product.sizePreset),
     priceInCents: product.priceInCents ?? lowestSizePrice + lowestFrameDelta,
     sizeOptions,
     frameOptions,

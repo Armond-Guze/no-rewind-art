@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createClient } from '@sanity/client';
 import pg from 'pg';
-import { normalizeCatalogData, normalizeProduct, seedCatalog } from './catalog.js';
+import { getArtworkShapeFromSizePreset, normalizeCatalogData, normalizeProduct, seedCatalog } from './catalog.js';
 
 const { Pool } = pg;
 
@@ -196,7 +196,7 @@ function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets)
       label: document.label || document.title,
       image: withSanityImageParams(mainImageUrl, { width: 1600, quality: 88 }),
       imageAlt: document.imageAlt || document.mainImageAlt || document.title,
-      artworkShape: document.artworkShape || 'landscape',
+      artworkShape: getArtworkShapeFromSizePreset(document.sizePreset),
       gallery,
       tone: document.tone || 'minimal',
       collectionSlugs: Array.isArray(document.collectionSlugs) ? document.collectionSlugs : [],
@@ -205,11 +205,8 @@ function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets)
       sizePreset: document.sizePreset,
       useCustomSizeOptions: document.useCustomSizeOptions === true,
       sizeOptions: document.sizeOptions,
-      defaultSizeId: document.defaultSizeId,
       rating: Number(document.rating ?? 5),
       reviewCount: Number(document.reviewCount ?? 0),
-      useCustomFrameOptions: document.useCustomFrameOptions === true,
-      frameOptions: document.frameOptions,
       details: Array.isArray(document.details) ? document.details : [],
       published: document.published !== false,
     },
@@ -248,7 +245,6 @@ const SANITY_PRODUCTS_QUERY = `*[
     "url": asset->url,
     alt
   },
-  artworkShape,
   tone,
   collectionSlugs,
   priceInCents,
@@ -256,11 +252,8 @@ const SANITY_PRODUCTS_QUERY = `*[
   sizePreset,
   useCustomSizeOptions,
   sizeOptions,
-  defaultSizeId,
   rating,
   reviewCount,
-  frameOptions,
-  useCustomFrameOptions,
   details,
   published
 }`;

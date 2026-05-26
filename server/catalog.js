@@ -20,27 +20,20 @@ const fallbackFrameOptions = [
   },
 ];
 
-function slugify(value) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
+function normalizeFrameOptions() {
+  return fallbackFrameOptions;
 }
 
-function normalizeFrameOptions(product) {
-  if (product.useCustomFrameOptions && Array.isArray(product.frameOptions) && product.frameOptions.length) {
-    return product.frameOptions;
+export function getArtworkShapeFromSizePreset(sizePreset) {
+  if (sizePreset === 'portraitTwoThree') {
+    return 'portrait';
   }
 
-  if (Array.isArray(product.framingOptions) && product.framingOptions.length) {
-    return product.framingOptions.map((label) => ({
-      id: slugify(label),
-      label,
-      priceDeltaInCents: 0,
-    }));
+  if (sizePreset === 'squareStandard') {
+    return 'square';
   }
 
-  return fallbackFrameOptions;
+  return 'landscape';
 }
 
 function getSizeOptionsForProduct(product, sizePresets) {
@@ -57,7 +50,7 @@ function getSizeOptionsForProduct(product, sizePresets) {
 
 export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets) {
   const sizeOptions = getSizeOptionsForProduct(product, sizePresets);
-  const frameOptions = normalizeFrameOptions(product);
+  const frameOptions = normalizeFrameOptions();
   const lowestSizePrice = sizeOptions.length
     ? Math.min(...sizeOptions.map((option) => option.priceInCents))
     : Number(product.priceInCents ?? 0);
@@ -69,6 +62,7 @@ export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets)
     ...product,
     name: product.title,
     imagePath: product.image || '',
+    artworkShape: product.artworkShape || getArtworkShapeFromSizePreset(product.sizePreset),
     priceInCents: product.priceInCents ?? lowestSizePrice + lowestFrameDelta,
     sizeOptions,
     frameOptions,

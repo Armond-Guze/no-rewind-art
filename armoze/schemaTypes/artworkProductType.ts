@@ -14,19 +14,6 @@ const sizeOptionFields = [
   defineField({name: 'previewScale', title: 'Preview Scale', type: 'number'}),
 ]
 
-const frameOptionFields = [
-  defineField({name: 'id', title: 'ID', type: 'string', validation: (rule) => rule.required()}),
-  defineField({name: 'label', title: 'Label', type: 'string', validation: (rule) => rule.required()}),
-  defineField({name: 'priceDeltaInCents', title: 'Price Delta In Cents', type: 'number'}),
-  defineField({
-    name: 'priceDeltaBySizeIndexInCents',
-    title: 'Price Delta By Size Index In Cents',
-    type: 'array',
-    of: [defineArrayMember({type: 'number'})],
-  }),
-  defineField({name: 'badge', title: 'Badge', type: 'string'}),
-]
-
 export const artworkProductType = defineType({
   name: 'artworkProduct',
   title: 'Artwork Product',
@@ -72,6 +59,8 @@ export const artworkProductType = defineType({
       name: 'sortOrder',
       title: 'Sort Order',
       type: 'number',
+      description:
+        'Optional manual storefront order. Lower numbers show first. If two products match, the site falls back to title order.',
       initialValue: 100,
     }),
     defineField({
@@ -123,20 +112,6 @@ export const artworkProductType = defineType({
       ],
     }),
     defineField({
-      name: 'artworkShape',
-      title: 'Artwork Shape',
-      type: 'string',
-      options: {
-        list: [
-          {title: 'Landscape', value: 'landscape'},
-          {title: 'Portrait', value: 'portrait'},
-          {title: 'Square', value: 'square'},
-        ],
-        layout: 'radio',
-      },
-      initialValue: 'landscape',
-    }),
-    defineField({
       name: 'tone',
       title: 'Tone',
       type: 'string',
@@ -163,6 +138,8 @@ export const artworkProductType = defineType({
       name: 'sizePreset',
       title: 'Size Preset',
       type: 'string',
+      description:
+        'Choose the artwork ratio. This controls the five size buttons, prices, and product mockup shape automatically.',
       options: {
         list: [
           {title: 'Landscape 2:1', value: 'landscapeWide'},
@@ -173,6 +150,8 @@ export const artworkProductType = defineType({
         ],
       },
       components: {input: SizePresetInput},
+      initialValue: 'landscapeWide',
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'useCustomSizeOptions',
@@ -190,24 +169,6 @@ export const artworkProductType = defineType({
         'Only used when Use Custom Size Options is turned on. Otherwise the storefront uses the Size Preset prices from Catalog Settings.',
       hidden: ({document}) => document?.useCustomSizeOptions !== true,
       of: [defineArrayMember({type: 'object', fields: sizeOptionFields})],
-    }),
-    defineField({name: 'defaultSizeId', title: 'Default Size ID', type: 'string'}),
-    defineField({
-      name: 'useCustomFrameOptions',
-      title: 'Use Custom Frame Options',
-      type: 'boolean',
-      description:
-        'Leave off for normal products so every size gets Canvas, Black Frame, and White Frame automatically. Turn on only when this product needs different frame pricing.',
-      initialValue: false,
-    }),
-    defineField({
-      name: 'frameOptions',
-      title: 'Frame Options',
-      type: 'array',
-      description:
-        'Only used when Use Custom Frame Options is turned on. Otherwise the storefront uses the shared frame options for every size.',
-      hidden: ({document}) => document?.useCustomFrameOptions !== true,
-      of: [defineArrayMember({type: 'object', fields: frameOptionFields})],
     }),
     defineField({name: 'rating', title: 'Rating', type: 'number'}),
     defineField({name: 'reviewCount', title: 'Review Count', type: 'number'}),
