@@ -362,14 +362,17 @@
     },
     {
       "id": "money-is-energy-canvas",
-      "slug": "money-is-energy",
-      "title": "Money Is Energy",
-      "description": "Money-mindset wall art for offices, studios, and entrepreneurial spaces.",
-      "longDescription": "A money-mindset statement piece made for workspaces, studios, and rooms where ambition needs to stay visible. The design keeps the goal in front of you without feeling like ordinary office decor.",
-      "label": "Money Is Energy",
+      "slug": "rubber-band-stacks",
+      "previousSlugs": [
+        "money-is-energy"
+      ],
+      "title": "Rubber Band Stacks",
+      "description": "Money-mindset wall art built around discipline, focus, and stacking progress.",
+      "longDescription": "A money-mindset statement piece made for workspaces, studios, and rooms where ambition needs to stay visible. The rubber band stack design keeps the goal in front of you without feeling like ordinary office decor.",
+      "label": "Rubber Band Stacks",
       "imageFolder": "money-is-energy",
       "image": "/artwork/money-is-energy/01-main.png",
-      "imageAlt": "Money Is Energy ATM-inspired artwork shown as an Armoze canvas print mockup",
+      "imageAlt": "Rubber Band Stacks money-mindset artwork shown as an Armoze canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
         "/artwork/money-is-energy/01-main.png"
@@ -421,8 +424,8 @@
           ]
         }
       ],
-      "seoTitle": "Money Is Energy Canvas Print for Offices and Studios",
-      "seoDescription": "Shop Money Is Energy by Armoze, a money mindset canvas print for offices, studios, entrepreneurs, and ambitious workspaces."
+      "seoTitle": "Rubber Band Stacks Canvas Print for Offices and Studios",
+      "seoDescription": "Shop Rubber Band Stacks by Armoze, a money mindset canvas print for offices, studios, entrepreneurs, and ambitious workspaces."
     },
     {
       "id": "keep-going-canvas",

@@ -46,7 +46,6 @@ import {
   ShieldCheck,
   ShoppingBag,
   Sparkles,
-  Star,
   Target,
   Trash2,
   Volume2,
@@ -276,6 +275,149 @@ const fulfillmentStatusOptions = [
 const siteUrl = 'https://armoze.com';
 const supportEmail = 'hello@armoze.com';
 const supportMailto = `mailto:${supportEmail}`;
+const launchOfferCode = 'FIRST10';
+const launchOfferText = `Launch offer: use code ${launchOfferCode} for 10% off your first order.`;
+const gaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID || '';
+const googleAdsId = import.meta.env.VITE_GOOGLE_ADS_ID || '';
+const googleAdsPurchaseLabel = import.meta.env.VITE_GOOGLE_ADS_PURCHASE_LABEL || '';
+const metaPixelId = import.meta.env.VITE_META_PIXEL_ID || '';
+
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+    fbq?: (...args: unknown[]) => void;
+    _fbq?: unknown;
+  }
+}
+
+type TrackingItem = {
+  item_id: string;
+  item_name: string;
+  item_category?: string;
+  price?: number;
+  quantity?: number;
+  variant?: string;
+};
+
+type EcommercePayload = {
+  currency?: string;
+  value?: number;
+  coupon?: string;
+  items?: TrackingItem[];
+};
+
+type QueuedMetaPixel = ((...args: unknown[]) => void) & {
+  queue: unknown[];
+};
+
+function appendScript(src: string, id: string) {
+  if (typeof document === 'undefined' || document.getElementById(id)) {
+    return;
+  }
+
+  const script = document.createElement('script');
+  script.async = true;
+  script.id = id;
+  script.src = src;
+  document.head.appendChild(script);
+}
+
+function initTracking() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  if ((gaMeasurementId || googleAdsId) && !window.gtag) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = (...args: unknown[]) => {
+      window.dataLayer?.push(args);
+    };
+    window.gtag('js', new Date());
+  }
+
+  if (gaMeasurementId) {
+    appendScript(`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`, 'armoze-ga4');
+    window.gtag?.('config', gaMeasurementId);
+  }
+
+  if (googleAdsId) {
+    appendScript(`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`, 'armoze-google-ads');
+    window.gtag?.('config', googleAdsId);
+  }
+
+  if (metaPixelId && !window.fbq) {
+    const fbq = ((...args: unknown[]) => {
+      fbq.queue.push(args);
+    }) as QueuedMetaPixel;
+    fbq.queue = [] as unknown[];
+
+    window.fbq = Object.assign(fbq, {
+      callMethod: null,
+      queue: [],
+      loaded: true,
+      version: '2.0',
+    });
+    window._fbq = window.fbq;
+    appendScript('https://connect.facebook.net/en_US/fbevents.js', 'armoze-meta-pixel');
+    window.fbq('init', metaPixelId);
+    window.fbq('track', 'PageView');
+  }
+}
+
+function trackEvent(eventName: string, payload: EcommercePayload = {}) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.gtag?.('event', eventName, payload);
+
+  if (eventName === 'purchase' && googleAdsId && googleAdsPurchaseLabel) {
+    window.gtag?.('event', 'conversion', {
+      send_to: `${googleAdsId}/${googleAdsPurchaseLabel}`,
+      value: payload.value,
+      currency: payload.currency || 'USD',
+    });
+  }
+
+  const metaEventByName: Record<string, string> = {
+    view_item: 'ViewContent',
+    add_to_cart: 'AddToCart',
+    begin_checkout: 'InitiateCheckout',
+    purchase: 'Purchase',
+    sign_up: 'Lead',
+  };
+  const metaEvent = metaEventByName[eventName];
+
+  if (metaEvent) {
+    window.fbq?.('track', metaEvent, {
+      currency: payload.currency,
+      value: payload.value,
+      content_ids: payload.items?.map((item) => item.item_id),
+      contents: payload.items?.map((item) => ({
+        id: item.item_id,
+        quantity: item.quantity || 1,
+        item_price: item.price,
+      })),
+    });
+  }
+}
+
+function getProductTrackingItem(
+  product: Product,
+  sizeOption = getFeaturedSizeOption(product),
+  frameOption = getBaseFrameOption(product),
+  quantity = 1,
+): TrackingItem {
+  return {
+    item_id: product.id,
+    item_name: product.title,
+    item_category: product.tone,
+    price: getConfiguredUnitPrice(product, sizeOption, frameOption) / 100,
+    quantity,
+    variant: `${sizeOption.label} / ${frameOption.label}`,
+  };
+}
 
 type DailyMood = 'focus' | 'confidence' | 'discipline' | 'peace' | 'ambition' | 'creativity';
 
@@ -729,6 +871,38 @@ function getDefaultProductOffer(product: Product) {
     price: (option.priceInCents / 100).toFixed(2),
     availability: 'https://schema.org/InStock',
     itemCondition: 'https://schema.org/NewCondition',
+    shippingDetails: {
+      '@type': 'OfferShippingDetails',
+      shippingRate: {
+        '@type': 'MonetaryAmount',
+        value: '0.00',
+        currency: 'USD',
+      },
+      shippingDestination: {
+        '@type': 'DefinedRegion',
+        addressCountry: 'US',
+      },
+      deliveryTime: {
+        '@type': 'ShippingDeliveryTime',
+        handlingTime: {
+          '@type': 'QuantitativeValue',
+          minValue: 2,
+          maxValue: 5,
+          unitCode: 'DAY',
+        },
+        transitTime: {
+          '@type': 'QuantitativeValue',
+          minValue: 5,
+          maxValue: 10,
+          unitCode: 'DAY',
+        },
+      },
+    },
+    hasMerchantReturnPolicy: {
+      '@type': 'MerchantReturnPolicy',
+      applicableCountry: 'US',
+      returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
+    },
   };
 }
 
@@ -1195,6 +1369,34 @@ function FrameOptionPreview({ option }: { option: FrameOption }) {
   );
 }
 
+function ProductTrustStrip() {
+  return (
+    <div className="product-trust-strip" aria-label="Purchase confidence">
+      <span>
+        <Check aria-hidden="true" size={14} />
+        Free U.S. shipping
+      </span>
+      <span>
+        <Check aria-hidden="true" size={14} />
+        Secure Stripe checkout
+      </span>
+      <span>
+        <Check aria-hidden="true" size={14} />
+        Damage support
+      </span>
+    </div>
+  );
+}
+
+function LaunchOffer({ className = '' }: { className?: string }) {
+  return (
+    <div className={['launch-offer', className].filter(Boolean).join(' ')}>
+      <Sparkles aria-hidden="true" size={16} />
+      <span>{launchOfferText}</span>
+    </div>
+  );
+}
+
 function SiteHeader({ cartCount }: { cartCount: number }) {
   const { user, loading } = useCustomerAuth();
   const location = useLocation();
@@ -1271,6 +1473,7 @@ function SiteFooter() {
 
       setNewsletterStatus('success');
       setNewsletterMessage('You are on the list. First looks will land in your inbox.');
+      trackEvent('sign_up');
       setNewsletterEmail('');
     } catch (error) {
       setNewsletterStatus('error');
@@ -1423,6 +1626,21 @@ function HomePage({
     );
   }, [savedDailyEntryIds]);
 
+  useEffect(() => {
+    if (checkoutResult !== 'success') {
+      return;
+    }
+
+    const trackingKey = 'armoze_purchase_return_tracked';
+
+    if (window.sessionStorage.getItem(trackingKey) === '1') {
+      return;
+    }
+
+    trackEvent('purchase', { currency: 'USD' });
+    window.sessionStorage.setItem(trackingKey, '1');
+  }, [checkoutResult]);
+
   function toggleSavedDailyEntry(entryId: string) {
     setSavedDailyEntryIds((currentIds) =>
       currentIds.includes(entryId)
@@ -1451,6 +1669,8 @@ function HomePage({
           Checkout was cancelled. Your cart is still here when you are ready.
         </div>
       ) : null}
+
+      <LaunchOffer className="home-launch-offer" />
 
       <section id="daily" className={`daily-hero mood-${dailyEntry.mood}`} aria-labelledby="daily-title">
         <div className="daily-hero-copy">
@@ -2054,6 +2274,28 @@ function ProductPage({
     }
   }, [location.search, navigate, product, slug]);
 
+  const trackingRequestedSizeOption = product?.sizeOptions.find((option) => option.id === requestedSizeId);
+  const trackingSelectedOption = product
+    ? product.sizeOptions.find((option) => option.id === selectedSizeId) ??
+      trackingRequestedSizeOption ??
+      getFeaturedSizeOption(product)
+    : undefined;
+  const trackingSelectedFrameOption = product
+    ? product.frameOptions[selectedFrame] ?? getBaseFrameOption(product)
+    : undefined;
+
+  useEffect(() => {
+    if (!product || !trackingSelectedOption || !trackingSelectedFrameOption) {
+      return;
+    }
+
+    trackEvent('view_item', {
+      currency: 'USD',
+      value: getConfiguredUnitPrice(product, trackingSelectedOption, trackingSelectedFrameOption) / 100,
+      items: [getProductTrackingItem(product, trackingSelectedOption, trackingSelectedFrameOption)],
+    });
+  }, [product, trackingSelectedFrameOption, trackingSelectedOption]);
+
   if (!product) {
     return (
       <main className="product-not-found">
@@ -2072,7 +2314,7 @@ function ProductPage({
   const isSideGalleryImage = isSideMockupImage(selectedGalleryImage);
   const isFrontMockupGalleryImage = isMockupGalleryImage && !isSideGalleryImage;
   const defaultSizeOption = getFeaturedSizeOption(product);
-  const requestedSizeOption = product.sizeOptions.find((option) => option.id === requestedSizeId);
+  const requestedSizeOption = trackingRequestedSizeOption;
   const selectedOption =
     product.sizeOptions.find((option) => option.id === selectedSizeId) ??
     requestedSizeOption ??
@@ -2164,19 +2406,10 @@ function ProductPage({
         </div>
 
         <aside className="listing-panel">
-          <div className="rating-row">
-            <span>{product.rating.toFixed(2)}</span>
-            <span className="stars" aria-label={`${product.rating} out of 5 stars`}>
-              {Array.from({ length: 5 }).map((_, index) => (
-                <Star aria-hidden="true" fill="currentColor" key={index} size={14} />
-              ))}
-            </span>
-            <small>{product.reviewCount.toLocaleString()} reviews</small>
-          </div>
-
           <p className="listing-kicker">Armoze Original</p>
           <h1>{product.title}</h1>
           <p className="listing-price">{formatPrice(selectedUnitPrice)}</p>
+          <ProductTrustStrip />
           <p className="listing-description">{product.longDescription}</p>
 
           <div className="option-group">
@@ -2229,6 +2462,8 @@ function ProductPage({
           <div className="installment-note">
             Pay in 4 interest-free installments with Stripe-compatible payment methods at checkout.
           </div>
+
+          <LaunchOffer className="product-launch-offer" />
 
           <button
             className="button button-primary listing-cart-button"
@@ -3277,6 +3512,14 @@ function App() {
   const isAuthRoute = ['/sign-in', '/sign-up', '/account'].includes(location.pathname);
 
   useEffect(() => {
+    initTracking();
+  }, []);
+
+  useEffect(() => {
+    trackEvent('page_view');
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
     let active = true;
 
     void (async () => {
@@ -3376,6 +3619,12 @@ function App() {
     const frameOption = frameId ? getFrameOption(product, frameId) : getBaseFrameOption(product);
     const lineKey = makeCartLineKey(productId, sizeOption.id, frameOption.id);
 
+    trackEvent('add_to_cart', {
+      currency: 'USD',
+      value: getConfiguredUnitPrice(product, sizeOption, frameOption) / 100,
+      items: [getProductTrackingItem(product, sizeOption, frameOption)],
+    });
+
     setCart((currentCart) => {
       const existing = currentCart.find((item) => item.lineKey === lineKey);
 
@@ -3419,6 +3668,29 @@ function App() {
 
     setCheckoutState('loading');
     setCheckoutError('');
+
+    const trackingItems = items.flatMap((item) => {
+      const product = catalogState.products.find((candidate) => candidate.id === item.productId);
+
+      if (!product) {
+        return [];
+      }
+
+      const sizeOption = getSizeOption(product, item.sizeId);
+      const frameOption = getFrameOption(product, item.frameId);
+
+      return [getProductTrackingItem(product, sizeOption, frameOption, item.quantity)];
+    });
+
+    trackEvent('begin_checkout', {
+      currency: 'USD',
+      value: trackingItems.reduce(
+        (total, item) => total + (item.price || 0) * (item.quantity || 1),
+        0,
+      ),
+      coupon: launchOfferCode,
+      items: trackingItems,
+    });
 
     try {
       const response = await fetch('/api/create-checkout-session', {

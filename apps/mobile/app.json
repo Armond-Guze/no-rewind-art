@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Armoze",
+    "slug": "armoze",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "armoze",
+    "ios": {
+      "bundleIdentifier": "com.armoze.app",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.armoze.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#101113",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

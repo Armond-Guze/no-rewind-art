@@ -400,6 +400,7 @@ export async function createCheckoutSession(body) {
         },
       },
     ],
+    allow_promotion_codes: true,
     automatic_tax: {
       enabled: automaticTaxEnabled,
     },
