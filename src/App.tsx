@@ -25,11 +25,16 @@ import {
   ArrowUpRight,
   BadgeCheck,
   Bell,
+  Bookmark,
   Box,
+  CalendarDays,
+  Check,
   CircleUserRound,
   DollarSign,
+  Download,
   Filter,
   Grid2X2,
+  Heart,
   Inbox,
   LogOut,
   Mail,
@@ -40,7 +45,9 @@ import {
   RefreshCw,
   ShieldCheck,
   ShoppingBag,
+  Sparkles,
   Star,
+  Target,
   Trash2,
   Volume2,
   VolumeX,
@@ -269,6 +276,176 @@ const fulfillmentStatusOptions = [
 const siteUrl = 'https://armoze.com';
 const supportEmail = 'hello@armoze.com';
 const supportMailto = `mailto:${supportEmail}`;
+
+type DailyMood = 'focus' | 'confidence' | 'discipline' | 'peace' | 'ambition' | 'creativity';
+
+type DailyMotivationEntry = {
+  id: string;
+  mood: DailyMood;
+  title: string;
+  quote: string;
+  reflection: string;
+  action: string;
+  productTone: Product['tone'];
+};
+
+const dailyMoodLabels: Record<DailyMood, string> = {
+  focus: 'Focus',
+  confidence: 'Confidence',
+  discipline: 'Discipline',
+  peace: 'Peace',
+  ambition: 'Ambition',
+  creativity: 'Creativity',
+};
+
+const dailyMoodOrder: DailyMood[] = [
+  'focus',
+  'confidence',
+  'discipline',
+  'peace',
+  'ambition',
+  'creativity',
+];
+
+const dailyMotivationEntries: DailyMotivationEntry[] = [
+  {
+    id: 'focus-one-thing',
+    mood: 'focus',
+    title: 'One Thing',
+    quote: 'Win the next hour. Let the day build from there.',
+    reflection: 'Choose one task that would make the rest of today lighter.',
+    action: 'Start one focused block',
+    productTone: 'focus',
+  },
+  {
+    id: 'confidence-proof',
+    mood: 'confidence',
+    title: 'Proof',
+    quote: 'Your confidence grows every time you keep a promise to yourself.',
+    reflection: 'Name one small promise you can finish before tonight.',
+    action: 'Keep the promise',
+    productTone: 'space',
+  },
+  {
+    id: 'discipline-respect',
+    mood: 'discipline',
+    title: 'Self Respect',
+    quote: 'Discipline is self-respect in motion.',
+    reflection: 'Do the thing that proves you are on your own side.',
+    action: 'Move without bargaining',
+    productTone: 'focus',
+  },
+  {
+    id: 'peace-slow-breath',
+    mood: 'peace',
+    title: 'Steady',
+    quote: 'A calm mind can still move with power.',
+    reflection: 'Take one breath before you answer, decide, or react.',
+    action: 'Slow the first move',
+    productTone: 'minimal',
+  },
+  {
+    id: 'ambition-energy',
+    mood: 'ambition',
+    title: 'Energy',
+    quote: 'Your future needs your attention more than your excuses.',
+    reflection: 'Put ten honest minutes into the version of you that is waiting.',
+    action: 'Invest ten minutes',
+    productTone: 'money',
+  },
+  {
+    id: 'creativity-open',
+    mood: 'creativity',
+    title: 'Make Space',
+    quote: 'Creativity shows up when you make room for it.',
+    reflection: 'Collect one image, line, color, or idea before it disappears.',
+    action: 'Capture one spark',
+    productTone: 'cassette',
+  },
+];
+
+function getDailyMotivationEntry() {
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / 86_400_000);
+
+  return dailyMotivationEntries[dayOfYear % dailyMotivationEntries.length];
+}
+
+function readSavedDailyEntryIds() {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const value = window.localStorage.getItem('armoze_saved_daily_entries');
+    return value ? (JSON.parse(value) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function escapeSvgText(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function wrapTextLines(value: string, maxLength: number) {
+  const words = value.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  words.forEach((word) => {
+    const nextLine = currentLine ? `${currentLine} ${word}` : word;
+
+    if (nextLine.length > maxLength && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+      return;
+    }
+
+    currentLine = nextLine;
+  });
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines;
+}
+
+function downloadDailyWallpaper(entry: DailyMotivationEntry) {
+  const quoteLines = wrapTextLines(entry.quote, 24);
+  const reflectionLines = wrapTextLines(entry.reflection, 34);
+  const quoteText = quoteLines
+    .map((line, index) => `<tspan x="96" dy="${index === 0 ? 0 : 86}">${escapeSvgText(line)}</tspan>`)
+    .join('');
+  const reflectionText = reflectionLines
+    .map((line, index) => `<tspan x="96" dy="${index === 0 ? 0 : 42}">${escapeSvgText(line)}</tspan>`)
+    .join('');
+  const wallpaper = `
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <rect width="1080" height="1920" fill="#f8f5ed"/>
+  <rect x="60" y="60" width="960" height="1800" rx="52" fill="#101113"/>
+  <rect x="792" y="146" width="204" height="204" fill="#f3b233" opacity="0.9"/>
+  <rect x="96" y="292" width="216" height="12" fill="#f3b233"/>
+  <text x="96" y="250" fill="#f8f5ed" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700" letter-spacing="0">ARMOZE</text>
+  <text x="96" y="712" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="900">${quoteText}</text>
+  <text x="96" y="1250" fill="#c9c0b1" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="500">${reflectionText}</text>
+  <text x="96" y="1638" fill="#f3b233" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="800">${escapeSvgText(entry.action.toUpperCase())}</text>
+</svg>`.trim();
+  const blob = new Blob([wallpaper], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+
+  anchor.href = url;
+  anchor.download = `armoze-${entry.id}-wallpaper.svg`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
 
 type PolicyPageKey = 'shipping' | 'returns' | 'privacy' | 'terms';
 
@@ -829,16 +1006,26 @@ function formatFramePriceDelta(product: Product, sizeOption: SizeOption, frameOp
   return `+${formatPrice(framePriceDelta)}`;
 }
 
-function ProductVisual({ product }: { product: Product }) {
+function ProductVisual({
+  product,
+  useImage = import.meta.env.PROD,
+}: {
+  product: Product;
+  useImage?: boolean;
+}) {
   return (
     <div className={`product-art ${product.tone}-art shape-${product.artworkShape}`}>
-      {product.image ? <img src={product.image} alt={product.imageAlt} /> : <span>{product.label}</span>}
+      {product.image && useImage ? (
+        <img src={product.image} alt={product.imageAlt} />
+      ) : (
+        <span>{product.label}</span>
+      )}
     </div>
   );
 }
 
 function ProductImage({ product }: { product: Product }) {
-  if (product.image) {
+  if (product.image && import.meta.env.PROD) {
     return <ArtworkMockup product={product} src={product.image} alt={product.imageAlt} />;
   }
 
@@ -856,17 +1043,76 @@ function ArtworkMockup({
   alt: string;
   className?: string;
 }) {
+  const [failedImageSrc, setFailedImageSrc] = useState<string | null>(null);
+  const imageFailed = Boolean(src && (missingImages.has(src) || failedImageSrc === src));
   const classNames = ['artwork-mockup', `shape-${product.artworkShape}`, className]
     .filter(Boolean)
     .join(' ');
 
+  useEffect(() => {
+    if (!src) {
+      return;
+    }
+
+    let active = true;
+    if (missingImages.has(src)) {
+      const knownFailureId = window.setTimeout(() => {
+        if (active) {
+          setFailedImageSrc(src);
+        }
+      }, 0);
+
+      return () => {
+        active = false;
+        window.clearTimeout(knownFailureId);
+      };
+    }
+
+    const probeImage = new Image();
+
+    probeImage.onload = () => {
+      if (active && probeImage.naturalWidth === 0) {
+        missingImages.add(src);
+        setFailedImageSrc(src);
+      }
+    };
+
+    probeImage.onerror = () => {
+      if (active) {
+        missingImages.add(src);
+        setFailedImageSrc(src);
+      }
+    };
+
+    probeImage.src = src;
+    const failureCheckId = window.setTimeout(() => {
+      if (active && probeImage.complete && probeImage.naturalWidth === 0) {
+        missingImages.add(src);
+        setFailedImageSrc(src);
+      }
+    }, 120);
+
+    return () => {
+      active = false;
+      window.clearTimeout(failureCheckId);
+    };
+  }, [src]);
+
   return (
     <div className={classNames}>
       <div className="artwork-mockup-print">
-        {src ? (
-          <GalleryImage className="artwork-mockup-image" src={src} alt={alt} />
+        {src && !imageFailed ? (
+          <img
+            className="artwork-mockup-image"
+            src={src}
+            alt={alt}
+            onError={() => {
+              missingImages.add(src);
+              setFailedImageSrc(src);
+            }}
+          />
         ) : (
-          <ProductVisual product={product} />
+          <ProductVisual product={product} useImage={false} />
         )}
       </div>
     </div>
@@ -978,10 +1224,10 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
         id="primary-navigation"
         aria-label="Primary navigation"
       >
-        <Link to="/collections/best-sellers" onClick={closeMenu}>Best Sellers</Link>
-        <Link to="/collections/money-ambition" onClick={closeMenu}>Money</Link>
-        <Link to="/collections/discipline-focus" onClick={closeMenu}>Focus</Link>
-        <Link to="/collections/new-arrivals" onClick={closeMenu}>New Arrivals</Link>
+        <Link to="/#daily" onClick={closeMenu}>Daily</Link>
+        <Link to="/#moods" onClick={closeMenu}>Moods</Link>
+        <Link to="/#wallpapers" onClick={closeMenu}>Wallpapers</Link>
+        <Link to="/collections/best-sellers" onClick={closeMenu}>Shop</Link>
         <Link to="/#support" onClick={closeMenu}>Support</Link>
         <Link to="/cart" onClick={closeMenu}>Cart ({cartCount})</Link>
         <Link
@@ -1106,11 +1352,35 @@ function HomePage({
 }) {
   const catalog = useCatalog();
   const checkoutResult = new URLSearchParams(window.location.search).get('checkout');
+  const dailyEntry = useMemo(() => getDailyMotivationEntry(), []);
+  const [selectedMood, setSelectedMood] = useState<DailyMood>(dailyEntry.mood);
+  const [savedDailyEntryIds, setSavedDailyEntryIds] = useState<string[]>(readSavedDailyEntryIds);
   const featuredProducts = useMemo(
     () => getProductsForCollectionFromCatalog(catalog, 'best-sellers').slice(0, 6),
     [catalog],
   );
   const heroProduct = featuredProducts[0] ?? catalog.products.find((product) => product.published);
+  const heroVisualProduct =
+    catalog.products.find((product) => product.published && product.tone === dailyEntry.productTone) ??
+    heroProduct;
+  const todayLabel = useMemo(
+    () =>
+      new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+      }).format(new Date()),
+    [],
+  );
+  const selectedMoodEntries = dailyMotivationEntries.filter((entry) => entry.mood === selectedMood);
+  const activeMoodEntry = selectedMoodEntries[0] ?? dailyEntry;
+  const moodProducts = catalog.products
+    .filter((product) => product.published && product.tone === activeMoodEntry.productTone)
+    .slice(0, 3);
+  const savedDailyEntries = dailyMotivationEntries.filter((entry) =>
+    savedDailyEntryIds.includes(entry.id),
+  );
+  const isDailyEntrySaved = savedDailyEntryIds.includes(dailyEntry.id);
   const homeStructuredData = useMemo(
     () => ({
       '@context': 'https://schema.org',
@@ -1133,7 +1403,7 @@ function HomePage({
         },
         {
           '@type': 'ItemList',
-          name: 'Armoze best selling motivational canvas prints',
+          name: 'Armoze daily motivation art and best selling canvas prints',
           itemListElement: featuredProducts.map((product, index) => ({
             '@type': 'ListItem',
             position: index + 1,
@@ -1146,17 +1416,32 @@ function HomePage({
     [featuredProducts],
   );
 
+  useEffect(() => {
+    window.localStorage.setItem(
+      'armoze_saved_daily_entries',
+      JSON.stringify(savedDailyEntryIds),
+    );
+  }, [savedDailyEntryIds]);
+
+  function toggleSavedDailyEntry(entryId: string) {
+    setSavedDailyEntryIds((currentIds) =>
+      currentIds.includes(entryId)
+        ? currentIds.filter((currentId) => currentId !== entryId)
+        : [...currentIds, entryId],
+    );
+  }
+
   usePageSeo({
-    title: 'Motivational Canvas Prints',
+    title: 'Daily Motivation Art App',
     description:
-      'Shop Armoze motivational canvas prints for offices, bedrooms, studios, dorms, and creative workspaces. Choose canvas, black frame, or white frame.',
+      'Open Armoze for daily motivation through quotes, visual wallpapers, saved inspiration, and original motivational canvas art.',
     canonicalPath: '/',
-    image: heroProduct?.image || '/armoze-logo.png',
+    image: heroVisualProduct?.image || heroProduct?.image || '/armoze-logo.png',
     structuredData: homeStructuredData,
   });
 
   return (
-    <main id="top" className="home-page">
+    <main id="top" className="home-page daily-home">
       {checkoutResult === 'success' ? (
         <div className="checkout-banner success">Payment complete. Your order is being prepared.</div>
       ) : null}
@@ -1167,45 +1452,209 @@ function HomePage({
         </div>
       ) : null}
 
-      <section className="hero" aria-labelledby="hero-title">
-        <div className="hero-copy">
-          <p className="eyebrow">Armoze Originals</p>
-          <h1 id="hero-title">Motivational Canvas Prints</h1>
-          <p>
-            Bold wall art for workspaces, bedrooms, studios, and creative corners.
-            Pick a print, choose the size, and checkout securely.
+      <section id="daily" className={`daily-hero mood-${dailyEntry.mood}`} aria-labelledby="daily-title">
+        <div className="daily-hero-copy">
+          <p className="eyebrow">Daily Armoze</p>
+          <h1 id="daily-title">Motivation you can see.</h1>
+          <p className="daily-hero-intro">
+            A daily quote, a visual mood, and a personal library for the mindset you want around you.
           </p>
-          <div className="hero-actions">
-            <Link className="button button-primary" to="/collections/best-sellers">
-              Shop Best Sellers
-              <ArrowUpRight aria-hidden="true" size={18} />
-            </Link>
+
+          <div className="daily-quote-panel">
+            <div className="daily-date-row">
+              <CalendarDays aria-hidden="true" size={18} />
+              <span>{todayLabel}</span>
+            </div>
+            <blockquote>{dailyEntry.quote}</blockquote>
+            <p>{dailyEntry.reflection}</p>
+            <div className="daily-card-actions">
+              <button
+                className={`button button-primary ${isDailyEntrySaved ? 'is-saved' : ''}`}
+                type="button"
+                onClick={() => toggleSavedDailyEntry(dailyEntry.id)}
+              >
+                {isDailyEntrySaved ? (
+                  <Check aria-hidden="true" size={18} />
+                ) : (
+                  <Bookmark aria-hidden="true" size={18} />
+                )}
+                {isDailyEntrySaved ? 'Saved' : 'Save'}
+              </button>
+              <button
+                className="button button-secondary"
+                type="button"
+                onClick={() => downloadDailyWallpaper(dailyEntry)}
+              >
+                <Download aria-hidden="true" size={18} />
+                Wallpaper
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="hero-showcase" aria-label="Featured Armoze artwork">
-          {heroProduct ? (
-            <Link className="hero-featured-product" to={`/products/${heroProduct.slug}`}>
-              <ProductImage product={heroProduct} />
-              <div className="hero-featured-meta">
-                <span>Featured canvas</span>
-                <strong>{heroProduct.title}</strong>
-                <small>From {formatPrice(heroProduct.priceInCents)}</small>
+        <div className="daily-visual-stack" aria-label="Daily Armoze visual">
+          <div className="daily-device">
+            <div className="daily-device-top">
+              <span />
+              <span />
+            </div>
+            <p>{dailyMoodLabels[dailyEntry.mood]}</p>
+            <h2>{dailyEntry.quote}</h2>
+            <div className="daily-device-art">
+              <Sparkles aria-hidden="true" size={30} />
+            </div>
+            <span>{dailyEntry.action}</span>
+          </div>
+
+          {heroVisualProduct ? (
+            <Link className="daily-featured-product" to={`/products/${heroVisualProduct.slug}`}>
+              <ProductImage product={heroVisualProduct} />
+              <div>
+                <span>Artwork match</span>
+                <strong>{heroVisualProduct.title}</strong>
+                <small>From {formatPrice(heroVisualProduct.priceInCents)}</small>
               </div>
             </Link>
           ) : null}
+        </div>
+      </section>
 
+      <section id="moods" className="daily-section mood-lab" aria-labelledby="mood-title">
+        <div className="section-heading daily-section-heading">
+          <div>
+            <p className="eyebrow">Mindset feed</p>
+            <h2 id="mood-title">Pick the energy for today.</h2>
+          </div>
+          <Link className="section-link" to="/collections/discipline-focus">
+            Shop Focus
+            <ArrowUpRight aria-hidden="true" size={16} />
+          </Link>
+        </div>
+
+        <div className="mood-picker" role="tablist" aria-label="Motivation moods">
+          {dailyMoodOrder.map((mood) => (
+            <button
+              className={selectedMood === mood ? 'active' : ''}
+              key={mood}
+              type="button"
+              role="tab"
+              aria-selected={selectedMood === mood}
+              onClick={() => setSelectedMood(mood)}
+            >
+              <span className={`mood-dot mood-${mood}`} />
+              {dailyMoodLabels[mood]}
+            </button>
+          ))}
+        </div>
+
+        <div className="mood-board-grid">
+          {selectedMoodEntries.map((entry) => {
+            const isSaved = savedDailyEntryIds.includes(entry.id);
+
+            return (
+              <article className={`motivation-card mood-${entry.mood}`} key={entry.id}>
+                <div className="motivation-card-icon">
+                  <Target aria-hidden="true" size={22} />
+                </div>
+                <p className="eyebrow">{entry.title}</p>
+                <h3>{entry.quote}</h3>
+                <p>{entry.reflection}</p>
+                <div className="motivation-card-footer">
+                  <span>{entry.action}</span>
+                  <button
+                    type="button"
+                    aria-label={isSaved ? `Remove ${entry.title} from saved` : `Save ${entry.title}`}
+                    onClick={() => toggleSavedDailyEntry(entry.id)}
+                  >
+                    {isSaved ? (
+                      <Check aria-hidden="true" size={18} />
+                    ) : (
+                      <Bookmark aria-hidden="true" size={18} />
+                    )}
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+
+          {moodProducts.map((product) => (
+            <Link className="mood-product-card" key={product.id} to={`/products/${product.slug}`}>
+              <ProductImage product={product} />
+              <div>
+                <span>Print for this mood</span>
+                <strong>{product.title}</strong>
+                <small>{formatPrice(product.priceInCents)}</small>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section id="wallpapers" className="daily-section wallpaper-section" aria-labelledby="wallpaper-title">
+        <div className="section-heading daily-section-heading">
+          <div>
+            <p className="eyebrow">Wallpaper studio</p>
+            <h2 id="wallpaper-title">Lock-screen motivation.</h2>
+          </div>
+        </div>
+
+        <div className="wallpaper-grid">
+          {dailyMotivationEntries.slice(0, 3).map((entry) => (
+            <article className={`wallpaper-card mood-${entry.mood}`} key={entry.id}>
+              <div className="wallpaper-preview">
+                <span>Armoze</span>
+                <strong>{entry.quote}</strong>
+                <small>{entry.action}</small>
+              </div>
+              <div className="wallpaper-card-copy">
+                <span>{dailyMoodLabels[entry.mood]}</span>
+                <h3>{entry.title}</h3>
+                <button type="button" onClick={() => downloadDailyWallpaper(entry)}>
+                  <Download aria-hidden="true" size={17} />
+                  Download
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="daily-section saved-library-section" aria-labelledby="saved-title">
+        <div className="section-heading daily-section-heading">
+          <div>
+            <p className="eyebrow">Personal library</p>
+            <h2 id="saved-title">Saved by you.</h2>
+          </div>
+        </div>
+
+        <div className="saved-library-grid">
+          {savedDailyEntries.length ? (
+            savedDailyEntries.map((entry) => (
+              <article className={`saved-entry mood-${entry.mood}`} key={entry.id}>
+                <Heart aria-hidden="true" size={20} />
+                <div>
+                  <span>{dailyMoodLabels[entry.mood]}</span>
+                  <p>{entry.quote}</p>
+                </div>
+              </article>
+            ))
+          ) : (
+            <div className="saved-empty">
+              <Heart aria-hidden="true" size={24} />
+              <p>Saved quotes will collect here.</p>
+            </div>
+          )}
         </div>
       </section>
 
       <section id="shop" className="section shop-section">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Best sellers</p>
-            <h2>Start here.</h2>
+            <p className="eyebrow">Armoze originals</p>
+            <h2>Art you can bring home.</h2>
           </div>
           <Link className="section-link" to="/collections/best-sellers">
-            View Collection
+            View Shop
             <ArrowUpRight aria-hidden="true" size={16} />
           </Link>
         </div>
@@ -1246,7 +1695,7 @@ function HomePage({
       <section id="support" className="section support-faq-section" aria-labelledby="support-title">
         <div className="support-card">
           <p className="eyebrow">Support</p>
-          <h2 id="support-title">Questions before or after checkout?</h2>
+          <h2 id="support-title">Questions about an order?</h2>
           <p>
             For order help, sizing questions, address changes, or damage replacement requests,
             email the Armoze support inbox.

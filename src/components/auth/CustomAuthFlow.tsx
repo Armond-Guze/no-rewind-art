@@ -4,10 +4,10 @@ import { ChevronLeft } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabase';
 
 const inputClasses =
-  'h-[3.35rem] w-full rounded-[0.85rem] border border-white/62 bg-transparent px-4 text-[0.84rem] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] outline-none transition-[border-color,box-shadow] placeholder:text-white/66 focus:border-white/78 focus:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)]';
+  'h-[2.9rem] w-full rounded-[0.7rem] border border-white/62 bg-transparent px-3.5 text-[0.82rem] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] outline-none transition-[border-color,box-shadow] placeholder:text-white/66 focus:border-white/78 focus:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)] sm:h-[3.35rem] sm:rounded-[0.85rem] sm:px-4 sm:text-[0.84rem]';
 
 const buttonClasses =
-  'inline-flex h-[3.35rem] w-full items-center justify-center rounded-[0.85rem] border text-[0.84rem] font-semibold transition-colors';
+  'inline-flex h-[2.9rem] w-full items-center justify-center rounded-[0.7rem] border text-[0.82rem] font-semibold transition-colors sm:h-[3.35rem] sm:rounded-[0.85rem] sm:text-[0.84rem]';
 
 const primaryButtonClasses = `${buttonClasses} border-white bg-white text-[0.84rem] text-black hover:bg-zinc-100`;
 
@@ -172,7 +172,7 @@ export function CustomAuthFlow() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[388px] text-white">
+    <div className="mx-auto w-full max-w-[360px] text-white sm:max-w-[388px]">
       {step === 'email' ? (
         <form onSubmit={handleEmailSubmit}>
           <label className="sr-only" htmlFor="auth-email">
@@ -190,7 +190,7 @@ export function CustomAuthFlow() {
             required
           />
 
-          <button className={`${primaryButtonClasses} mt-4`} type="submit">
+          <button className={`${primaryButtonClasses} mt-3 sm:mt-4`} type="submit">
             Continue
           </button>
         </form>
@@ -207,9 +207,9 @@ export function CustomAuthFlow() {
             Back
           </button>
 
-          <div className="mt-5 text-left">
+          <div className="mt-4 text-left sm:mt-5">
             <h2 className="text-[0.88rem] font-semibold tracking-tight text-white">Enter your password</h2>
-            <p className="mt-1.5 text-[0.78rem] leading-5 text-white/64">
+            <p className="mt-1 text-[0.76rem] leading-5 text-white/64 sm:mt-1.5 sm:text-[0.78rem]">
               Log in with {normalizedEmail}. If this email is new, we’ll create your account.
             </p>
           </div>
@@ -218,7 +218,7 @@ export function CustomAuthFlow() {
             Password
           </label>
           <input
-            className={`${inputClasses} mt-4`}
+            className={`${inputClasses} mt-3 sm:mt-4`}
             id="auth-password"
             name="password"
             type="password"
@@ -230,7 +230,7 @@ export function CustomAuthFlow() {
             required
           />
 
-          <button className={`${primaryButtonClasses} mt-4`} type="submit" disabled={isSubmitting}>
+          <button className={`${primaryButtonClasses} mt-3 sm:mt-4`} type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Working' : 'Continue'}
           </button>
         </form>
@@ -247,12 +247,12 @@ export function CustomAuthFlow() {
             Back
           </button>
 
-          <div className="mt-5">
+          <div className="mt-4 sm:mt-5">
             <h2 className="text-[0.88rem] font-semibold tracking-tight text-white">Verify your email</h2>
-            <p className="mt-1.5 text-[0.78rem] leading-5 text-white/64">
+            <p className="mt-1 text-[0.76rem] leading-5 text-white/64 sm:mt-1.5 sm:text-[0.78rem]">
               We sent a confirmation link to {normalizedEmail}. Open it to finish creating your account.
             </p>
-            <p className="mt-3 text-[0.76rem] leading-5 text-white/72">
+            <p className="mt-2 text-[0.76rem] leading-5 text-white/72 sm:mt-3">
               You can close this tab after confirming your email.
             </p>
           </div>
@@ -261,13 +261,13 @@ export function CustomAuthFlow() {
 
       {step === 'email' ? (
         <>
-          <div className="my-7 grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-[0.76rem] font-semibold text-white/62">
+          <div className="my-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-[0.72rem] font-semibold text-white/62 sm:my-7 sm:gap-4 sm:text-[0.76rem]">
             <span className="h-px bg-white/20" />
             OR
             <span className="h-px bg-white/20" />
           </div>
 
-          <div className="grid gap-3">
+          <div className="grid gap-2.5 sm:gap-3">
             <button className={socialButtonClasses} type="button" onClick={() => void handleOAuth('google')}>
               <span className="grid w-full grid-cols-[20px_minmax(0,1fr)_20px] items-center gap-3">
                 <GoogleIcon />
