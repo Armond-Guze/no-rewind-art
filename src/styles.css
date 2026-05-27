@@ -1754,6 +1754,45 @@ h3 {
   width: min(1100px, 98%);
 }
 
+.listing-layout .detail-artwork-shell,
+.listing-layout .detail-artwork-shell.frame-black,
+.listing-layout .detail-artwork-shell.frame-white {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.listing-layout .detail-artwork-shell::before,
+.listing-layout .detail-artwork-surface::before,
+.listing-layout .detail-artwork-surface::after,
+.listing-layout .detail-artwork-shell.mockup-product-shell .detail-artwork-surface::after,
+.listing-layout .detail-artwork-shell.front-product-shell .detail-artwork-surface::after {
+  display: none;
+}
+
+.listing-layout .detail-artwork-surface,
+.listing-layout .detail-artwork-shell.mockup-product-shell .detail-artwork-surface,
+.listing-layout .detail-artwork-shell.front-product-shell .detail-artwork-surface,
+.listing-layout .detail-artwork-shell.front-product-shell.frame-black .detail-artwork-surface,
+.listing-layout .detail-artwork-shell.front-product-shell.frame-white .detail-artwork-surface,
+.listing-layout .detail-artwork-shell.frame-black .detail-artwork-surface,
+.listing-layout .detail-artwork-shell.frame-white .detail-artwork-surface {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.listing-layout .detail-artwork-shell img,
+.listing-layout .detail-artwork-shell.front-product-shell img,
+.listing-layout .detail-artwork-shell.mockup-product-shell img,
+.listing-layout .detail-artwork-shell.side-product-shell img,
+.listing-layout .detail-artwork-shell .product-art {
+  border-radius: 0;
+  box-shadow: none;
+  filter: none;
+}
+
 .detail-artwork-shell .product-art.shape-portrait {
   width: min(620px, 90%);
 }
