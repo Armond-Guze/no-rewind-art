@@ -100,6 +100,7 @@ async function productToDocument(product, index) {
     label: product.label,
     mainImage,
     imageAlt: product.imageAlt,
+    aspectRatio: product.aspectRatio,
     galleryImages,
     tone: product.tone,
     collectionSlugs: product.collectionSlugs || [],

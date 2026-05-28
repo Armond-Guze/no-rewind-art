@@ -165,14 +165,14 @@ async function inferShapeAndPreset(mainImagePath) {
   const ratio = dimensions ? dimensions.width / dimensions.height : 2
 
   if (ratio < 0.85) {
-    return {artworkShape: 'portrait', sizePreset: 'portraitTwoThree', defaultSizeId: '24x36'}
+    return {artworkShape: 'portrait', aspectRatio: '2 / 3', sizePreset: 'portraitTwoThree', defaultSizeId: '24x36'}
   }
 
   if (ratio > 1.15) {
-    return {artworkShape: 'landscape', sizePreset: 'landscapeWide', defaultSizeId: '30x15'}
+    return {artworkShape: 'landscape', aspectRatio: '2 / 1', sizePreset: 'landscapeWide', defaultSizeId: '30x15'}
   }
 
-  return {artworkShape: 'square', sizePreset: 'squareStandard', defaultSizeId: '24x24'}
+  return {artworkShape: 'square', aspectRatio: '1 / 1', sizePreset: 'squareStandard', defaultSizeId: '24x24'}
 }
 
 function buildCandidateFolderNames(product) {
@@ -376,7 +376,7 @@ for (const folder of unmatchedFolders) {
     continue
   }
 
-  const {artworkShape, sizePreset, defaultSizeId} = await inferShapeAndPreset(mainImage.sourcePath)
+  const {artworkShape, aspectRatio, sizePreset, defaultSizeId} = await inferShapeAndPreset(mainImage.sourcePath)
   const tone = inferTone(folder)
   const title = titleCase(folder)
   const slug = slugify(folder)
@@ -395,6 +395,7 @@ for (const folder of unmatchedFolders) {
     image: mainImage.publicPath,
     imageAlt: `${title} artwork shown as an Armoze canvas print`,
     artworkShape,
+    aspectRatio,
     gallery: images.filter((image) => image.publicPath !== mainImage.publicPath).map((image) => image.publicPath),
     tone,
     collectionSlugs: inferCollectionSlugs(tone),

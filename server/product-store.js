@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createClient } from '@sanity/client';
 import pg from 'pg';
-import { getArtworkShapeFromSizePreset, normalizeCatalogData, normalizeProduct, seedCatalog } from './catalog.js';
+import { getArtworkShapeFromSizePreset, getProductAspectRatio, normalizeCatalogData, normalizeProduct, seedCatalog } from './catalog.js';
 
 const { Pool } = pg;
 
@@ -197,6 +197,7 @@ function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets)
       image: withSanityImageParams(mainImageUrl, { width: 1600, quality: 88 }),
       imageAlt: document.imageAlt || document.mainImageAlt || document.title,
       artworkShape: getArtworkShapeFromSizePreset(document.sizePreset),
+      aspectRatio: getProductAspectRatio(document),
       gallery,
       tone: document.tone || 'minimal',
       collectionSlugs: Array.isArray(document.collectionSlugs) ? document.collectionSlugs : [],
@@ -239,6 +240,7 @@ const SANITY_PRODUCTS_QUERY = `*[
   longDescription,
   label,
   imageAlt,
+  aspectRatio,
   "mainImageUrl": mainImage.asset->url,
   "mainImageAlt": mainImage.alt,
   "galleryImages": galleryImages[]{
@@ -276,6 +278,7 @@ export function sanitizeProductUpdate(existingProduct, update) {
     'image',
     'imageAlt',
     'artworkShape',
+    'aspectRatio',
     'tone',
     'size',
     'sizePreset',

@@ -36,6 +36,40 @@ export function getArtworkShapeFromSizePreset(sizePreset) {
   return 'landscape';
 }
 
+export function getAspectRatioFromSizePreset(sizePreset) {
+  const aspectRatiosByPreset = {
+    landscapeFourThree: '4 / 3',
+    landscapeThreeTwo: '3 / 2',
+    landscapeWide: '2 / 1',
+    portraitTwoThree: '2 / 3',
+    squareStandard: '1 / 1',
+  };
+
+  return sizePreset ? aspectRatiosByPreset[sizePreset] : undefined;
+}
+
+export function getProductAspectRatio(product) {
+  if (product.aspectRatio) {
+    return product.aspectRatio;
+  }
+
+  const presetAspectRatio = getAspectRatioFromSizePreset(product.sizePreset);
+
+  if (presetAspectRatio) {
+    return presetAspectRatio;
+  }
+
+  if (product.artworkShape === 'portrait') {
+    return '2 / 3';
+  }
+
+  if (product.artworkShape === 'landscape') {
+    return '2 / 1';
+  }
+
+  return '1 / 1';
+}
+
 function getSizeOptionsForProduct(product, sizePresets) {
   if (product.useCustomSizeOptions && Array.isArray(product.sizeOptions) && product.sizeOptions.length) {
     return product.sizeOptions;
@@ -63,6 +97,7 @@ export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets)
     name: product.title,
     imagePath: product.image || '',
     artworkShape: product.artworkShape || getArtworkShapeFromSizePreset(product.sizePreset),
+    aspectRatio: getProductAspectRatio(product),
     priceInCents: product.priceInCents ?? lowestSizePrice + lowestFrameDelta,
     sizeOptions,
     frameOptions,

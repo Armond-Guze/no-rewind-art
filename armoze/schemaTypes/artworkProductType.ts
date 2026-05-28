@@ -154,6 +154,23 @@ export const artworkProductType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: 'aspectRatio',
+      title: 'Canvas Aspect Ratio',
+      type: 'string',
+      description:
+        'Controls the visible canvas shape on the website. Use width / height, for example 2 / 1, 3 / 2, 2 / 3, or 1 / 1.',
+      options: {
+        list: [
+          {title: '1 / 1 Square', value: '1 / 1'},
+          {title: '2 / 1 Panoramic', value: '2 / 1'},
+          {title: '3 / 2 Landscape', value: '3 / 2'},
+          {title: '4 / 3 Landscape', value: '4 / 3'},
+          {title: '4 / 5 Portrait', value: '4 / 5'},
+          {title: '2 / 3 Portrait', value: '2 / 3'},
+        ],
+      },
+    }),
+    defineField({
       name: 'useCustomSizeOptions',
       title: 'Use Custom Size Options',
       type: 'boolean',

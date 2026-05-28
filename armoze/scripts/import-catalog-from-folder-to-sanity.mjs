@@ -407,18 +407,18 @@ async function inferShapeAndPreset(mainImagePath) {
   const ratio = dimensions ? dimensions.width / dimensions.height : 2
 
   if (ratio < 0.85) {
-    return {sizePreset: 'portraitTwoThree'}
+    return {sizePreset: 'portraitTwoThree', aspectRatio: '2 / 3'}
   }
 
   if (ratio > 1.7) {
-    return {sizePreset: 'landscapeWide'}
+    return {sizePreset: 'landscapeWide', aspectRatio: '2 / 1'}
   }
 
   if (ratio > 1.15) {
-    return {sizePreset: 'landscapeThreeTwo'}
+    return {sizePreset: 'landscapeThreeTwo', aspectRatio: '3 / 2'}
   }
 
-  return {sizePreset: 'squareStandard'}
+  return {sizePreset: 'squareStandard', aspectRatio: '1 / 1'}
 }
 
 function documentIdForProductId(productId) {
@@ -457,6 +457,7 @@ async function buildDocumentFromCatalogProduct(product, index) {
     label: product.label,
     mainImage,
     imageAlt: product.imageAlt,
+    aspectRatio: product.aspectRatio,
     galleryImages,
     tone: product.tone,
     collectionSlugs: product.collectionSlugs || [],
@@ -481,7 +482,7 @@ async function buildDocumentFromFolder(folderName, index) {
     return null
   }
 
-  const {sizePreset} = await inferShapeAndPreset(mainImageSource.absolutePath)
+  const {sizePreset, aspectRatio} = await inferShapeAndPreset(mainImageSource.absolutePath)
   const title = titleCase(folderName)
   const slug = slugify(folderName)
   const tone = inferTone(folderName)
@@ -515,6 +516,7 @@ async function buildDocumentFromFolder(folderName, index) {
     label: title,
     mainImage,
     imageAlt,
+    aspectRatio,
     galleryImages,
     tone,
     collectionSlugs: inferCollectionSlugs(tone),

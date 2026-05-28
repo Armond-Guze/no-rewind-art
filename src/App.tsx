@@ -47,6 +47,7 @@ import {
 } from 'lucide-react';
 import {
   getCollectionBySlugFromCatalog,
+  getProductAspectRatio,
   getProductByGoogleItemIdFromCatalog,
   getProductBySlugFromCatalog,
   getProductsForCollectionFromCatalog,
@@ -61,6 +62,7 @@ import {
 import { isSupabaseAuthConfigured, supabaseClient } from './lib/supabase';
 import { AuthShell } from './components/auth/AuthShell';
 import { CustomAuthFlow } from './components/auth/CustomAuthFlow';
+import { ProductCanvasImage } from './components/ProductCanvasImage';
 
 type CartItem = {
   lineKey: string;
@@ -825,6 +827,7 @@ function splitEditableLines(value: string) {
 function productToDraft(product: Product): AdminProductDraft {
   return {
     ...product,
+    aspectRatio: getProductAspectRatio(product),
     galleryText: (product.gallery || []).join('\n'),
     detailsText: product.details.join('\n'),
     collectionSlugsText: product.collectionSlugs.join('\n'),
@@ -1023,97 +1026,18 @@ function ProductVisual({
 
 function ProductImage({ product }: { product: Product }) {
   if (product.image) {
-    return <ArtworkMockup product={product} src={product.image} alt={product.imageAlt} />;
+    return (
+      <ProductCanvasImage
+        src={product.image}
+        alt={product.imageAlt}
+        aspectRatio={getProductAspectRatio(product)}
+        shape={product.artworkShape}
+        fallback={<ProductVisual product={product} useImage={false} />}
+      />
+    );
   }
 
   return <ProductVisual product={product} />;
-}
-
-function ArtworkMockup({
-  product,
-  src,
-  alt,
-  className,
-}: {
-  product: Product;
-  src?: string;
-  alt: string;
-  className?: string;
-}) {
-  const [failedImageSrc, setFailedImageSrc] = useState<string | null>(null);
-  const imageFailed = Boolean(src && (missingImages.has(src) || failedImageSrc === src));
-  const classNames = ['artwork-mockup', `shape-${product.artworkShape}`, className]
-    .filter(Boolean)
-    .join(' ');
-
-  useEffect(() => {
-    if (!src) {
-      return;
-    }
-
-    let active = true;
-    if (missingImages.has(src)) {
-      const knownFailureId = window.setTimeout(() => {
-        if (active) {
-          setFailedImageSrc(src);
-        }
-      }, 0);
-
-      return () => {
-        active = false;
-        window.clearTimeout(knownFailureId);
-      };
-    }
-
-    const probeImage = new Image();
-
-    probeImage.onload = () => {
-      if (active && probeImage.naturalWidth === 0) {
-        missingImages.add(src);
-        setFailedImageSrc(src);
-      }
-    };
-
-    probeImage.onerror = () => {
-      if (active) {
-        missingImages.add(src);
-        setFailedImageSrc(src);
-      }
-    };
-
-    probeImage.src = src;
-    const failureCheckId = window.setTimeout(() => {
-      if (active && probeImage.complete && probeImage.naturalWidth === 0) {
-        missingImages.add(src);
-        setFailedImageSrc(src);
-      }
-    }, 120);
-
-    return () => {
-      active = false;
-      window.clearTimeout(failureCheckId);
-    };
-  }, [src]);
-
-  return (
-    <div className={classNames}>
-      <div className="artwork-mockup-print">
-        {src && !imageFailed ? (
-          <img
-            className="artwork-mockup-image"
-            src={src}
-            alt={alt}
-            onError={() => {
-              missingImages.add(src);
-              setFailedImageSrc(src);
-            }}
-          />
-        ) : (
-          <ProductVisual product={product} useImage={false} />
-        )}
-      </div>
-    </div>
-  );
 }
 
 function GalleryImage({
@@ -2043,12 +1967,18 @@ function ProductPage({
               }`}
             >
               <div className="detail-artwork-surface">
-                {selectedGalleryImage ? (
-                  <GalleryImage
+                {selectedGalleryImage === product.image ? (
+                  <ProductCanvasImage
                     className="detail-artwork-image"
                     src={selectedGalleryImage}
                     alt={product.imageAlt}
+                    aspectRatio={getProductAspectRatio(product)}
+                    shape={product.artworkShape}
+                    loading="eager"
+                    fallback={<ProductVisual product={product} useImage={false} />}
                   />
+                ) : selectedGalleryImage ? (
+                  <GalleryImage className="detail-gallery-image" src={selectedGalleryImage} alt={product.imageAlt} />
                 ) : (
                   <ProductVisual product={product} />
                 )}
@@ -2846,6 +2776,20 @@ function AdminDashboard({ onCatalogUpdated }: { onCatalogUpdated: (catalog: Norm
                     <option value="landscape">Landscape</option>
                     <option value="portrait">Portrait</option>
                     <option value="square">Square</option>
+                  </select>
+                </label>
+                <label>
+                  Canvas aspect ratio
+                  <select
+                    value={productDraft.aspectRatio || getProductAspectRatio(productDraft)}
+                    onChange={(event) => updateProductDraftField('aspectRatio', event.target.value)}
+                  >
+                    <option value="1 / 1">1 / 1 Square</option>
+                    <option value="2 / 1">2 / 1 Panoramic</option>
+                    <option value="3 / 2">3 / 2 Landscape</option>
+                    <option value="4 / 3">4 / 3 Landscape</option>
+                    <option value="4 / 5">4 / 5 Portrait</option>
+                    <option value="2 / 3">2 / 3 Portrait</option>
                   </select>
                 </label>
                 <label>

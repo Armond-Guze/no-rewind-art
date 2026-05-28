@@ -312,7 +312,8 @@
         }
       ],
       "seoTitle": "Life Has No Rewind Motivational Canvas Print",
-      "seoDescription": "Shop Life Has No Rewind by Armoze, a cassette-inspired motivational canvas print for offices, bedrooms, studios, and creative spaces."
+      "seoDescription": "Shop Life Has No Rewind by Armoze, a cassette-inspired motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "reminder-life-has-no-rewind-canvas",
@@ -380,7 +381,8 @@
         }
       ],
       "seoTitle": "Reminder Life Has No Rewind Canvas Print",
-      "seoDescription": "Shop Reminder: Life Has No Rewind, a bold cassette-style canvas print for focus, discipline, and everyday perspective."
+      "seoDescription": "Shop Reminder: Life Has No Rewind, a bold cassette-style canvas print for focus, discipline, and everyday perspective.",
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "money-is-energy-canvas",
@@ -445,7 +447,8 @@
         }
       ],
       "seoTitle": "Rubber Band Stacks Canvas Print for Offices and Studios",
-      "seoDescription": "Shop Rubber Band Stacks by Armoze, a money mindset canvas print for offices, studios, entrepreneurs, and ambitious workspaces."
+      "seoDescription": "Shop Rubber Band Stacks by Armoze, a money mindset canvas print for offices, studios, entrepreneurs, and ambitious workspaces.",
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "keep-going-canvas",
@@ -506,7 +509,8 @@
       "seoTitle": "Keep Going Space Motivational Canvas Print",
       "seoDescription": "Shop Keep Going by Armoze, a cinematic future-focused canvas print for bedrooms, dorm rooms, studios, and creative spaces.",
       "imageFolder": "keep going turtle",
-      "image": "/artwork/keep going turtle/keep going turtle.png"
+      "image": "/artwork/keep going turtle/keep going turtle.png",
+      "aspectRatio": "2 / 3"
     },
     {
       "id": "bookshelf-canvas",
@@ -575,7 +579,8 @@
         }
       ],
       "seoTitle": "Bookshelf Mindset Canvas Print for Study Rooms",
-      "seoDescription": "Shop Bookshelf Mindset by Armoze, a clean motivational canvas print for reading corners, offices, libraries, and study rooms."
+      "seoDescription": "Shop Bookshelf Mindset by Armoze, a clean motivational canvas print for reading corners, offices, libraries, and study rooms.",
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "paycheck-canvas",
@@ -638,7 +643,8 @@
         }
       ],
       "seoTitle": "Paycheck Energy Money Mindset Canvas Print",
-      "seoDescription": "Shop Paycheck Energy by Armoze, a money mindset canvas print for workspaces, studios, entrepreneurs, and income-focused rooms."
+      "seoDescription": "Shop Paycheck Energy by Armoze, a money mindset canvas print for workspaces, studios, entrepreneurs, and income-focused rooms.",
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "stairs-canvas",
@@ -701,7 +707,8 @@
         }
       ],
       "seoTitle": "One Step Higher Discipline Canvas Print",
-      "seoDescription": "Shop One Step Higher by Armoze, a discipline-focused canvas print about progress, patience, and daily improvement."
+      "seoDescription": "Shop One Step Higher by Armoze, a discipline-focused canvas print about progress, patience, and daily improvement.",
+      "aspectRatio": "2 / 3"
     },
     {
       "id": "books-of-motivation-canvas",
@@ -767,7 +774,8 @@
         }
       ],
       "seoTitle": "Books of Motivation Canvas Print for Readers and Students",
-      "seoDescription": "Shop Books of Motivation by Armoze, a learning-focused canvas print for readers, students, writers, and creative workspaces."
+      "seoDescription": "Shop Books of Motivation by Armoze, a learning-focused canvas print for readers, students, writers, and creative workspaces.",
+      "aspectRatio": "2 / 3"
     },
     {
       "id": "hello-i-am-canvas",
@@ -832,7 +840,8 @@
         }
       ],
       "seoTitle": "Hello I Am Identity Motivational Canvas Print",
-      "seoDescription": "Shop Hello I Am by Armoze, an identity-focused motivational canvas print for bedrooms, offices, studios, and personal spaces."
+      "seoDescription": "Shop Hello I Am by Armoze, an identity-focused motivational canvas print for bedrooms, offices, studios, and personal spaces.",
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "ninety-seven-percent-canvas",
@@ -895,7 +904,8 @@
         }
       ],
       "seoTitle": "97 Percent Discipline Motivational Canvas Print",
-      "seoDescription": "Shop 97 Percent by Armoze, a sharp discipline canvas print for people who want focus, separation, and daily momentum."
+      "seoDescription": "Shop 97 Percent by Armoze, a sharp discipline canvas print for people who want focus, separation, and daily momentum.",
+      "aspectRatio": "2 / 3"
     },
     {
       "id": "calm-under-pressure-canvas",
@@ -960,7 +970,8 @@
         }
       ],
       "seoTitle": "Calm Under Pressure Canvas Print for Focused Rooms",
-      "seoDescription": "Shop Calm Under Pressure by Armoze, a composed motivational canvas print for offices, studios, bedrooms, and focus spaces."
+      "seoDescription": "Shop Calm Under Pressure by Armoze, a composed motivational canvas print for offices, studios, bedrooms, and focus spaces.",
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "calm-under-pres-canvas",
@@ -1022,7 +1033,8 @@
         }
       ],
       "seoTitle": "Calm Under Pressure II Motivational Canvas Print",
-      "seoDescription": "Shop Calm Under Pressure II by Armoze, a focused wall art variation for offices, studios, and calm workspaces."
+      "seoDescription": "Shop Calm Under Pressure II by Armoze, a focused wall art variation for offices, studios, and calm workspaces.",
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "remember-who-you-are-canvas",
@@ -1084,7 +1096,8 @@
         }
       ],
       "seoTitle": "Remember Who You Are Motivational Canvas Print",
-      "seoDescription": "Shop Remember Who You Are by Armoze, an identity-focused motivational canvas print for confidence, grounding, and self-belief."
+      "seoDescription": "Shop Remember Who You Are by Armoze, an identity-focused motivational canvas print for confidence, grounding, and self-belief.",
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "100-dollars-white-marble-canvas",
@@ -1146,7 +1159,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "calm-under-pressure-red-canvas",
@@ -1208,7 +1222,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "daily-reminder-canvas",
@@ -1270,7 +1285,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "invest-in-yourself-canvas",
@@ -1332,7 +1348,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "money-band-clip-canvas",
@@ -1394,7 +1411,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "money-band-aid-canvas",
@@ -1458,7 +1476,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "money-over-everything-canvas",
@@ -1525,7 +1544,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "1 / 1"
     },
     {
       "id": "money-vault-canvas",
@@ -1587,7 +1607,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 3"
     },
     {
       "id": "never-lose-sight-of-your-dreams-canvas",
@@ -1649,7 +1670,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "no-risk-no-reward-lambo-canvas",
@@ -1711,7 +1733,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "orange-rubberband-racks-canvas",
@@ -1773,7 +1796,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "rent-due-canvas",
@@ -1835,7 +1859,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "reportcard-canvas",
@@ -1897,7 +1922,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 3"
     },
     {
       "id": "success-envelope-canvas",
@@ -1964,7 +1990,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "success-is-earned-canvas",
@@ -2026,7 +2053,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     },
     {
       "id": "to-do-list-canvas",
@@ -2088,7 +2116,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 3"
     },
     {
       "id": "you-cant-turn-back-the-clock-canvas",
@@ -2150,7 +2179,8 @@
             6000
           ]
         }
-      ]
+      ],
+      "aspectRatio": "2 / 1"
     }
   ]
 }
