@@ -6463,11 +6463,12 @@ h3 {
   position: absolute;
   left: -5.556%;
   top: -33.333%;
+  aspect-ratio: 1 / 1;
   width: 111.111%;
-  height: auto;
+  height: 166.667%;
   max-width: none;
   max-height: none;
-  object-fit: fill;
+  object-fit: cover;
   object-position: center;
 }
 
