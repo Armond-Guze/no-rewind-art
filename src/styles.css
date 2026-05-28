@@ -6287,12 +6287,24 @@ h3 {
 .mobile-gallery-slide
   .detail-artwork-shell.front-product-shell.shape-portrait
   .product-canvas-image.crop-square-source-2x3 {
-  --canvas-shadow-width: 96%;
-  --canvas-shadow-height: clamp(14px, 1.55vw, 26px);
-  --canvas-shadow-bottom: clamp(-18px, -1vw, -10px);
-  --canvas-shadow-opacity: 0.34;
-  --canvas-shadow-blur: clamp(10px, 1.3vw, 20px);
+  --canvas-shadow-width: 104%;
+  --canvas-shadow-height: clamp(18px, 1.85vw, 30px);
+  --canvas-shadow-bottom: clamp(-14px, -0.75vw, -7px);
+  --canvas-shadow-opacity: 0.42;
+  --canvas-shadow-blur: clamp(11px, 1.35vw, 21px);
   overflow: visible;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image.crop-square-source-2x3
+  .product-canvas-shadow,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image.crop-square-source-2x3
+  .product-canvas-shadow {
+  z-index: 2;
+  mix-blend-mode: multiply;
 }
 
 .mobile-gallery-slide
@@ -6313,9 +6325,9 @@ h3 {
   position: relative;
   overflow: hidden;
   box-shadow:
-    0 28px 34px -24px rgba(0, 0, 0, 0.64),
-    0 10px 14px -10px rgba(0, 0, 0, 0.42),
-    0 3px 5px -3px rgba(0, 0, 0, 0.3);
+    0 30px 36px -24px rgba(0, 0, 0, 0.66),
+    0 11px 15px -10px rgba(0, 0, 0, 0.44),
+    0 3px 5px -3px rgba(0, 0, 0, 0.32);
 }
 
 .listing-gallery > .main-product-image
