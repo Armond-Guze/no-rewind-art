@@ -1918,7 +1918,7 @@ h3 {
 }
 
 .listing-gallery > .main-product-image
-  .detail-artwork-shell.front-product-shell
+  .detail-artwork-shell.front-product-shell.shape-landscape
   .product-canvas-image {
   --canvas-shadow-width: 96%;
   --canvas-shadow-height: clamp(12px, 1.25vw, 22px);
@@ -1936,7 +1936,7 @@ h3 {
 }
 
 .listing-gallery > .main-product-image
-  .detail-artwork-shell.front-product-shell
+  .detail-artwork-shell.front-product-shell.shape-landscape
   .product-canvas-image
   > div {
   box-shadow:
@@ -1970,6 +1970,22 @@ h3 {
   --canvas-shadow-bottom: calc(var(--canvas-visible-bottom) - clamp(16px, 1.8vw, 28px));
 }
 
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image[style*="2 / 3"],
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image[style*="2 / 3"] {
+  --canvas-visible-left: 20%;
+  --canvas-visible-right: 20%;
+  --canvas-visible-bottom: 5%;
+  --canvas-shadow-width: 60%;
+  --canvas-shadow-height: clamp(15px, 1.6vw, 28px);
+  --canvas-shadow-bottom: calc(var(--canvas-visible-bottom) - clamp(10px, 1vw, 18px));
+  --canvas-shadow-opacity: 0.4;
+  --canvas-shadow-blur: clamp(10px, 1.25vw, 20px);
+}
+
 .listing-layout .detail-artwork-shell .product-canvas-image.shape-square {
   --canvas-visible-left: 8%;
   --canvas-visible-right: 8%;
@@ -1988,6 +2004,31 @@ h3 {
 .listing-layout .detail-artwork-shell .product-canvas-image > div {
   background: transparent;
   box-shadow: none;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image[style*="2 / 3"]
+  > div::before,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image[style*="2 / 3"]
+  > div::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 5% 20%;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.24) 0, rgba(0, 0, 0, 0.1) 2.4%, transparent 7%, transparent 93%, rgba(0, 0, 0, 0.2) 97.6%, rgba(255, 255, 255, 0.09) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0, transparent 4.5%, transparent 94.5%, rgba(0, 0, 0, 0.16) 100%);
+  box-shadow:
+    0 22px 28px -20px rgba(0, 0, 0, 0.62),
+    0 8px 12px -8px rgba(0, 0, 0, 0.38),
+    inset 2px 0 3px rgba(255, 255, 255, 0.1),
+    inset -5px 0 8px rgba(0, 0, 0, 0.24),
+    inset 0 1px 2px rgba(255, 255, 255, 0.12),
+    inset 0 -5px 8px rgba(0, 0, 0, 0.18);
 }
 
 .detail-artwork-shell .product-art.shape-portrait {
