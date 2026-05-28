@@ -1168,6 +1168,16 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
       >
         {menuOpen ? <X aria-hidden="true" size={22} /> : <Menu aria-hidden="true" size={22} />}
       </button>
+      <Link
+        className={`mobile-account-nav-link${user ? ' signed-in' : ''}`}
+        to="/sign-in"
+        aria-label={accountLabel}
+        title={accountLabel}
+        onClick={closeMenu}
+      >
+        <CircleUserRound aria-hidden="true" size={22} />
+        <span className="sr-only">{loading ? 'Checking account' : accountLabel}</span>
+      </Link>
       <nav
         className={`nav-links${menuOpen ? ' open' : ''}`}
         id="primary-navigation"
@@ -1179,7 +1189,7 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
         <Link to="/collections/new-arrivals" onClick={closeMenu}>New Arrivals</Link>
         <Link to="/cart" onClick={closeMenu}>Cart ({cartCount})</Link>
         <Link
-          className={`account-nav-link${user ? ' signed-in' : ''}`}
+          className={`account-nav-link desktop-account-nav-link${user ? ' signed-in' : ''}`}
           to="/sign-in"
           aria-label={accountLabel}
           title={accountLabel}
@@ -1261,7 +1271,10 @@ function SiteFooter() {
         <div>
           <span>Newsletter</span>
           <h2>Get the next drop first.</h2>
-          <p>Join the Armoze list for new artwork releases, restocks, and shop updates.</p>
+          <p>
+            Join the Armoze list for new artwork releases, restocks, and shop updates. Need help?
+            Email <a href={supportMailto}>{supportEmail}</a>.
+          </p>
         </div>
         <form onSubmit={handleNewsletterSubmit}>
           <label className="sr-only" htmlFor="newsletter-email">
@@ -1284,6 +1297,16 @@ function SiteFooter() {
           <p className={`newsletter-message ${newsletterStatus}`}>{newsletterMessage}</p>
         </form>
       </section>
+
+      <details className="footer-policy-menu">
+        <summary>Policies</summary>
+        <nav aria-label="Footer policies">
+          <Link to="/terms">Terms and Conditions</Link>
+          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/terms">Terms of Service</Link>
+          <Link to="/returns">Refund Policy</Link>
+        </nav>
+      </details>
 
       <div className="footer-bottom">
         <span>2026 Armoze</span>
