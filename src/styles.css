@@ -6387,3 +6387,109 @@ h3 {
     inset 0 2px 3px rgba(255, 255, 255, 0.13),
     inset 0 -6px 10px rgba(0, 0, 0, 0.22);
 }
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.crop-square-source-3x2,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.crop-square-source-3x2 {
+  --canvas-shadow-width: 104%;
+  --canvas-shadow-height: clamp(16px, 1.65vw, 28px);
+  --canvas-shadow-bottom: clamp(-13px, -0.7vw, -7px);
+  --canvas-shadow-opacity: 0.46;
+  --canvas-shadow-blur: clamp(10px, 1.25vw, 20px);
+  overflow: visible;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.crop-square-source-3x2
+  .product-canvas-shadow,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.crop-square-source-3x2
+  .product-canvas-shadow {
+  z-index: 2;
+  mix-blend-mode: multiply;
+}
+
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.crop-square-source-3x2 {
+  width: min(100%, calc((clamp(320px, 94vw, 460px) - 36px) * 3 / 2));
+  max-height: none;
+}
+
+@media (min-width: 761px) {
+  .listing-gallery > .main-product-image
+    .detail-artwork-shell.front-product-shell.shape-landscape
+    .detail-artwork-surface:has(.product-canvas-image.crop-square-source-3x2) {
+    width: min(780px, 88%);
+    overflow: visible;
+  }
+
+  .listing-gallery > .main-product-image
+    .detail-artwork-shell.front-product-shell.shape-landscape
+    .product-canvas-image.crop-square-source-3x2 {
+    width: 100%;
+  }
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.crop-square-source-3x2
+  > div,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.crop-square-source-3x2
+  > div {
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 28px 34px -24px rgba(0, 0, 0, 0.66),
+    0 10px 14px -10px rgba(0, 0, 0, 0.44),
+    0 3px 5px -3px rgba(0, 0, 0, 0.32);
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.crop-square-source-3x2
+  img,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.crop-square-source-3x2
+  img {
+  position: absolute;
+  left: -5.556%;
+  top: -33.333%;
+  width: 111.111%;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  object-fit: fill;
+  object-position: center;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.crop-square-source-3x2
+  > div::before,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.crop-square-source-3x2
+  > div::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0, rgba(0, 0, 0, 0.1) 2.2%, transparent 6%, transparent 94%, rgba(0, 0, 0, 0.18) 97.8%, rgba(255, 255, 255, 0.08) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0, transparent 5%, transparent 92%, rgba(0, 0, 0, 0.18) 100%);
+  box-shadow:
+    inset 2px 0 4px rgba(255, 255, 255, 0.1),
+    inset -4px 0 8px rgba(0, 0, 0, 0.18),
+    inset 0 2px 3px rgba(255, 255, 255, 0.12),
+    inset 0 -5px 9px rgba(0, 0, 0, 0.2);
+}

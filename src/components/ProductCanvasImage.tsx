@@ -27,10 +27,12 @@ export function ProductCanvasImage({
   const imageFailed = Boolean(src && (failedCanvasImages.has(src) || failedImageSrc === src));
   const normalizedAspectRatio = aspectRatio.replace(/\s/g, '');
   const usesSquareSourcePortraitCrop = shape === 'portrait' && normalizedAspectRatio === '2/3';
+  const usesSquareSourceLandscapeCrop = shape === 'landscape' && normalizedAspectRatio === '3/2';
   const classNames = [
     'product-canvas-image',
     shape ? `shape-${shape}` : undefined,
     usesSquareSourcePortraitCrop ? 'crop-square-source-2x3' : undefined,
+    usesSquareSourceLandscapeCrop ? 'crop-square-source-3x2' : undefined,
     shadow ? 'has-canvas-shadow' : 'no-canvas-shadow',
     className,
   ].filter(Boolean).join(' ');
