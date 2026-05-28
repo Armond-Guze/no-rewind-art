@@ -992,6 +992,15 @@ h3 {
   z-index: 1;
 }
 
+.product-canvas-image > div > .product-art {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  border: 0;
+  box-shadow: none;
+}
+
 .product-canvas-shadow {
   position: absolute;
   z-index: 0;
@@ -6393,11 +6402,12 @@ h3 {
   position: absolute;
   left: -33.333%;
   top: -5.556%;
+  aspect-ratio: 1 / 1;
   width: 166.667%;
-  height: auto;
+  height: 111.111%;
   max-width: none;
   max-height: none;
-  object-fit: fill;
+  object-fit: cover;
   object-position: center;
 }
 
@@ -6529,4 +6539,61 @@ h3 {
     inset -4px 0 8px rgba(0, 0, 0, 0.18),
     inset 0 2px 3px rgba(255, 255, 255, 0.12),
     inset 0 -5px 9px rgba(0, 0, 0, 0.2);
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-surface:has(.product-canvas-image.frame-black),
+.listing-gallery > .main-product-image
+  .detail-artwork-surface:has(.product-canvas-image.frame-white),
+.mobile-gallery-slide
+  .detail-artwork-surface:has(.product-canvas-image.frame-black),
+.mobile-gallery-slide
+  .detail-artwork-surface:has(.product-canvas-image.frame-white) {
+  overflow: visible;
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black,
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white {
+  --canvas-frame-rail: clamp(8px, 0.85vw, 14px);
+}
+
+.mobile-gallery-slide .product-canvas-image.frame-black,
+.mobile-gallery-slide .product-canvas-image.frame-white {
+  --canvas-frame-rail: clamp(7px, 2vw, 10px);
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black
+  > div,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black
+  > div {
+  outline: var(--canvas-frame-rail) solid #0a0a09;
+  box-shadow:
+    0 0 0 calc(var(--canvas-frame-rail) + 1px) rgba(255, 255, 255, 0.08),
+    0 34px 40px -24px rgba(0, 0, 0, 0.74),
+    0 13px 17px -10px rgba(0, 0, 0, 0.5),
+    0 4px 6px -3px rgba(0, 0, 0, 0.36),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white
+  > div,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white
+  > div {
+  outline: var(--canvas-frame-rail) solid #f4f1e9;
+  box-shadow:
+    0 0 0 calc(var(--canvas-frame-rail) + 1px) rgba(0, 0, 0, 0.1),
+    0 34px 40px -24px rgba(0, 0, 0, 0.58),
+    0 13px 17px -10px rgba(0, 0, 0, 0.38),
+    0 4px 6px -3px rgba(0, 0, 0, 0.24),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }

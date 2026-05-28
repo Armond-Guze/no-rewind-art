@@ -1006,6 +1006,20 @@ function formatFramePriceDelta(product: Product, sizeOption: SizeOption, frameOp
   return `+${formatPrice(framePriceDelta)}`;
 }
 
+function getDisplayArtworkShape(product: Pick<Product, 'aspectRatio' | 'artworkShape' | 'sizePreset'>) {
+  const normalizedAspectRatio = getProductAspectRatio(product).replace(/\s/g, '');
+
+  if (normalizedAspectRatio === '2/3') {
+    return 'portrait';
+  }
+
+  if (normalizedAspectRatio === '1/1') {
+    return 'square';
+  }
+
+  return 'landscape';
+}
+
 function ProductVisual({
   product,
   useImage = import.meta.env.PROD,
@@ -1013,8 +1027,10 @@ function ProductVisual({
   product: Product;
   useImage?: boolean;
 }) {
+  const displayShape = getDisplayArtworkShape(product);
+
   return (
-    <div className={`product-art ${product.tone}-art shape-${product.artworkShape}`}>
+    <div className={`product-art ${product.tone}-art shape-${displayShape}`}>
       {product.image && useImage ? (
         <img src={product.image} alt={product.imageAlt} />
       ) : (
@@ -1031,7 +1047,7 @@ function ProductImage({ product }: { product: Product }) {
         src={product.image}
         alt={product.imageAlt}
         aspectRatio={getProductAspectRatio(product)}
-        shape={product.artworkShape}
+        shape={getDisplayArtworkShape(product)}
         fallback={<ProductVisual product={product} useImage={false} />}
       />
     );
@@ -1934,6 +1950,8 @@ function ProductPage({
   const selectedFrameOption = product.frameOptions[selectedFrame] ?? getBaseFrameOption(product);
   const selectedFrameName = selectedFrameOption.label;
   const selectedUnitPrice = getConfiguredUnitPrice(product, selectedOption, selectedFrameOption);
+  const productAspectRatio = getProductAspectRatio(product);
+  const productDisplayShape = getDisplayArtworkShape(product);
   const shouldShowFramePreview = selectedImage === 0;
   const relatedProducts = catalog.products
     .filter((candidate) => candidate.id !== product.id && candidate.published)
@@ -1956,6 +1974,12 @@ function ProductPage({
     !shouldShowFramePreview
       ? 'frame-none'
       : selectedFrameName === 'Black Frame'
+      ? 'frame-black'
+      : selectedFrameName === 'White Frame'
+        ? 'frame-white'
+        : 'frame-none';
+  const selectedFrameClass =
+    selectedFrameName === 'Black Frame'
       ? 'frame-black'
       : selectedFrameName === 'White Frame'
         ? 'frame-white'
@@ -1995,12 +2019,7 @@ function ProductPage({
               const mobileIsMockupImage = isProductMockupImage(product, mobileGalleryImage);
               const mobileIsSideImage = isSideMockupImage(mobileGalleryImage);
               const mobileIsFrontMockupImage = mobileIsMockupImage && !mobileIsSideImage;
-              const mobileFrameClass =
-                index === 0 && selectedFrameName === 'Black Frame'
-                  ? 'frame-black'
-                  : index === 0 && selectedFrameName === 'White Frame'
-                    ? 'frame-white'
-                    : 'frame-none';
+              const mobileFrameClass = index === 0 ? selectedFrameClass : 'frame-none';
 
               return (
                 <div className="mobile-gallery-slide" key={`${product.id}-mobile-${index}`}>
@@ -2010,7 +2029,7 @@ function ProductPage({
                     }`}
                   >
                     <div
-                      className={`detail-artwork-shell ${mobileFrameClass} shape-${product.artworkShape} ${
+                      className={`detail-artwork-shell frame-none shape-${productDisplayShape} ${
                         mobileIsMockupImage ? 'mockup-product-shell' : ''
                       } ${mobileIsFrontMockupImage ? 'front-product-shell' : ''} ${
                         mobileIsSideImage ? 'side-product-shell' : ''
@@ -2019,11 +2038,11 @@ function ProductPage({
                       <div className="detail-artwork-surface">
                         {mobileGalleryImage === product.image ? (
                           <ProductCanvasImage
-                            className="detail-artwork-image"
+                            className={`detail-artwork-image ${mobileFrameClass}`}
                             src={mobileGalleryImage}
                             alt={product.imageAlt}
-                            aspectRatio={getProductAspectRatio(product)}
-                            shape={product.artworkShape}
+                            aspectRatio={productAspectRatio}
+                            shape={productDisplayShape}
                             loading={index === 0 ? 'eager' : 'lazy'}
                             fallback={<ProductVisual product={product} useImage={false} />}
                           />
@@ -2051,7 +2070,7 @@ function ProductPage({
             }`}
           >
             <div
-              className={`detail-artwork-shell ${frameClass} shape-${product.artworkShape} ${
+              className={`detail-artwork-shell frame-none shape-${productDisplayShape} ${
                 isMockupGalleryImage ? 'mockup-product-shell' : ''
               } ${isFrontMockupGalleryImage ? 'front-product-shell' : ''} ${
                 isSideGalleryImage ? 'side-product-shell' : ''
@@ -2060,11 +2079,11 @@ function ProductPage({
               <div className="detail-artwork-surface">
                 {selectedGalleryImage === product.image ? (
                   <ProductCanvasImage
-                    className="detail-artwork-image"
+                    className={`detail-artwork-image ${frameClass}`}
                     src={selectedGalleryImage}
                     alt={product.imageAlt}
-                    aspectRatio={getProductAspectRatio(product)}
-                    shape={product.artworkShape}
+                    aspectRatio={productAspectRatio}
+                    shape={productDisplayShape}
                     loading="eager"
                     fallback={<ProductVisual product={product} useImage={false} />}
                   />
