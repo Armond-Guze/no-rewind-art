@@ -1,0 +1,57 @@
+
+> armoze@0.1.0 dev
+> concurrently "vite --host 127.0.0.1" "node --watch server/index.js"
+
+[1] (node:6004) ExperimentalWarning: Watch mode is an experimental feature and might change at any time
+[1] (Use `node --trace-warnings ...` to show where the warning was created)
+[1] Restarting 'server/index.js'
+[0] 
+[0]   [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m1563[22m[2m[0m ms[22m
+[0] 
+[0]   [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] Restarting 'server/index.js'
+[1] node:internal/validators:162
+[1]     throw new ERR_INVALID_ARG_TYPE(name, 'string', value);
+[1]     ^
+[1] 
+[1] TypeError [ERR_INVALID_ARG_TYPE]: The "paths[1]" argument must be of type string. Received null
+[1]     at new NodeError (node:internal/errors:406:5)
+[1]     at validateString (node:internal/validators:162:11)
+[1]     at resolve (node:path:171:9)
+[1]     at FSWatcher.<anonymous> (node:internal/watch_mode/files_watcher:101:30)
+[1]     at FSWatcher.emit (node:events:514:28)
+[1]     at FSWatcher._handle.onchange (node:internal/fs/watchers:215:12) {
+[1]   code: 'ERR_INVALID_ARG_TYPE'
+[1] }
+[1] 
+[1] Node.js v20.9.0
+[1] node --watch server/index.js exited with code 1
+[0] [2m8:45:42 PM[22m [36m[1m[vite][22m[39m [32mvite.config.ts changed, restarting server...[39m
+[0] [2m8:45:42 PM[22m [36m[1m[vite][22m[39m changed tsconfig file detected: C:\Users\Armon\projects\no-rewind-art\apps\mobile\tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+[0] [2m8:45:42 PM[22m [36m[1m[vite][22m[39m server restarted.
