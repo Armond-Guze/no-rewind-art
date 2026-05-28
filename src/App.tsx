@@ -1285,10 +1285,7 @@ function SiteFooter() {
       </nav>
 
       <section className="footer-support" aria-label="Customer support">
-        <div>
-          <span>Need help?</span>
-          <p>Email order questions, damage photos, sizing help, or address changes to:</p>
-        </div>
+        <span>Support</span>
         <a href={supportMailto}>{supportEmail}</a>
       </section>
 
@@ -1296,10 +1293,6 @@ function SiteFooter() {
         <div>
           <span>Newsletter</span>
           <h2>Get the next drop first.</h2>
-          <p>
-            Join the Armoze list for new artwork releases, restocks, and shop updates. Need help?
-            Email <a href={supportMailto}>{supportEmail}</a>.
-          </p>
         </div>
         <form onSubmit={handleNewsletterSubmit}>
           <label className="sr-only" htmlFor="newsletter-email">
@@ -1324,8 +1317,9 @@ function SiteFooter() {
       </section>
 
       <details className="footer-policy-menu">
-        <summary>Policies</summary>
+        <summary>Policies &amp; Support</summary>
         <nav aria-label="Footer policies">
+          <a href={supportMailto}>Support: {supportEmail}</a>
           <Link to="/terms">Terms and Conditions</Link>
           <Link to="/privacy">Privacy Policy</Link>
           <Link to="/terms">Terms of Service</Link>
@@ -1437,14 +1431,12 @@ function HomePage({
         <div className="storefront-hero-copy">
           <p className="eyebrow">Armoze canvas prints</p>
           <h1 id="storefront-title">
-            <span>Artwork</span>
-            <span>for</span>
-            <span>ambitious</span>
-            <span>spaces.</span>
+            <span>Art for</span>
+            <span>the <em>refined.</em></span>
           </h1>
           <p>
-            Motivational wall art made for offices, bedrooms, studios, and the rooms where you
-            keep building.
+            Every gallery-quality canvas is ready to hang and designed to inspire focus,
+            execution, and a relentless mindset.
           </p>
           <div className="hero-actions">
             <Link className="button button-primary" to="/collections/best-sellers">
@@ -1474,22 +1466,6 @@ function HomePage({
             </Link>
           ))}
         </div>
-      </section>
-
-      <section className="storefront-quote-cta" aria-labelledby="storefront-quote-title">
-        <p className="eyebrow">Made for momentum</p>
-        <h2 id="storefront-quote-title">
-          <span>Art for</span>
-          <span>the ones</span>
-          <span>still <em>building.</em></span>
-        </h2>
-        <p className="storefront-quote-copy">
-          Motivational canvas prints for rooms where focus, ambition, and discipline stay visible.
-        </p>
-        <Link className="button button-primary" to="/collections/best-sellers">
-          Shop Best Sellers
-          <ArrowUpRight aria-hidden="true" size={16} />
-        </Link>
       </section>
 
       <section id="shop" className="section shop-section storefront-shop-section">
@@ -1535,6 +1511,20 @@ function HomePage({
             </article>
           ))}
         </div>
+      </section>
+
+      <section className="storefront-quote-cta" aria-labelledby="storefront-quote-title">
+        <p className="eyebrow">Made for momentum</p>
+        <h2 id="storefront-quote-title">
+          <span>Made for those who <em>build.</em></span>
+        </h2>
+        <p className="storefront-quote-copy">
+          Motivational canvas prints for rooms where focus, ambition, and discipline stay visible.
+        </p>
+        <Link className="button button-primary" to="/collections/best-sellers">
+          Shop Best Sellers
+          <ArrowUpRight aria-hidden="true" size={16} />
+        </Link>
       </section>
 
       <section className="section shop-section storefront-shop-section new-arrivals-preview">
