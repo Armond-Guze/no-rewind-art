@@ -79,6 +79,8 @@ a {
   position: sticky;
   top: 0;
   z-index: 20;
+  width: 100%;
+  max-width: 100vw;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4601,5 +4603,416 @@ h3 {
 
   .wallpaper-preview {
     width: min(100%, 230px);
+  }
+}
+
+/* Storefront refresh */
+.storefront-home {
+  background: #f7f5f0;
+  color: #151515;
+}
+
+.storefront-home .eyebrow {
+  color: #b03127;
+}
+
+.storefront-hero {
+  min-height: clamp(680px, calc(100vh - 72px), 860px);
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(420px, 1fr);
+  gap: clamp(32px, 5vw, 88px);
+  align-items: center;
+  overflow: hidden;
+  padding: clamp(54px, 7vw, 96px) clamp(18px, 5vw, 76px);
+  border-bottom: 1px solid rgba(21, 21, 21, 0.1);
+  background: #f7f5f0;
+}
+
+.storefront-hero-copy {
+  min-width: 0;
+  max-width: 720px;
+}
+
+.storefront-hero h1 {
+  max-width: 10ch;
+  margin-bottom: 22px;
+  color: #151515;
+  font-size: clamp(3.35rem, 5.8vw, 6.9rem);
+  line-height: 0.9;
+}
+
+.storefront-hero h1 span {
+  display: block;
+}
+
+.storefront-hero p:not(.eyebrow) {
+  max-width: 580px;
+  color: #4f4b45;
+  font-size: clamp(1.02rem, 1.6vw, 1.28rem);
+  line-height: 1.58;
+}
+
+.storefront-home .storefront-hero .button-primary {
+  border-color: #151515;
+  background: #151515;
+  color: #fff;
+}
+
+.storefront-home .storefront-hero .button-secondary {
+  border-color: rgba(21, 21, 21, 0.28);
+  color: #151515;
+}
+
+.storefront-proof-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: 28px;
+  color: #676058;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.storefront-proof-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.storefront-proof-row span::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  background: #151515;
+}
+
+.storefront-hero-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 1.5vw, 18px);
+  align-items: end;
+}
+
+.storefront-hero-art {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.storefront-hero-art:first-child {
+  grid-column: 1 / -1;
+}
+
+.storefront-hero-art .artwork-mockup {
+  width: 100%;
+  max-width: none;
+}
+
+.storefront-hero-art:first-child .artwork-mockup {
+  width: min(100%, 880px);
+  justify-self: center;
+}
+
+.storefront-hero-art .artwork-mockup-print {
+  box-shadow:
+    0 28px 32px -18px rgba(0, 0, 0, 0.42),
+    0 10px 12px -8px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.16);
+}
+
+.storefront-hero-art span {
+  color: #312f2b;
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.storefront-collections {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid rgba(21, 21, 21, 0.1);
+  background: #fff;
+}
+
+.storefront-collection-link {
+  min-height: 150px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 14px;
+  align-content: end;
+  padding: clamp(22px, 3vw, 36px);
+  border-right: 1px solid rgba(21, 21, 21, 0.1);
+}
+
+.storefront-collection-link:last-child {
+  border-right: 0;
+}
+
+.storefront-collection-link span {
+  grid-column: 1 / -1;
+  color: #8b857d;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.storefront-collection-link strong {
+  color: #151515;
+  font-size: clamp(1.18rem, 2vw, 1.7rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.storefront-collection-link svg {
+  align-self: end;
+  color: #b03127;
+}
+
+.storefront-shop-section {
+  background: #f7f5f0;
+}
+
+.storefront-home .section-heading h2 {
+  max-width: 900px;
+  color: #151515;
+  font-size: clamp(2.45rem, 5.6vw, 6.5rem);
+}
+
+.storefront-home .section-link,
+.storefront-home .text-action,
+.storefront-home .product-title-row strong {
+  color: #b03127;
+}
+
+.storefront-home .product-grid {
+  gap: clamp(24px, 3vw, 42px);
+}
+
+.storefront-home .product {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.storefront-home .product-image-link .artwork-mockup {
+  padding: clamp(18px, 3vw, 42px);
+  border: 0;
+  background: transparent;
+}
+
+.storefront-home .product-copy {
+  padding: 0;
+}
+
+.storefront-home .product-copy p {
+  display: none;
+}
+
+.storefront-home .product-title-row {
+  margin-bottom: 0;
+}
+
+.storefront-home .product-title-row h3 {
+  color: #151515;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.storefront-home .product-title-row span,
+.storefront-home .product-copy p {
+  color: #6a645c;
+}
+
+.new-arrivals-preview {
+  padding-top: 0;
+}
+
+.storefront-help-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px clamp(18px, 5vw, 76px);
+  border-top: 1px solid rgba(21, 21, 21, 0.1);
+  background: #fff;
+  color: #4f4b45;
+  font-size: 0.92rem;
+}
+
+.storefront-help-strip span,
+.storefront-help-strip a {
+  font-weight: 800;
+}
+
+.storefront-help-strip a {
+  color: #151515;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.collection-toolbar {
+  grid-template-columns: minmax(120px, 0.35fr) minmax(0, 1fr);
+  min-height: 72px;
+}
+
+.collection-tabs {
+  justify-content: flex-end;
+}
+
+.collection-heading {
+  display: grid;
+  gap: 12px;
+  padding-top: clamp(48px, 6vw, 84px);
+  padding-bottom: clamp(38px, 5vw, 62px);
+}
+
+.collection-heading h1 {
+  font-size: clamp(3.4rem, 8vw, 8.6rem);
+  line-height: 0.88;
+}
+
+.listing-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(28px, 3vw, 48px);
+  padding: clamp(28px, 4vw, 58px) clamp(18px, 4vw, 56px) clamp(58px, 6vw, 90px);
+  border: 0;
+  background: #f7f5f0;
+}
+
+.listing-card {
+  min-height: 0;
+  grid-template-rows: auto auto;
+  border: 0;
+  background: transparent;
+}
+
+.listing-card-image {
+  min-height: clamp(300px, 32vw, 520px);
+  padding: 0;
+  background: transparent;
+}
+
+.listing-card-image .artwork-mockup {
+  width: min(100%, 660px);
+}
+
+.listing-card-image .artwork-mockup.shape-landscape {
+  width: min(100%, 760px);
+}
+
+.listing-card-image .artwork-mockup.shape-portrait {
+  width: min(86%, 420px);
+}
+
+.listing-card-copy {
+  padding: 16px 0 0;
+  background: transparent;
+}
+
+.quick-add {
+  background: #fff;
+}
+
+@media (max-width: 1120px) {
+  .storefront-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .storefront-hero-gallery {
+    max-width: 880px;
+  }
+
+  .storefront-collections,
+  .listing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .storefront-hero {
+    padding: 42px 16px;
+  }
+
+  .storefront-hero-copy,
+  .storefront-hero p:not(.eyebrow),
+  .storefront-proof-row {
+    width: 100%;
+    max-width: 330px;
+  }
+
+  .storefront-hero-gallery {
+    width: 100%;
+    max-width: 330px;
+    margin-inline: auto;
+  }
+
+  .storefront-hero h1 {
+    width: 100%;
+    max-width: 340px;
+    font-size: clamp(2.75rem, 13.5vw, 3.7rem);
+    line-height: 0.95;
+  }
+
+  .storefront-hero .hero-actions {
+    width: 100%;
+    max-width: 330px;
+  }
+
+  .storefront-hero .button {
+    width: 100%;
+  }
+
+  .mobile-menu-toggle {
+    display: none;
+  }
+
+  .site-header .nav-links {
+    display: flex;
+    width: 100%;
+    gap: 18px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(244, 239, 230, 0.12);
+    overflow-x: auto;
+  }
+
+  .site-header .nav-links a {
+    flex: 0 0 auto;
+    padding: 4px 0;
+    border-bottom: 0;
+    font-size: 0.86rem;
+  }
+
+  .site-header .nav-links .account-nav-link {
+    width: 34px;
+    height: 34px;
+  }
+
+  .storefront-hero-gallery,
+  .storefront-collections,
+  .storefront-home .product-grid,
+  .listing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .storefront-collection-link {
+    min-height: 112px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(21, 21, 21, 0.1);
+  }
+
+  .collection-toolbar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  .collection-tabs {
+    justify-content: flex-start;
+    overflow-x: auto;
   }
 }

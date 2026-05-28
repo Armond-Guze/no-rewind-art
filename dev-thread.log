@@ -55,3 +55,17 @@
 [0] [2m8:45:42 PM[22m [36m[1m[vite][22m[39m [32mvite.config.ts changed, restarting server...[39m
 [0] [2m8:45:42 PM[22m [36m[1m[vite][22m[39m changed tsconfig file detected: C:\Users\Armon\projects\no-rewind-art\apps\mobile\tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
 [0] [2m8:45:42 PM[22m [36m[1m[vite][22m[39m server restarted.
+[0] [2m1:17:20 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/styles.css[22m
+[0] [2m1:18:12 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/styles.css[22m
+[0] [2m1:19:14 AM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mpublic/artwork/.gitkeep[22m
+[0] [2m1:19:15 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles.css, /src/App.tsx[22m
+[0] [2m1:19:18 AM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mpublic/sitemap.xml[22m
+[0] [2m1:21:42 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/styles.css[22m
+[0] [2m1:22:14 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[0] [2m1:26:42 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[0] [2m1:28:43 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/styles.css[22m
+[0] [2m1:29:11 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[0] [2m1:31:25 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[0] [2m1:33:00 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[0] [2m1:34:52 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[0] [2m1:37:42 AM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mpublic/artwork/.gitkeep[22m
