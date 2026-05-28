@@ -6288,10 +6288,10 @@ h3 {
   .detail-artwork-shell.front-product-shell.shape-portrait
   .product-canvas-image.crop-square-source-2x3 {
   --canvas-shadow-width: 104%;
-  --canvas-shadow-height: clamp(18px, 1.85vw, 30px);
-  --canvas-shadow-bottom: clamp(-14px, -0.75vw, -7px);
-  --canvas-shadow-opacity: 0.42;
-  --canvas-shadow-blur: clamp(11px, 1.35vw, 21px);
+  --canvas-shadow-height: clamp(20px, 2vw, 34px);
+  --canvas-shadow-bottom: clamp(-15px, -0.8vw, -8px);
+  --canvas-shadow-opacity: 0.52;
+  --canvas-shadow-blur: clamp(12px, 1.45vw, 23px);
   overflow: visible;
 }
 
@@ -6317,8 +6317,15 @@ h3 {
 @media (min-width: 761px) {
   .listing-gallery > .main-product-image
     .detail-artwork-shell.front-product-shell.shape-portrait
-    .product-canvas-image.crop-square-source-2x3 {
+    .detail-artwork-surface:has(.product-canvas-image.crop-square-source-2x3) {
     width: min(520px, 64%);
+    overflow: visible;
+  }
+
+  .listing-gallery > .main-product-image
+    .detail-artwork-shell.front-product-shell.shape-portrait
+    .product-canvas-image.crop-square-source-2x3 {
+    width: 100%;
   }
 }
 
@@ -6333,9 +6340,9 @@ h3 {
   position: relative;
   overflow: hidden;
   box-shadow:
-    0 30px 36px -24px rgba(0, 0, 0, 0.66),
-    0 11px 15px -10px rgba(0, 0, 0, 0.44),
-    0 3px 5px -3px rgba(0, 0, 0, 0.32);
+    0 34px 40px -24px rgba(0, 0, 0, 0.74),
+    0 13px 17px -10px rgba(0, 0, 0, 0.5),
+    0 4px 6px -3px rgba(0, 0, 0, 0.36);
 }
 
 .listing-gallery > .main-product-image
@@ -6371,11 +6378,11 @@ h3 {
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0, rgba(0, 0, 0, 0.1) 2.2%, transparent 6%, transparent 94%, rgba(0, 0, 0, 0.18) 97.8%, rgba(255, 255, 255, 0.08) 100%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0, transparent 4%, transparent 94.5%, rgba(0, 0, 0, 0.18) 100%);
+    linear-gradient(90deg, rgba(0, 0, 0, 0.36) 0, rgba(0, 0, 0, 0.16) 2.6%, transparent 7%, transparent 93%, rgba(0, 0, 0, 0.3) 97.4%, rgba(255, 255, 255, 0.13) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0, transparent 4.5%, transparent 93.5%, rgba(0, 0, 0, 0.26) 100%);
   box-shadow:
-    inset 2px 0 3px rgba(255, 255, 255, 0.1),
-    inset -5px 0 8px rgba(0, 0, 0, 0.24),
-    inset 0 1px 2px rgba(255, 255, 255, 0.12),
-    inset 0 -5px 8px rgba(0, 0, 0, 0.18);
+    inset 3px 0 5px rgba(255, 255, 255, 0.14),
+    inset -8px 0 12px rgba(0, 0, 0, 0.34),
+    inset 0 2px 3px rgba(255, 255, 255, 0.16),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.28);
 }
