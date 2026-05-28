@@ -9,6 +9,7 @@
     "dev:server": "node server/index.js",
     "sync:artwork": "node scripts/sync-artwork-library.mjs",
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
+    "test:notification": "node scripts/send-test-order-notification.mjs",
     "build": "npm run sync:artwork && npm run generate:sitemap && tsc -b && vite build && node scripts/clean-production-build.mjs",
     "preview": "vite preview",
     "lint": "eslint ."

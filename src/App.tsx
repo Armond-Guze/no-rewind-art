@@ -1152,8 +1152,27 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
   const closeMenu = () => setMenuOpen(false);
   const isHome = location.pathname === '/';
 
+  useEffect(() => {
+    document.body.classList.toggle('mobile-menu-lock', menuOpen);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    };
+
+    if (menuOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.body.classList.remove('mobile-menu-lock');
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen]);
+
   return (
-    <header className={`site-header${isHome ? ' home-header' : ''}`}>
+    <header className={`site-header${isHome ? ' home-header' : ''}${menuOpen ? ' menu-open' : ''}`}>
       <Link className="brand" to="/" aria-label="Armoze home">
         <img className="brand-mark" src="/armoze-logo.png" alt="" aria-hidden="true" />
         <span>Armoze</span>
@@ -1178,6 +1197,12 @@ function SiteHeader({ cartCount }: { cartCount: number }) {
         <CircleUserRound aria-hidden="true" size={22} />
         <span className="sr-only">{loading ? 'Checking account' : accountLabel}</span>
       </Link>
+      <button
+        className={`mobile-menu-backdrop${menuOpen ? ' open' : ''}`}
+        type="button"
+        aria-label="Close navigation menu"
+        onClick={closeMenu}
+      />
       <nav
         className={`nav-links${menuOpen ? ' open' : ''}`}
         id="primary-navigation"
@@ -1337,15 +1362,6 @@ function HomePage({
     () => featuredProducts.slice(0, 4),
     [featuredProducts],
   );
-  const storefrontCollections = useMemo(
-    () =>
-      ['best-sellers', 'money-ambition', 'discipline-focus', 'new-arrivals'].flatMap((collectionSlug) => {
-        const collection = getCollectionBySlugFromCatalog(catalog, collectionSlug);
-
-        return collection ? [collection] : [];
-      }),
-    [catalog],
-  );
   const homeStructuredData = useMemo(
     () => ({
       '@context': 'https://schema.org',
@@ -1460,14 +1476,20 @@ function HomePage({
         </div>
       </section>
 
-      <section className="storefront-collections" aria-label="Shop categories">
-        {storefrontCollections.map((collection) => (
-          <Link className="storefront-collection-link" key={collection.slug} to={`/collections/${collection.slug}`}>
-            <span>{collection.navLabel}</span>
-            <strong>{collection.title}</strong>
-            <ArrowUpRight aria-hidden="true" size={17} />
-          </Link>
-        ))}
+      <section className="storefront-quote-cta" aria-labelledby="storefront-quote-title">
+        <p className="eyebrow">Made for momentum</p>
+        <h2 id="storefront-quote-title">
+          <span>Art for</span>
+          <span>the ones</span>
+          <span>still <em>building.</em></span>
+        </h2>
+        <p className="storefront-quote-copy">
+          Motivational canvas prints for rooms where focus, ambition, and discipline stay visible.
+        </p>
+        <Link className="button button-primary" to="/collections/best-sellers">
+          Shop Best Sellers
+          <ArrowUpRight aria-hidden="true" size={16} />
+        </Link>
       </section>
 
       <section id="shop" className="section shop-section storefront-shop-section">
@@ -1977,6 +1999,62 @@ function ProductPage({
             ))}
           </div>
 
+          <div className="mobile-gallery-carousel" aria-label={`${product.title} product images`}>
+            {(gallery.length ? gallery : ['placeholder']).map((image, index) => {
+              const mobileGalleryImage = image === 'placeholder' ? undefined : image;
+              const mobileIsMockupImage = isProductMockupImage(product, mobileGalleryImage);
+              const mobileIsSideImage = isSideMockupImage(mobileGalleryImage);
+              const mobileIsFrontMockupImage = mobileIsMockupImage && !mobileIsSideImage;
+              const mobileFrameClass =
+                index === 0 && selectedFrameName === 'Black Frame'
+                  ? 'frame-black'
+                  : index === 0 && selectedFrameName === 'White Frame'
+                    ? 'frame-white'
+                    : 'frame-none';
+
+              return (
+                <div className="mobile-gallery-slide" key={`${product.id}-mobile-${index}`}>
+                  <div
+                    className={`main-product-image ${mobileGalleryImage ? 'gallery-product-image' : ''} ${
+                      mobileIsMockupImage ? 'mockup-product-image' : ''
+                    }`}
+                  >
+                    <div
+                      className={`detail-artwork-shell ${mobileFrameClass} shape-${product.artworkShape} ${
+                        mobileIsMockupImage ? 'mockup-product-shell' : ''
+                      } ${mobileIsFrontMockupImage ? 'front-product-shell' : ''} ${
+                        mobileIsSideImage ? 'side-product-shell' : ''
+                      }`}
+                    >
+                      <div className="detail-artwork-surface">
+                        {mobileGalleryImage === product.image ? (
+                          <ProductCanvasImage
+                            className="detail-artwork-image"
+                            src={mobileGalleryImage}
+                            alt={product.imageAlt}
+                            aspectRatio={getProductAspectRatio(product)}
+                            shape={product.artworkShape}
+                            loading={index === 0 ? 'eager' : 'lazy'}
+                            fallback={<ProductVisual product={product} useImage={false} />}
+                          />
+                        ) : mobileGalleryImage ? (
+                          <GalleryImage className="detail-gallery-image" src={mobileGalleryImage} alt={product.imageAlt} />
+                        ) : (
+                          <ProductVisual product={product} />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mobile-gallery-hint" aria-hidden="true">
+            {(gallery.length ? gallery : ['placeholder']).map((image, index) => (
+              <span key={`${product.id}-mobile-hint-${image}-${index}`} />
+            ))}
+          </div>
+
           <div
             className={`main-product-image ${selectedGalleryImage ? 'gallery-product-image' : ''} ${
               isMockupGalleryImage ? 'mockup-product-image' : ''
@@ -2153,7 +2231,7 @@ function ProductPage({
         <section className="related-products-section" aria-labelledby="related-products-title">
           <div className="product-section-heading">
             <p className="eyebrow">More to consider</p>
-            <h2 id="related-products-title">Canvases in the same lane.</h2>
+            <h2 id="related-products-title">Related products</h2>
           </div>
           <div className="related-products-grid">
             {relatedProducts.map((relatedProduct) => (
