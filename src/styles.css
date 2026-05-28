@@ -2007,6 +2007,42 @@ h3 {
 }
 
 .listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.frame-black,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.frame-black {
+  padding: var(--frame-rail);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 18%),
+    linear-gradient(315deg, rgba(0, 0, 0, 0.42), transparent 24%),
+    linear-gradient(90deg, #050505, #292b28 18%, #10110f 50%, #3a3c37 82%, #080808);
+  box-shadow:
+    0 38px 60px rgba(0, 0, 0, 0.32),
+    0 14px 18px rgba(0, 0, 0, 0.28),
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 6px 6px 10px rgba(255, 255, 255, 0.08),
+    inset -7px -7px 12px rgba(0, 0, 0, 0.5);
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.frame-white,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.frame-white {
+  padding: var(--frame-rail);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), transparent 22%),
+    linear-gradient(315deg, rgba(0, 0, 0, 0.12), transparent 28%),
+    linear-gradient(90deg, #efeee7, #ffffff 20%, #e6e5dd 50%, #ffffff 82%, #dfded5);
+  box-shadow:
+    0 38px 60px rgba(0, 0, 0, 0.3),
+    0 14px 18px rgba(0, 0, 0, 0.24),
+    0 4px 6px rgba(0, 0, 0, 0.24),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+    inset 6px 6px 10px rgba(255, 255, 255, 0.7),
+    inset -7px -7px 12px rgba(0, 0, 0, 0.12);
+}
+
+.listing-gallery > .main-product-image
   .detail-artwork-shell.front-product-shell.shape-portrait
   .product-canvas-image[style*="2 / 3"]
   > div::before,
