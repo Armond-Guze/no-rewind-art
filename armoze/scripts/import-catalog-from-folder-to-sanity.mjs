@@ -425,11 +425,61 @@ function documentIdForProductId(productId) {
   return `artworkProduct.${String(productId).replace(/[^a-zA-Z0-9._-]/g, '-')}`
 }
 
-async function buildDocumentFromCatalogProduct(product, index) {
+function normalizeDocumentSlug(document) {
+  return normalizePathKey(document?.slug || '')
+}
+
+function normalizeDocumentTitle(document) {
+  return normalizeName(document?.title || '')
+}
+
+function normalizeProductId(value) {
+  return normalizePathKey(String(value || '').replace(/-canvas$/i, ''))
+}
+
+function findExistingDocumentForProduct(product) {
+  const productId = normalizeProductId(product.id)
+  const slug = normalizePathKey(product.slug)
+  const title = normalizeName(product.title)
+
+  return (
+    existingDocuments.find((document) => normalizeProductId(document.productId) === productId) ||
+    existingDocuments.find((document) => normalizeDocumentSlug(document) === slug) ||
+    existingDocuments.find((document) => normalizeDocumentTitle(document) === title) ||
+    null
+  )
+}
+
+function findExistingDocumentForFolder(folderName) {
+  const slug = slugify(folderName)
+  const title = normalizeName(folderName)
+  const productId = normalizeProductId(`${slug}-canvas`)
+
+  return (
+    existingDocuments.find((document) => normalizeProductId(document.productId) === productId) ||
+    existingDocuments.find((document) => normalizeDocumentSlug(document) === slug) ||
+    existingDocuments.find((document) => normalizeDocumentTitle(document) === title) ||
+    null
+  )
+}
+
+function preservedDocumentIdentity(fallbackProductId, fallbackSlug, existingDocument) {
+  const productId = existingDocument?.productId || fallbackProductId
+  const slug = existingDocument?.slug || fallbackSlug
+
+  return {
+    _id: existingDocument?._id || documentIdForProductId(productId),
+    productId,
+    slug,
+  }
+}
+
+async function buildDocumentFromCatalogProduct(product, index, existingDocument) {
   const folderImages = imagesForProduct(product)
   const mainImageSource = selectMainImage(folderImages)
   const mainImage = await uploadImagePath(mainImageSource?.absolutePath, product.imageAlt, product.image || product.title)
   const galleryImages = []
+  const identity = preservedDocumentIdentity(product.id, product.slug, existingDocument)
 
   for (const image of folderImages) {
     if (image.absolutePath === mainImageSource?.absolutePath) {
@@ -444,10 +494,10 @@ async function buildDocumentFromCatalogProduct(product, index) {
   }
 
   return cleanObject({
-    _id: documentIdForProductId(product.id),
+    _id: identity._id,
     _type: 'artworkProduct',
-    productId: product.id,
-    slug: {_type: 'slug', current: product.slug},
+    productId: identity.productId,
+    slug: {_type: 'slug', current: identity.slug},
     previousSlugs: product.previousSlugs,
     title: product.title,
     seoTitle: product.seoTitle,
@@ -474,7 +524,7 @@ async function buildDocumentFromCatalogProduct(product, index) {
   })
 }
 
-async function buildDocumentFromFolder(folderName, index) {
+async function buildDocumentFromFolder(folderName, index, existingDocument) {
   const folderImages = imagesForFolder(folderName)
   const mainImageSource = selectMainImage(folderImages)
 
@@ -490,6 +540,7 @@ async function buildDocumentFromFolder(folderName, index) {
   const {description, longDescription} = createGeneratedCopy(title, tone)
   const mainImage = await uploadImagePath(mainImageSource.absolutePath, imageAlt, mainImageSource.relativePath)
   const galleryImages = []
+  const identity = preservedDocumentIdentity(`${slug}-canvas`, slug, existingDocument)
 
   for (const image of folderImages) {
     if (image.absolutePath === mainImageSource.absolutePath) {
@@ -504,10 +555,10 @@ async function buildDocumentFromFolder(folderName, index) {
   }
 
   return cleanObject({
-    _id: documentIdForProductId(`${slug}-canvas`),
+    _id: identity._id,
     _type: 'artworkProduct',
-    productId: `${slug}-canvas`,
-    slug: {_type: 'slug', current: slug},
+    productId: identity.productId,
+    slug: {_type: 'slug', current: identity.slug},
     title,
     seoTitle: `${title} Motivational Canvas Print`,
     seoDescription: `Shop ${title} by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.`,
@@ -539,7 +590,8 @@ let imported = 0
 console.log(`Using local image folder: ${assetRoot}`)
 
 for (const [index, product] of catalog.products.entries()) {
-  const document = await buildDocumentFromCatalogProduct(product, index)
+  const existingDocument = findExistingDocumentForProduct(product)
+  const document = await buildDocumentFromCatalogProduct(product, index, existingDocument)
 
   if (!document?.mainImage) {
     console.warn(`Skipping ${product.id}: no main image found`)
@@ -550,7 +602,7 @@ for (const [index, product] of catalog.products.entries()) {
     console.log(`[dry-run] ${document._id} -> ${document.title}`)
   } else {
     await client.createOrReplace(document)
-    console.log(`Imported ${document._id} -> ${document.title}`)
+    console.log(`Imported ${document._id} -> ${document.title}${existingDocument ? ' (matched existing)' : ''}`)
   }
 
   imported += 1
@@ -569,7 +621,8 @@ if (autoProducts) {
     .sort()
 
   for (const [offset, folder] of remainingFolders.entries()) {
-    const document = await buildDocumentFromFolder(folder, catalog.products.length + offset)
+    const existingDocument = findExistingDocumentForFolder(folder)
+    const document = await buildDocumentFromFolder(folder, catalog.products.length + offset, existingDocument)
 
     if (!document?.mainImage) {
       console.warn(`Skipping ${folder}: no main image found`)
@@ -580,7 +633,7 @@ if (autoProducts) {
       console.log(`[dry-run] ${document._id} -> ${document.title}`)
     } else {
       await client.createOrReplace(document)
-      console.log(`Imported ${document._id} -> ${document.title}`)
+      console.log(`Imported ${document._id} -> ${document.title}${existingDocument ? ' (matched existing)' : ''}`)
     }
 
     imported += 1
