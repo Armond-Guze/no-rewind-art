@@ -434,9 +434,11 @@ class PostgresProductStore {
 
   async init() {
     const client = await this.pool.connect();
+    let advisoryLockAcquired = false;
 
     try {
-      await client.query('select pg_advisory_lock(421042, 20260515)');
+      const lockResult = await client.query('select pg_try_advisory_lock(421042, 20260515) as acquired');
+      advisoryLockAcquired = lockResult.rows[0]?.acquired === true;
       await client.query(`
         create table if not exists products (
           id text primary key,
@@ -454,7 +456,7 @@ class PostgresProductStore {
           `
             insert into products (id, slug, published, sort_order, data, created_at, updated_at)
             values ($1, $2, $3, $4, $5::jsonb, $6, $7)
-            on conflict (id) do nothing
+            on conflict do nothing
           `,
           [
             row.id,
@@ -468,7 +470,9 @@ class PostgresProductStore {
         );
       }
     } finally {
-      await client.query('select pg_advisory_unlock(421042, 20260515)').catch(() => {});
+      if (advisoryLockAcquired) {
+        await client.query('select pg_advisory_unlock(421042, 20260515)').catch(() => {});
+      }
       client.release();
     }
   }

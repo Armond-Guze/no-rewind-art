@@ -82,6 +82,8 @@ export const artworkProductType = defineType({
       name: 'mainImage',
       title: 'Main Image',
       type: 'image',
+      description:
+        'Upload the primary storefront image here. Products can be imported before artwork is ready, but published products should have a main image before launch.',
       options: {hotspot: true},
       fields: [
         defineField({
@@ -91,7 +93,6 @@ export const artworkProductType = defineType({
           validation: (rule) => rule.required(),
         }),
       ],
-      validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'imageAlt',

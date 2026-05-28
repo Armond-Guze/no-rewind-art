@@ -253,9 +253,11 @@ class PostgresOrderStore {
 
   async init() {
     const client = await this.pool.connect();
+    let advisoryLockAcquired = false;
 
     try {
-      await client.query('select pg_advisory_lock(421042, 20260513)');
+      const lockResult = await client.query('select pg_try_advisory_lock(421042, 20260513) as acquired');
+      advisoryLockAcquired = lockResult.rows[0]?.acquired === true;
 
       await client.query(`
         create table if not exists orders (
@@ -294,7 +296,9 @@ class PostgresOrderStore {
         );
       `);
     } finally {
-      await client.query('select pg_advisory_unlock(421042, 20260513)').catch(() => {});
+      if (advisoryLockAcquired) {
+        await client.query('select pg_advisory_unlock(421042, 20260513)').catch(() => {});
+      }
       client.release();
     }
   }
