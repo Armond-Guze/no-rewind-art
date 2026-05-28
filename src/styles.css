@@ -6314,6 +6314,14 @@ h3 {
   max-height: none;
 }
 
+@media (min-width: 761px) {
+  .listing-gallery > .main-product-image
+    .detail-artwork-shell.front-product-shell.shape-portrait
+    .product-canvas-image.crop-square-source-2x3 {
+    width: min(520px, 64%);
+  }
+}
+
 .listing-gallery > .main-product-image
   .detail-artwork-shell.front-product-shell.shape-portrait
   .product-canvas-image.crop-square-source-2x3
