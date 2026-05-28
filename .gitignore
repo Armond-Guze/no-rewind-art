@@ -9,6 +9,8 @@ Thumbs.db
 # Dependency folders, if this becomes a full app later
 node_modules/
 dist/
+public/artwork/*
+!public/artwork/.gitkeep
 
 # Local dev logs
 vite-dev*.log

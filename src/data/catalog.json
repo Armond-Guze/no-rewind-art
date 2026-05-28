@@ -215,8 +215,9 @@
       "navLabel": "New Arrivals",
       "description": "Recently added artwork, new mockups, and fresh motivational canvas prints from the current Armoze drop.",
       "productIds": [
-        "bookshelf-canvas",
         "reminder-life-has-no-rewind-canvas",
+        "keep-going-canvas",
+        "bookshelf-canvas",
         "paycheck-canvas",
         "stairs-canvas",
         "books-of-motivation-canvas",
@@ -224,7 +225,24 @@
         "ninety-seven-percent-canvas",
         "calm-under-pressure-canvas",
         "calm-under-pres-canvas",
-        "remember-who-you-are-canvas"
+        "remember-who-you-are-canvas",
+        "100-dollars-white-marble-canvas",
+        "calm-under-pressure-red-canvas",
+        "daily-reminder-canvas",
+        "invest-in-yourself-canvas",
+        "money-band-clip-canvas",
+        "money-band-aid-canvas",
+        "money-over-everything-canvas",
+        "money-vault-canvas",
+        "never-lose-sight-of-your-dreams-canvas",
+        "no-risk-no-reward-lambo-canvas",
+        "orange-rubberband-racks-canvas",
+        "rent-due-canvas",
+        "reportcard-canvas",
+        "success-envelope-canvas",
+        "success-is-earned-canvas",
+        "to-do-list-canvas",
+        "you-cant-turn-back-the-clock-canvas"
       ]
     }
   ],
@@ -237,13 +255,14 @@
       "longDescription": "A bold cassette-inspired reminder that time only moves forward. Designed for offices, bedrooms, studios, dorm rooms, and creative spaces that need a daily push to stay present and keep building.",
       "label": "Life Has No Rewind",
       "imageFolder": "life-has-no-rewind",
-      "image": "/artwork/life-has-no-rewind/life-has-no-rewind-main.jpg",
+      "image": "/artwork/life-has-no-rewind/01-main.png",
       "imageAlt": "Life Has No Rewind cassette artwork shown as an Armoze motivational canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
-        "/artwork/life-has-no-rewind/01-main.png",
         "/artwork/life-has-no-rewind/02-gallery.png",
-        "/artwork/life-has-no-rewind/life-has-no-rewind-main.jpg"
+        "/artwork/life-has-no-rewind/enjoy every moment file.png",
+        "/artwork/life-has-no-rewind/life-has-no-rewind-main.jpg",
+        "/artwork/life-has-no-rewind/life-has-no-rewind-source.png"
       ],
       "tone": "cassette",
       "collectionSlugs": [
@@ -307,7 +326,10 @@
       "imageAlt": "Reminder Life Has No Rewind cassette artwork displayed as a landscape canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
-        "/artwork/reminder life has no rewind/reminder life has no rewind slide 2.png",
+        "/artwork/reminder life has no rewind/2ee49185-c647-44e8-b7a7-634bc6c14780.png",
+        "/artwork/reminder life has no rewind/reminder life has no rewind mockup 2.png",
+        "/artwork/reminder life has no rewind/reminder life has no rewind mockup 4.png",
+        "/artwork/reminder life has no rewind/reminder life has no rewind mockup 5.png",
         "/artwork/reminder life has no rewind/reminder life has no rewind slide-4.png"
       ],
       "tone": "cassette",
@@ -371,12 +393,10 @@
       "longDescription": "A money-mindset statement piece made for workspaces, studios, and rooms where ambition needs to stay visible. The rubber band stack design keeps the goal in front of you without feeling like ordinary office decor.",
       "label": "Rubber Band Stacks",
       "imageFolder": "money-is-energy",
-      "image": "/artwork/money-is-energy/01-main.png",
+      "image": "/artwork/rubber band stacks/rubber band racks file.png",
       "imageAlt": "Rubber Band Stacks money-mindset artwork shown as an Armoze canvas print mockup",
       "artworkShape": "landscape",
-      "gallery": [
-        "/artwork/money-is-energy/01-main.png"
-      ],
+      "gallery": [],
       "tone": "money",
       "collectionSlugs": [
         "best-sellers",
@@ -484,7 +504,9 @@
         }
       ],
       "seoTitle": "Keep Going Space Motivational Canvas Print",
-      "seoDescription": "Shop Keep Going by Armoze, a cinematic future-focused canvas print for bedrooms, dorm rooms, studios, and creative spaces."
+      "seoDescription": "Shop Keep Going by Armoze, a cinematic future-focused canvas print for bedrooms, dorm rooms, studios, and creative spaces.",
+      "imageFolder": "keep going turtle",
+      "image": "/artwork/keep going turtle/keep going turtle.png"
     },
     {
       "id": "bookshelf-canvas",
@@ -494,11 +516,16 @@
       "longDescription": "A thoughtful wall-art piece for readers, builders, and anyone creating a room that keeps their mind sharp. Made for reading corners, home offices, study spaces, and quiet places where ideas stack up over time.",
       "label": "Bookshelf Mindset",
       "imageFolder": "bookshelf",
-      "image": "/artwork/bookshelf/bookshelf test1.png",
+      "image": "/artwork/bookshelf/bookshelf motivation file.png",
       "imageAlt": "Bookshelf Mindset artwork displayed as an Armoze study room canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
-        "/artwork/bookshelf/02-side.png"
+        "/artwork/bookshelf/0f63b061-2d98-4182-b6a6-c056408d4fa766666666666666666666666666.png",
+        "/artwork/bookshelf/02-side.png",
+        "/artwork/bookshelf/bookshelf motivation 2.png",
+        "/artwork/bookshelf/bookshelf motivation 3.png",
+        "/artwork/bookshelf/bookshelf motivation 4.png",
+        "/artwork/bookshelf/bookshelf-side.jpg"
       ],
       "tone": "minimal",
       "collectionSlugs": [
@@ -561,9 +588,7 @@
       "image": "/artwork/paycheck/01-main.png",
       "imageAlt": "Paycheck Energy money mindset artwork shown as a landscape canvas print mockup",
       "artworkShape": "landscape",
-      "gallery": [
-        "/artwork/paycheck/01-main.png"
-      ],
+      "gallery": [],
       "tone": "money",
       "collectionSlugs": [
         "best-sellers",
@@ -623,12 +648,10 @@
       "longDescription": "A visual reminder that progress is built one step at a time. Designed for workspaces, bedrooms, gyms, and study rooms where the next step matters more than the perfect moment.",
       "label": "One Step Higher",
       "imageFolder": "stairs",
-      "image": "/artwork/stairs/01-main.png",
+      "image": "/artwork/stairs to success/stairs.png",
       "imageAlt": "One Step Higher stairs artwork displayed as a portrait motivational canvas print mockup",
       "artworkShape": "portrait",
-      "gallery": [
-        "/artwork/stairs/01-main.png"
-      ],
+      "gallery": [],
       "tone": "focus",
       "collectionSlugs": [
         "best-sellers",
@@ -692,8 +715,9 @@
       "imageAlt": "Books of Motivation artwork shown as an Armoze canvas print mockup for study spaces",
       "artworkShape": "portrait",
       "gallery": [
-        "/artwork/New folder (2)/books of motivation file.png",
-        "/artwork/books-of-motivation/01-main.png"
+        "/artwork/New folder (2)/books of motivation mockup 2.png",
+        "/artwork/New folder (2)/books of motivation mockup 3.png",
+        "/artwork/New folder (2)/books of motivation mockup 4.png"
       ],
       "tone": "minimal",
       "collectionSlugs": [
@@ -753,13 +777,12 @@
       "longDescription": "A bold self-definition piece for anyone rebuilding identity, confidence, and direction. The simple statement format makes it feel personal, direct, and easy to place in a bedroom, office, or studio.",
       "label": "Hello I Am",
       "imageFolder": "hello-i-am",
-      "image": "/artwork/hello-i-am/hello i am mockup file.png",
+      "image": "/artwork/hello-i-am/01-main.png",
       "imageAlt": "Hello I Am identity-focused motivational artwork shown as a landscape canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
         "/artwork/hello-i-am/hello i am mockup file.png",
-        "/artwork/hello-i-am/hello i am.png",
-        "/artwork/hello-i-am/01-main.png"
+        "/artwork/hello-i-am/hello i am.png"
       ],
       "tone": "focus",
       "collectionSlugs": [
@@ -822,10 +845,7 @@
       "image": "/artwork/97-percent/97 percent file.png",
       "imageAlt": "97 Percent discipline artwork displayed as an Armoze motivational canvas print mockup",
       "artworkShape": "portrait",
-      "gallery": [
-        "/artwork/97-percent/97 percent file.png",
-        "/artwork/97-percent/01-main.png"
-      ],
+      "gallery": [],
       "tone": "focus",
       "collectionSlugs": [
         "best-sellers",
@@ -885,12 +905,11 @@
       "longDescription": "A clean reminder to stay steady when things get loud. Designed for offices, studios, bedrooms, and focus spaces where calm decision-making matters.",
       "label": "Calm Under Pressure",
       "imageFolder": "calm-under-pressure",
-      "image": "/artwork/calm-under-pressure/02-gallery.png",
+      "image": "/artwork/calm-under-pressure/01-main.png",
       "imageAlt": "Calm Under Pressure artwork shown as a landscape motivational canvas print mockup",
       "artworkShape": "landscape",
       "gallery": [
-        "/artwork/calm-under-pressure/02-gallery.png",
-        "/artwork/calm-under-pressure/01-main.png"
+        "/artwork/calm-under-pressure/02-gallery.png"
       ],
       "tone": "focus",
       "collectionSlugs": [
@@ -951,12 +970,10 @@
       "longDescription": "A companion variation for the Calm Under Pressure concept with the same steady, focused mood. Built for rooms where the message needs to be simple: stay composed and keep moving.",
       "label": "Calm Under Pressure II",
       "imageFolder": "calm-under-pres",
-      "image": "/artwork/calm-under-pres/01-main.png",
+      "image": "/artwork/calm under pressure blue/calm under pressure.png",
       "imageAlt": "Calm Under Pressure II artwork displayed as an Armoze canvas print mockup",
       "artworkShape": "landscape",
-      "gallery": [
-        "/artwork/calm-under-pres/01-main.png"
-      ],
+      "gallery": [],
       "tone": "focus",
       "collectionSlugs": [
         "discipline-focus",
@@ -1018,9 +1035,7 @@
       "image": "/artwork/remember-who-you-are/01-main.png",
       "imageAlt": "Remember Who You Are identity artwork shown as a landscape motivational canvas print mockup",
       "artworkShape": "landscape",
-      "gallery": [
-        "/artwork/remember-who-you-are/01-main.png"
-      ],
+      "gallery": [],
       "tone": "focus",
       "collectionSlugs": [
         "discipline-focus",
@@ -1070,6 +1085,1072 @@
       ],
       "seoTitle": "Remember Who You Are Motivational Canvas Print",
       "seoDescription": "Shop Remember Who You Are by Armoze, an identity-focused motivational canvas print for confidence, grounding, and self-belief."
+    },
+    {
+      "id": "100-dollars-white-marble-canvas",
+      "slug": "100-dollars-white-marble",
+      "title": "100 Dollars White Marble",
+      "seoTitle": "100 Dollars White Marble Motivational Canvas Print",
+      "seoDescription": "Shop 100 Dollars White Marble by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "100 Dollars White Marble canvas print for ambitious rooms, money focus, and daily momentum.",
+      "longDescription": "100 Dollars White Marble is an Armoze canvas piece built for offices, studios, bedrooms, and workspaces where income, discipline, and forward motion stay visible.",
+      "label": "100 Dollars White Marble",
+      "imageFolder": "100 dollars - white marble",
+      "image": "/artwork/100 dollars - white marble/100 dollars white marble file.png",
+      "imageAlt": "100 Dollars White Marble artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [],
+      "tone": "money",
+      "collectionSlugs": [
+        "new-arrivals",
+        "money-ambition"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Designed for entrepreneur offices, studios, and workspaces.",
+        "Money-focused artwork with a bold room presence.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "calm-under-pressure-red-canvas",
+      "slug": "calm-under-pressure-red",
+      "title": "Calm Under Pressure Red",
+      "seoTitle": "Calm Under Pressure Red Motivational Canvas Print",
+      "seoDescription": "Shop Calm Under Pressure Red by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Calm Under Pressure Red motivational canvas print for focus, discipline, and everyday momentum.",
+      "longDescription": "Calm Under Pressure Red is an Armoze canvas piece made for bedrooms, offices, studios, gyms, and creative spaces where you want the wall to push focus and consistency every day.",
+      "label": "Calm Under Pressure Red",
+      "imageFolder": "calm-under-pressure red",
+      "image": "/artwork/calm-under-pressure red/01-main.png",
+      "imageAlt": "Calm Under Pressure Red artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [],
+      "tone": "focus",
+      "collectionSlugs": [
+        "new-arrivals",
+        "discipline-focus"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Built for bedrooms, offices, studios, gyms, and personal spaces.",
+        "Printed on demand using premium wall-art materials.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "daily-reminder-canvas",
+      "slug": "daily-reminder",
+      "title": "Daily Reminder",
+      "seoTitle": "Daily Reminder Motivational Canvas Print",
+      "seoDescription": "Shop Daily Reminder by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Daily Reminder cassette-style canvas print for perspective, urgency, and daily focus.",
+      "longDescription": "Daily Reminder is an Armoze canvas piece with a cassette-inspired message, built for bedrooms, studios, offices, and personal spaces that need a reminder to keep moving forward.",
+      "label": "Daily Reminder",
+      "imageFolder": "daily reminder",
+      "image": "/artwork/daily reminder/keep moving forard file.png",
+      "imageAlt": "Daily Reminder artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [],
+      "tone": "cassette",
+      "collectionSlugs": [
+        "new-arrivals",
+        "discipline-focus"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Built for bedrooms, offices, studios, gyms, and personal spaces.",
+        "Printed on demand using premium wall-art materials.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "invest-in-yourself-canvas",
+      "slug": "invest-in-yourself",
+      "title": "Invest In Yourself",
+      "seoTitle": "Invest In Yourself Motivational Canvas Print",
+      "seoDescription": "Shop Invest In Yourself by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Invest In Yourself motivational canvas print for focus, discipline, and everyday momentum.",
+      "longDescription": "Invest In Yourself is an Armoze canvas piece made for bedrooms, offices, studios, gyms, and creative spaces where you want the wall to push focus and consistency every day.",
+      "label": "Invest In Yourself",
+      "imageFolder": "invest in yourself",
+      "image": "/artwork/invest in yourself/invest in yourself file.png",
+      "imageAlt": "Invest In Yourself artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [],
+      "tone": "focus",
+      "collectionSlugs": [
+        "new-arrivals",
+        "discipline-focus"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Built for bedrooms, offices, studios, gyms, and personal spaces.",
+        "Printed on demand using premium wall-art materials.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "money-band-clip-canvas",
+      "slug": "money-band-clip",
+      "title": "Money Band Clip",
+      "seoTitle": "Money Band Clip Motivational Canvas Print",
+      "seoDescription": "Shop Money Band Clip by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Money Band Clip canvas print for ambitious rooms, money focus, and daily momentum.",
+      "longDescription": "Money Band Clip is an Armoze canvas piece built for offices, studios, bedrooms, and workspaces where income, discipline, and forward motion stay visible.",
+      "label": "Money Band Clip",
+      "imageFolder": "money band clip",
+      "image": "/artwork/money band clip/money band clip.png",
+      "imageAlt": "Money Band Clip artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [],
+      "tone": "money",
+      "collectionSlugs": [
+        "new-arrivals",
+        "money-ambition"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Designed for entrepreneur offices, studios, and workspaces.",
+        "Money-focused artwork with a bold room presence.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "money-band-aid-canvas",
+      "slug": "money-band-aid",
+      "title": "Money Band Aid",
+      "seoTitle": "Money Band Aid Motivational Canvas Print",
+      "seoDescription": "Shop Money Band Aid by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Money Band Aid canvas print for ambitious rooms, money focus, and daily momentum.",
+      "longDescription": "Money Band Aid is an Armoze canvas piece built for offices, studios, bedrooms, and workspaces where income, discipline, and forward motion stay visible.",
+      "label": "Money Band Aid",
+      "imageFolder": "money band-aid",
+      "image": "/artwork/money band-aid/money band-aid file.png",
+      "imageAlt": "Money Band Aid artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [
+        "/artwork/money band-aid/MONEY BAND AID-2.png"
+      ],
+      "tone": "money",
+      "collectionSlugs": [
+        "new-arrivals",
+        "money-ambition"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Designed for entrepreneur offices, studios, and workspaces.",
+        "Money-focused artwork with a bold room presence.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "money-over-everything-canvas",
+      "slug": "money-over-everything",
+      "title": "Money Over Everything",
+      "seoTitle": "Money Over Everything Motivational Canvas Print",
+      "seoDescription": "Shop Money Over Everything by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Money Over Everything canvas print for ambitious rooms, money focus, and daily momentum.",
+      "longDescription": "Money Over Everything is an Armoze canvas piece built for offices, studios, bedrooms, and workspaces where income, discipline, and forward motion stay visible.",
+      "label": "Money Over Everything",
+      "imageFolder": "Money over everything",
+      "image": "/artwork/Money over everything/money over eveeerythhing mockup 3.png",
+      "imageAlt": "Money Over Everything artwork shown as an Armoze canvas print",
+      "artworkShape": "square",
+      "gallery": [
+        "/artwork/Money over everything/money over everything mockup 2.png",
+        "/artwork/Money over everything/money over everything mockup 4.png",
+        "/artwork/Money over everything/money over everything mockup 5.png",
+        "/artwork/Money over everything/money over everything.png"
+      ],
+      "tone": "money",
+      "collectionSlugs": [
+        "new-arrivals",
+        "money-ambition"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "24x24",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Designed for entrepreneur offices, studios, and workspaces.",
+        "Money-focused artwork with a bold room presence.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "squareStandard",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "money-vault-canvas",
+      "slug": "money-vault",
+      "title": "Money Vault",
+      "seoTitle": "Money Vault Motivational Canvas Print",
+      "seoDescription": "Shop Money Vault by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Money Vault canvas print for ambitious rooms, money focus, and daily momentum.",
+      "longDescription": "Money Vault is an Armoze canvas piece built for offices, studios, bedrooms, and workspaces where income, discipline, and forward motion stay visible.",
+      "label": "Money Vault",
+      "imageFolder": "money vault",
+      "image": "/artwork/money vault/money-valut.png",
+      "imageAlt": "Money Vault artwork shown as an Armoze canvas print",
+      "artworkShape": "portrait",
+      "gallery": [],
+      "tone": "money",
+      "collectionSlugs": [
+        "new-arrivals",
+        "money-ambition"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "24x36",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Designed for entrepreneur offices, studios, and workspaces.",
+        "Money-focused artwork with a bold room presence.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "portraitTwoThree",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "never-lose-sight-of-your-dreams-canvas",
+      "slug": "never-lose-sight-of-your-dreams",
+      "title": "Never Lose Sight Of Your Dreams",
+      "seoTitle": "Never Lose Sight Of Your Dreams Motivational Canvas Print",
+      "seoDescription": "Shop Never Lose Sight Of Your Dreams by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Never Lose Sight Of Your Dreams motivational canvas print for focus, discipline, and everyday momentum.",
+      "longDescription": "Never Lose Sight Of Your Dreams is an Armoze canvas piece made for bedrooms, offices, studios, gyms, and creative spaces where you want the wall to push focus and consistency every day.",
+      "label": "Never Lose Sight Of Your Dreams",
+      "imageFolder": "never lose sight of your dreams",
+      "image": "/artwork/never lose sight of your dreams/ac9f9e3e-6fa8-4fa6-9439-24fb55f0a8c5.png",
+      "imageAlt": "Never Lose Sight Of Your Dreams artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [],
+      "tone": "focus",
+      "collectionSlugs": [
+        "new-arrivals",
+        "discipline-focus"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Built for bedrooms, offices, studios, gyms, and personal spaces.",
+        "Printed on demand using premium wall-art materials.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "no-risk-no-reward-lambo-canvas",
+      "slug": "no-risk-no-reward-lambo",
+      "title": "No Risk No Reward Lambo",
+      "seoTitle": "No Risk No Reward Lambo Motivational Canvas Print",
+      "seoDescription": "Shop No Risk No Reward Lambo by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "No Risk No Reward Lambo canvas print for ambitious rooms, money focus, and daily momentum.",
+      "longDescription": "No Risk No Reward Lambo is an Armoze canvas piece built for offices, studios, bedrooms, and workspaces where income, discipline, and forward motion stay visible.",
+      "label": "No Risk No Reward Lambo",
+      "imageFolder": "no risk no reward lambo",
+      "image": "/artwork/no risk no reward lambo/no risk no reward lambo.png",
+      "imageAlt": "No Risk No Reward Lambo artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [],
+      "tone": "money",
+      "collectionSlugs": [
+        "new-arrivals",
+        "money-ambition"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Designed for entrepreneur offices, studios, and workspaces.",
+        "Money-focused artwork with a bold room presence.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "orange-rubberband-racks-canvas",
+      "slug": "orange-rubberband-racks",
+      "title": "Orange Rubberband Racks",
+      "seoTitle": "Orange Rubberband Racks Motivational Canvas Print",
+      "seoDescription": "Shop Orange Rubberband Racks by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Orange Rubberband Racks canvas print for ambitious rooms, money focus, and daily momentum.",
+      "longDescription": "Orange Rubberband Racks is an Armoze canvas piece built for offices, studios, bedrooms, and workspaces where income, discipline, and forward motion stay visible.",
+      "label": "Orange Rubberband Racks",
+      "imageFolder": "orange rubberband racks",
+      "image": "/artwork/orange rubberband racks/orange rubber band racks file.png",
+      "imageAlt": "Orange Rubberband Racks artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [],
+      "tone": "money",
+      "collectionSlugs": [
+        "new-arrivals",
+        "money-ambition"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Designed for entrepreneur offices, studios, and workspaces.",
+        "Money-focused artwork with a bold room presence.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rent-due-canvas",
+      "slug": "rent-due",
+      "title": "Rent Due",
+      "seoTitle": "Rent Due Motivational Canvas Print",
+      "seoDescription": "Shop Rent Due by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Rent Due canvas print for ambitious rooms, money focus, and daily momentum.",
+      "longDescription": "Rent Due is an Armoze canvas piece built for offices, studios, bedrooms, and workspaces where income, discipline, and forward motion stay visible.",
+      "label": "Rent Due",
+      "imageFolder": "rent due",
+      "image": "/artwork/rent due/rent due file.png",
+      "imageAlt": "Rent Due artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [],
+      "tone": "money",
+      "collectionSlugs": [
+        "new-arrivals",
+        "money-ambition"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Designed for entrepreneur offices, studios, and workspaces.",
+        "Money-focused artwork with a bold room presence.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reportcard-canvas",
+      "slug": "reportcard",
+      "title": "Reportcard",
+      "seoTitle": "Reportcard Motivational Canvas Print",
+      "seoDescription": "Shop Reportcard by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Reportcard motivational canvas print for focus, discipline, and everyday momentum.",
+      "longDescription": "Reportcard is an Armoze canvas piece made for bedrooms, offices, studios, gyms, and creative spaces where you want the wall to push focus and consistency every day.",
+      "label": "Reportcard",
+      "imageFolder": "reportcard",
+      "image": "/artwork/reportcard/report card file.png",
+      "imageAlt": "Reportcard artwork shown as an Armoze canvas print",
+      "artworkShape": "portrait",
+      "gallery": [],
+      "tone": "focus",
+      "collectionSlugs": [
+        "new-arrivals",
+        "discipline-focus"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "24x36",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Built for bedrooms, offices, studios, gyms, and personal spaces.",
+        "Printed on demand using premium wall-art materials.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "portraitTwoThree",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "success-envelope-canvas",
+      "slug": "success-envelope",
+      "title": "Success Envelope",
+      "seoTitle": "Success Envelope Motivational Canvas Print",
+      "seoDescription": "Shop Success Envelope by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Success Envelope motivational canvas print for focus, discipline, and everyday momentum.",
+      "longDescription": "Success Envelope is an Armoze canvas piece made for bedrooms, offices, studios, gyms, and creative spaces where you want the wall to push focus and consistency every day.",
+      "label": "Success Envelope",
+      "imageFolder": "success envelope",
+      "image": "/artwork/success envelope/success envelope file.png",
+      "imageAlt": "Success Envelope artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [
+        "/artwork/success envelope/success envelope 4.png",
+        "/artwork/success envelope/success envelope mockup 2.png",
+        "/artwork/success envelope/success envelope mockup 3.png",
+        "/artwork/success envelope/success evenelope mockup 4.png"
+      ],
+      "tone": "focus",
+      "collectionSlugs": [
+        "new-arrivals",
+        "discipline-focus"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Built for bedrooms, offices, studios, gyms, and personal spaces.",
+        "Printed on demand using premium wall-art materials.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "success-is-earned-canvas",
+      "slug": "success-is-earned",
+      "title": "Success Is Earned",
+      "seoTitle": "Success Is Earned Motivational Canvas Print",
+      "seoDescription": "Shop Success Is Earned by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "Success Is Earned motivational canvas print for focus, discipline, and everyday momentum.",
+      "longDescription": "Success Is Earned is an Armoze canvas piece made for bedrooms, offices, studios, gyms, and creative spaces where you want the wall to push focus and consistency every day.",
+      "label": "Success Is Earned",
+      "imageFolder": "success is earned",
+      "image": "/artwork/success is earned/3d7a587d-3283-465c-9bc5-a200ea85fa97.png",
+      "imageAlt": "Success Is Earned artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [],
+      "tone": "focus",
+      "collectionSlugs": [
+        "new-arrivals",
+        "discipline-focus"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Built for bedrooms, offices, studios, gyms, and personal spaces.",
+        "Printed on demand using premium wall-art materials.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "to-do-list-canvas",
+      "slug": "to-do-list",
+      "title": "To Do List",
+      "seoTitle": "To Do List Motivational Canvas Print",
+      "seoDescription": "Shop To Do List by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "To Do List motivational canvas print for focus, discipline, and everyday momentum.",
+      "longDescription": "To Do List is an Armoze canvas piece made for bedrooms, offices, studios, gyms, and creative spaces where you want the wall to push focus and consistency every day.",
+      "label": "To Do List",
+      "imageFolder": "to-do list",
+      "image": "/artwork/to-do list/96d4eb95-a7c8-485c-bd1e-989b6d61e039.png",
+      "imageAlt": "To Do List artwork shown as an Armoze canvas print",
+      "artworkShape": "portrait",
+      "gallery": [],
+      "tone": "focus",
+      "collectionSlugs": [
+        "new-arrivals",
+        "discipline-focus"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "24x36",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Built for bedrooms, offices, studios, gyms, and personal spaces.",
+        "Printed on demand using premium wall-art materials.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "portraitTwoThree",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "you-cant-turn-back-the-clock-canvas",
+      "slug": "you-cant-turn-back-the-clock",
+      "title": "You Cant Turn Back The Clock",
+      "seoTitle": "You Cant Turn Back The Clock Motivational Canvas Print",
+      "seoDescription": "Shop You Cant Turn Back The Clock by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.",
+      "description": "You Cant Turn Back The Clock cassette-style canvas print for perspective, urgency, and daily focus.",
+      "longDescription": "You Cant Turn Back The Clock is an Armoze canvas piece with a cassette-inspired message, built for bedrooms, studios, offices, and personal spaces that need a reminder to keep moving forward.",
+      "label": "You Cant Turn Back The Clock",
+      "imageFolder": "you cant turn back the clock",
+      "image": "/artwork/you cant turn back the clock/97488563-c654-4c2c-8b28-35983ceb394c.png",
+      "imageAlt": "You Cant Turn Back The Clock artwork shown as an Armoze canvas print",
+      "artworkShape": "landscape",
+      "gallery": [],
+      "tone": "cassette",
+      "collectionSlugs": [
+        "new-arrivals",
+        "discipline-focus"
+      ],
+      "size": "Canvas print",
+      "defaultSizeId": "30x15",
+      "rating": 4.8,
+      "reviewCount": 61,
+      "details": [
+        "Built for bedrooms, offices, studios, gyms, and personal spaces.",
+        "Printed on demand using premium wall-art materials.",
+        "Available as canvas, black frame, or white frame in multiple sizes.",
+        "Ships securely packed to protect corners and surface quality."
+      ],
+      "sizePreset": "landscapeWide",
+      "frameOptions": [
+        {
+          "id": "canvas",
+          "label": "Canvas",
+          "priceDeltaInCents": 0
+        },
+        {
+          "id": "black-frame",
+          "label": "Black Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        },
+        {
+          "id": "white-frame",
+          "label": "White Frame",
+          "priceDeltaInCents": 0,
+          "priceDeltaBySizeIndexInCents": [
+            2000,
+            3000,
+            4000,
+            5000,
+            6000
+          ]
+        }
+      ]
     }
   ]
 }
