@@ -946,6 +946,14 @@ h3 {
 }
 
 .product-canvas-image {
+  --canvas-visible-left: 0%;
+  --canvas-visible-right: 0%;
+  --canvas-visible-bottom: 0%;
+  --canvas-shadow-width: calc(100% - var(--canvas-visible-left) - var(--canvas-visible-right));
+  --canvas-shadow-height: 2.5rem;
+  --canvas-shadow-bottom: -1.5rem;
+  --canvas-shadow-opacity: 0.45;
+  --canvas-shadow-blur: 24px;
   position: relative;
   isolation: isolate;
   display: block;
@@ -976,14 +984,14 @@ h3 {
   position: absolute;
   z-index: 0;
   left: 50%;
-  bottom: -1.5rem;
-  width: 88%;
-  height: 2.5rem;
-  transform: translateX(-50%);
+  bottom: var(--canvas-shadow-bottom);
+  width: var(--canvas-shadow-width);
+  height: var(--canvas-shadow-height);
+  transform: translateX(calc(-50% + (var(--canvas-visible-left) - var(--canvas-visible-right)) / 2));
   pointer-events: none;
   border-radius: 9999px;
-  background: rgba(0, 0, 0, 0.45);
-  filter: blur(24px);
+  background: rgba(0, 0, 0, var(--canvas-shadow-opacity));
+  filter: blur(var(--canvas-shadow-blur));
 }
 
 .product-canvas-image.no-canvas-shadow .product-canvas-shadow {
@@ -1863,14 +1871,61 @@ h3 {
 }
 
 .listing-layout .detail-artwork-shell .product-canvas-image {
+  --canvas-visible-left: 5%;
+  --canvas-visible-right: 5%;
+  --canvas-visible-bottom: 27.5%;
+  --canvas-shadow-width: 84%;
+  --canvas-shadow-height: clamp(18px, 2.1vw, 34px);
+  --canvas-shadow-bottom: calc(var(--canvas-visible-bottom) - clamp(15px, 1.8vw, 28px));
+  --canvas-shadow-opacity: 0.28;
+  --canvas-shadow-blur: clamp(12px, 1.6vw, 24px);
   width: 100%;
   box-shadow: none;
+}
+
+.listing-layout .detail-artwork-shell .product-canvas-image.shape-landscape {
+  --canvas-visible-left: 5%;
+  --canvas-visible-right: 5%;
+  --canvas-visible-bottom: 27.5%;
+  --canvas-shadow-width: 84%;
+  --canvas-shadow-height: clamp(16px, 1.8vw, 30px);
+}
+
+.listing-layout .detail-artwork-shell .product-canvas-image[style*="3 / 2"] {
+  --canvas-visible-left: 2%;
+  --canvas-visible-right: 1%;
+  --canvas-visible-bottom: 18%;
+  --canvas-shadow-width: 91%;
+  --canvas-shadow-height: clamp(18px, 2vw, 32px);
+}
+
+.listing-layout .detail-artwork-shell .product-canvas-image.shape-portrait {
+  --canvas-visible-left: 20%;
+  --canvas-visible-right: 20%;
+  --canvas-visible-bottom: 5%;
+  --canvas-shadow-width: 55%;
+  --canvas-shadow-height: clamp(20px, 2.2vw, 36px);
+  --canvas-shadow-bottom: calc(var(--canvas-visible-bottom) - clamp(16px, 1.8vw, 28px));
+}
+
+.listing-layout .detail-artwork-shell .product-canvas-image.shape-square {
+  --canvas-visible-left: 8%;
+  --canvas-visible-right: 8%;
+  --canvas-visible-bottom: 8%;
+  --canvas-shadow-width: 78%;
+  --canvas-shadow-height: clamp(20px, 2.2vw, 36px);
+  --canvas-shadow-bottom: calc(var(--canvas-visible-bottom) - clamp(16px, 1.8vw, 28px));
 }
 
 .listing-layout .detail-artwork-shell .product-canvas-image img {
   border-radius: 0;
   box-shadow: none;
   filter: none;
+}
+
+.listing-layout .detail-artwork-shell .product-canvas-image > div {
+  background: transparent;
+  box-shadow: none;
 }
 
 .detail-artwork-shell .product-art.shape-portrait {
@@ -1889,8 +1944,8 @@ h3 {
   }
 
   .listing-layout {
-    grid-template-columns: minmax(660px, 1fr) minmax(560px, 640px);
-    gap: clamp(34px, 4vw, 70px);
+    grid-template-columns: minmax(0, 1fr) minmax(500px, 620px);
+    gap: clamp(30px, 3vw, 52px);
     padding: 26px clamp(36px, 3.4vw, 72px) clamp(52px, 5vw, 86px);
   }
 
@@ -2003,6 +2058,19 @@ h3 {
     gap: 22px;
     margin-top: 42px;
     padding: 34px 0;
+  }
+}
+
+@media (min-width: 1440px) {
+  .listing-layout {
+    grid-template-columns: minmax(0, 0.92fr) minmax(640px, 780px);
+    gap: clamp(34px, 3vw, 62px);
+  }
+}
+
+@media (min-width: 1680px) {
+  .listing-layout {
+    grid-template-columns: minmax(0, 0.86fr) minmax(720px, 860px);
   }
 }
 
