@@ -6310,6 +6310,7 @@ h3 {
 .mobile-gallery-slide
   .detail-artwork-shell.front-product-shell.shape-portrait
   .product-canvas-image.crop-square-source-2x3 {
+  --canvas-shadow-bottom: clamp(-8px, -0.45vw, -4px);
   width: min(72vw, calc((clamp(320px, 94vw, 460px) - 36px) * 2 / 3));
   max-height: none;
 }
@@ -6378,11 +6379,11 @@ h3 {
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.36) 0, rgba(0, 0, 0, 0.16) 2.6%, transparent 7%, transparent 93%, rgba(0, 0, 0, 0.3) 97.4%, rgba(255, 255, 255, 0.13) 100%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0, transparent 4.5%, transparent 93.5%, rgba(0, 0, 0, 0.26) 100%);
+    linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0, rgba(0, 0, 0, 0.12) 2.4%, transparent 7%, transparent 93%, rgba(0, 0, 0, 0.2) 97.6%, rgba(255, 255, 255, 0.1) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.13) 0, transparent 4.5%, transparent 93.5%, rgba(0, 0, 0, 0.2) 100%);
   box-shadow:
-    inset 3px 0 5px rgba(255, 255, 255, 0.14),
-    inset -8px 0 12px rgba(0, 0, 0, 0.34),
-    inset 0 2px 3px rgba(255, 255, 255, 0.16),
-    inset 0 -8px 12px rgba(0, 0, 0, 0.28);
+    inset 2px 0 4px rgba(255, 255, 255, 0.11),
+    inset -5px 0 9px rgba(0, 0, 0, 0.22),
+    inset 0 2px 3px rgba(255, 255, 255, 0.13),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.22);
 }
