@@ -1572,7 +1572,7 @@ function HomePage({
       </section>
 
       <section className="storefront-help-strip" aria-label="Shop support">
-        <span>Questions about sizing, shipping, or an order?</span>
+        <span>Support</span>
         <a href={supportMailto}>{supportEmail}</a>
       </section>
     </main>

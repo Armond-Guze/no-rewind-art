@@ -1270,7 +1270,7 @@ h3 {
 }
 
 .listing-card-image .product-art {
-  width: min(100%, 720px);
+  width: min(100%, 780px);
   border: 0;
   box-shadow: none;
   filter:
@@ -1279,11 +1279,11 @@ h3 {
 }
 
 .listing-card-image .product-art.shape-landscape {
-  width: min(100%, 840px);
+  width: min(100%, 920px);
 }
 
 .listing-card-image .product-art.shape-portrait {
-  width: min(82%, 520px);
+  width: min(92%, 580px);
 }
 
 .listing-card-image .product-canvas-image {
@@ -1291,23 +1291,23 @@ h3 {
   --canvas-shadow-blur: clamp(16px, 2vw, 30px);
   --canvas-shadow-height: clamp(18px, 2.4vw, 36px);
   --canvas-shadow-bottom: -1.1rem;
-  width: min(100%, 720px);
+  width: min(100%, 780px);
 }
 
 .listing-card-image .product-canvas-image.shape-landscape {
-  width: min(100%, 840px);
+  width: min(100%, 920px);
 }
 
 .listing-card-image .product-canvas-image.shape-portrait {
-  width: min(82%, 520px);
+  width: min(92%, 580px);
 }
 
 .listing-card-image .product-canvas-image.shape-square {
-  width: min(92%, 600px);
+  width: min(96%, 660px);
 }
 
 .listing-card-image .artwork-mockup {
-  width: min(100%, 720px);
+  width: min(100%, 780px);
 }
 
 .listing-card-image .artwork-mockup::before {
@@ -1348,11 +1348,11 @@ h3 {
 }
 
 .listing-card-image .artwork-mockup.shape-landscape {
-  width: min(100%, 840px);
+  width: min(100%, 920px);
 }
 
 .listing-card-image .artwork-mockup.shape-portrait {
-  width: min(82%, 520px);
+  width: min(92%, 580px);
 }
 
 .raw-product-image {
@@ -1532,6 +1532,10 @@ h3 {
   min-height: auto;
   padding: 0;
   background: transparent;
+}
+
+.listing-gallery > .main-product-image.gallery-product-image.mockup-product-image {
+  overflow: visible;
 }
 
 .main-product-image.gallery-product-image::before,
@@ -1913,6 +1917,34 @@ h3 {
   box-shadow: none;
 }
 
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image {
+  --canvas-shadow-width: 96%;
+  --canvas-shadow-height: clamp(12px, 1.25vw, 22px);
+  --canvas-shadow-bottom: clamp(-18px, -1vw, -10px);
+  --canvas-shadow-opacity: 0.26;
+  --canvas-shadow-blur: clamp(10px, 1.15vw, 18px);
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-shadow {
+  background:
+    radial-gradient(ellipse at center, rgba(0, 0, 0, var(--canvas-shadow-opacity)) 0%, rgba(0, 0, 0, 0.16) 42%, transparent 74%);
+  transform: translateX(-50%) scaleY(0.46);
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image
+  > div {
+  box-shadow:
+    0 18px 24px -22px rgba(0, 0, 0, 0.58),
+    0 4px 7px -5px rgba(0, 0, 0, 0.32),
+    0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
 .listing-layout .detail-artwork-shell .product-canvas-image.shape-landscape {
   --canvas-visible-left: 5%;
   --canvas-visible-right: 5%;
@@ -1974,14 +2006,14 @@ h3 {
   }
 
   .listing-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(500px, 620px);
-    gap: clamp(30px, 3vw, 52px);
-    padding: 26px clamp(36px, 3.4vw, 72px) clamp(52px, 5vw, 86px);
+    grid-template-columns: minmax(560px, 1.35fr) minmax(420px, 540px);
+    gap: clamp(24px, 2.2vw, 40px);
+    padding: 26px clamp(28px, 2.6vw, 54px) clamp(52px, 5vw, 86px);
   }
 
   .listing-gallery {
-    grid-template-columns: 86px minmax(0, 1fr);
-    gap: clamp(26px, 2.7vw, 46px);
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: clamp(18px, 2vw, 34px);
   }
 
   .gallery-rail {
@@ -1994,22 +2026,22 @@ h3 {
 
   .main-product-image.gallery-product-image,
   .main-product-image.mockup-product-image {
-    justify-items: start;
+    justify-items: center;
   }
 
   .listing-layout .detail-artwork-shell {
-    width: min(820px, 100%);
-    margin-left: clamp(12px, 3vw, 58px);
+    width: min(1040px, 100%);
+    margin-left: 0;
   }
 
   .listing-layout .detail-artwork-shell.shape-landscape,
   .listing-layout .detail-artwork-shell.mockup-product-shell.shape-landscape {
-    width: min(900px, 100%);
+    width: min(1120px, 100%);
   }
 
   .listing-layout .detail-artwork-shell.shape-portrait,
   .listing-layout .detail-artwork-shell.mockup-product-shell.shape-portrait {
-    width: min(720px, 100%);
+    width: min(820px, 100%);
   }
 
   .listing-panel {
@@ -2093,14 +2125,19 @@ h3 {
 
 @media (min-width: 1440px) {
   .listing-layout {
-    grid-template-columns: minmax(0, 0.92fr) minmax(640px, 780px);
-    gap: clamp(34px, 3vw, 62px);
+    grid-template-columns: minmax(820px, 1fr) minmax(500px, 620px);
+    gap: clamp(28px, 2.4vw, 48px);
   }
 }
 
 @media (min-width: 1680px) {
   .listing-layout {
-    grid-template-columns: minmax(0, 0.86fr) minmax(720px, 860px);
+    grid-template-columns: minmax(980px, 1fr) minmax(520px, 640px);
+  }
+
+  .listing-layout .detail-artwork-shell.shape-landscape,
+  .listing-layout .detail-artwork-shell.mockup-product-shell.shape-landscape {
+    width: min(1220px, 100%);
   }
 }
 
@@ -5432,12 +5469,28 @@ h3 {
 
 .storefront-shop-section {
   background: #f7f5f0;
+  padding: clamp(28px, 3.2vw, 46px) clamp(22px, 2.2vw, 40px) clamp(42px, 4.8vw, 70px);
+}
+
+.storefront-shop-section.new-arrivals-preview {
+  padding-top: clamp(58px, 6vw, 92px);
+}
+
+.storefront-home .section-heading {
+  align-items: end;
+  margin-bottom: clamp(18px, 2vw, 28px);
 }
 
 .storefront-home .section-heading h2 {
-  max-width: 900px;
+  max-width: 680px;
   color: #151515;
-  font-size: clamp(2.45rem, 5.6vw, 6.5rem);
+  font-size: clamp(2rem, 3.8vw, 4.55rem);
+  line-height: 0.92;
+}
+
+.storefront-home .section-heading .eyebrow {
+  margin-bottom: 8px;
+  font-size: 0.72rem;
 }
 
 .storefront-home .section-link,
@@ -5448,9 +5501,9 @@ h3 {
 
 .storefront-home .product-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  max-width: 1520px;
+  max-width: 1840px;
   margin-inline: auto;
-  gap: clamp(14px, 1.45vw, 24px);
+  gap: clamp(10px, 0.9vw, 16px);
   align-items: start;
 }
 
@@ -5463,10 +5516,10 @@ h3 {
 }
 
 .storefront-home .product-image-link {
-  min-height: clamp(280px, 23vw, 390px);
+  min-height: clamp(350px, 26vw, 510px);
   display: grid;
   place-items: center;
-  padding: clamp(14px, 1.45vw, 22px);
+  padding: clamp(14px, 1.5vw, 24px);
   overflow: hidden;
   border-bottom: 1px solid rgba(21, 21, 21, 0.1);
   background: #f4f1eb;
@@ -5598,31 +5651,31 @@ h3 {
   --canvas-shadow-blur: clamp(16px, 2vw, 30px);
   --canvas-shadow-height: clamp(18px, 2.4vw, 36px);
   --canvas-shadow-bottom: -1.1rem;
-  width: min(100%, 700px);
+  width: min(100%, 780px);
 }
 
 .listing-card-image .product-canvas-image.shape-landscape {
-  width: min(100%, 820px);
+  width: min(100%, 920px);
 }
 
 .listing-card-image .product-canvas-image.shape-portrait {
-  width: min(86%, 420px);
+  width: min(92%, 560px);
 }
 
 .listing-card-image .product-canvas-image.shape-square {
-  width: min(88%, 520px);
+  width: min(96%, 640px);
 }
 
 .listing-card-image .artwork-mockup {
-  width: min(100%, 700px);
+  width: min(100%, 780px);
 }
 
 .listing-card-image .artwork-mockup.shape-landscape {
-  width: min(100%, 820px);
+  width: min(100%, 920px);
 }
 
 .listing-card-image .artwork-mockup.shape-portrait {
-  width: min(86%, 420px);
+  width: min(92%, 560px);
 }
 
 .listing-card-copy {
@@ -5897,8 +5950,10 @@ h3 {
     order: -1;
     width: 100%;
     max-width: none;
-    display: block;
+    display: grid;
+    place-items: center;
     margin: 0;
+    padding: 0;
     overflow: hidden;
   }
 
@@ -5907,10 +5962,12 @@ h3 {
   }
 
   .storefront-hero-art:first-child {
+    width: 100%;
     min-height: min(68vh, 520px);
     display: grid;
     place-items: center;
     padding: 34px 16px 30px;
+    overflow: hidden;
     background:
       radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.38) 34%, transparent 58%),
       linear-gradient(90deg, #e8e3da 0%, #f6f3ec 18%, #d7d2c8 100%);
@@ -5918,7 +5975,8 @@ h3 {
 
   .storefront-hero-art:first-child .product-canvas-image,
   .storefront-hero-art:first-child .artwork-mockup {
-    width: min(92vw, 500px);
+    width: min(calc(100vw - 56px), 480px);
+    max-width: 100%;
     justify-self: center;
     margin-right: auto;
     margin-left: auto;
@@ -6060,13 +6118,23 @@ h3 {
 
   .storefront-shop-section {
     padding-top: 36px;
+    padding-right: 16px;
     padding-bottom: 44px;
+    padding-left: 16px;
+  }
+
+  .storefront-shop-section.new-arrivals-preview {
+    padding-top: 36px;
   }
 
   .storefront-shop-section .section-heading {
     display: flex;
     align-items: end;
     margin-bottom: 20px;
+  }
+
+  .storefront-home .section-heading h2 {
+    font-size: clamp(1.8rem, 8.5vw, 2.6rem);
   }
 
   .storefront-collection-link {
