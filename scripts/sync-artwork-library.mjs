@@ -1,4 +1,4 @@
-import {cp, mkdir, open, readdir, readFile, rm, writeFile} from 'node:fs/promises'
+import {access, cp, mkdir, open, readdir, readFile, rm, writeFile} from 'node:fs/promises'
 import path from 'node:path'
 
 const sourceRoot = path.resolve(process.env.ARTWORK_SOURCE_DIR || 'dist/artwork')
@@ -8,6 +8,13 @@ const imageExtensions = new Set(['.avif', '.gif', '.jpg', '.jpeg', '.png', '.web
 const genericFolderPattern = /^new folder(?: \(\d+\))?$/i
 
 const catalog = JSON.parse(await readFile(catalogPath, 'utf8'))
+
+try {
+  await access(sourceRoot)
+} catch {
+  console.warn(`Artwork source not found at ${sourceRoot}. Skipping artwork sync.`)
+  process.exit(0)
+}
 
 function normalizeName(value) {
   return String(value || '')
@@ -312,13 +319,19 @@ function mergeCollectionProductIds(collections, products) {
   })
 }
 
+const availableFolders = await readTopLevelFolders(sourceRoot)
+
+if (!availableFolders.length) {
+  console.warn(`No artwork folders found at ${sourceRoot}. Skipping artwork sync to preserve the existing catalog.`)
+  process.exit(0)
+}
+
 await mkdir(publicRoot, {recursive: true})
 await rm(publicRoot, {recursive: true, force: true})
 await mkdir(publicRoot, {recursive: true})
 await writeFile(path.join(publicRoot, '.gitkeep'), '')
 await cp(sourceRoot, publicRoot, {recursive: true})
 
-const availableFolders = await readTopLevelFolders(sourceRoot)
 const usedFolders = new Set()
 const nextProducts = []
 

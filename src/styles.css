@@ -1811,6 +1811,129 @@ h3 {
   padding: 2px 0 0;
 }
 
+@media (min-width: 1181px) {
+  .product-page-header {
+    padding: 28px clamp(36px, 3.4vw, 72px) 0;
+  }
+
+  .listing-layout {
+    grid-template-columns: minmax(660px, 1fr) minmax(560px, 640px);
+    gap: clamp(34px, 4vw, 70px);
+    padding: 26px clamp(36px, 3.4vw, 72px) clamp(52px, 5vw, 86px);
+  }
+
+  .listing-gallery {
+    grid-template-columns: 86px minmax(0, 1fr);
+    gap: clamp(26px, 2.7vw, 46px);
+  }
+
+  .gallery-rail {
+    gap: 14px;
+  }
+
+  .gallery-rail button {
+    width: 82px;
+  }
+
+  .main-product-image.gallery-product-image,
+  .main-product-image.mockup-product-image {
+    justify-items: start;
+  }
+
+  .listing-layout .detail-artwork-shell {
+    width: min(820px, 100%);
+    margin-left: clamp(12px, 3vw, 58px);
+  }
+
+  .listing-layout .detail-artwork-shell.shape-landscape,
+  .listing-layout .detail-artwork-shell.mockup-product-shell.shape-landscape {
+    width: min(900px, 100%);
+  }
+
+  .listing-layout .detail-artwork-shell.shape-portrait,
+  .listing-layout .detail-artwork-shell.mockup-product-shell.shape-portrait {
+    width: min(720px, 100%);
+  }
+
+  .listing-panel {
+    width: 100%;
+    padding-top: 34px;
+  }
+
+  .listing-panel h1 {
+    max-width: 620px;
+    margin-bottom: 14px;
+    font-size: clamp(2.45rem, 2.65vw, 3.35rem);
+    line-height: 0.96;
+  }
+
+  .listing-price {
+    margin-bottom: 20px;
+    font-size: 1.45rem;
+  }
+
+  .listing-description {
+    max-width: 610px;
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  .product-trust-strip {
+    gap: 10px 18px;
+    margin-bottom: 22px;
+  }
+
+  .option-group {
+    margin-top: 26px;
+  }
+
+  .frame-options {
+    gap: 14px;
+  }
+
+  .frame-options button {
+    width: 76px;
+    height: 76px;
+  }
+
+  .frame-option-preview {
+    width: 54px;
+    height: 54px;
+  }
+
+  .size-options {
+    gap: 12px;
+  }
+
+  .size-options button {
+    min-width: 96px;
+    min-height: 50px;
+    font-size: 0.92rem;
+  }
+
+  .installment-note {
+    margin-top: 28px;
+    padding: 18px 20px;
+    font-size: 0.86rem;
+  }
+
+  .product-launch-offer {
+    margin-top: 16px;
+  }
+
+  .listing-cart-button {
+    min-height: 58px;
+    margin-top: 14px;
+    font-size: 0.9rem;
+  }
+
+  .trust-grid {
+    gap: 22px;
+    margin-top: 42px;
+    padding: 34px 0;
+  }
+}
+
 .rating-row {
   display: flex;
   align-items: center;
