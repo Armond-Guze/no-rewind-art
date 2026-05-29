@@ -209,6 +209,7 @@ function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets)
 const SANITY_CATALOG_SETTINGS_QUERY = `*[_type == "catalogSettings"][0]{
   sizePresets{
     portraitTwoThree[]{id, label, priceInCents, badge, previewScale},
+    portraitThreeFour[]{id, label, priceInCents, badge, previewScale},
     landscapeWide[]{id, label, priceInCents, badge, previewScale},
     landscapeThreeTwo[]{id, label, priceInCents, badge, previewScale},
     landscapeFourThree[]{id, label, priceInCents, badge, previewScale},

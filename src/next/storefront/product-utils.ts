@@ -71,7 +71,7 @@ export function formatFramePriceDelta(product: Product, sizeOption: SizeOption, 
 export function getDisplayArtworkShape(product: Pick<Product, 'aspectRatio' | 'artworkShape' | 'sizePreset'>) {
   const normalizedAspectRatio = getProductAspectRatio(product).replace(/\s/g, '');
 
-  if (normalizedAspectRatio === '2/3') {
+  if (normalizedAspectRatio === '2/3' || normalizedAspectRatio === '3/4' || normalizedAspectRatio === '4/5') {
     return 'portrait';
   }
 
@@ -87,6 +87,7 @@ function getAspectRatioFromSizePreset(sizePreset?: string) {
     landscapeFourThree: '4 / 3',
     landscapeThreeTwo: '3 / 2',
     landscapeWide: '2 / 1',
+    portraitThreeFour: '3 / 4',
     portraitTwoThree: '2 / 3',
     squareStandard: '1 / 1',
   };

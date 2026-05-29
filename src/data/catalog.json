@@ -34,6 +34,40 @@
         "previewScale": 1.21
       }
     ],
+    "portraitThreeFour": [
+      {
+        "id": "12x16",
+        "label": "12 x 16",
+        "priceInCents": 6500,
+        "previewScale": 0.94
+      },
+      {
+        "id": "18x24",
+        "label": "18 x 24",
+        "priceInCents": 9500,
+        "previewScale": 1
+      },
+      {
+        "id": "24x32",
+        "label": "24 x 32",
+        "priceInCents": 12500,
+        "badge": "Best Value",
+        "previewScale": 1.08
+      },
+      {
+        "id": "36x48",
+        "label": "36 x 48",
+        "priceInCents": 19500,
+        "previewScale": 1.15
+      },
+      {
+        "id": "45x60",
+        "label": "45 x 60",
+        "priceInCents": 22500,
+        "badge": "Statement",
+        "previewScale": 1.21
+      }
+    ],
     "landscapeWide": [
       {
         "id": "24x12",
@@ -124,15 +158,15 @@
         "previewScale": 1.08
       },
       {
-        "id": "40x30",
-        "label": "40 x 30",
-        "priceInCents": 15500,
-        "previewScale": 1.15
-      },
-      {
         "id": "48x36",
         "label": "48 x 36",
         "priceInCents": 19500,
+        "previewScale": 1.15
+      },
+      {
+        "id": "60x45",
+        "label": "60 x 45",
+        "priceInCents": 22500,
         "badge": "Statement",
         "previewScale": 1.21
       }

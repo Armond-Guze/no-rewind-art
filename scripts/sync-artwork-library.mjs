@@ -164,12 +164,24 @@ async function inferShapeAndPreset(mainImagePath) {
   const dimensions = await imageDimensions(mainImagePath)
   const ratio = dimensions ? dimensions.width / dimensions.height : 2
 
-  if (ratio < 0.85) {
+  if (ratio < 0.72) {
     return {artworkShape: 'portrait', aspectRatio: '2 / 3', sizePreset: 'portraitTwoThree', defaultSizeId: '24x36'}
   }
 
-  if (ratio > 1.15) {
+  if (ratio < 0.9) {
+    return {artworkShape: 'portrait', aspectRatio: '3 / 4', sizePreset: 'portraitThreeFour', defaultSizeId: '24x32'}
+  }
+
+  if (ratio > 1.75) {
     return {artworkShape: 'landscape', aspectRatio: '2 / 1', sizePreset: 'landscapeWide', defaultSizeId: '30x15'}
+  }
+
+  if (ratio > 1.42) {
+    return {artworkShape: 'landscape', aspectRatio: '3 / 2', sizePreset: 'landscapeThreeTwo', defaultSizeId: '24x16'}
+  }
+
+  if (ratio > 1.15) {
+    return {artworkShape: 'landscape', aspectRatio: '4 / 3', sizePreset: 'landscapeFourThree', defaultSizeId: '24x18'}
   }
 
   return {artworkShape: 'square', aspectRatio: '1 / 1', sizePreset: 'squareStandard', defaultSizeId: '24x24'}

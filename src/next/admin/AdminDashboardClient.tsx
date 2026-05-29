@@ -890,6 +890,7 @@ export default function AdminDashboardClient() {
                     <option value="2 / 1">2 / 1 Panoramic</option>
                     <option value="3 / 2">3 / 2 Landscape</option>
                     <option value="4 / 3">4 / 3 Landscape</option>
+                    <option value="3 / 4">3 / 4 Portrait</option>
                     <option value="4 / 5">4 / 5 Portrait</option>
                     <option value="2 / 3">2 / 3 Portrait</option>
                   </select>

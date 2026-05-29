@@ -140,20 +140,24 @@ export function OptimizedCanvasImage({
 
   const normalizedAspectRatio = aspectRatio.replace(/\s/g, '');
   const displayShape =
-    normalizedAspectRatio === '2/3'
+    normalizedAspectRatio === '2/3' || normalizedAspectRatio === '3/4' || normalizedAspectRatio === '4/5'
       ? 'portrait'
       : normalizedAspectRatio === '1/1'
         ? 'square'
         : shape;
   const hasSquareSource = isSquareSourceImage(src);
   const usesSquareSourceWideCrop = hasSquareSource && displayShape === 'landscape' && normalizedAspectRatio === '2/1';
+  const usesSquareSourceFourThreeCrop = hasSquareSource && displayShape === 'landscape' && normalizedAspectRatio === '4/3';
   const usesSquareSourcePortraitCrop = hasSquareSource && displayShape === 'portrait' && normalizedAspectRatio === '2/3';
+  const usesSquareSourceThreeFourCrop = hasSquareSource && displayShape === 'portrait' && normalizedAspectRatio === '3/4';
   const usesSquareSourceLandscapeCrop = hasSquareSource && displayShape === 'landscape' && normalizedAspectRatio === '3/2';
   const classNames = [
     'product-canvas-image',
     `shape-${displayShape}`,
     usesSquareSourceWideCrop ? 'crop-square-source-2x1' : undefined,
+    usesSquareSourceFourThreeCrop ? 'crop-square-source-4x3' : undefined,
     usesSquareSourcePortraitCrop ? 'crop-square-source-2x3' : undefined,
+    usesSquareSourceThreeFourCrop ? 'crop-square-source-3x4' : undefined,
     usesSquareSourceLandscapeCrop ? 'crop-square-source-3x2' : undefined,
     shadow ? 'has-canvas-shadow' : 'no-canvas-shadow',
     className,
