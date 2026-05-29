@@ -61,6 +61,7 @@ export function OptimizedRawImage({
   priority = false,
   sizes = '(max-width: 760px) 92vw, 860px',
   fill = false,
+  loading,
 }: {
   src: string;
   alt: string;
@@ -69,9 +70,11 @@ export function OptimizedRawImage({
   priority?: boolean;
   sizes?: string;
   fill?: boolean;
+  loading?: 'eager' | 'lazy';
 }) {
   const dimensions = getImageDimensions(src, aspectRatio);
   const imageLoader = getImageLoader(src);
+  const imageLoading = loading ?? (priority ? 'eager' : undefined);
 
   if (fill) {
     return (
@@ -82,7 +85,7 @@ export function OptimizedRawImage({
         alt={alt}
         fill
         preload={priority}
-        loading={priority ? 'eager' : undefined}
+        loading={imageLoading}
         sizes={sizes}
       />
     );
@@ -97,7 +100,7 @@ export function OptimizedRawImage({
       width={dimensions.width}
       height={dimensions.height}
       preload={priority}
-      loading={priority ? 'eager' : undefined}
+      loading={imageLoading}
       sizes={sizes}
     />
   );

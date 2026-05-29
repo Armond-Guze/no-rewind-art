@@ -526,6 +526,7 @@ export default function ProductPageClient({
                   alt="Back of a stretched canvas print being unboxed from protective packaging"
                   aspectRatio="4 / 3"
                   sizes="(max-width: 760px) 92vw, 50vw"
+                  loading="eager"
                   fill
                 />
               </div>
