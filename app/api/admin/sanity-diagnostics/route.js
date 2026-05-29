@@ -1,1 +1,1 @@
-export { GET, POST } from '../../../../api/admin/sanity-diagnostics.js';
+export { GET, POST } from '../../../../server/api/admin/sanity-diagnostics.js';

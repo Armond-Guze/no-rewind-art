@@ -1,1 +1,1 @@
-export { GET, POST } from '../../../../api/admin/products.js';
+export { GET, POST } from '../../../../server/api/admin/products.js';

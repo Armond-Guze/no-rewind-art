@@ -1,4 +1,4 @@
-import { processStripeWebhook } from '../../server/backend.js';
+import { processStripeWebhook } from '../../backend.js';
 import { errorJson, json, methodNotAllowed } from '../_utils.js';
 
 export async function POST(request) {

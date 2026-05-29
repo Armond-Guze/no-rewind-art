@@ -1,1 +1,1 @@
-export { GET, POST } from '../../../api/create-checkout-session.js';
+export { GET, POST } from '../../../server/api/create-checkout-session.js';

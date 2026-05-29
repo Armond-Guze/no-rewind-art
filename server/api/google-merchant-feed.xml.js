@@ -1,4 +1,4 @@
-import { buildGoogleMerchantFeedXml } from '../server/google-merchant-feed.js';
+import { buildGoogleMerchantFeedXml } from '../google-merchant-feed.js';
 import { errorJson, methodNotAllowed } from './_utils.js';
 
 export async function GET() {

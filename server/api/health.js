@@ -1,4 +1,4 @@
-import { getHealth } from '../server/backend.js';
+import { getHealth } from '../backend.js';
 import { errorJson, json, methodNotAllowed } from './_utils.js';
 
 export async function GET() {

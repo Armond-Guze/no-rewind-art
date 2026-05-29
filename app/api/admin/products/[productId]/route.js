@@ -1,1 +1,1 @@
-export { GET, PATCH } from '../../../../../api/admin/products/[productId].js';
+export { GET, PATCH } from '../../../../../server/api/admin/products/[productId].js';

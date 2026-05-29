@@ -1,4 +1,4 @@
-import { assertAdmin, updateAdminOrder } from '../../../server/backend.js';
+import { assertAdmin, updateAdminOrder } from '../../../backend.js';
 import { errorJson, getBearerHeader, json, methodNotAllowed } from '../../_utils.js';
 
 export async function PATCH(request) {

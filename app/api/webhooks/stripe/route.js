@@ -1,1 +1,1 @@
-export { GET, POST } from '../../../../api/webhooks/stripe.js';
+export { GET, POST } from '../../../../server/api/webhooks/stripe.js';

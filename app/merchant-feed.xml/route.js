@@ -1,1 +1,1 @@
-export { GET, POST } from '../../api/google-merchant-feed.xml.js';
+export { GET, POST } from '../../server/api/google-merchant-feed.xml.js';

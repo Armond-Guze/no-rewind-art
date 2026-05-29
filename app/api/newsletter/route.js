@@ -1,1 +1,1 @@
-export { GET, POST } from '../../../api/newsletter.js';
+export { GET, POST } from '../../../server/api/newsletter.js';

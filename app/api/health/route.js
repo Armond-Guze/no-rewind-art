@@ -1,1 +1,1 @@
-export { GET, POST } from '../../../api/health.js';
+export { GET, POST } from '../../../server/api/health.js';

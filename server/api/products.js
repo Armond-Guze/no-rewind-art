@@ -1,4 +1,4 @@
-import { listPublicCatalog } from '../server/backend.js';
+import { listPublicCatalog } from '../backend.js';
 import { errorJson, json, methodNotAllowed } from './_utils.js';
 
 export async function GET() {

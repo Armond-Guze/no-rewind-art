@@ -1,4 +1,4 @@
-import { assertAdmin, listAdminAssets } from '../../server/backend.js';
+import { assertAdmin, listAdminAssets } from '../../backend.js';
 import { errorJson, getBearerHeader, json, methodNotAllowed } from '../_utils.js';
 
 export async function GET(request) {
