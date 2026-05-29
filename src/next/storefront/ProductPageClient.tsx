@@ -522,7 +522,7 @@ export default function ProductPageClient({
             <article>
               <div className="product-proof-image">
                 <OptimizedRawImage
-                  src="/product-support/canvas-unboxing-back.png"
+                  src="/product-support/canvas-unboxing-back.jpg"
                   alt="Back of a stretched canvas print being unboxed from protective packaging"
                   aspectRatio="4 / 3"
                   sizes="(max-width: 760px) 92vw, 50vw"
@@ -541,7 +541,7 @@ export default function ProductPageClient({
             <article>
               <div className="product-proof-image">
                 <OptimizedRawImage
-                  src="/product-support/canvas-quality-closeup.png"
+                  src="/product-support/canvas-quality-closeup.jpg"
                   alt="Close-up of canvas print texture and wrapped canvas edge"
                   aspectRatio="4 / 3"
                   sizes="(max-width: 760px) 92vw, 50vw"

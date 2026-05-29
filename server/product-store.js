@@ -166,20 +166,11 @@ function sanitizeFrameOptions(value) {
     .filter((option) => option.id && option.label);
 }
 
-function withSanityImageParams(url, { width = 1600, quality = 85 } = {}) {
-  if (!url) {
-    return '';
-  }
-
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}auto=format&w=${width}&q=${quality}`;
-}
-
 function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets) {
   const mainImageUrl = document.mainImageUrl || '';
   const gallery = Array.isArray(document.galleryImages)
     ? document.galleryImages
-        .map((image) => withSanityImageParams(image?.url, { width: 2000, quality: 88 }))
+        .map((image) => image?.url || '')
         .filter(Boolean)
     : [];
 
@@ -194,7 +185,7 @@ function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets)
       description: document.description,
       longDescription: document.longDescription,
       label: document.label || document.title,
-      image: withSanityImageParams(mainImageUrl, { width: 1600, quality: 88 }),
+      image: mainImageUrl,
       imageAlt: document.imageAlt || document.mainImageAlt || document.title,
       artworkShape: getArtworkShapeFromSizePreset(document.sizePreset),
       aspectRatio: getProductAspectRatio(document),

@@ -1,10 +1,26 @@
-import Image from 'next/image';
+import Image, { type ImageLoaderProps } from 'next/image';
 import type { Product } from '../../data/products';
 import {
   getDisplayArtworkShape,
   getImageDimensions,
   getProductAspectRatio,
 } from './product-utils';
+
+function isSanityImageUrl(src: string) {
+  return /^https:\/\/cdn\.sanity\.io\//i.test(src);
+}
+
+function sanityImageLoader({ src, width, quality }: ImageLoaderProps) {
+  const url = new URL(src);
+  url.searchParams.set('auto', 'format');
+  url.searchParams.set('w', String(width));
+  url.searchParams.set('q', String(quality ?? 82));
+  return url.toString();
+}
+
+function getImageLoader(src: string) {
+  return isSanityImageUrl(src) ? sanityImageLoader : undefined;
+}
 
 type OptimizedArtworkProps = {
   product: Product;
@@ -55,11 +71,13 @@ export function OptimizedRawImage({
   fill?: boolean;
 }) {
   const dimensions = getImageDimensions(src, aspectRatio);
+  const imageLoader = getImageLoader(src);
 
   if (fill) {
     return (
       <Image
         className={className}
+        loader={imageLoader}
         src={src}
         alt={alt}
         fill
@@ -73,6 +91,7 @@ export function OptimizedRawImage({
   return (
     <Image
       className={className}
+      loader={imageLoader}
       src={src}
       alt={alt}
       width={dimensions.width}
@@ -124,11 +143,13 @@ export function OptimizedCanvasImage({
         ? 'square'
         : shape;
   const hasSquareSource = isSquareSourceImage(src);
+  const usesSquareSourceWideCrop = hasSquareSource && displayShape === 'landscape' && normalizedAspectRatio === '2/1';
   const usesSquareSourcePortraitCrop = hasSquareSource && displayShape === 'portrait' && normalizedAspectRatio === '2/3';
   const usesSquareSourceLandscapeCrop = hasSquareSource && displayShape === 'landscape' && normalizedAspectRatio === '3/2';
   const classNames = [
     'product-canvas-image',
     `shape-${displayShape}`,
+    usesSquareSourceWideCrop ? 'crop-square-source-2x1' : undefined,
     usesSquareSourcePortraitCrop ? 'crop-square-source-2x3' : undefined,
     usesSquareSourceLandscapeCrop ? 'crop-square-source-3x2' : undefined,
     shadow ? 'has-canvas-shadow' : 'no-canvas-shadow',
@@ -139,6 +160,7 @@ export function OptimizedCanvasImage({
     shadow ? 'shadow-[0_28px_45px_rgba(0,0,0,0.42)]' : 'shadow-none',
   ].join(' ');
   const dimensions = getImageDimensions(src, aspectRatio);
+  const imageLoader = getImageLoader(src);
 
   return (
     <div className={classNames} style={{ aspectRatio }}>
@@ -146,6 +168,7 @@ export function OptimizedCanvasImage({
       <div className={surfaceClassName}>
         <Image
           className="h-full w-full select-none object-cover object-center"
+          loader={imageLoader}
           src={src}
           alt={alt}
           width={dimensions.width}
