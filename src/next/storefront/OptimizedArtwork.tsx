@@ -84,6 +84,23 @@ export function OptimizedRawImage({
   );
 }
 
+function isSquareSourceImage(src: string) {
+  const embeddedSize = src.match(/-(\d+)x(\d+)\.(?:png|jpe?g|webp|avif)(?:\?|$)/i);
+
+  if (!embeddedSize) {
+    return false;
+  }
+
+  const width = Number(embeddedSize[1]);
+  const height = Number(embeddedSize[2]);
+
+  if (!width || !height) {
+    return false;
+  }
+
+  return Math.abs(width - height) / Math.max(width, height) < 0.04;
+}
+
 export function OptimizedCanvasImage({
   product,
   src = product.image,
@@ -106,8 +123,9 @@ export function OptimizedCanvasImage({
       : normalizedAspectRatio === '1/1'
         ? 'square'
         : shape;
-  const usesSquareSourcePortraitCrop = displayShape === 'portrait' && normalizedAspectRatio === '2/3';
-  const usesSquareSourceLandscapeCrop = displayShape === 'landscape' && normalizedAspectRatio === '3/2';
+  const hasSquareSource = isSquareSourceImage(src);
+  const usesSquareSourcePortraitCrop = hasSquareSource && displayShape === 'portrait' && normalizedAspectRatio === '2/3';
+  const usesSquareSourceLandscapeCrop = hasSquareSource && displayShape === 'landscape' && normalizedAspectRatio === '3/2';
   const classNames = [
     'product-canvas-image',
     `shape-${displayShape}`,

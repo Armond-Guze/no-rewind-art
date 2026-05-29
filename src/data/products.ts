@@ -127,14 +127,14 @@ export function getAspectRatioFromSizePreset(sizePreset?: string) {
 }
 
 export function getProductAspectRatio(product: Pick<CatalogProduct, 'aspectRatio' | 'artworkShape' | 'sizePreset'>) {
-  if (product.aspectRatio) {
-    return product.aspectRatio;
-  }
-
   const presetAspectRatio = getAspectRatioFromSizePreset(product.sizePreset);
 
   if (presetAspectRatio) {
     return presetAspectRatio;
+  }
+
+  if (product.aspectRatio) {
+    return product.aspectRatio;
   }
 
   if (product.artworkShape === 'portrait') {

@@ -82,21 +82,27 @@ export function getDisplayArtworkShape(product: Pick<Product, 'aspectRatio' | 'a
   return 'landscape';
 }
 
+function getAspectRatioFromSizePreset(sizePreset?: string) {
+  const aspectRatiosByPreset: Record<string, string> = {
+    landscapeFourThree: '4 / 3',
+    landscapeThreeTwo: '3 / 2',
+    landscapeWide: '2 / 1',
+    portraitTwoThree: '2 / 3',
+    squareStandard: '1 / 1',
+  };
+
+  return sizePreset ? aspectRatiosByPreset[sizePreset] : undefined;
+}
+
 export function getProductAspectRatio(product: Pick<Product, 'aspectRatio' | 'artworkShape' | 'sizePreset'>) {
+  const presetAspectRatio = getAspectRatioFromSizePreset(product.sizePreset);
+
+  if (presetAspectRatio) {
+    return presetAspectRatio;
+  }
+
   if (product.aspectRatio) {
     return product.aspectRatio;
-  }
-
-  if (product.sizePreset === 'portraitTwoThree') {
-    return '2 / 3';
-  }
-
-  if (product.sizePreset === 'squareStandard') {
-    return '1 / 1';
-  }
-
-  if (product.sizePreset === 'landscapeThreeTwo') {
-    return '3 / 2';
   }
 
   if (product.artworkShape === 'portrait') {
