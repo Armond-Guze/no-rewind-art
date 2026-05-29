@@ -9,11 +9,12 @@ Thumbs.db
 # Dependency folders, if this becomes a full app later
 node_modules/
 dist/
+.next/
 public/artwork/*
 !public/artwork/.gitkeep
 
 # Local dev logs
-vite-dev*.log
+next-dev*.log
 dev-combined*.log
 server/data/
 .local-data/

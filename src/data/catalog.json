@@ -174,7 +174,7 @@
       "description": "The strongest first-drop prints for ambitious rooms and daily momentum.",
       "productIds": [
         "life-has-no-rewind-canvas",
-        "money-is-energy-canvas",
+        "rubber-band-stacks-canvas",
         "paycheck-canvas",
         "stairs-canvas",
         "ninety-seven-percent-canvas",
@@ -385,7 +385,7 @@
       "aspectRatio": "2 / 1"
     },
     {
-      "id": "money-is-energy-canvas",
+      "id": "rubber-band-stacks-canvas",
       "slug": "rubber-band-stacks",
       "previousSlugs": [
         "money-is-energy"

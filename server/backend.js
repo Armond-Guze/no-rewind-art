@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import Stripe from 'stripe';
 import { findFrameOption, findProduct, findSizeOption, getFramePriceDelta } from './catalog.js';
 import { createNewsletterStore } from './newsletter-store.js';
@@ -16,7 +15,7 @@ if (process.env.STRIPE_ALLOW_INSECURE_LOCAL_TLS === 'true') {
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-const clientUrl = process.env.CLIENT_URL || 'http://127.0.0.1:5173';
+const clientUrl = process.env.CLIENT_URL || 'http://127.0.0.1:3000';
 const automaticTaxEnabled = process.env.STRIPE_AUTOMATIC_TAX === 'true';
 const adminApiToken = process.env.ADMIN_API_TOKEN;
 const allowUnsignedWebhooks = process.env.STRIPE_WEBHOOK_ALLOW_UNSIGNED === 'true';
@@ -36,7 +35,7 @@ const newsletterStore = createNewsletterStore();
 const orderStoreReady = orderStore.init();
 const productStoreReady = productStore.init();
 const newsletterStoreReady = newsletterStore.init();
-const artworkDir = fileURLToPath(new URL('../public/artwork', import.meta.url));
+const artworkDir = path.resolve(process.cwd(), 'public', 'artwork');
 
 function formatPrice(cents, currency = 'usd') {
   return new Intl.NumberFormat('en-US', {
@@ -404,11 +403,11 @@ export async function createCheckoutSession(body) {
     automatic_tax: {
       enabled: automaticTaxEnabled,
     },
-    success_url: `${clientUrl}/?checkout=success#cart`,
-    cancel_url: `${clientUrl}/?checkout=cancelled#cart`,
+    success_url: `${clientUrl}/cart?checkout=success#cart`,
+    cancel_url: `${clientUrl}/cart?checkout=cancelled#cart`,
     metadata: {
       brand: 'Armoze',
-      orderSource: 'vite-storefront',
+      orderSource: 'next-storefront',
     },
   });
 

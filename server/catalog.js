@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
+import path from 'node:path';
 
 export const seedCatalog = JSON.parse(
-  readFileSync(new URL('../src/data/catalog.json', import.meta.url), 'utf8'),
+  readFileSync(path.resolve(process.cwd(), 'src/data/catalog.json'), 'utf8'),
 );
 
 const fallbackFrameOptions = [

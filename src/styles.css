@@ -2709,6 +2709,16 @@ h3 {
   object-fit: cover;
 }
 
+.product-proof-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
+
+.product-proof-image img {
+  height: 100%;
+}
+
 .product-proof-grid article div {
   padding: clamp(22px, 3vw, 34px);
 }
@@ -2765,6 +2775,14 @@ h3 {
   color: var(--muted);
   font-size: clamp(1.02rem, 1.7vw, 1.28rem);
   line-height: 1.65;
+}
+
+.cart-copy h1 {
+  margin-bottom: 18px;
+  max-width: 760px;
+  font-size: clamp(2rem, 5vw, 5.2rem);
+  line-height: 0.96;
+  text-transform: uppercase;
 }
 
 .cart-panel {

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { createProductStore } from './product-store.js';
 
 const defaultSiteUrl = 'https://armoze.com';

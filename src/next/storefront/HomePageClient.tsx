@@ -1,0 +1,226 @@
+'use client';
+
+import { useEffect } from 'react';
+import Link from 'next/link';
+import { ArrowUpRight, Plus } from 'lucide-react';
+import { addStoredCartItem } from '../../cart';
+import type { Product } from '../../data/products';
+import {
+  formatPrice,
+  getBaseFrameOption,
+  getBaseSizeOption,
+  getConfiguredUnitPrice,
+  supportEmail,
+  supportMailto,
+} from './product-utils';
+import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
+import { ProductImage } from './OptimizedArtwork';
+import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
+
+function HomeProductCard({
+  product,
+  priority = false,
+  showDescription = true,
+}: {
+  product: Product;
+  priority?: boolean;
+  showDescription?: boolean;
+}) {
+  function quickAdd() {
+    const sizeOption = getBaseSizeOption(product);
+    const frameOption = getBaseFrameOption(product);
+
+    addStoredCartItem({
+      productId: product.id,
+      sizeId: sizeOption.id,
+      frameId: frameOption.id,
+      quantity: 1,
+    });
+    trackStorefrontEvent('add_to_cart', {
+      currency: 'USD',
+      value: getConfiguredUnitPrice(product, sizeOption, frameOption) / 100,
+      items: [getProductTrackingItem(product, sizeOption, frameOption)],
+    });
+  }
+
+  return (
+    <article className="product">
+      <Link className="product-image-link" href={`/products/${product.slug}`}>
+        <ProductImage product={product} priority={priority} />
+      </Link>
+      <div className="product-copy">
+        <div className="product-title-row">
+          <div>
+            <h3>
+              <Link href={`/products/${product.slug}`}>{product.title}</Link>
+            </h3>
+            <span>{product.size}</span>
+          </div>
+          <strong>{formatPrice(product.priceInCents)}</strong>
+        </div>
+        {showDescription ? <p>{product.description}</p> : null}
+        <div className="product-actions">
+          <Link className="text-action" href={`/products/${product.slug}`}>
+            View Details
+            <ArrowUpRight aria-hidden="true" size={16} />
+          </Link>
+          <button className="text-action" type="button" onClick={quickAdd}>
+            Add to Cart
+            <Plus aria-hidden="true" size={16} />
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export default function HomePageClient({
+  checkoutResult,
+  featuredProducts,
+  newArrivalProducts,
+  heroProducts,
+}: {
+  checkoutResult?: string;
+  featuredProducts: Product[];
+  newArrivalProducts: Product[];
+  heroProducts: Product[];
+}) {
+  useEffect(() => {
+    if (checkoutResult !== 'success') {
+      return;
+    }
+
+    const trackingKey = 'armoze_purchase_return_tracked';
+
+    if (window.sessionStorage.getItem(trackingKey) === '1') {
+      return;
+    }
+
+    trackStorefrontEvent('purchase', { currency: 'USD' });
+    window.sessionStorage.setItem(trackingKey, '1');
+  }, [checkoutResult]);
+
+  return (
+    <StorefrontShell>
+      <StorefrontTracker />
+      <main id="top" className="home-page storefront-home">
+        {checkoutResult === 'success' ? (
+          <div className="checkout-banner success">Payment complete. Your order is being prepared.</div>
+        ) : null}
+
+        {checkoutResult === 'cancelled' ? (
+          <div className="checkout-banner cancelled">
+            Checkout was cancelled. Your cart is still here when you are ready.
+          </div>
+        ) : null}
+
+        <section className="storefront-hero" aria-labelledby="storefront-title">
+          <div className="storefront-hero-copy">
+            <p className="eyebrow">Armoze canvas prints</p>
+            <h1 id="storefront-title">
+              <span>Art for </span>
+              <span>the <em>refined.</em></span>
+            </h1>
+            <p>
+              Every gallery-quality canvas is ready to hang and designed to inspire focus,
+              execution, and a relentless mindset.
+            </p>
+            <div className="hero-actions">
+              <Link className="button button-primary" href="/collections/best-sellers">
+                Shop Best Sellers
+                <ArrowUpRight aria-hidden="true" size={16} />
+              </Link>
+              <Link className="button button-secondary" href="/collections/new-arrivals">
+                New Arrivals
+              </Link>
+            </div>
+            <div className="storefront-proof-row" aria-label="Store benefits">
+              <span>Made to order</span>
+              <span>Canvas prints</span>
+              <span>Free U.S. shipping</span>
+            </div>
+          </div>
+
+          <div className="storefront-hero-gallery" aria-label="Featured artwork">
+            {heroProducts.map((product, index) => (
+              <Link
+                className={`storefront-hero-art storefront-hero-art-${index + 1}`}
+                key={product.id}
+                href={`/products/${product.slug}`}
+              >
+                <ProductImage product={product} priority={index === 0} />
+                <span>{product.title}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section id="shop" className="section shop-section storefront-shop-section">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Best sellers</p>
+              <h2>Shop canvas prints.</h2>
+            </div>
+            <Link className="section-link" href="/collections/best-sellers">
+              View All
+              <ArrowUpRight aria-hidden="true" size={16} />
+            </Link>
+          </div>
+
+          <div className="product-grid">
+            {featuredProducts.map((product, index) => (
+              <HomeProductCard
+                key={product.id}
+                product={product}
+                priority={index < 2}
+              />
+            ))}
+          </div>
+        </section>
+
+        <section className="storefront-quote-cta" aria-labelledby="storefront-quote-title">
+          <p className="eyebrow">Made for momentum</p>
+          <h2 id="storefront-quote-title">
+            <span>Made for those who <em>build.</em></span>
+          </h2>
+          <p className="storefront-quote-copy">
+            Motivational canvas prints for rooms where focus, ambition, and discipline stay visible.
+          </p>
+          <Link className="button button-primary" href="/collections/best-sellers">
+            Shop Best Sellers
+            <ArrowUpRight aria-hidden="true" size={16} />
+          </Link>
+        </section>
+
+        <section className="section shop-section storefront-shop-section new-arrivals-preview">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Fresh artwork</p>
+              <h2>New arrivals.</h2>
+            </div>
+            <Link className="section-link" href="/collections/new-arrivals">
+              View Drop
+              <ArrowUpRight aria-hidden="true" size={16} />
+            </Link>
+          </div>
+
+          <div className="product-grid">
+            {newArrivalProducts.map((product, index) => (
+              <HomeProductCard
+                key={product.id}
+                product={product}
+                priority={index < 2}
+                showDescription={false}
+              />
+            ))}
+          </div>
+        </section>
+
+        <section id="support" className="storefront-help-strip" aria-label="Shop support">
+          <span>Support</span>
+          <a href={supportMailto}>{supportEmail}</a>
+        </section>
+      </main>
+    </StorefrontShell>
+  );
+}

@@ -1,13 +1,15 @@
 # Armoze
 
-React/Vite website and relaunch kit for Armoze, a motivational wall art brand focused on ambition, discipline, money mindset, and future-focused spaces.
+Next.js storefront for Armoze, a motivational wall art brand focused on ambition, discipline, money mindset, and future-focused spaces.
 
 ## Files
 
-- `src/App.tsx` - main React website
+- `app/` - Next.js routes, metadata, sitemap, robots, and API route handlers
+- `src/next/storefront/` - storefront page components
+- `src/next/admin/` - private admin dashboard client
 - `src/data/products.ts` - artwork/product list
+- `src/data/catalog.json` - product, collection, size, and pricing data
 - `src/styles.css` - site styling
-- `index.html` - Vite app shell
 - `public/artwork/` - put real artwork image files here
 - `art-brand-relaunch-kit.md` - Etsy and brand relaunch plan
 - `website-desktop-preview.png` - desktop screenshot preview
@@ -21,22 +23,16 @@ Install dependencies:
 npm install
 ```
 
-Start the local dev server and checkout backend:
+Start the local dev server:
 
 ```bash
 npm run dev
 ```
 
-Frontend:
+Local site:
 
 ```text
-http://127.0.0.1:5173
-```
-
-Backend health check:
-
-```text
-http://127.0.0.1:4242/api/health
+http://127.0.0.1:3000
 ```
 
 Build for production:
@@ -275,7 +271,7 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 STRIPE_WEBHOOK_ALLOW_UNSIGNED=false
 STRIPE_AUTOMATIC_TAX=false
 STRIPE_ALLOW_INSECURE_LOCAL_TLS=false
-CLIENT_URL=http://127.0.0.1:5173
+CLIENT_URL=http://127.0.0.1:3000
 PORT=4242
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key

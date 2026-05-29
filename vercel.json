@@ -22,15 +22,5 @@
       "destination": "https://sanity.io/@o8e9CGiAz/studio/vydy99zsxkte1uvjidscpvc2/default/structure/artworkProduct",
       "permanent": false
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/merchant-feed.xml",
-      "destination": "/api/google-merchant-feed.xml"
-    },
-    {
-      "source": "/((?!api/|assets/|artwork/|armoze-logo.png|robots.txt|sitemap.xml|merchant-feed.xml).*)",
-      "destination": "/index.html"
-    }
   ]
 }
