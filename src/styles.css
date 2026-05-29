@@ -6377,10 +6377,18 @@ h3 {
   max-height: none;
 }
 
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .detail-artwork-surface:has(.product-canvas-image.crop-square-source-2x1) {
+  aspect-ratio: 2 / 1;
+  overflow: visible;
+}
+
 @media (min-width: 761px) {
   .listing-gallery > .main-product-image
     .detail-artwork-shell.front-product-shell.shape-landscape
     .detail-artwork-surface:has(.product-canvas-image.crop-square-source-2x1) {
+    aspect-ratio: 2 / 1;
     width: min(920px, 94%);
     overflow: visible;
   }
