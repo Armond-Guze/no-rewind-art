@@ -7244,3 +7244,94 @@ h3 {
   object-fit: cover;
   object-position: center;
 }
+
+.storefront-home .product-image-link,
+.collection-page .listing-card-image {
+  padding: clamp(10px, 1.1vw, 18px);
+}
+
+.collection-page .listing-card-image .product-canvas-image.shape-portrait,
+.collection-page .listing-card-image .artwork-mockup.shape-portrait {
+  width: min(88%, calc((var(--collection-card-media-height) - clamp(20px, 2.2vw, 36px)) * 0.7));
+}
+
+@media (max-width: 760px) {
+  .storefront-home .product-grid,
+  .collection-page .listing-grid {
+    display: grid;
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+    margin-right: 0;
+    padding-right: 0;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .storefront-home .product-image-link {
+    min-height: clamp(168px, 49vw, 220px);
+    height: clamp(168px, 49vw, 220px);
+    padding: 8px;
+  }
+
+  .storefront-home .product-image-link .product-canvas-image.shape-landscape,
+  .storefront-home .product-image-link .artwork-mockup.shape-landscape {
+    width: 100%;
+  }
+
+  .storefront-home .product-image-link .product-canvas-image.shape-portrait,
+  .storefront-home .product-image-link .artwork-mockup.shape-portrait {
+    width: min(72%, 126px);
+    min-width: 0;
+  }
+
+  .storefront-home .product-image-link .product-canvas-image.shape-square,
+  .storefront-home .product-image-link .artwork-mockup.shape-square {
+    width: min(88%, 220px);
+  }
+
+  .storefront-home .product {
+    scroll-snap-align: none;
+  }
+
+  .storefront-home .product-copy {
+    padding: 10px 8px 12px;
+  }
+
+  .storefront-home .product-title-row h3,
+  .collection-page .listing-card-copy h2 {
+    overflow-wrap: anywhere;
+  }
+
+  .collection-page .listing-grid {
+    --collection-card-media-height: clamp(174px, 51vw, 240px);
+    padding: 18px 12px 42px;
+  }
+
+  .collection-page .listing-card-image {
+    padding: 8px;
+  }
+
+  .collection-page .listing-card-copy {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 32px;
+    gap: 8px;
+    align-items: start;
+    padding-top: 10px;
+  }
+
+  .collection-page .listing-card-copy h2 {
+    font-size: 0.72rem;
+    line-height: 1.12;
+  }
+
+  .collection-page .listing-card-copy p {
+    font-size: 0.64rem;
+  }
+
+  .collection-page .quick-add {
+    width: 32px;
+    height: 32px;
+  }
+}
