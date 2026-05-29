@@ -1,29 +1,28 @@
-import { getCatalog, getProductsForCollection, siteUrl } from '../src/next/seo.js';
+import { getSanitySitemapEntries } from '../server/sanity-sitemap.js';
+
+export const dynamic = 'force-dynamic';
+
+const siteUrl = 'https://armoze.com';
 
 export default async function sitemap() {
-  const catalog = await getCatalog();
+  const { collectionSlugs, products } = await getSanitySitemapEntries();
   const now = new Date();
-  const bestSellerIds = new Set(
-    catalog.collections.find((collection) => collection.slug === 'best-sellers')?.productIds || [],
-  );
   const routes = [
     {
       url: siteUrl,
       lastModified: now,
       priority: 1,
     },
-    ...catalog.collections.map((collection) => ({
-      url: `${siteUrl}/collections/${collection.slug}`,
+    ...collectionSlugs.map((collectionSlug) => ({
+      url: `${siteUrl}/collections/${collectionSlug}`,
       lastModified: now,
-      priority: collection.slug === 'study-creative' ? 0.7 : 0.8,
+      priority: collectionSlug === 'study-creative' ? 0.7 : 0.8,
     })),
-    ...catalog.products
-      .filter((product) => product.published)
-      .map((product) => ({
-        url: `${siteUrl}/products/${product.slug}`,
-        lastModified: now,
-        priority: bestSellerIds.has(product.id) ? 0.9 : 0.8,
-      })),
+    ...products.map((product) => ({
+      url: `${siteUrl}/products/${product.slug}`,
+      lastModified: product.updatedAt ? new Date(product.updatedAt) : now,
+      priority: product.collectionSlugs.includes('best-sellers') ? 0.9 : 0.8,
+    })),
     ...['shipping', 'returns', 'privacy', 'terms'].map((path) => ({
       url: `${siteUrl}/${path}`,
       lastModified: now,
