@@ -14,7 +14,6 @@ import {
 import { addStoredCartItem } from '../../cart';
 import type { FrameOption, Product } from '../../data/products';
 import {
-  formatFramePriceDelta,
   formatPrice,
   getBaseFrameOption,
   getConfiguredUnitPrice,
@@ -380,9 +379,6 @@ export default function ProductPageClient({
                   >
                     <FrameOptionPreview option={option} />
                     <span className="sr-only">{option.label}</span>
-                    {formatFramePriceDelta(product, selectedOption, option) ? (
-                      <small>{formatFramePriceDelta(product, selectedOption, option)}</small>
-                    ) : null}
                   </button>
                 ))}
               </div>
@@ -515,7 +511,7 @@ export default function ProductPageClient({
         <section className="product-proof-section" aria-labelledby="product-proof-title">
           <div className="product-section-heading">
             <p className="eyebrow">What arrives</p>
-            <h2 id="product-proof-title">Built to feel finished before it hits the wall.</h2>
+            <h2 id="product-proof-title">Ready to hang</h2>
           </div>
 
           <div className="product-proof-grid">

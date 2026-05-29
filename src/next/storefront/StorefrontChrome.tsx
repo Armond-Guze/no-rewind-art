@@ -155,6 +155,10 @@ function NextSiteHeader() {
         id="primary-navigation"
         aria-label="Primary navigation"
       >
+        <div className="mobile-menu-brand" aria-hidden="true">
+          <img className="brand-mark" src="/armoze-logo.png" alt="" />
+          <span>Armoze</span>
+        </div>
         <Link href="/collections/best-sellers" onClick={closeMenu}>Best Sellers</Link>
         <Link href="/collections/money-ambition" onClick={closeMenu}>Money</Link>
         <Link href="/collections/discipline-focus" onClick={closeMenu}>Focus</Link>
