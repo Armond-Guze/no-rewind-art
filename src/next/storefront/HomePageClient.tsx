@@ -158,8 +158,8 @@ export default function HomePageClient({
         <section id="shop" className="section shop-section storefront-shop-section">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Best sellers</p>
-              <h2>Shop canvas prints.</h2>
+              <h2>Best sellers</h2>
+              <p className="storefront-section-subcopy">Shop our best</p>
             </div>
             <Link className="section-link" href="/collections/best-sellers">
               View All
