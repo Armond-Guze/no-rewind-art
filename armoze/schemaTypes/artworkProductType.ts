@@ -145,6 +145,7 @@ export const artworkProductType = defineType({
         list: [
           {title: 'Landscape 2:1', value: 'landscapeWide'},
           {title: 'Portrait 2:3', value: 'portraitTwoThree'},
+          {title: 'Portrait 3:4', value: 'portraitThreeFour'},
           {title: 'Landscape 3:2', value: 'landscapeThreeTwo'},
           {title: 'Landscape 4:3', value: 'landscapeFourThree'},
           {title: 'Square Standard', value: 'squareStandard'},
@@ -166,6 +167,7 @@ export const artworkProductType = defineType({
           {title: '2 / 1 Panoramic', value: '2 / 1'},
           {title: '3 / 2 Landscape', value: '3 / 2'},
           {title: '4 / 3 Landscape', value: '4 / 3'},
+          {title: '3 / 4 Portrait', value: '3 / 4'},
           {title: '4 / 5 Portrait', value: '4 / 5'},
           {title: '2 / 3 Portrait', value: '2 / 3'},
         ],

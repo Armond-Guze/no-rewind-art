@@ -244,6 +244,18 @@ export default function ProductPageClient({
                 >
                   {image === 'placeholder' ? (
                     <ProductVisual product={product} />
+                  ) : image === product.image ? (
+                    <OptimizedCanvasImage
+                      className="gallery-thumbnail-canvas"
+                      product={product}
+                      src={image}
+                      alt=""
+                      aspectRatio={productAspectRatio}
+                      shape={productDisplayShape}
+                      shadow={false}
+                      sizes="82px"
+                      priority={index === 0}
+                    />
                   ) : (
                     <OptimizedRawImage
                       src={image}

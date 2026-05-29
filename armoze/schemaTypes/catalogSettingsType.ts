@@ -68,6 +68,13 @@ export const catalogSettingsType = defineType({
           {id: '32x48', label: '32 x 48', priceInCents: 13500, previewScale: 1.15},
           {id: '40x60', label: '40 x 60', priceInCents: 19500, badge: 'Statement', previewScale: 1.21},
         ]),
+        sizePresetField('portraitThreeFour', 'Portrait 3:4', 'For sizes like 12 x 16, 18 x 24, and 24 x 32.', [
+          {id: '12x16', label: '12 x 16', priceInCents: 6500, previewScale: 0.94},
+          {id: '18x24', label: '18 x 24', priceInCents: 9500, previewScale: 1},
+          {id: '24x32', label: '24 x 32', priceInCents: 12500, badge: 'Best Value', previewScale: 1.08},
+          {id: '36x48', label: '36 x 48', priceInCents: 19500, previewScale: 1.15},
+          {id: '45x60', label: '45 x 60', priceInCents: 22500, badge: 'Statement', previewScale: 1.21},
+        ]),
         sizePresetField('landscapeThreeTwo', 'Landscape 3:2', 'For sizes like 18 x 12, 24 x 16, and 36 x 24.', [
           {id: '18x12', label: '18 x 12', priceInCents: 7500, previewScale: 0.94},
           {id: '24x16', label: '24 x 16', priceInCents: 9500, previewScale: 1},
@@ -79,8 +86,8 @@ export const catalogSettingsType = defineType({
           {id: '16x12', label: '16 x 12', priceInCents: 6500, previewScale: 0.94},
           {id: '24x18', label: '24 x 18', priceInCents: 9500, previewScale: 1},
           {id: '32x24', label: '32 x 24', priceInCents: 12500, badge: 'Best Value', previewScale: 1.08},
-          {id: '40x30', label: '40 x 30', priceInCents: 15500, previewScale: 1.15},
-          {id: '48x36', label: '48 x 36', priceInCents: 19500, badge: 'Statement', previewScale: 1.21},
+          {id: '48x36', label: '48 x 36', priceInCents: 19500, previewScale: 1.15},
+          {id: '60x45', label: '60 x 45', priceInCents: 22500, badge: 'Statement', previewScale: 1.21},
         ]),
         sizePresetField('squareStandard', 'Square Standard', 'For sizes like 12 x 12, 16 x 16, and 24 x 24.', [
           {id: '12x12', label: '12 x 12', priceInCents: 4500, previewScale: 0.94},

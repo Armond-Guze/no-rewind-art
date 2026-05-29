@@ -25,6 +25,7 @@ const catalog = await listPublicCatalog()
 const supportedSizePresets = new Set([
   'landscapeWide',
   'portraitTwoThree',
+  'portraitThreeFour',
   'landscapeThreeTwo',
   'landscapeFourThree',
   'squareStandard',
@@ -49,6 +50,10 @@ function cleanObject(value) {
 function getSizePreset(product) {
   if (supportedSizePresets.has(product.sizePreset)) {
     return product.sizePreset
+  }
+
+  if (product.aspectRatio === '3 / 4') {
+    return 'portraitThreeFour'
   }
 
   if (product.artworkShape === 'portrait' || product.aspectRatio === '2 / 3') {

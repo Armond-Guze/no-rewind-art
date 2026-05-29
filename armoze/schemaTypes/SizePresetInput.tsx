@@ -26,6 +26,17 @@ const sizePresetPreview: Record<
       {label: '40 x 60', price: '$195', badge: 'Statement'},
     ],
   },
+  portraitThreeFour: {
+    label: 'Portrait 3:4',
+    note: 'Best for wider vertical object artwork.',
+    sizes: [
+      {label: '12 x 16', price: '$65'},
+      {label: '18 x 24', price: '$95'},
+      {label: '24 x 32', price: '$125', badge: 'Best Value'},
+      {label: '36 x 48', price: '$195'},
+      {label: '45 x 60', price: '$225', badge: 'Statement'},
+    ],
+  },
   landscapeThreeTwo: {
     label: 'Landscape 3:2',
     note: 'Best for standard horizontal artwork.',
@@ -44,8 +55,8 @@ const sizePresetPreview: Record<
       {label: '16 x 12', price: '$65'},
       {label: '24 x 18', price: '$95'},
       {label: '32 x 24', price: '$125', badge: 'Best Value'},
-      {label: '40 x 30', price: '$155'},
-      {label: '48 x 36', price: '$195', badge: 'Statement'},
+      {label: '48 x 36', price: '$195'},
+      {label: '60 x 45', price: '$225', badge: 'Statement'},
     ],
   },
   squareStandard: {
