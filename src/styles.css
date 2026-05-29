@@ -2547,15 +2547,15 @@ h3 {
 }
 
 .listing-panel .listing-cart-button.button-secondary {
-  border-color: #e6b949;
-  background: linear-gradient(135deg, #fff4c7 0%, #f2c24c 52%, #d99f24 100%);
+  border-color: var(--gold);
+  background: var(--gold);
   color: #151515;
   box-shadow: 0 12px 22px rgba(217, 159, 36, 0.18);
 }
 
 .listing-panel .listing-cart-button.button-secondary:hover {
-  border-color: #d9a226;
-  background: linear-gradient(135deg, #fff7d7 0%, #f5c95a 52%, #d5961d 100%);
+  border-color: var(--gold);
+  background: var(--gold);
   color: #111;
 }
 
@@ -6789,9 +6789,10 @@ h3 {
 .mobile-gallery-slide
   .product-canvas-image.frame-white {
   --canvas-frame-rail: clamp(8px, 0.95vw, 17px);
-  --canvas-frame-lip: clamp(2px, 0.25vw, 4px);
-  --canvas-frame-outer-inset: calc((var(--canvas-frame-rail) + var(--canvas-frame-lip)) * -1);
-  --canvas-frame-lip-inset: calc(var(--canvas-frame-lip) * -1);
+  --canvas-frame-lip: clamp(4px, 0.42vw, 7px);
+  --canvas-frame-inset: calc(var(--canvas-frame-rail) + var(--canvas-frame-lip));
+  box-sizing: border-box;
+  padding: var(--canvas-frame-inset);
   overflow: visible;
   border-radius: 1px;
   box-shadow: none;
@@ -6808,7 +6809,7 @@ h3 {
   content: "";
   position: absolute;
   z-index: 0;
-  inset: var(--canvas-frame-outer-inset);
+  inset: 0;
   pointer-events: none;
   background: var(--canvas-frame-background);
   box-shadow:
@@ -6832,7 +6833,7 @@ h3 {
   content: "";
   position: absolute;
   z-index: 2;
-  inset: var(--canvas-frame-lip-inset);
+  inset: var(--canvas-frame-rail);
   pointer-events: none;
   box-shadow:
     inset 0 0 0 var(--canvas-frame-lip) var(--canvas-frame-inner-lip),
@@ -6843,7 +6844,7 @@ h3 {
 .mobile-gallery-slide .product-canvas-image.frame-black,
 .mobile-gallery-slide .product-canvas-image.frame-white {
   --canvas-frame-rail: clamp(6px, 1.75vw, 11px);
-  --canvas-frame-lip: clamp(2px, 0.5vw, 3px);
+  --canvas-frame-lip: clamp(3px, 0.85vw, 5px);
 }
 
 .listing-gallery > .main-product-image
@@ -6895,7 +6896,6 @@ h3 {
   border-radius: 0;
   background: #f3f1ea;
   box-shadow:
-    0 0 0 var(--canvas-frame-lip) var(--canvas-frame-inner-lip),
     0 0 0 1px rgba(0, 0, 0, 0.36),
     0 2px 4px rgba(255, 255, 255, 0.1),
     inset 0 0 0 1px var(--canvas-frame-inner-highlight),
@@ -6920,7 +6920,6 @@ h3 {
   .product-canvas-image.frame-white
   > div {
   box-shadow:
-    0 0 0 var(--canvas-frame-lip) var(--canvas-frame-inner-lip),
     0 0 0 1px rgba(0, 0, 0, 0.36),
     0 2px 4px rgba(255, 255, 255, 0.1),
     inset 0 0 0 1px var(--canvas-frame-inner-highlight),
@@ -7026,4 +7025,30 @@ h3 {
   max-height: none;
   object-fit: cover;
   object-position: center;
+}
+
+.collection-page .listing-grid {
+  --collection-card-media-height: clamp(320px, 29vw, 620px);
+  align-items: start;
+}
+
+.collection-page .listing-card {
+  grid-template-rows: var(--collection-card-media-height) auto;
+}
+
+.collection-page .listing-card-image {
+  height: var(--collection-card-media-height);
+  min-height: 0;
+}
+
+.collection-page .listing-card-image .product-canvas-image.shape-portrait,
+.collection-page .listing-card-image .artwork-mockup.shape-portrait {
+  width: min(82%, calc((var(--collection-card-media-height) - clamp(36px, 3.6vw, 60px)) * 0.66));
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .collection-page .listing-grid {
+    --collection-card-media-height: clamp(260px, 74vw, 430px);
+  }
 }
