@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Plus } from 'lucide-react';
 import { addStoredCartItem } from '../../cart';
@@ -16,6 +16,34 @@ import {
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
 import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
+
+const heroWordPool = ['present', 'driven', 'focused', 'steady', 'bold'];
+
+function getHeroKeywordCandidates(product: Product, index: number) {
+  const productText = `${product.title} ${product.description} ${product.tone}`.toLowerCase();
+
+  if (/(money|rubber|paycheck|cash|bank|million|rent|vault|dollar)/.test(productText)) {
+    return ['driven', 'bold', 'focused'];
+  }
+
+  if (/(life|rewind|clock|time|\bmoment\b)/.test(productText)) {
+    return ['present', 'steady', 'bold'];
+  }
+
+  if (/(book|study|focus|learn|creative)/.test(productText)) {
+    return ['focused', 'steady', 'driven'];
+  }
+
+  if (/(calm|pressure)/.test(productText)) {
+    return ['steady', 'focused', 'present'];
+  }
+
+  if (/(stairs|discipline|97|to do|keep going|daily)/.test(productText)) {
+    return ['focused', 'driven', 'bold'];
+  }
+
+  return [heroWordPool[index % heroWordPool.length]];
+}
 
 function HomeProductCard({
   product,
@@ -100,6 +128,38 @@ export default function HomePageClient({
     window.sessionStorage.setItem(trackingKey, '1');
   }, [checkoutResult]);
 
+  const heroSlides = useMemo(() => {
+    const productsWithImages = heroProducts.filter((product) => product.image);
+    const slideProducts = productsWithImages.length ? productsWithImages : heroProducts;
+    const usedKeywords = new Set<string>();
+
+    return slideProducts.slice(0, 5).map((product, index) => {
+      const keyword =
+        [...getHeroKeywordCandidates(product, index), ...heroWordPool].find(
+          (candidate) => !usedKeywords.has(candidate),
+        ) ?? heroWordPool[index % heroWordPool.length];
+
+      usedKeywords.add(keyword);
+
+      return { product, keyword };
+    });
+  }, [heroProducts]);
+  const [activeHeroIndex, setActiveHeroIndex] = useState(0);
+  const activeHeroSlideIndex = heroSlides.length ? activeHeroIndex % heroSlides.length : 0;
+  const activeHeroSlide = heroSlides[activeHeroSlideIndex];
+
+  useEffect(() => {
+    if (heroSlides.length <= 1 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    const slideTimer = window.setInterval(() => {
+      setActiveHeroIndex((index) => (index + 1) % heroSlides.length);
+    }, 5000);
+
+    return () => window.clearInterval(slideTimer);
+  }, [heroSlides.length]);
+
   return (
     <StorefrontShell>
       <StorefrontTracker />
@@ -119,11 +179,16 @@ export default function HomePageClient({
             <p className="eyebrow">Armoze canvas prints</p>
             <h1 id="storefront-title">
               <span>Art for </span>
-              <span>the <em>refined.</em></span>
+              <span>
+                the{' '}
+                <em className="storefront-hero-keyword" key={activeHeroSlide?.product.id ?? 'refined'}>
+                  {activeHeroSlide?.keyword ?? 'refined'}.
+                </em>
+              </span>
             </h1>
             <p>
               Every gallery-quality canvas is ready to hang and designed to inspire focus,
-              execution, and a relentless mindset.
+              execution, and a sharp mindset.
             </p>
             <div className="hero-actions">
               <Link className="button button-primary" href="/collections/best-sellers">
@@ -142,11 +207,15 @@ export default function HomePageClient({
           </div>
 
           <div className="storefront-hero-gallery" aria-label="Featured artwork">
-            {heroProducts.map((product, index) => (
+            {heroSlides.map(({ product }, index) => (
               <Link
-                className={`storefront-hero-art storefront-hero-art-${index + 1}`}
+                className={`storefront-hero-art storefront-hero-art-${index + 1}${
+                  index === activeHeroSlideIndex ? ' is-active' : ''
+                }`}
                 key={product.id}
                 href={`/products/${product.slug}`}
+                aria-hidden={index === activeHeroSlideIndex ? undefined : true}
+                tabIndex={index === activeHeroSlideIndex ? undefined : -1}
               >
                 <ProductImage product={product} priority={index === 0} />
                 <span>{product.title}</span>

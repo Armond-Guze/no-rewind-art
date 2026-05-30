@@ -30,6 +30,13 @@ export default async function HomeRoute({ searchParams }) {
   const resolvedSearchParams = await getSearchParams(searchParams);
   const featuredProducts = getProductsForCollection(catalog, 'best-sellers').slice(0, 6);
   const newArrivalProducts = getProductsForCollection(catalog, 'new-arrivals').slice(0, 4);
+  const heroProducts = [
+    ...featuredProducts.slice(0, 3),
+    ...newArrivalProducts.slice(0, 3),
+  ].filter(
+    (product, index, products) =>
+      products.findIndex((candidate) => candidate.id === product.id) === index,
+  ).slice(0, 5);
   const checkoutResult = Array.isArray(resolvedSearchParams.checkout)
     ? resolvedSearchParams.checkout[0]
     : resolvedSearchParams.checkout;
@@ -41,7 +48,7 @@ export default async function HomeRoute({ searchParams }) {
         checkoutResult={checkoutResult}
         featuredProducts={featuredProducts}
         newArrivalProducts={newArrivalProducts}
-        heroProducts={featuredProducts.slice(0, 4)}
+        heroProducts={heroProducts}
       />
     </>
   );
