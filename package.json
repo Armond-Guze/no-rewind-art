@@ -5,6 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "next dev -H 127.0.0.1",
+    "mobile:dev": "npm --prefix apps/mobile run start",
+    "mobile:ios": "npm --prefix apps/mobile run ios",
+    "mobile:android": "npm --prefix apps/mobile run android",
+    "mobile:web": "npm --prefix apps/mobile run web",
+    "mobile:typecheck": "npm --prefix apps/mobile run typecheck",
     "sync:artwork": "node scripts/sync-artwork-library.mjs",
     "test:notification": "node scripts/send-test-order-notification.mjs",
     "build": "next build",
