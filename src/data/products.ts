@@ -230,6 +230,14 @@ export function getProductsForCollectionFromCatalog(
   const publishedProducts = catalogState.products.filter((product) => product.published);
 
   if (collection.productIds) {
+    const taggedProducts = publishedProducts.filter((product) =>
+      product.collectionSlugs.includes(collection.slug),
+    );
+
+    if (taggedProducts.length) {
+      return taggedProducts;
+    }
+
     return collection.productIds
       .map((productId) => publishedProducts.find((product) => product.id === productId))
       .filter((product): product is Product => Boolean(product));
