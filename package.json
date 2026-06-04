@@ -10,6 +10,8 @@
     "mobile:android": "npm --prefix apps/mobile run android",
     "mobile:web": "npm --prefix apps/mobile run web",
     "mobile:typecheck": "npm --prefix apps/mobile run typecheck",
+    "launch:audit": "node scripts/launch-readiness-audit.mjs",
+    "launch:audit:strict": "node scripts/launch-readiness-audit.mjs --strict",
     "sync:artwork": "node scripts/sync-artwork-library.mjs",
     "test:notification": "node scripts/send-test-order-notification.mjs",
     "build": "next build",

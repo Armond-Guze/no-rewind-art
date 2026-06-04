@@ -6378,12 +6378,20 @@ h3 {
   }
 
   .storefront-hero-copy {
-    display: none;
+    order: 0;
+    height: auto;
+    display: grid;
+    align-content: start;
+    justify-items: center;
+    width: 100%;
+    padding: 30px 18px 34px;
+    text-align: center;
   }
 
   .storefront-hero p:not(.eyebrow) {
     width: 100%;
     max-width: 360px;
+    margin-top: 0;
     margin-inline: auto;
   }
 
