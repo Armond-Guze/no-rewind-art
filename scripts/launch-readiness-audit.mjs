@@ -89,28 +89,41 @@ function envStatus(name) {
 
 function collectionProducts(catalog, collection) {
   const products = catalog.products.filter((product) => product.published);
+  const applyCollectionRules = (items) => {
+    if (collection.slug !== 'new-arrivals') {
+      return items;
+    }
+
+    return items.filter((product) => !product.collectionSlugs.includes('best-sellers'));
+  };
 
   if (Array.isArray(collection.productIds) && collection.productIds.length) {
-    const taggedProducts = products.filter((product) => product.collectionSlugs.includes(collection.slug));
+    const taggedProducts = applyCollectionRules(
+      products.filter((product) => product.collectionSlugs.includes(collection.slug)),
+    );
 
     if (taggedProducts.length) {
       return taggedProducts;
     }
 
-    return collection.productIds
-      .map((productId) => products.find((product) => product.id === productId))
-      .filter(Boolean);
-  }
-
-  if (Array.isArray(collection.tones) && collection.tones.length) {
-    return products.filter(
-      (product) =>
-        collection.tones.includes(product.tone) ||
-        product.collectionSlugs.includes(collection.slug),
+    return applyCollectionRules(
+      collection.productIds
+        .map((productId) => products.find((product) => product.id === productId))
+        .filter(Boolean),
     );
   }
 
-  return products.filter((product) => product.collectionSlugs.includes(collection.slug));
+  if (Array.isArray(collection.tones) && collection.tones.length) {
+    return applyCollectionRules(
+      products.filter(
+        (product) =>
+          collection.tones.includes(product.tone) ||
+          product.collectionSlugs.includes(collection.slug),
+      ),
+    );
+  }
+
+  return applyCollectionRules(products.filter((product) => product.collectionSlugs.includes(collection.slug)));
 }
 
 function auditProduct(product) {

@@ -166,6 +166,14 @@ function getCollectionStructuredData(collection, products) {
   };
 }
 
+function filterProductsForCollectionRules(products, collectionSlug) {
+  if (collectionSlug !== 'new-arrivals') {
+    return products;
+  }
+
+  return products.filter((product) => !product.collectionSlugs.includes('best-sellers'));
+}
+
 export function getProductsForCollection(catalog, slug) {
   const collection = catalog.collections.find((item) => item.slug === slug);
 
@@ -176,28 +184,38 @@ export function getProductsForCollection(catalog, slug) {
   const publishedProducts = catalog.products.filter((product) => product.published);
 
   if (collection.productIds) {
-    const taggedProducts = publishedProducts.filter((product) =>
-      product.collectionSlugs.includes(collection.slug),
+    const taggedProducts = filterProductsForCollectionRules(
+      publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug)),
+      collection.slug,
     );
 
     if (taggedProducts.length) {
       return taggedProducts;
     }
 
-    return collection.productIds
-      .map((productId) => publishedProducts.find((product) => product.id === productId))
-      .filter(Boolean);
-  }
-
-  if (collection.tones) {
-    return publishedProducts.filter(
-      (product) =>
-        collection.tones.includes(product.tone) ||
-        product.collectionSlugs.includes(collection.slug),
+    return filterProductsForCollectionRules(
+      collection.productIds
+        .map((productId) => publishedProducts.find((product) => product.id === productId))
+        .filter(Boolean),
+      collection.slug,
     );
   }
 
-  return publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug));
+  if (collection.tones) {
+    return filterProductsForCollectionRules(
+      publishedProducts.filter(
+        (product) =>
+          collection.tones.includes(product.tone) ||
+          product.collectionSlugs.includes(collection.slug),
+      ),
+      collection.slug,
+    );
+  }
+
+  return filterProductsForCollectionRules(
+    publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug)),
+    collection.slug,
+  );
 }
 
 export function getProductBySlug(catalog, slug) {

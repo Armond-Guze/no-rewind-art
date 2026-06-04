@@ -252,12 +252,8 @@
         "reminder-life-has-no-rewind-canvas",
         "keep-going-canvas",
         "bookshelf-canvas",
-        "paycheck-canvas",
-        "stairs-canvas",
         "books-of-motivation-canvas",
         "hello-i-am-canvas",
-        "ninety-seven-percent-canvas",
-        "calm-under-pressure-canvas",
         "calm-under-pres-canvas",
         "remember-who-you-are-canvas",
         "100-dollars-white-marble-canvas",
@@ -631,8 +627,7 @@
       "tone": "money",
       "collectionSlugs": [
         "best-sellers",
-        "money-ambition",
-        "new-arrivals"
+        "money-ambition"
       ],
       "size": "Canvas print",
       "defaultSizeId": "36x18",
@@ -695,8 +690,7 @@
       "tone": "focus",
       "collectionSlugs": [
         "best-sellers",
-        "discipline-focus",
-        "new-arrivals"
+        "discipline-focus"
       ],
       "size": "Canvas print",
       "defaultSizeId": "24x36",
@@ -892,8 +886,7 @@
       "tone": "focus",
       "collectionSlugs": [
         "best-sellers",
-        "discipline-focus",
-        "new-arrivals"
+        "discipline-focus"
       ],
       "size": "Canvas print",
       "defaultSizeId": "24x36",
@@ -958,8 +951,7 @@
       "tone": "focus",
       "collectionSlugs": [
         "best-sellers",
-        "discipline-focus",
-        "new-arrivals"
+        "discipline-focus"
       ],
       "size": "Canvas print",
       "defaultSizeId": "36x18",

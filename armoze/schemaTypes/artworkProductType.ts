@@ -1,6 +1,14 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {SizePresetInput} from './SizePresetInput'
 
+const collectionSlugOptions = [
+  {title: 'Best Sellers', value: 'best-sellers'},
+  {title: 'Money & Ambition', value: 'money-ambition'},
+  {title: 'Discipline & Focus', value: 'discipline-focus'},
+  {title: 'Study & Creative', value: 'study-creative'},
+  {title: 'New Arrivals', value: 'new-arrivals'},
+]
+
 const sizeOptionFields = [
   defineField({name: 'id', title: 'ID', type: 'string', validation: (rule) => rule.required()}),
   defineField({name: 'label', title: 'Label', type: 'string', validation: (rule) => rule.required()}),
@@ -131,7 +139,20 @@ export const artworkProductType = defineType({
       name: 'collectionSlugs',
       title: 'Collection Slugs',
       type: 'array',
+      options: {list: collectionSlugOptions},
       of: [defineArrayMember({type: 'string'})],
+      validation: (rule) =>
+        rule.unique().custom((slugs) => {
+          if (
+            Array.isArray(slugs) &&
+            slugs.includes('best-sellers') &&
+            slugs.includes('new-arrivals')
+          ) {
+            return 'Best Sellers products cannot also be New Arrivals.'
+          }
+
+          return true
+        }),
     }),
     defineField({name: 'priceInCents', title: 'Base Price In Cents', type: 'number'}),
     defineField({name: 'size', title: 'Product Type Label', type: 'string', initialValue: 'Canvas print'}),

@@ -5,6 +5,19 @@ export const seedCatalog = JSON.parse(
   readFileSync(path.resolve(process.cwd(), 'src/data/catalog.json'), 'utf8'),
 );
 
+const primaryCollectionSlug = 'best-sellers';
+const excludedNewArrivalSlug = 'new-arrivals';
+
+export function normalizeCollectionSlugs(collectionSlugs = []) {
+  const uniqueSlugs = [...new Set((Array.isArray(collectionSlugs) ? collectionSlugs : []).filter(Boolean))];
+
+  if (!uniqueSlugs.includes(primaryCollectionSlug)) {
+    return uniqueSlugs;
+  }
+
+  return uniqueSlugs.filter((slug) => slug !== excludedNewArrivalSlug);
+}
+
 const fallbackFrameOptions = [
   { id: 'canvas', label: 'Canvas', priceDeltaInCents: 0 },
   {
@@ -96,6 +109,7 @@ export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets)
 
   return {
     ...product,
+    collectionSlugs: normalizeCollectionSlugs(product.collectionSlugs),
     name: product.title,
     imagePath: product.image || '',
     artworkShape: product.artworkShape || getArtworkShapeFromSizePreset(product.sizePreset),

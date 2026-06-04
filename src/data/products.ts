@@ -81,6 +81,29 @@ export type NormalizedCatalog = {
 };
 
 const catalogData = catalog as CatalogData;
+const primaryCollectionSlug = 'best-sellers';
+const excludedNewArrivalSlug = 'new-arrivals';
+
+export function normalizeCollectionSlugs(collectionSlugs: string[] = []) {
+  const uniqueSlugs = [...new Set(collectionSlugs.filter(Boolean))];
+
+  if (!uniqueSlugs.includes(primaryCollectionSlug)) {
+    return uniqueSlugs;
+  }
+
+  return uniqueSlugs.filter((slug) => slug !== excludedNewArrivalSlug);
+}
+
+function filterProductsForCollectionRules<T extends Pick<Product, 'collectionSlugs'>>(
+  products: T[],
+  collectionSlug: string,
+) {
+  if (collectionSlug !== excludedNewArrivalSlug) {
+    return products;
+  }
+
+  return products.filter((product) => !product.collectionSlugs.includes(primaryCollectionSlug));
+}
 
 const fallbackFrameOptions: FrameOption[] = [
   { id: 'canvas', label: 'Canvas', priceDeltaInCents: 0 },
@@ -179,6 +202,7 @@ export function normalizeProduct(
 
   return {
     ...product,
+    collectionSlugs: normalizeCollectionSlugs(product.collectionSlugs || []),
     artworkShape: product.artworkShape || getArtworkShapeFromSizePreset(product.sizePreset),
     aspectRatio: getProductAspectRatio(product),
     priceInCents: product.priceInCents ?? lowestSizePrice + lowestFrameDelta,
@@ -230,28 +254,38 @@ export function getProductsForCollectionFromCatalog(
   const publishedProducts = catalogState.products.filter((product) => product.published);
 
   if (collection.productIds) {
-    const taggedProducts = publishedProducts.filter((product) =>
-      product.collectionSlugs.includes(collection.slug),
+    const taggedProducts = filterProductsForCollectionRules(
+      publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug)),
+      collection.slug,
     );
 
     if (taggedProducts.length) {
       return taggedProducts;
     }
 
-    return collection.productIds
-      .map((productId) => publishedProducts.find((product) => product.id === productId))
-      .filter((product): product is Product => Boolean(product));
-  }
-
-  if (collection.tones) {
-    return publishedProducts.filter(
-      (product) =>
-        collection.tones?.includes(product.tone) ||
-        product.collectionSlugs.includes(collection.slug),
+    return filterProductsForCollectionRules(
+      collection.productIds
+        .map((productId) => publishedProducts.find((product) => product.id === productId))
+        .filter((product): product is Product => Boolean(product)),
+      collection.slug,
     );
   }
 
-  return publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug));
+  if (collection.tones) {
+    return filterProductsForCollectionRules(
+      publishedProducts.filter(
+        (product) =>
+          collection.tones?.includes(product.tone) ||
+          product.collectionSlugs.includes(collection.slug),
+      ),
+      collection.slug,
+    );
+  }
+
+  return filterProductsForCollectionRules(
+    publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug)),
+    collection.slug,
+  );
 }
 
 export function getProductByGoogleItemIdFromCatalog(

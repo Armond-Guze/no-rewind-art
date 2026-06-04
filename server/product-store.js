@@ -3,7 +3,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { createClient } from '@sanity/client';
 import pg from 'pg';
-import { getArtworkShapeFromSizePreset, getProductAspectRatio, normalizeCatalogData, normalizeProduct, seedCatalog } from './catalog.js';
+import {
+  getArtworkShapeFromSizePreset,
+  getProductAspectRatio,
+  normalizeCatalogData,
+  normalizeCollectionSlugs,
+  normalizeProduct,
+  seedCatalog,
+} from './catalog.js';
 
 const { Pool } = pg;
 
@@ -312,7 +319,7 @@ export function sanitizeProductUpdate(existingProduct, update) {
   }
 
   if ('collectionSlugs' in update) {
-    next.collectionSlugs = sanitizeTextArray(update.collectionSlugs);
+    next.collectionSlugs = normalizeCollectionSlugs(sanitizeTextArray(update.collectionSlugs));
   }
 
   if ('details' in update) {

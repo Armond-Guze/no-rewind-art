@@ -172,32 +172,50 @@ export function getRelatedProducts(products: Product[], product: Product) {
     .map((item) => item.product);
 }
 
+function filterProductsForCollectionRules(products: Product[], collectionSlug: string) {
+  if (collectionSlug !== 'new-arrivals') {
+    return products;
+  }
+
+  return products.filter((product) => !product.collectionSlugs.includes('best-sellers'));
+}
+
 export function getProductsForCollection(products: Product[], collection: Collection) {
   const publishedProducts = products.filter((product) => product.published);
 
   if (collection.productIds) {
-    const taggedProducts = publishedProducts.filter((product) =>
-      product.collectionSlugs.includes(collection.slug),
+    const taggedProducts = filterProductsForCollectionRules(
+      publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug)),
+      collection.slug,
     );
 
     if (taggedProducts.length) {
       return taggedProducts;
     }
 
-    return collection.productIds
-      .map((productId) => publishedProducts.find((product) => product.id === productId))
-      .filter((product): product is Product => Boolean(product));
-  }
-
-  if (collection.tones) {
-    return publishedProducts.filter(
-      (product) =>
-        collection.tones?.includes(product.tone) ||
-        product.collectionSlugs.includes(collection.slug),
+    return filterProductsForCollectionRules(
+      collection.productIds
+        .map((productId) => publishedProducts.find((product) => product.id === productId))
+        .filter((product): product is Product => Boolean(product)),
+      collection.slug,
     );
   }
 
-  return publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug));
+  if (collection.tones) {
+    return filterProductsForCollectionRules(
+      publishedProducts.filter(
+        (product) =>
+          collection.tones?.includes(product.tone) ||
+          product.collectionSlugs.includes(collection.slug),
+      ),
+      collection.slug,
+    );
+  }
+
+  return filterProductsForCollectionRules(
+    publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug)),
+    collection.slug,
+  );
 }
 
 export function getImageDimensions(src: string, aspectRatio = '1 / 1') {

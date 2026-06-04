@@ -312,7 +312,11 @@ function baseDetailsForTone(tone) {
 function mergeCollectionProductIds(collections, products) {
   const existingIds = new Set(products.map((product) => product.id))
   const newArrivalIds = products
-    .filter((product) => product.collectionSlugs.includes('new-arrivals'))
+    .filter(
+      (product) =>
+        product.collectionSlugs.includes('new-arrivals') &&
+        !product.collectionSlugs.includes('best-sellers'),
+    )
     .map((product) => product.id)
 
   return collections.map((collection) => {
@@ -329,6 +333,16 @@ function mergeCollectionProductIds(collections, products) {
 
     return collection
   })
+}
+
+function normalizeCollectionSlugs(collectionSlugs = []) {
+  const uniqueSlugs = [...new Set(collectionSlugs.filter(Boolean))]
+
+  if (!uniqueSlugs.includes('best-sellers')) {
+    return uniqueSlugs
+  }
+
+  return uniqueSlugs.filter((slug) => slug !== 'new-arrivals')
 }
 
 const availableFolders = await readTopLevelFolders(sourceRoot)
@@ -369,7 +383,7 @@ for (const [index, product] of catalog.products.entries()) {
     imageFolder: nextImageFolder,
     image: mainImage.publicPath,
     gallery: images.filter((image) => image.publicPath !== mainImage.publicPath).map((image) => image.publicPath),
-    collectionSlugs: [...new Set(product.collectionSlugs || [])],
+    collectionSlugs: normalizeCollectionSlugs(product.collectionSlugs || []),
     sortOrder: index,
   })
 }
