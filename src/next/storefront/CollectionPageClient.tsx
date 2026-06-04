@@ -15,9 +15,14 @@ import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
 import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 
+const collectionNavItems = [
+  { slug: 'best-sellers', label: 'Best Sellers' },
+  { slug: 'discipline-focus', label: 'Motivational' },
+  { slug: 'new-arrivals', label: 'New Arrivals' },
+];
+
 export default function CollectionPageClient({
   collection,
-  collections,
   products,
 }: {
   collection: Collection;
@@ -52,13 +57,13 @@ export default function CollectionPageClient({
         <section className="collection-toolbar" aria-label="Shop category controls">
           <div className="product-count">{products.length} Products</div>
           <nav className="collection-tabs" aria-label="Shop categories">
-            {collections.map((item) => (
+            {collectionNavItems.map((item) => (
               <Link
                 className={item.slug === collection.slug ? 'active' : ''}
                 key={item.slug}
                 href={`/collections/${item.slug}`}
               >
-                {item.navLabel}
+                {item.label}
               </Link>
             ))}
           </nav>
