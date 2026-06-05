@@ -113,6 +113,22 @@ function sanitizeTextArray(value) {
     : [];
 }
 
+function sanitizeHomepageProductIds(value) {
+  return [...new Set(sanitizeTextArray(value))];
+}
+
+function normalizeSanityHomepageSettings(settings) {
+  if (!settings || typeof settings !== 'object') {
+    return {};
+  }
+
+  return {
+    heroProductIds: sanitizeHomepageProductIds(settings.heroProductIds),
+    bestSellerProductIds: sanitizeHomepageProductIds(settings.bestSellerProductIds),
+    newArrivalProductIds: sanitizeHomepageProductIds(settings.newArrivalProductIds),
+  };
+}
+
 function sanitizeNumber(value, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
@@ -222,6 +238,12 @@ const SANITY_CATALOG_SETTINGS_QUERY = `*[_type == "catalogSettings"][0]{
     landscapeFourThree[]{id, label, priceInCents, badge, previewScale},
     squareStandard[]{id, label, priceInCents, badge, previewScale}
   }
+}`;
+
+const SANITY_HOMEPAGE_SETTINGS_QUERY = `*[_type == "homepageSettings"][0]{
+  "heroProductIds": heroProducts[]->productId,
+  "bestSellerProductIds": bestSellerProducts[]->productId,
+  "newArrivalProductIds": newArrivalProducts[]->productId
 }`;
 
 const SANITY_PRODUCTS_QUERY = `*[
@@ -554,11 +576,13 @@ class SanityProductStore {
 
   async listCatalog(options = {}) {
     try {
-      const [settings, documents] = await Promise.all([
+      const [settings, homepageSettingsDocument, documents] = await Promise.all([
         this.client.fetch(SANITY_CATALOG_SETTINGS_QUERY),
+        this.client.fetch(SANITY_HOMEPAGE_SETTINGS_QUERY),
         this.client.fetch(SANITY_PRODUCTS_QUERY),
       ]);
       const sizePresets = normalizeSanitySizePresets(settings);
+      const homepageSettings = normalizeSanityHomepageSettings(homepageSettingsDocument);
       const products = documents.map((document) => normalizeSanityProduct(document, sizePresets));
 
       if (!products.length) {
@@ -569,6 +593,7 @@ class SanityProductStore {
         ...normalizeCatalogData({
           ...seedCatalog,
           sizePresets,
+          homepageSettings,
           products: [],
         }),
         products: options.includeUnpublished ? products : products.filter((product) => product.published),

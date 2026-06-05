@@ -2294,6 +2294,7 @@ h3 {
   .listing-layout {
     grid-template-columns: minmax(780px, 920px) minmax(440px, 500px);
     gap: 36px;
+    justify-content: center;
     padding-right: 0;
     padding-left: 0;
   }
@@ -6849,11 +6850,11 @@ h3 {
   .product-canvas-image.crop-square-source-2x1
   img {
   position: absolute;
-  left: -5.556%;
-  top: -61.111%;
+  left: -4.348%;
+  top: -58.696%;
   aspect-ratio: 1 / 1;
-  width: 111.111%;
-  height: 222.222%;
+  width: 108.696%;
+  height: 217.391%;
   max-width: none;
   max-height: none;
   object-fit: cover;

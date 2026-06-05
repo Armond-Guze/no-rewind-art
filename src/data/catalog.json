@@ -276,6 +276,29 @@
       ]
     }
   ],
+  "homepageSettings": {
+    "heroProductIds": [
+      "life-has-no-rewind-canvas",
+      "paycheck-canvas",
+      "rubber-band-stacks-canvas",
+      "bookshelf-canvas",
+      "keep-going-canvas"
+    ],
+    "bestSellerProductIds": [
+      "life-has-no-rewind-canvas",
+      "rubber-band-stacks-canvas",
+      "paycheck-canvas",
+      "stairs-canvas",
+      "ninety-seven-percent-canvas",
+      "calm-under-pressure-canvas"
+    ],
+    "newArrivalProductIds": [
+      "reminder-life-has-no-rewind-canvas",
+      "keep-going-canvas",
+      "bookshelf-canvas",
+      "books-of-motivation-canvas"
+    ]
+  },
   "products": [
     {
       "id": "life-has-no-rewind-canvas",

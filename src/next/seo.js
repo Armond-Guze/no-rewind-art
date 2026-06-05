@@ -218,6 +218,67 @@ export function getProductsForCollection(catalog, slug) {
   );
 }
 
+function getProductsByIds(catalog, productIds = []) {
+  const publishedProductsById = new Map(
+    catalog.products
+      .filter((product) => product.published)
+      .map((product) => [product.id, product]),
+  );
+  const seenProductIds = new Set();
+
+  return productIds
+    .map((productId) => publishedProductsById.get(productId))
+    .filter((product) => {
+      if (!product || seenProductIds.has(product.id)) {
+        return false;
+      }
+
+      seenProductIds.add(product.id);
+      return true;
+    });
+}
+
+export function getHomepageBestSellerProducts(catalog) {
+  const pickedProducts = getProductsByIds(catalog, catalog.homepageSettings?.bestSellerProductIds).slice(0, 6);
+
+  if (pickedProducts.length) {
+    return pickedProducts;
+  }
+
+  return getProductsForCollection(catalog, 'best-sellers').slice(0, 6);
+}
+
+export function getHomepageNewArrivalProducts(catalog, bestSellerProducts = getHomepageBestSellerProducts(catalog)) {
+  const bestSellerProductIds = new Set(bestSellerProducts.map((product) => product.id));
+  const pickedProducts = getProductsByIds(catalog, catalog.homepageSettings?.newArrivalProductIds)
+    .filter((product) => !bestSellerProductIds.has(product.id))
+    .slice(0, 4);
+
+  if (pickedProducts.length) {
+    return pickedProducts;
+  }
+
+  return getProductsForCollection(catalog, 'new-arrivals')
+    .filter((product) => !bestSellerProductIds.has(product.id))
+    .slice(0, 4);
+}
+
+export function getHomepageHeroProducts(catalog, featuredProducts, newArrivalProducts) {
+  const pickedProducts = getProductsByIds(catalog, catalog.homepageSettings?.heroProductIds).slice(0, 5);
+
+  if (pickedProducts.length) {
+    return pickedProducts;
+  }
+
+  return [
+    ...featuredProducts.slice(0, 3),
+    ...newArrivalProducts.slice(0, 3),
+  ].filter(
+    (product, index, products) =>
+      products.findIndex((candidate) => candidate.id === product.id) === index,
+  ).slice(0, 5);
+}
+
 export function getProductBySlug(catalog, slug) {
   return catalog.products.find(
     (product) => product.published && (product.slug === slug || product.previousSlugs?.includes(slug)),
@@ -249,7 +310,7 @@ export async function getRouteSeo(pathParts = []) {
   const [section, slug] = pathParts;
 
   if (!section) {
-    const featuredProducts = getProductsForCollection(catalog, 'best-sellers').slice(0, 6);
+    const featuredProducts = getHomepageBestSellerProducts(catalog);
     const heroProduct = featuredProducts[0] ?? catalog.products.find((product) => product.published);
 
     return {

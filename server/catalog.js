@@ -125,6 +125,7 @@ export function normalizeCatalogData(catalog = seedCatalog) {
   return {
     sizePresets: catalog.sizePresets,
     collections: catalog.collections,
+    homepageSettings: catalog.homepageSettings || {},
     products: catalog.products.map((product) => normalizeProduct(product, catalog.sizePresets)),
   };
 }

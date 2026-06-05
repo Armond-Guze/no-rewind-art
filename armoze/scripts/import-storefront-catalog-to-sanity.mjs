@@ -152,8 +152,12 @@ async function uploadImageAssetWithRetry(imagePath) {
   throw lastError
 }
 
+function documentIdForProductId(productId) {
+  return `artworkProduct.${productId.replace(/[^a-zA-Z0-9._-]/g, '-')}`
+}
+
 function documentIdForProduct(product) {
-  return `artworkProduct.${product.id.replace(/[^a-zA-Z0-9._-]/g, '-')}`
+  return documentIdForProductId(product.id)
 }
 
 function shouldUseCustomSizeOptions(product) {
@@ -216,6 +220,47 @@ function catalogSettingsDocument() {
   })
 }
 
+function collectionProductIds(collectionSlug, limit) {
+  const collection = catalog.collections.find((item) => item.slug === collectionSlug)
+  return (collection?.productIds || []).slice(0, limit)
+}
+
+function productReferences(productIds = []) {
+  const validProductIds = new Set(catalog.products.map((product) => product.id))
+
+  return productIds
+    .filter((productId) => productId && validProductIds.has(productId))
+    .map((productId) => ({
+      _key: randomUUID().replace(/-/g, ''),
+      _type: 'reference',
+      _ref: documentIdForProductId(productId),
+    }))
+}
+
+function homepageSettingsDocument() {
+  const bestSellerProductIds =
+    catalog.homepageSettings?.bestSellerProductIds?.length
+      ? catalog.homepageSettings.bestSellerProductIds
+      : collectionProductIds('best-sellers', 6)
+  const newArrivalProductIds =
+    catalog.homepageSettings?.newArrivalProductIds?.length
+      ? catalog.homepageSettings.newArrivalProductIds
+      : collectionProductIds('new-arrivals', 4)
+  const heroProductIds =
+    catalog.homepageSettings?.heroProductIds?.length
+      ? catalog.homepageSettings.heroProductIds
+      : [...bestSellerProductIds.slice(0, 3), ...newArrivalProductIds.slice(0, 2)]
+
+  return cleanObject({
+    _id: 'homepageSettings.default',
+    _type: 'homepageSettings',
+    title: 'Homepage settings',
+    heroProducts: productReferences(heroProductIds.slice(0, 5)),
+    bestSellerProducts: productReferences(bestSellerProductIds.slice(0, 6)),
+    newArrivalProducts: productReferences(newArrivalProductIds.slice(0, 4)),
+  })
+}
+
 async function writeDocument(document) {
   if (dryRun) {
     console.log(`[dry-run] ${document._id} -> ${document.title}`)
@@ -241,6 +286,8 @@ for (const [index, product] of catalog.products.entries()) {
   await writeDocument(document)
   imported += 1
 }
+
+await writeDocument(homepageSettingsDocument())
 
 console.log(
   `${dryRun ? 'Prepared' : 'Imported'} ${imported} artwork products. ${missingMainImages} missing main images.`,

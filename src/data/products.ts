@@ -28,6 +28,12 @@ export type Collection = {
   tones?: ProductTone[];
 };
 
+export type HomepageSettings = {
+  heroProductIds?: string[];
+  bestSellerProductIds?: string[];
+  newArrivalProductIds?: string[];
+};
+
 export type CatalogProduct = {
   id: string;
   slug: string;
@@ -71,12 +77,14 @@ export type Product = Omit<CatalogProduct, 'frameOptions' | 'framingOptions' | '
 export type CatalogData = {
   sizePresets: Record<string, SizeOption[]>;
   collections: Collection[];
+  homepageSettings?: HomepageSettings;
   products: CatalogProduct[];
 };
 
 export type NormalizedCatalog = {
   sizePresets: Record<string, SizeOption[]>;
   collections: Collection[];
+  homepageSettings: HomepageSettings;
   products: Product[];
 };
 
@@ -216,6 +224,7 @@ export function normalizeCatalogData(data: CatalogData): NormalizedCatalog {
   return {
     sizePresets: data.sizePresets,
     collections: data.collections,
+    homepageSettings: data.homepageSettings || {},
     products: data.products.map((product) => normalizeProduct(product, data.sizePresets)),
   };
 }
