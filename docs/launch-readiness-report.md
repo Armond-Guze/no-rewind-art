@@ -1,21 +1,21 @@
 # Armoze Launch Readiness Report
 
-Generated: 2026-06-02T20:47:31.679Z
+Generated: 2026-06-07T17:58:26.028Z
 
 ## Executive Summary
 
-- Published products: 25
+- Published products: 26
 - Launch target: 20 products
-- Products passing hard launch checks: 11
-- Products with blockers: 14
-- Products with warnings: 15
-- Merchant feed items: 125
-- Sitemap product URLs: 25
+- Products passing hard launch checks: 15
+- Products with blockers: 11
+- Products with warnings: 12
+- Merchant feed items: 130
+- Sitemap product URLs: 26
 
 ## Launch Gate
 
-- Product count is launchable: 25 published products.
-- Content work remains: 11 products pass hard checks, so choose/fix 9 more before calling the 20-product launch complete.
+- Product count is launchable: 26 published products.
+- Content work remains: 15 products pass hard checks, so choose/fix 5 more before calling the 20-product launch complete.
 - Merchant feed has the core required item fields and production URLs.
 
 ## 20-Product Sprint Shortlist
@@ -29,57 +29,54 @@ Generated: 2026-06-02T20:47:31.679Z
 | Orange Rubberband Racks | orange-rubberband-racks | 7 | Ready | Ready |
 | Paycheck Energy | paycheck | 7 | Ready | Ready |
 | Reminder: Life Has No Rewind | reminder-life-has-no-rewind | 7 | Ready | Ready |
-| Money Over Everything | money-over-everything | 5 | Ready | aim for 6 total images |
+| Books of Motivation | books-of-motivation | 6 | Ready | Ready |
+| Play Again Casette | play-again-casette | 6 | Ready | Ready |
+| Reportcard | reportcard | 6 | Ready | Ready |
+| When Words Fail Music Speaks | when-words-fail-music-speaks | 6 | Ready | Ready |
+| Never Lose Sight Of Your Dreams | never-lose-sight-of-your-dreams | 5 | Ready | aim for 6 total images |
+| Rubber Band Stacks | rubber-band-stacks | 5 | Ready | aim for 6 total images |
 | Success Envelope | success-envelope | 5 | Ready | aim for 6 total images |
-| Books of Motivation | books-of-motivation | 4 | Ready | aim for 6 total images |
-| Never Lose Sight Of Your Dreams | never-lose-sight-of-your-dreams | 5 | Ready | main image is 1774x887; aim for 6 total images |
+| Money Vault | money-vault | 4 | Ready | aim for 6 total images |
+| Money Over Everything | money-over-everything | 3 | Fix | only 3 product image(s) |
 | Keep Going | keep-going | 1 | Fix | only 1 product image(s) |
-| Reportcard | reportcard | 1 | Fix | only 1 product image(s) |
-| Rubber Band Stacks | rubber-band-stacks | 1 | Fix | only 1 product image(s) |
+| No Risk No Reward Lambo | no-risk-no-reward-lambo | 1 | Fix | only 1 product image(s) |
 | Hello I Am | hello-i-am | 3 | Fix | only 3 product image(s); main image is 1437x1095 |
 | 100 Dollars White Marble | 100-dollars-white-marble | 1 | Fix | only 1 product image(s); main image is 1774x887 |
-| Daily Reminder | daily-reminder | 1 | Fix | only 1 product image(s); main image is 1402x1122 |
-| Money Band Clip | money-band-clip | 1 | Fix | only 1 product image(s); main image is 1575x839 |
-| Money Vault | money-vault | 1 | Fix | only 1 product image(s); main image is 1122x1402 |
-| No Risk No Reward Lambo | no-risk-no-reward-lambo | 1 | Fix | only 1 product image(s); main image is 1536x1024 |
 
 ## Product Blockers
 
 | Product | Main Issues |
 | --- | --- |
-| Rubber Band Stacks | only 1 product image(s) |
 | Keep Going | only 1 product image(s) |
 | Hello I Am | only 3 product image(s) |
 | Remember Who You Are | only 1 product image(s) |
 | 100 Dollars White Marble | only 1 product image(s) |
 | Daily Reminder | only 1 product image(s) |
 | Money Band Clip | only 1 product image(s) |
-| Money Vault | only 1 product image(s) |
+| Money Over Everything | only 3 product image(s) |
 | No Risk No Reward Lambo | only 1 product image(s) |
 | Rent Due | only 1 product image(s) |
-| Reportcard | only 1 product image(s) |
 | Success Is Earned | only 1 product image(s) |
-| To Do List | only 1 product image(s) |
 | You Cant Turn Back The Clock | only 1 product image(s) |
 
 ## Collection Coverage
 
 | Collection | Products |
 | --- | ---: |
-| Best Sellers | 8 |
+| Best Sellers | 12 |
 | Money & Ambition | 10 |
-| Discipline & Focus | 12 |
+| Discipline & Focus | 13 |
 | Study & Creative | 2 |
-| New Arrivals | 19 |
+| New Arrivals | 14 |
 
 ## Google And SEO Outputs
 
 - Sitemap status: OK
 - Sitemap collections: 5
-- Sitemap products: 25
+- Sitemap products: 26
 - Merchant feed status: OK
-- Merchant feed expected item count: 125
-- Merchant feed actual item count: 125
+- Merchant feed expected item count: 130
+- Merchant feed actual item count: 130
 - Checkout link template present: yes
 - Free shipping field present: yes
 

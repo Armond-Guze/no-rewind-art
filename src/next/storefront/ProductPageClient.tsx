@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -40,15 +41,29 @@ import {
 } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 
+const framePreviewImages: Record<string, string> = {
+  canvas: '/product-support/frame-option-canvas.jpg',
+  black: '/product-support/frame-option-black.jpg',
+  white: '/product-support/frame-option-white.jpg',
+};
+
 function FrameOptionPreview({ option }: { option: FrameOption }) {
+  const variant = getFramePreviewVariant(option);
+  const previewImage = framePreviewImages[variant] ?? framePreviewImages.canvas;
+
   return (
     <span
-      className={`frame-option-preview ${getFramePreviewVariant(option)}`}
+      className={`frame-option-preview ${variant} has-image`}
       aria-hidden="true"
     >
-      <span className="frame-preview-corner">
-        <span className="frame-preview-artwork" />
-      </span>
+      <Image
+        className="frame-option-preview-image"
+        src={previewImage}
+        alt=""
+        width={420}
+        height={420}
+        sizes="76px"
+      />
     </span>
   );
 }

@@ -252,7 +252,7 @@ export default function HomePageClient({
             <span>Made for those who <em>build.</em></span>
           </h2>
           <p className="storefront-quote-copy">
-            Motivational canvas prints for rooms where focus, ambition, and discipline stay visible.
+            Canvas prints for focused, ambitious rooms.
           </p>
           <Link className="button button-primary" href="/collections/best-sellers">
             Shop Best Sellers
