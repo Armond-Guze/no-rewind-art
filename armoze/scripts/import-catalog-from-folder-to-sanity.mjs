@@ -15,6 +15,10 @@ const args = parseArgs(process.argv.slice(2))
 const dryRun = Boolean(args['dry-run'])
 const autoProducts = Boolean(args['auto-products'])
 const prune = Boolean(args.prune)
+const createOnly = Boolean(args['create-only'] || args['only-new'])
+const onlyFolderKeys = typeof args.folders === 'string'
+  ? new Set(args.folders.split(',').map((folder) => normalizePathKey(folder)).filter(Boolean))
+  : null
 const assetRoot = args.folder ? path.resolve(args.folder) : path.resolve(projectRoot, 'dist', 'artwork')
 
 const client = getCliClient({apiVersion: '2025-05-21'})
@@ -598,6 +602,16 @@ let imported = 0
 console.log(`Using local image folder: ${assetRoot}`)
 
 for (const [index, product] of catalog.products.entries()) {
+  const folderKey = findFuzzyFolderKey(product)
+
+  if (folderKey) {
+    importedFolderKeys.add(folderKey)
+  }
+
+  if (createOnly) {
+    continue
+  }
+
   const existingDocument = findExistingDocumentForProduct(product)
   const document = await buildDocumentFromCatalogProduct(product, index, existingDocument)
 
@@ -615,21 +629,23 @@ for (const [index, product] of catalog.products.entries()) {
 
   imported += 1
   importedDocumentIds.add(document._id)
-
-  const folderKey = findFuzzyFolderKey(product)
-  if (folderKey) {
-    importedFolderKeys.add(folderKey)
-  }
 }
 
 if (autoProducts) {
   const remainingFolders = [...imageIndex.byTopFolder.keys()]
     .filter((folder) => !importedFolderKeys.has(folder))
     .filter((folder) => !genericFolderPattern.test(folder))
+    .filter((folder) => !onlyFolderKeys || onlyFolderKeys.has(folder))
     .sort()
 
   for (const [offset, folder] of remainingFolders.entries()) {
     const existingDocument = findExistingDocumentForFolder(folder)
+
+    if (createOnly && existingDocument) {
+      console.log(`Skipping existing ${existingDocument._id} -> ${existingDocument.title || folder}`)
+      continue
+    }
+
     const document = await buildDocumentFromFolder(folder, catalog.products.length + offset, existingDocument)
 
     if (!document?.mainImage) {
@@ -639,6 +655,9 @@ if (autoProducts) {
 
     if (dryRun) {
       console.log(`[dry-run] ${document._id} -> ${document.title}`)
+    } else if (createOnly) {
+      await client.createIfNotExists(document)
+      console.log(`Created if missing ${document._id} -> ${document.title}`)
     } else {
       await client.createOrReplace(document)
       console.log(`Imported ${document._id} -> ${document.title}${existingDocument ? ' (matched existing)' : ''}`)
@@ -650,6 +669,9 @@ if (autoProducts) {
 }
 
 if (prune) {
+  if (createOnly) {
+    console.warn('Skipping prune because create-only mode is enabled.')
+  } else {
   const staleDocuments = existingDocuments.filter((document) => !importedDocumentIds.has(document._id))
 
   for (const document of staleDocuments) {
@@ -660,6 +682,7 @@ if (prune) {
       console.log(`Pruned ${document._id} -> ${document.title || document.productId || document.slug}`)
     }
   }
+  }
 }
 
-console.log(`${dryRun ? 'Prepared' : 'Imported'} ${imported} artwork products.${prune ? ' Prune enabled.' : ''}`)
+console.log(`${dryRun ? 'Prepared' : 'Imported'} ${imported} artwork products.${createOnly ? ' Create-only enabled.' : ''}${prune ? ' Prune enabled.' : ''}`)
