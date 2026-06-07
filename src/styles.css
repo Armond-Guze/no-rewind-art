@@ -6850,15 +6850,56 @@ h3 {
   .product-canvas-image.crop-square-source-2x1
   img {
   position: absolute;
-  left: -4.348%;
-  top: -58.696%;
+  left: -5.556%;
+  top: -61.111%;
   aspect-ratio: 1 / 1;
-  width: 108.696%;
-  height: 217.391%;
+  width: 111.111%;
+  height: 222.222%;
   max-width: none;
   max-height: none;
   object-fit: cover;
   object-position: center;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.source-ratio-mismatch
+  > div,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.source-ratio-mismatch
+  > div {
+  background: transparent;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.source-ratio-mismatch
+  img,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.source-ratio-mismatch
+  img {
+  object-fit: contain;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.source-ratio-mismatch
+  > div::before,
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.source-ratio-mismatch
+  > div::after,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.source-ratio-mismatch
+  > div::before,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.source-ratio-mismatch
+  > div::after {
+  display: none;
 }
 
 .listing-gallery > .main-product-image

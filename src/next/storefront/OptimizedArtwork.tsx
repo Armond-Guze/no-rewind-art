@@ -106,21 +106,51 @@ export function OptimizedRawImage({
   );
 }
 
-function isSquareSourceImage(src: string) {
+function getEmbeddedImageSize(src: string) {
   const embeddedSize = src.match(/-(\d+)x(\d+)\.(?:png|jpe?g|webp|avif)(?:\?|$)/i);
 
   if (!embeddedSize) {
-    return false;
+    return null;
   }
 
   const width = Number(embeddedSize[1]);
   const height = Number(embeddedSize[2]);
 
   if (!width || !height) {
+    return null;
+  }
+
+  return { width, height };
+}
+
+function getRatioValue(aspectRatio: string) {
+  const ratioParts = aspectRatio.split('/').map((part) => Number(part.trim()));
+  return ratioParts.length === 2 && ratioParts[0] && ratioParts[1]
+    ? ratioParts[0] / ratioParts[1]
+    : null;
+}
+
+function isSquareSourceImage(src: string) {
+  const embeddedSize = getEmbeddedImageSize(src);
+
+  if (!embeddedSize) {
     return false;
   }
 
+  const { width, height } = embeddedSize;
   return Math.abs(width - height) / Math.max(width, height) < 0.04;
+}
+
+function isSourceRatioMismatch(src: string, aspectRatio: string) {
+  const embeddedSize = getEmbeddedImageSize(src);
+  const targetRatio = getRatioValue(aspectRatio);
+
+  if (!embeddedSize || !targetRatio || isSquareSourceImage(src)) {
+    return false;
+  }
+
+  const sourceRatio = embeddedSize.width / embeddedSize.height;
+  return Math.abs(sourceRatio - targetRatio) / targetRatio > 0.04;
 }
 
 export function OptimizedCanvasImage({
@@ -151,6 +181,7 @@ export function OptimizedCanvasImage({
   const usesSquareSourcePortraitCrop = hasSquareSource && displayShape === 'portrait' && normalizedAspectRatio === '2/3';
   const usesSquareSourceThreeFourCrop = hasSquareSource && displayShape === 'portrait' && normalizedAspectRatio === '3/4';
   const usesSquareSourceLandscapeCrop = hasSquareSource && displayShape === 'landscape' && normalizedAspectRatio === '3/2';
+  const usesSourceRatioMismatch = isSourceRatioMismatch(src, aspectRatio);
   const classNames = [
     'product-canvas-image',
     `shape-${displayShape}`,
@@ -159,6 +190,7 @@ export function OptimizedCanvasImage({
     usesSquareSourcePortraitCrop ? 'crop-square-source-2x3' : undefined,
     usesSquareSourceThreeFourCrop ? 'crop-square-source-3x4' : undefined,
     usesSquareSourceLandscapeCrop ? 'crop-square-source-3x2' : undefined,
+    usesSourceRatioMismatch ? 'source-ratio-mismatch' : undefined,
     shadow ? 'has-canvas-shadow' : 'no-canvas-shadow',
     className,
   ].filter(Boolean).join(' ');
