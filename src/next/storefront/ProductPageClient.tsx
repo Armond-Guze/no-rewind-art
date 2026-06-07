@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -98,7 +98,10 @@ export default function ProductPageClient({
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [checkoutError, setCheckoutError] = useState('');
   const gallery = getProductGallery(product);
+  const galleryItems = gallery.length ? gallery : ['placeholder'];
   const selectedGalleryImage = gallery[selectedImage];
+  const mobileGalleryRef = useRef<HTMLDivElement | null>(null);
+  const mobileScrollFrame = useRef<number | null>(null);
   const isMockupGalleryImage = isProductMockupImage(product, selectedGalleryImage);
   const isSideGalleryImage = isSideMockupImage(selectedGalleryImage);
   const isFrontMockupGalleryImage = isMockupGalleryImage && !isSideGalleryImage;
@@ -131,6 +134,53 @@ export default function ProductPageClient({
         : 'frame-none';
   const selectedOptionId = selectedOption.id;
   const selectedFrameOptionId = selectedFrameOption.id;
+
+  function selectGalleryImage(index: number) {
+    setSelectedImage(index);
+
+    const mobileGallery = mobileGalleryRef.current;
+
+    if (mobileGallery) {
+      mobileGallery.scrollTo({
+        left: mobileGallery.clientWidth * index,
+        behavior: 'smooth',
+      });
+    }
+  }
+
+  function updateMobileGalleryIndex(element: HTMLDivElement) {
+    const slideWidth = element.clientWidth;
+
+    if (!slideWidth) {
+      return;
+    }
+
+    const nextIndex = Math.max(
+      0,
+      Math.min(galleryItems.length - 1, Math.round(element.scrollLeft / slideWidth)),
+    );
+
+    setSelectedImage((currentIndex) => (currentIndex === nextIndex ? currentIndex : nextIndex));
+  }
+
+  function queueMobileGalleryIndexUpdate(element: HTMLDivElement) {
+    if (mobileScrollFrame.current !== null) {
+      window.cancelAnimationFrame(mobileScrollFrame.current);
+    }
+
+    mobileScrollFrame.current = window.requestAnimationFrame(() => {
+      mobileScrollFrame.current = null;
+      updateMobileGalleryIndex(element);
+    });
+  }
+
+  useEffect(() => {
+    return () => {
+      if (mobileScrollFrame.current !== null) {
+        window.cancelAnimationFrame(mobileScrollFrame.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const trackedSizeOption =
@@ -234,12 +284,12 @@ export default function ProductPageClient({
         <section className="listing-layout">
           <div className="listing-gallery">
             <div className="gallery-rail" aria-label="Product images">
-              {(gallery.length ? gallery : ['placeholder']).map((image, index) => (
+              {galleryItems.map((image, index) => (
                 <button
                   className={index === selectedImage ? 'active' : ''}
                   key={`${product.id}-${image}-${index}`}
                   type="button"
-                  onClick={() => setSelectedImage(index)}
+                  onClick={() => selectGalleryImage(index)}
                   aria-label={`View ${product.title} image ${index + 1}`}
                 >
                   {image === 'placeholder' ? (
@@ -269,8 +319,13 @@ export default function ProductPageClient({
               ))}
             </div>
 
-            <div className="mobile-gallery-carousel" aria-label={`${product.title} product images`}>
-              {(gallery.length ? gallery : ['placeholder']).map((image, index) => {
+            <div
+              className="mobile-gallery-carousel"
+              ref={mobileGalleryRef}
+              onScroll={(event) => queueMobileGalleryIndexUpdate(event.currentTarget)}
+              aria-label={`${product.title} product images`}
+            >
+              {galleryItems.map((image, index) => {
                 const mobileGalleryImage = image === 'placeholder' ? undefined : image;
                 const mobileIsMockupImage = isProductMockupImage(product, mobileGalleryImage);
                 const mobileIsSideImage = isSideMockupImage(mobileGalleryImage);
@@ -278,7 +333,10 @@ export default function ProductPageClient({
                 const mobileFrameClass = index === 0 ? selectedFrameClass : 'frame-none';
 
                 return (
-                  <div className="mobile-gallery-slide" key={`${product.id}-mobile-${image}-${index}`}>
+                  <div
+                    className={`mobile-gallery-slide${index === selectedImage ? ' is-active' : ''}`}
+                    key={`${product.id}-mobile-${image}-${index}`}
+                  >
                     <div
                       className={`main-product-image ${mobileGalleryImage ? 'gallery-product-image' : ''} ${
                         mobileIsMockupImage ? 'mockup-product-image' : ''
@@ -321,8 +379,11 @@ export default function ProductPageClient({
               })}
             </div>
             <div className="mobile-gallery-hint" aria-hidden="true">
-              {(gallery.length ? gallery : ['placeholder']).map((image, index) => (
-                <span key={`${product.id}-mobile-hint-${image}-${index}`} />
+              {galleryItems.map((image, index) => (
+                <span
+                  className={index === selectedImage ? 'is-active' : ''}
+                  key={`${product.id}-mobile-hint-${image}-${index}`}
+                />
               ))}
             </div>
 
@@ -332,34 +393,39 @@ export default function ProductPageClient({
               }`}
             >
               <div
-                className={`detail-artwork-shell frame-none shape-${productDisplayShape} ${
-                  isMockupGalleryImage ? 'mockup-product-shell' : ''
-                } ${isFrontMockupGalleryImage ? 'front-product-shell' : ''} ${
-                  isSideGalleryImage ? 'side-product-shell' : ''
-                }`}
+                className="product-gallery-transition"
+                key={`${product.id}-gallery-${selectedImage}-${frameClass}`}
               >
-                <div className="detail-artwork-surface">
-                  {selectedGalleryImage === product.image ? (
-                    <OptimizedCanvasImage
-                      className={`detail-artwork-image ${frameClass}`}
-                      product={product}
-                      src={selectedGalleryImage}
-                      alt={product.imageAlt}
-                      aspectRatio={productAspectRatio}
-                      shape={productDisplayShape}
-                      priority
-                    />
-                  ) : selectedGalleryImage ? (
-                    <OptimizedRawImage
-                      className="detail-gallery-image"
-                      src={selectedGalleryImage}
-                      alt={product.imageAlt}
-                      aspectRatio={productAspectRatio}
-                      priority
-                    />
-                  ) : (
-                    <ProductVisual product={product} />
-                  )}
+                <div
+                  className={`detail-artwork-shell frame-none shape-${productDisplayShape} ${
+                    isMockupGalleryImage ? 'mockup-product-shell' : ''
+                  } ${isFrontMockupGalleryImage ? 'front-product-shell' : ''} ${
+                    isSideGalleryImage ? 'side-product-shell' : ''
+                  }`}
+                >
+                  <div className="detail-artwork-surface">
+                    {selectedGalleryImage === product.image ? (
+                      <OptimizedCanvasImage
+                        className={`detail-artwork-image ${frameClass}`}
+                        product={product}
+                        src={selectedGalleryImage}
+                        alt={product.imageAlt}
+                        aspectRatio={productAspectRatio}
+                        shape={productDisplayShape}
+                        priority
+                      />
+                    ) : selectedGalleryImage ? (
+                      <OptimizedRawImage
+                        className="detail-gallery-image"
+                        src={selectedGalleryImage}
+                        alt={product.imageAlt}
+                        aspectRatio={productAspectRatio}
+                        priority
+                      />
+                    ) : (
+                      <ProductVisual product={product} />
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -385,7 +451,7 @@ export default function ProductPageClient({
                     type="button"
                     onClick={() => {
                       setSelectedFrame(index);
-                      setSelectedImage(0);
+                      selectGalleryImage(0);
                     }}
                     aria-label={`Select ${option.label}`}
                   >
