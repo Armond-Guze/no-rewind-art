@@ -468,17 +468,21 @@ export default function ProductPageClient({
                 <strong>{selectedOption.label}</strong>
               </div>
               <div className="size-options">
-                {product.sizeOptions.map((option, index) => (
-                  <button
-                    className={index === selectedSize ? 'selected' : ''}
-                    key={option.id}
-                    type="button"
-                    onClick={() => setSelectedSizeId(option.id)}
-                  >
-                    {option.badge ? <span>{option.badge}</span> : null}
-                    {option.label}
-                  </button>
-                ))}
+                {product.sizeOptions.map((option, index) => {
+                  const badge = option.badge?.trim().toLowerCase() === 'popular' ? option.badge : null;
+
+                  return (
+                    <button
+                      className={index === selectedSize ? 'selected' : ''}
+                      key={option.id}
+                      type="button"
+                      onClick={() => setSelectedSizeId(option.id)}
+                    >
+                      {badge ? <span>{badge}</span> : null}
+                      {option.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

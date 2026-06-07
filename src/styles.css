@@ -1589,6 +1589,12 @@ h3 {
   overflow: visible;
 }
 
+@media (min-width: 761px) {
+  .listing-gallery > .main-product-image.gallery-product-image {
+    min-height: min(68vh, 720px);
+  }
+}
+
 .main-product-image.gallery-product-image::before,
 .main-product-image.gallery-product-image::after,
 .main-product-image.mockup-product-image::before {
@@ -2611,6 +2617,8 @@ h3 {
   --preview-frame-light: rgba(255, 255, 255, 0.14);
   --preview-frame-shade: rgba(0, 0, 0, 0.58);
   background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 9px),
     linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 24%),
     linear-gradient(315deg, rgba(0, 0, 0, 0.58), transparent 30%),
     linear-gradient(180deg, #2a2b29 0%, #141514 48%, #080908 100%);
@@ -2621,6 +2629,8 @@ h3 {
   --preview-frame-light: rgba(255, 255, 255, 0.9);
   --preview-frame-shade: rgba(0, 0, 0, 0.15);
   background:
+    repeating-linear-gradient(90deg, rgba(118, 108, 88, 0.045) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.42) 0 1px, transparent 1px 10px),
     linear-gradient(135deg, rgba(255, 255, 255, 0.96), transparent 28%),
     linear-gradient(315deg, rgba(0, 0, 0, 0.12), transparent 32%),
     linear-gradient(180deg, #ffffff 0%, #f0efe8 48%, #dddcd3 100%);
@@ -5744,15 +5754,16 @@ h3 {
 }
 
 .storefront-hero h1 {
-  max-width: 11ch;
+  max-width: 12.6ch;
   margin-bottom: 18px;
   color: #fff;
-  font-size: clamp(3.4rem, 6.2vw, 7.2rem);
-  line-height: 0.88;
+  font-size: clamp(3.05rem, 5.55vw, 6.65rem);
+  line-height: 0.86;
 }
 
 .storefront-hero h1 span {
   display: block;
+  white-space: nowrap;
 }
 
 .storefront-hero h1 em {
@@ -6114,6 +6125,27 @@ h3 {
 
 .storefront-home .product-actions {
   display: none;
+}
+
+@media (min-width: 1900px) {
+  .storefront-shop-section {
+    padding-right: clamp(48px, 3vw, 72px);
+    padding-left: clamp(48px, 3vw, 72px);
+  }
+
+  .storefront-home .product-grid {
+    max-width: min(2240px, calc(100vw - 96px));
+    gap: clamp(18px, 1.1vw, 26px);
+  }
+
+  .storefront-home .product-image-link {
+    min-height: clamp(560px, 26vw, 680px);
+    padding: clamp(20px, 1.45vw, 34px);
+  }
+
+  .storefront-home .product-copy {
+    padding: 18px;
+  }
 }
 
 .new-arrivals-preview {
@@ -6518,12 +6550,12 @@ h3 {
 
   .storefront-hero h1 {
     width: 100%;
-    max-width: 8.8ch;
+    max-width: 11.4ch;
     margin-bottom: 16px;
     margin-right: auto;
     margin-left: auto;
-    font-size: clamp(2.65rem, 12.8vw, 4.2rem);
-    line-height: 0.9;
+    font-size: clamp(2.1rem, 10vw, 3.5rem);
+    line-height: 0.88;
   }
 
   .storefront-hero .eyebrow {
@@ -7379,6 +7411,8 @@ h3 {
   --canvas-frame-inner-lip: #050505;
   --canvas-frame-inner-highlight: rgba(255, 255, 255, 0.08);
   --canvas-frame-background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 11px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 13px),
     linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 24%),
     linear-gradient(315deg, rgba(0, 0, 0, 0.56), transparent 28%),
     linear-gradient(180deg, #2d2e2c 0%, #171817 44%, #090a09 100%);
@@ -7393,12 +7427,24 @@ h3 {
   --canvas-frame-bottom-shade: rgba(0, 0, 0, 0.16);
   --canvas-frame-left-light: rgba(255, 255, 255, 0.72);
   --canvas-frame-right-shade: rgba(0, 0, 0, 0.13);
-  --canvas-frame-inner-lip: #111;
-  --canvas-frame-inner-highlight: rgba(255, 255, 255, 0.72);
+  --canvas-frame-inner-lip: #f3f1ea;
+  --canvas-frame-inner-highlight: rgba(255, 255, 255, 0.9);
   --canvas-frame-background:
+    repeating-linear-gradient(90deg, rgba(118, 108, 88, 0.04) 0 1px, transparent 1px 12px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.42) 0 1px, transparent 1px 14px),
     linear-gradient(135deg, rgba(255, 255, 255, 0.95), transparent 28%),
-    linear-gradient(315deg, rgba(0, 0, 0, 0.12), transparent 30%),
-    linear-gradient(180deg, #ffffff 0%, #f0efe8 46%, #dddcd3 100%);
+    linear-gradient(315deg, rgba(0, 0, 0, 0.08), transparent 30%),
+    linear-gradient(180deg, #ffffff 0%, #f7f5ef 46%, #ebe9df 100%);
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white::after,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white::after {
+  box-shadow:
+    inset 0 0 0 var(--canvas-frame-lip) var(--canvas-frame-inner-lip),
+    inset 0 1px 2px rgba(255, 255, 255, 0.86),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.08);
 }
 
 .listing-gallery > .main-product-image
@@ -7421,6 +7467,21 @@ h3 {
     inset 0 0 0 1px var(--canvas-frame-inner-highlight),
     inset 0 2px 4px rgba(255, 255, 255, 0.12),
     inset 0 -5px 8px rgba(0, 0, 0, 0.16);
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white
+  > div,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white
+  > div {
+  background: #fbfaf5;
+  box-shadow:
+    0 0 0 1px rgba(92, 86, 74, 0.18),
+    0 2px 4px rgba(255, 255, 255, 0.18),
+    inset 0 0 0 1px var(--canvas-frame-inner-highlight),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3),
+    inset 0 -5px 8px rgba(0, 0, 0, 0.08);
 }
 
 .listing-gallery > .main-product-image
