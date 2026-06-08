@@ -24,13 +24,13 @@ const fallbackFrameOptions = [
     id: 'black-frame',
     label: 'Black Frame',
     priceDeltaInCents: 0,
-    priceDeltaBySizeIndexInCents: [2000, 3000, 4000, 5000, 6000],
+    priceDeltaBySizeIndexInCents: [3000, 4500, 6500, 9000, 12000],
   },
   {
     id: 'white-frame',
     label: 'White Frame',
     priceDeltaInCents: 0,
-    priceDeltaBySizeIndexInCents: [2000, 3000, 4000, 5000, 6000],
+    priceDeltaBySizeIndexInCents: [3000, 4500, 6500, 9000, 12000],
   },
 ];
 
