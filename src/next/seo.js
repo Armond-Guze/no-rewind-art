@@ -239,13 +239,13 @@ function getProductsByIds(catalog, productIds = []) {
 }
 
 export function getHomepageBestSellerProducts(catalog) {
-  const pickedProducts = getProductsByIds(catalog, catalog.homepageSettings?.bestSellerProductIds).slice(0, 6);
+  const pickedProducts = getProductsByIds(catalog, catalog.homepageSettings?.bestSellerProductIds).slice(0, 8);
 
   if (pickedProducts.length) {
     return pickedProducts;
   }
 
-  return getProductsForCollection(catalog, 'best-sellers').slice(0, 6);
+  return getProductsForCollection(catalog, 'best-sellers').slice(0, 8);
 }
 
 export function getHomepageNewArrivalProducts(catalog, bestSellerProducts = getHomepageBestSellerProducts(catalog)) {

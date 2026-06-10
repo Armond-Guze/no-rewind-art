@@ -241,7 +241,7 @@ function homepageSettingsDocument() {
   const bestSellerProductIds =
     catalog.homepageSettings?.bestSellerProductIds?.length
       ? catalog.homepageSettings.bestSellerProductIds
-      : collectionProductIds('best-sellers', 6)
+      : collectionProductIds('best-sellers', 8)
   const newArrivalProductIds =
     catalog.homepageSettings?.newArrivalProductIds?.length
       ? catalog.homepageSettings.newArrivalProductIds
@@ -256,7 +256,7 @@ function homepageSettingsDocument() {
     _type: 'homepageSettings',
     title: 'Homepage settings',
     heroProducts: productReferences(heroProductIds.slice(0, 5)),
-    bestSellerProducts: productReferences(bestSellerProductIds.slice(0, 6)),
+    bestSellerProducts: productReferences(bestSellerProductIds.slice(0, 8)),
     newArrivalProducts: productReferences(newArrivalProductIds.slice(0, 4)),
   })
 }

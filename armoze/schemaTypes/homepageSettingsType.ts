@@ -47,8 +47,8 @@ export const homepageSettingsType = defineType({
     productReferenceList(
       'bestSellerProducts',
       'Homepage Best Sellers',
-      'Pick up to 6 products for the homepage Best Sellers section, in the exact order they should show.',
-      6,
+      'Pick up to 8 products for the homepage Best Sellers section, in the exact order they should show.',
+      8,
     ),
     productReferenceList(
       'newArrivalProducts',
