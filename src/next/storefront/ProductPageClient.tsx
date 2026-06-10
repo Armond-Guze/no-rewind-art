@@ -10,7 +10,6 @@ import {
   Box,
   Check,
   ShieldCheck,
-  Sparkles,
 } from 'lucide-react';
 import { addStoredCartItem } from '../../cart';
 import type { FrameOption, Product } from '../../data/products';
@@ -27,7 +26,7 @@ import {
   isProductMockupImage,
   isSideMockupImage,
   launchOfferCode,
-  launchOfferText,
+  sizeOptionMatches,
 } from './product-utils';
 import {
   getProductTrackingItem,
@@ -88,15 +87,6 @@ function ProductTrustStrip() {
   );
 }
 
-function LaunchOffer({ className = '' }: { className?: string }) {
-  return (
-    <div className={['launch-offer', className].filter(Boolean).join(' ')}>
-      <Sparkles aria-hidden="true" size={16} />
-      <span>{launchOfferText}</span>
-    </div>
-  );
-}
-
 export default function ProductPageClient({
   product,
   relatedProducts,
@@ -122,9 +112,9 @@ export default function ProductPageClient({
   const isSideGalleryImage = isSideMockupImage(selectedGalleryImage);
   const isFrontMockupGalleryImage = isMockupGalleryImage && !isSideGalleryImage;
   const defaultSizeOption = getFeaturedSizeOption(product);
-  const requestedSizeOption = product.sizeOptions.find((option) => option.id === searchSizeId);
+  const requestedSizeOption = product.sizeOptions.find((option) => sizeOptionMatches(option, searchSizeId));
   const selectedOption =
-    product.sizeOptions.find((option) => option.id === selectedSizeId) ??
+    product.sizeOptions.find((option) => sizeOptionMatches(option, selectedSizeId || undefined)) ??
     requestedSizeOption ??
     defaultSizeOption;
   const selectedSize = product.sizeOptions.findIndex((option) => option.id === selectedOption.id);
@@ -508,8 +498,6 @@ export default function ProductPageClient({
               Pay in 4 interest-free installments with Stripe-compatible payment methods at checkout.
             </div>
 
-            <LaunchOffer className="product-launch-offer" />
-
             <button
               className="button button-primary listing-cart-button"
               type="button"
@@ -570,8 +558,8 @@ export default function ProductPageClient({
                     <li>Made to order</li>
                     <li>Premium canvas materials</li>
                     <li>Secure packaging to protect corners and surface quality</li>
-                    <li>Processing time: 3-5 business days</li>
-                    <li>Shipping time in the US: 5-10 business days</li>
+                    <li>Processing time: 2-3 business days</li>
+                    <li>Shipping time in the US: 3-8 business days</li>
                   </ul>
 
                   <h3>Artwork Notes</h3>

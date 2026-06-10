@@ -11,6 +11,7 @@ import {
 } from '../../cart';
 import { supabaseClient } from '../../lib/supabase';
 import {
+  launchOfferCode,
   supportEmail,
   supportMailto,
 } from './product-utils';
@@ -43,9 +44,20 @@ export function StorefrontShell({ children }: { children: ReactNode }) {
   return (
     <>
       <NextSiteHeader />
+      <LaunchPromoBar />
       {children}
       <NextSiteFooter />
     </>
+  );
+}
+
+function LaunchPromoBar() {
+  return (
+    <section className="launch-promo-bar" aria-label="Launch offer">
+      <p>
+        Launch offer: 10% off your first order with code <strong>{launchOfferCode}</strong>
+      </p>
+    </section>
   );
 }
 

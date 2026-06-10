@@ -9,6 +9,7 @@ export type SizeOption = {
   priceInCents: number;
   badge?: string;
   previewScale?: number;
+  legacyIds?: string[];
 };
 
 export type FrameOption = {
@@ -127,14 +128,11 @@ const fallbackFrameOptions: FrameOption[] = [
       '16x24': 4000,
       '18x12': 4000,
       '20x10': 4000,
-      '24x12': 4000,
       '24x16': 4000,
       '24x36': 6000,
       '32x48': 13000,
       '36x24': 6000,
       '40x60': 10000,
-      '42x28': 13000,
-      '48x20': 8000,
       '48x24': 8000,
       '48x32': 13000,
       '60x30': 10000,
@@ -152,14 +150,11 @@ const fallbackFrameOptions: FrameOption[] = [
       '16x24': 4000,
       '18x12': 4000,
       '20x10': 4000,
-      '24x12': 4000,
       '24x16': 4000,
       '24x36': 6000,
       '32x48': 13000,
       '36x24': 6000,
       '40x60': 10000,
-      '42x28': 13000,
-      '48x20': 8000,
       '48x24': 8000,
       '48x32': 13000,
       '60x30': 10000,
@@ -169,8 +164,72 @@ const fallbackFrameOptions: FrameOption[] = [
   },
 ];
 
-function normalizeFrameOptions(): FrameOption[] {
-  return fallbackFrameOptions;
+function getCanonicalSizeId(option: Pick<SizeOption, 'id' | 'label'>) {
+  const labelId = option.label
+    .toLowerCase()
+    .replace(/×/g, 'x')
+    .replace(/\s+/g, '');
+
+  return /^\d+x\d+$/.test(labelId) ? labelId : option.id;
+}
+
+function normalizeSizeOptions(sizeOptions: SizeOption[] = []) {
+  return sizeOptions.map((option) => {
+    const canonicalId = getCanonicalSizeId(option);
+    const legacyIds = [
+      ...(option.legacyIds || []),
+      ...(canonicalId !== option.id ? [option.id] : []),
+    ];
+
+    return {
+      ...option,
+      id: canonicalId,
+      ...(legacyIds.length ? { legacyIds: [...new Set(legacyIds)] } : {}),
+    };
+  });
+}
+
+function normalizeSizePresets(sizePresets: Record<string, SizeOption[]>) {
+  return Object.fromEntries(
+    Object.entries(sizePresets).map(([presetName, sizeOptions]) => [
+      presetName,
+      normalizeSizeOptions(sizeOptions),
+    ]),
+  );
+}
+
+function normalizeSizeId(sizeId: string | undefined, sizeOptions: SizeOption[]) {
+  if (!sizeId) {
+    return sizeId;
+  }
+
+  const match = sizeOptions.find(
+    (option) => option.id === sizeId || option.legacyIds?.includes(sizeId),
+  );
+
+  return match?.id || sizeId;
+}
+
+function normalizeFrameOptions(sizeOptions: SizeOption[]): FrameOption[] {
+  return fallbackFrameOptions.map((option) => {
+    const priceDeltaBySizeIdInCents = option.priceDeltaBySizeIdInCents
+      ? Object.fromEntries(
+          Object.entries(option.priceDeltaBySizeIdInCents).map(([sizeId, priceDelta]) => [
+            normalizeSizeId(sizeId, sizeOptions),
+            priceDelta,
+          ]),
+        )
+      : undefined;
+    const unavailableSizeIds = option.unavailableSizeIds?.map((sizeId) =>
+      normalizeSizeId(sizeId, sizeOptions) || sizeId,
+    );
+
+    return {
+      ...option,
+      ...(priceDeltaBySizeIdInCents ? { priceDeltaBySizeIdInCents } : {}),
+      ...(unavailableSizeIds ? { unavailableSizeIds } : {}),
+    };
+  });
 }
 
 function getArtworkShapeFromSizePreset(sizePreset?: string): ArtworkShape {
@@ -239,8 +298,12 @@ export function normalizeProduct(
   product: CatalogProduct,
   sizePresets: Record<string, SizeOption[]> = catalogData.sizePresets,
 ): Product {
-  const sizeOptions = getSizeOptionsForProduct(product, sizePresets);
-  const frameOptions = normalizeFrameOptions();
+  const sizeOptions = normalizeSizeOptions(getSizeOptionsForProduct(product, sizePresets));
+  const frameOptions = normalizeFrameOptions(sizeOptions);
+  const normalizedDefaultSizeId = normalizeSizeId(product.defaultSizeId, sizeOptions);
+  const defaultSizeId = sizeOptions.some((option) => option.id === normalizedDefaultSizeId)
+    ? normalizedDefaultSizeId
+    : sizeOptions[0]?.id || normalizedDefaultSizeId;
   const lowestSizePrice = sizeOptions.length
     ? Math.min(...sizeOptions.map((option) => option.priceInCents))
     : Number(product.priceInCents ?? 0);
@@ -254,6 +317,7 @@ export function normalizeProduct(
     artworkShape: product.artworkShape || getArtworkShapeFromSizePreset(product.sizePreset),
     aspectRatio: getProductAspectRatio(product),
     priceInCents: product.priceInCents ?? lowestSizePrice + lowestFrameDelta,
+    defaultSizeId,
     sizeOptions,
     frameOptions,
     published: product.published !== false,
@@ -261,11 +325,13 @@ export function normalizeProduct(
 }
 
 export function normalizeCatalogData(data: CatalogData): NormalizedCatalog {
+  const sizePresets = normalizeSizePresets(data.sizePresets);
+
   return {
-    sizePresets: data.sizePresets,
+    sizePresets,
     collections: data.collections,
     homepageSettings: data.homepageSettings || {},
-    products: data.products.map((product) => normalizeProduct(product, data.sizePresets)),
+    products: data.products.map((product) => normalizeProduct(product, sizePresets)),
   };
 }
 
@@ -350,7 +416,11 @@ export function getProductByGoogleItemIdFromCatalog(
       continue;
     }
 
-    const sizeOption = product.sizeOptions.find((option) => itemId === `${product.id}-${option.id}`);
+    const sizeOption = product.sizeOptions.find(
+      (option) =>
+        itemId === `${product.id}-${option.id}` ||
+        option.legacyIds?.some((legacyId) => itemId === `${product.id}-${legacyId}`),
+    );
 
     if (sizeOption) {
       return { product, sizeOption };

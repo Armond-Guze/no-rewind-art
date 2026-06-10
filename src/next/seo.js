@@ -82,13 +82,13 @@ function getDefaultProductOffer(product) {
         handlingTime: {
           '@type': 'QuantitativeValue',
           minValue: 2,
-          maxValue: 5,
+          maxValue: 3,
           unitCode: 'DAY',
         },
         transitTime: {
           '@type': 'QuantitativeValue',
-          minValue: 5,
-          maxValue: 10,
+          minValue: 3,
+          maxValue: 8,
           unitCode: 'DAY',
         },
       },
@@ -295,7 +295,11 @@ export function getProductByGoogleItemId(catalog, itemId) {
       continue;
     }
 
-    const sizeOption = product.sizeOptions.find((option) => itemId === `${product.id}-${option.id}`);
+    const sizeOption = product.sizeOptions.find(
+      (option) =>
+        itemId === `${product.id}-${option.id}` ||
+        option.legacyIds?.some((legacyId) => itemId === `${product.id}-${legacyId}`),
+    );
 
     if (sizeOption) {
       return { product, sizeOption };

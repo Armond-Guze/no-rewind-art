@@ -3,7 +3,6 @@ import type { Collection, FrameOption, Product, SizeOption } from '../../data/pr
 export const supportEmail = 'hello@armoze.com';
 export const supportMailto = `mailto:${supportEmail}`;
 export const launchOfferCode = 'FIRST10';
-export const launchOfferText = `Launch offer: use code ${launchOfferCode} for 10% off your first order.`;
 
 export function formatPrice(cents: number, currency = 'USD') {
   return new Intl.NumberFormat('en-US', {
@@ -23,8 +22,12 @@ export function getFeaturedSizeOption(product: Product) {
   );
 }
 
+export function sizeOptionMatches(option: SizeOption, sizeId: string | undefined) {
+  return Boolean(sizeId && (option.id === sizeId || option.legacyIds?.includes(sizeId)));
+}
+
 export function getSizeOption(product: Product, sizeId: string) {
-  return product.sizeOptions.find((option) => option.id === sizeId) ?? getBaseSizeOption(product);
+  return product.sizeOptions.find((option) => sizeOptionMatches(option, sizeId)) ?? getBaseSizeOption(product);
 }
 
 export function getBaseFrameOption(product: Product) {

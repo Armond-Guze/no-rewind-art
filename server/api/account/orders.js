@@ -1,18 +1,16 @@
-import { assertAdmin, listAdminOrders } from '../../backend.js';
+import { listCustomerOrders } from '../../backend.js';
 import { errorJson, getBearerHeader, json, methodNotAllowed } from '../_utils.js';
 import { assertRateLimit } from '../../rate-limit.js';
 
 export async function GET(request) {
   try {
     assertRateLimit(request, {
-      key: 'admin',
-      limit: 90,
+      key: 'account-orders',
+      limit: 60,
       windowMs: 10 * 60 * 1000,
     });
-    assertAdmin(getBearerHeader(request));
 
-    const url = new URL(request.url);
-    return json(await listAdminOrders({ limit: url.searchParams.get('limit') }));
+    return json(await listCustomerOrders(getBearerHeader(request)));
   } catch (error) {
     return errorJson(error);
   }

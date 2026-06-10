@@ -100,6 +100,10 @@ function summarizeOrders(orders) {
   };
 }
 
+function isCustomerVisibleOrder(order) {
+  return order.paymentStatus === 'paid';
+}
+
 async function readLocalDatabase() {
   try {
     const raw = await readFile(ordersFile, 'utf8');
@@ -170,6 +174,18 @@ class LocalOrderStore {
       orders,
       summary: summarizeOrders(database.orders),
     };
+  }
+
+  async listCustomerOrdersByEmail(email, { limit = 25 } = {}) {
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const database = await readLocalDatabase();
+    const orders = database.orders
+      .filter((order) => String(order.customerEmail || '').trim().toLowerCase() === normalizedEmail)
+      .filter(isCustomerVisibleOrder)
+      .sort((a, b) => new Date(b.createdAt || b.updatedAt).getTime() - new Date(a.createdAt || a.updatedAt).getTime())
+      .slice(0, limit);
+
+    return { orders };
   }
 
   async updateFulfillmentStatus(orderId, fulfillmentStatus) {
@@ -454,6 +470,24 @@ class PostgresOrderStore {
         totalRevenue,
         averageOrderValue: paidOrderCount ? Math.round(totalRevenue / paidOrderCount) : 0,
       },
+    };
+  }
+
+  async listCustomerOrdersByEmail(email, { limit = 25 } = {}) {
+    const result = await this.pool.query(
+      `
+        select *
+        from orders
+        where lower(customer_email) = lower($1)
+          and payment_status = 'paid'
+        order by created_at desc
+        limit $2
+      `,
+      [String(email || '').trim(), limit],
+    );
+
+    return {
+      orders: result.rows.map((orderRow) => this.rowToOrder(orderRow)),
     };
   }
 

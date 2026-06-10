@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
 import { findFrameOption, findProduct, findSizeOption, getFramePriceDelta } from './catalog.js';
 import { createNewsletterStore } from './newsletter-store.js';
 import { sendOwnerOrderNotification } from './notifications.js';
@@ -19,7 +20,18 @@ const clientUrl = process.env.CLIENT_URL || 'http://127.0.0.1:3000';
 const automaticTaxEnabled = process.env.STRIPE_AUTOMATIC_TAX === 'true';
 const adminApiToken = process.env.ADMIN_API_TOKEN;
 const allowUnsignedWebhooks = process.env.STRIPE_WEBHOOK_ALLOW_UNSIGNED === 'true';
-const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseUrl = normalizeSupabaseUrl(process.env.SUPABASE_URL || '');
+const supabasePublicUrl = normalizeSupabaseUrl(
+  supabaseUrl || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || '',
+);
+const supabasePublicKey =
+  process.env.SUPABASE_PUBLISHABLE_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.VITE_SUPABASE_ANON_KEY ||
+  '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const supabaseStorageBucket = process.env.SUPABASE_STORAGE_BUCKET || 'artwork';
 
@@ -36,6 +48,14 @@ const orderStoreReady = orderStore.init();
 const productStoreReady = productStore.init();
 const newsletterStoreReady = newsletterStore.init();
 const artworkDir = path.resolve(process.cwd(), 'public', 'artwork');
+let supabaseAuthClient = null;
+
+function normalizeSupabaseUrl(value) {
+  return String(value || '')
+    .trim()
+    .replace(/\/rest\/v1\/?$/, '')
+    .replace(/\/+$/, '');
+}
 
 function formatPrice(cents, currency = 'usd') {
   return new Intl.NumberFormat('en-US', {
@@ -76,6 +96,77 @@ function getPaymentIntentId(session) {
   return typeof session.payment_intent === 'string'
     ? session.payment_intent
     : session.payment_intent.id;
+}
+
+function getSupabaseAuthClient() {
+  if (!supabasePublicUrl || !supabasePublicKey) {
+    return null;
+  }
+
+  supabaseAuthClient ??= createClient(supabasePublicUrl, supabasePublicKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+
+  return supabaseAuthClient;
+}
+
+async function getCustomerFromAuthorizationHeader(authorizationHeader = '') {
+  const token = authorizationHeader.startsWith('Bearer ')
+    ? authorizationHeader.slice('Bearer '.length).trim()
+    : '';
+
+  if (!token) {
+    throw httpError('Sign in to view your orders.', 401);
+  }
+
+  const authClient = getSupabaseAuthClient();
+
+  if (!authClient) {
+    throw httpError('Customer accounts are not configured.', 503);
+  }
+
+  const { data, error } = await authClient.auth.getUser(token);
+  const email = data.user?.email?.trim().toLowerCase();
+
+  if (error || !email) {
+    throw httpError('Your session could not be verified. Sign in again.', 401);
+  }
+
+  return {
+    id: data.user.id,
+    email,
+  };
+}
+
+function publicOrderItem(item) {
+  return {
+    productId: item.productId || '',
+    title: item.title || 'Armoze print',
+    sizeLabel: item.sizeLabel || '',
+    frameLabel: item.frameLabel || '',
+    quantity: Number(item.quantity || 1),
+    unitAmount: Number(item.unitAmount || 0),
+    lineTotal: Number(item.lineTotal || 0),
+  };
+}
+
+function publicCustomerOrder(order) {
+  return {
+    id: order.id,
+    paymentStatus: order.paymentStatus,
+    fulfillmentStatus: order.fulfillmentStatus,
+    currency: order.currency || 'usd',
+    amountSubtotal: Number(order.amountSubtotal || 0),
+    amountShipping: Number(order.amountShipping || 0),
+    amountTax: Number(order.amountTax || 0),
+    amountTotal: Number(order.amountTotal || 0),
+    items: Array.isArray(order.items) ? order.items.map(publicOrderItem) : [],
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+  };
 }
 
 async function normalizeCartItems(items) {
@@ -389,11 +480,11 @@ export async function createCheckoutSession(body) {
           delivery_estimate: {
             minimum: {
               unit: 'business_day',
-              value: 5,
+              value: 3,
             },
             maximum: {
               unit: 'business_day',
-              value: 10,
+              value: 8,
             },
           },
         },
@@ -430,6 +521,20 @@ export async function subscribeToNewsletter(body) {
       email: subscriber.email,
       status: subscriber.status,
     },
+  };
+}
+
+export async function listCustomerOrders(authorizationHeader) {
+  await ensureReady();
+
+  const customer = await getCustomerFromAuthorizationHeader(authorizationHeader);
+  const result = await orderStore.listCustomerOrdersByEmail(customer.email, { limit: 25 });
+
+  return {
+    customer: {
+      email: customer.email,
+    },
+    orders: result.orders.map(publicCustomerOrder),
   };
 }
 

@@ -1,6 +1,6 @@
 # Armoze Launch Readiness Report
 
-Generated: 2026-06-10T03:24:52.270Z
+Generated: 2026-06-10T04:00:03.838Z
 
 ## Executive Summary
 

@@ -2,16 +2,101 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { BadgeCheck, Box, Inbox, LogOut, ShieldCheck } from 'lucide-react';
+import { BadgeCheck, Box, Inbox, LogOut, PackageCheck, RefreshCw, ShieldCheck, Truck } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabaseClient } from '../../lib/supabase';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
+import { formatPrice, supportEmail } from './product-utils';
+
+type CustomerOrderItem = {
+  productId: string;
+  title: string;
+  sizeLabel: string;
+  frameLabel: string;
+  quantity: number;
+  unitAmount: number;
+  lineTotal: number;
+};
+
+type CustomerOrder = {
+  id: string;
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  currency: string;
+  amountTotal: number;
+  items: CustomerOrderItem[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+function formatOrderDate(value: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(value));
+}
+
+function shortOrderId(orderId: string) {
+  return orderId.replace(/^cs_(test|live)_/i, '').slice(0, 10).toUpperCase();
+}
+
+function getFulfillmentLabel(status: string) {
+  const labels: Record<string, string> = {
+    new: 'Order received',
+    printing: 'In production',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled',
+  };
+
+  return labels[status] || 'Order received';
+}
+
+function getSupportHref(orderId: string) {
+  const subject = encodeURIComponent(`Armoze order ${shortOrderId(orderId)}`);
+  return `mailto:${supportEmail}?subject=${subject}`;
+}
 
 export default function AccountPageClient() {
   const [session, setSession] = useState<Session | null>(null);
   const [configured, setConfigured] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [orders, setOrders] = useState<CustomerOrder[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState('');
+
+  async function loadOrders(activeSession = session) {
+    if (!activeSession?.access_token) {
+      setOrders([]);
+      return;
+    }
+
+    setOrdersLoading(true);
+    setOrdersError('');
+
+    try {
+      const response = await fetch('/api/account/orders', {
+        headers: {
+          Authorization: `Bearer ${activeSession.access_token}`,
+        },
+      });
+      const data = (await response.json().catch(() => null)) as
+        | { orders?: CustomerOrder[]; error?: string }
+        | null;
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'Order history could not be loaded.');
+      }
+
+      setOrders(data?.orders || []);
+    } catch (orderError) {
+      setOrdersError(orderError instanceof Error ? orderError.message : 'Order history could not be loaded.');
+    } finally {
+      setOrdersLoading(false);
+    }
+  }
 
   useEffect(() => {
     if (!supabaseClient) {
@@ -59,6 +144,59 @@ export default function AccountPageClient() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!session?.access_token) {
+      queueMicrotask(() => {
+        setOrders([]);
+        setOrdersError('');
+        setOrdersLoading(false);
+      });
+      return;
+    }
+
+    let active = true;
+
+    queueMicrotask(() => {
+      if (active) {
+        setOrdersLoading(true);
+        setOrdersError('');
+      }
+    });
+
+    void fetch('/api/account/orders', {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    })
+      .then(async (response) => {
+        const data = (await response.json().catch(() => null)) as
+          | { orders?: CustomerOrder[]; error?: string }
+          | null;
+
+        if (!response.ok) {
+          throw new Error(data?.error || 'Order history could not be loaded.');
+        }
+
+        if (active) {
+          setOrders(data?.orders || []);
+        }
+      })
+      .catch((orderError) => {
+        if (active) {
+          setOrdersError(orderError instanceof Error ? orderError.message : 'Order history could not be loaded.');
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setOrdersLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session?.access_token]);
+
   async function signOut() {
     if (!supabaseClient) {
       return;
@@ -70,7 +208,11 @@ export default function AccountPageClient() {
 
     if (signOutError) {
       setError(signOutError.message);
+      return;
     }
+
+    setOrders([]);
+    setOrdersError('');
   }
 
   return (
@@ -93,12 +235,12 @@ export default function AccountPageClient() {
             <article>
               <Box aria-hidden="true" size={24} />
               <h2>Made to order</h2>
-              <p>Your prints are produced after checkout, then packed for safe delivery.</p>
+              <p>Your prints are produced in 2-3 business days, then shipped in 3-8 business days.</p>
             </article>
             <article>
-              <ShieldCheck aria-hidden="true" size={24} />
-              <h2>Secure access</h2>
-              <p>Account access is handled through Supabase Auth with persistent browser sessions.</p>
+              <Truck aria-hidden="true" size={24} />
+              <h2>Support ready</h2>
+              <p>Use the same checkout email here so order help stays connected to your account.</p>
             </article>
           </div>
 
@@ -119,16 +261,86 @@ export default function AccountPageClient() {
                 </Link>
               </div>
             ) : session?.user ? (
-              <div className="account-state signed-in-account">
-                <BadgeCheck aria-hidden="true" size={32} />
-                <h2>Signed in</h2>
-                <p>{session.user.email}</p>
-                <button className="button button-primary" type="button" onClick={() => void signOut()}>
-                  <LogOut aria-hidden="true" size={17} />
-                  Sign Out
-                </button>
-                {error ? <p className="account-error">{error}</p> : null}
-              </div>
+              <>
+                <div className="account-state signed-in-account account-summary-card">
+                  <BadgeCheck aria-hidden="true" size={32} />
+                  <h2>Signed in</h2>
+                  <p>{session.user.email}</p>
+                  <div className="account-actions">
+                    <button className="button button-primary" type="button" onClick={() => void loadOrders()}>
+                      <RefreshCw aria-hidden="true" size={17} />
+                      Refresh Orders
+                    </button>
+                    <button className="button button-secondary" type="button" onClick={() => void signOut()}>
+                      <LogOut aria-hidden="true" size={17} />
+                      Sign Out
+                    </button>
+                  </div>
+                  {error ? <p className="account-error">{error}</p> : null}
+                </div>
+
+                <section className="account-orders" aria-label="Order history">
+                  <div className="account-section-heading">
+                    <PackageCheck aria-hidden="true" size={22} />
+                    <div>
+                      <h2>Order history</h2>
+                      <p>Paid Armoze orders connected to this email.</p>
+                    </div>
+                  </div>
+
+                  {ordersLoading ? <p className="account-muted">Loading your recent orders...</p> : null}
+                  {ordersError ? <p className="account-error">{ordersError}</p> : null}
+
+                  {!ordersLoading && !ordersError && orders.length === 0 ? (
+                    <div className="account-empty-orders">
+                      <Inbox aria-hidden="true" size={26} />
+                      <h3>No paid orders yet</h3>
+                      <p>Orders appear here after checkout is completed with this email address.</p>
+                      <Link className="button button-secondary" href="/collections/best-sellers">
+                        Browse Prints
+                      </Link>
+                    </div>
+                  ) : null}
+
+                  {orders.length ? (
+                    <div className="account-order-list">
+                      {orders.map((order) => (
+                        <article className="account-order-card" key={order.id}>
+                          <div className="account-order-topline">
+                            <div>
+                              <span>Order {shortOrderId(order.id)}</span>
+                              <strong>{formatPrice(order.amountTotal, order.currency)}</strong>
+                            </div>
+                            <time dateTime={order.createdAt}>{formatOrderDate(order.createdAt)}</time>
+                          </div>
+
+                          <div className={`account-order-status status-${order.fulfillmentStatus}`}>
+                            {getFulfillmentLabel(order.fulfillmentStatus)}
+                          </div>
+
+                          <ul className="account-order-items">
+                            {order.items.map((item, index) => (
+                              <li key={`${order.id}-${item.productId}-${index}`}>
+                                <span>
+                                  {item.quantity} x {item.title}
+                                </span>
+                                <small>
+                                  {[item.sizeLabel, item.frameLabel].filter(Boolean).join(' / ')}
+                                </small>
+                              </li>
+                            ))}
+                          </ul>
+
+                          <div className="account-order-footer">
+                            <span>Processing 2-3 business days. Shipping 3-8 business days.</span>
+                            <a href={getSupportHref(order.id)}>Get help</a>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : null}
+                </section>
+              </>
             ) : (
               <div className="account-state">
                 <ShieldCheck aria-hidden="true" size={32} />

@@ -30,14 +30,11 @@ const fallbackFrameOptions = [
       '16x24': 4000,
       '18x12': 4000,
       '20x10': 4000,
-      '24x12': 4000,
       '24x16': 4000,
       '24x36': 6000,
       '32x48': 13000,
       '36x24': 6000,
       '40x60': 10000,
-      '42x28': 13000,
-      '48x20': 8000,
       '48x24': 8000,
       '48x32': 13000,
       '60x30': 10000,
@@ -55,14 +52,11 @@ const fallbackFrameOptions = [
       '16x24': 4000,
       '18x12': 4000,
       '20x10': 4000,
-      '24x12': 4000,
       '24x16': 4000,
       '24x36': 6000,
       '32x48': 13000,
       '36x24': 6000,
       '40x60': 10000,
-      '42x28': 13000,
-      '48x20': 8000,
       '48x24': 8000,
       '48x32': 13000,
       '60x30': 10000,
@@ -72,8 +66,72 @@ const fallbackFrameOptions = [
   },
 ];
 
-function normalizeFrameOptions() {
-  return fallbackFrameOptions;
+function getCanonicalSizeId(option) {
+  const labelId = String(option.label || '')
+    .toLowerCase()
+    .replace(/×/g, 'x')
+    .replace(/\s+/g, '');
+
+  return /^\d+x\d+$/.test(labelId) ? labelId : option.id;
+}
+
+function normalizeSizeOptions(sizeOptions = []) {
+  return sizeOptions.map((option) => {
+    const canonicalId = getCanonicalSizeId(option);
+    const legacyIds = [
+      ...(option.legacyIds || []),
+      ...(canonicalId !== option.id ? [option.id] : []),
+    ];
+
+    return {
+      ...option,
+      id: canonicalId,
+      ...(legacyIds.length ? { legacyIds: [...new Set(legacyIds)] } : {}),
+    };
+  });
+}
+
+function normalizeSizePresets(sizePresets = {}) {
+  return Object.fromEntries(
+    Object.entries(sizePresets).map(([presetName, sizeOptions]) => [
+      presetName,
+      normalizeSizeOptions(sizeOptions),
+    ]),
+  );
+}
+
+function normalizeSizeId(sizeId, sizeOptions) {
+  if (!sizeId) {
+    return sizeId;
+  }
+
+  const match = sizeOptions.find(
+    (option) => option.id === sizeId || option.legacyIds?.includes(sizeId),
+  );
+
+  return match?.id || sizeId;
+}
+
+function normalizeFrameOptions(sizeOptions) {
+  return fallbackFrameOptions.map((option) => {
+    const priceDeltaBySizeIdInCents = option.priceDeltaBySizeIdInCents
+      ? Object.fromEntries(
+          Object.entries(option.priceDeltaBySizeIdInCents).map(([sizeId, priceDelta]) => [
+            normalizeSizeId(sizeId, sizeOptions),
+            priceDelta,
+          ]),
+        )
+      : undefined;
+    const unavailableSizeIds = option.unavailableSizeIds?.map((sizeId) =>
+      normalizeSizeId(sizeId, sizeOptions) || sizeId,
+    );
+
+    return {
+      ...option,
+      ...(priceDeltaBySizeIdInCents ? { priceDeltaBySizeIdInCents } : {}),
+      ...(unavailableSizeIds ? { unavailableSizeIds } : {}),
+    };
+  });
 }
 
 export function getArtworkShapeFromSizePreset(sizePreset) {
@@ -136,8 +194,12 @@ function getSizeOptionsForProduct(product, sizePresets) {
 }
 
 export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets) {
-  const sizeOptions = getSizeOptionsForProduct(product, sizePresets);
-  const frameOptions = normalizeFrameOptions();
+  const sizeOptions = normalizeSizeOptions(getSizeOptionsForProduct(product, sizePresets));
+  const frameOptions = normalizeFrameOptions(sizeOptions);
+  const normalizedDefaultSizeId = normalizeSizeId(product.defaultSizeId, sizeOptions);
+  const defaultSizeId = sizeOptions.some((option) => option.id === normalizedDefaultSizeId)
+    ? normalizedDefaultSizeId
+    : sizeOptions[0]?.id || normalizedDefaultSizeId;
   const lowestSizePrice = sizeOptions.length
     ? Math.min(...sizeOptions.map((option) => option.priceInCents))
     : Number(product.priceInCents ?? 0);
@@ -153,6 +215,7 @@ export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets)
     artworkShape: product.artworkShape || getArtworkShapeFromSizePreset(product.sizePreset),
     aspectRatio: getProductAspectRatio(product),
     priceInCents: product.priceInCents ?? lowestSizePrice + lowestFrameDelta,
+    defaultSizeId,
     sizeOptions,
     frameOptions,
     published: product.published !== false,
@@ -160,11 +223,13 @@ export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets)
 }
 
 export function normalizeCatalogData(catalog = seedCatalog) {
+  const sizePresets = normalizeSizePresets(catalog.sizePresets);
+
   return {
-    sizePresets: catalog.sizePresets,
+    sizePresets,
     collections: catalog.collections,
     homepageSettings: catalog.homepageSettings || {},
-    products: catalog.products.map((product) => normalizeProduct(product, catalog.sizePresets)),
+    products: catalog.products.map((product) => normalizeProduct(product, sizePresets)),
   };
 }
 
@@ -177,7 +242,9 @@ export function findProduct(productId, productList = products) {
 
 export function findSizeOption(product, sizeId) {
   return (
-    product.sizeOptions.find((option) => option.id === sizeId) ??
+    product.sizeOptions.find(
+      (option) => option.id === sizeId || option.legacyIds?.includes(sizeId),
+    ) ??
     product.sizeOptions.find((option) => option.id === product.defaultSizeId) ??
     product.sizeOptions[0]
   );

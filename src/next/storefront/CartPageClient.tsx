@@ -19,6 +19,7 @@ import {
   getFrameOption,
   getSizeOption,
   launchOfferCode,
+  sizeOptionMatches,
 } from './product-utils';
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
@@ -71,7 +72,13 @@ function getProductByCartItemId(products: Product[], itemId: string | undefined)
       continue;
     }
 
-    const sizeOption = product.sizeOptions.find((option) => itemId === `${product.id}-${option.id}`);
+    const sizeOption = product.sizeOptions.find((option) => {
+      const sizeId = itemId.startsWith(`${product.id}-`)
+        ? itemId.slice(product.id.length + 1)
+        : '';
+
+      return sizeOptionMatches(option, sizeId);
+    });
 
     if (sizeOption) {
       return { product, sizeOption };
@@ -222,7 +229,7 @@ export default function CartPageClient({
         body: JSON.stringify({
           items: cartProducts.map((item) => ({
             id: item.productId,
-            sizeId: item.sizeId,
+            sizeId: item.sizeOption.id,
             frameId: item.frameOption.id,
             quantity: item.quantity,
           })),

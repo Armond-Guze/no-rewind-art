@@ -1,9 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 import { getPublicEnv } from '../env';
 
-const supabaseUrl = getPublicEnv('VITE_SUPABASE_URL');
+function normalizeSupabaseUrl(value: string) {
+  return value.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+}
+
+const supabaseUrl = normalizeSupabaseUrl(
+  getPublicEnv('VITE_SUPABASE_URL') || getPublicEnv('NEXT_PUBLIC_SUPABASE_URL'),
+);
 const supabasePublicKey =
-  getPublicEnv('VITE_SUPABASE_PUBLISHABLE_KEY') || getPublicEnv('VITE_SUPABASE_ANON_KEY');
+  getPublicEnv('VITE_SUPABASE_PUBLISHABLE_KEY') ||
+  getPublicEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY') ||
+  getPublicEnv('VITE_SUPABASE_ANON_KEY') ||
+  getPublicEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
 
 export const supabaseClient =
   supabaseUrl && supabasePublicKey
