@@ -16,6 +16,7 @@ import { addStoredCartItem } from '../../cart';
 import type { FrameOption, Product } from '../../data/products';
 import {
   formatPrice,
+  getAvailableFrameOptions,
   getBaseFrameOption,
   getConfiguredUnitPrice,
   getDisplayArtworkShape,
@@ -107,7 +108,7 @@ export default function ProductPageClient({
 }) {
   const router = useRouter();
   const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedFrame, setSelectedFrame] = useState(0);
+  const [selectedFrameId, setSelectedFrameId] = useState(product.frameOptions[0]?.id ?? 'canvas');
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(searchSizeId || null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
@@ -127,7 +128,9 @@ export default function ProductPageClient({
     requestedSizeOption ??
     defaultSizeOption;
   const selectedSize = product.sizeOptions.findIndex((option) => option.id === selectedOption.id);
-  const selectedFrameOption = product.frameOptions[selectedFrame] ?? getBaseFrameOption(product);
+  const availableFrameOptions = getAvailableFrameOptions(product, selectedOption);
+  const selectedFrameOption =
+    availableFrameOptions.find((option) => option.id === selectedFrameId) ?? getBaseFrameOption(product);
   const selectedFrameName = selectedFrameOption.label;
   const selectedUnitPrice = getConfiguredUnitPrice(product, selectedOption, selectedFrameOption);
   const productAspectRatio = getProductAspectRatio(product);
@@ -459,13 +462,13 @@ export default function ProductPageClient({
                 <strong>{selectedFrameName}</strong>
               </div>
               <div className="frame-options">
-                {product.frameOptions.map((option, index) => (
+                {availableFrameOptions.map((option) => (
                   <button
-                    className={index === selectedFrame ? 'selected' : ''}
+                    className={option.id === selectedFrameOption.id ? 'selected' : ''}
                     key={option.id}
                     type="button"
                     onClick={() => {
-                      setSelectedFrame(index);
+                      setSelectedFrameId(option.id);
                       selectGalleryImage(0);
                     }}
                     aria-label={`Select ${option.label}`}

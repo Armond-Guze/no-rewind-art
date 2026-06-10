@@ -94,7 +94,7 @@ async function normalizeCartItems(items) {
     }
 
     const sizeOption = findSizeOption(product, item.sizeId);
-    const frameOption = findFrameOption(product, item.frameId);
+    const frameOption = findFrameOption(product, item.frameId, sizeOption);
     const framePriceDelta = getFramePriceDelta(product, sizeOption, frameOption);
     const unitAmount = sizeOption.priceInCents + framePriceDelta;
 

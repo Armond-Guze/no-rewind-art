@@ -177,15 +177,35 @@ function sanitizeFrameOptions(value) {
   }
 
   return value
-    .map((option) => ({
-      id: sanitizeText(option.id),
-      label: sanitizeText(option.label),
-      priceDeltaInCents: Math.max(0, Math.round(sanitizeNumber(option.priceDeltaInCents))),
-      priceDeltaBySizeIndexInCents: Array.isArray(option.priceDeltaBySizeIndexInCents)
-        ? option.priceDeltaBySizeIndexInCents.map((amount) => Math.max(0, Math.round(sanitizeNumber(amount))))
-        : undefined,
-      ...(sanitizeText(option.badge) ? { badge: sanitizeText(option.badge) } : {}),
-    }))
+    .map((option) => {
+      const priceDeltaBySizeIdInCents =
+        option.priceDeltaBySizeIdInCents && typeof option.priceDeltaBySizeIdInCents === 'object'
+          ? Object.fromEntries(
+              Object.entries(option.priceDeltaBySizeIdInCents)
+                .map(([sizeId, amount]) => [
+                  sanitizeText(sizeId),
+                  Math.max(0, Math.round(sanitizeNumber(amount))),
+                ])
+                .filter(([sizeId]) => sizeId),
+            )
+          : undefined;
+
+      return {
+        id: sanitizeText(option.id),
+        label: sanitizeText(option.label),
+        priceDeltaInCents: Math.max(0, Math.round(sanitizeNumber(option.priceDeltaInCents))),
+        priceDeltaBySizeIndexInCents: Array.isArray(option.priceDeltaBySizeIndexInCents)
+          ? option.priceDeltaBySizeIndexInCents.map((amount) => Math.max(0, Math.round(sanitizeNumber(amount))))
+          : undefined,
+        ...(priceDeltaBySizeIdInCents && Object.keys(priceDeltaBySizeIdInCents).length
+          ? { priceDeltaBySizeIdInCents }
+          : {}),
+        ...(Array.isArray(option.unavailableSizeIds)
+          ? { unavailableSizeIds: sanitizeTextArray(option.unavailableSizeIds) }
+          : {}),
+        ...(sanitizeText(option.badge) ? { badge: sanitizeText(option.badge) } : {}),
+      };
+    })
     .filter((option) => option.id && option.label);
 }
 

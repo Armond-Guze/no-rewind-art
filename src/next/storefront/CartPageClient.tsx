@@ -41,7 +41,7 @@ function buildCartLines(cart: StoredCartItem[], products: Product[]) {
       }
 
       const sizeOption = getSizeOption(product, item.sizeId);
-      const frameOption = getFrameOption(product, item.frameId);
+      const frameOption = getFrameOption(product, item.frameId, sizeOption);
 
       return {
         ...item,
@@ -130,7 +130,7 @@ export default function CartPageClient({
     }
 
     const frameOption = requestedFrameId
-      ? getFrameOption(selection.product, requestedFrameId)
+      ? getFrameOption(selection.product, requestedFrameId, selection.sizeOption)
       : selection.product.frameOptions[0];
     const lineKey = makeCartLineKey(selection.product.id, selection.sizeOption.id, frameOption.id);
     const currentCart = readStoredCart();
@@ -223,7 +223,7 @@ export default function CartPageClient({
           items: cartProducts.map((item) => ({
             id: item.productId,
             sizeId: item.sizeId,
-            frameId: item.frameId,
+            frameId: item.frameOption.id,
             quantity: item.quantity,
           })),
         }),

@@ -31,11 +31,37 @@ export function getBaseFrameOption(product: Product) {
   return product.frameOptions[0];
 }
 
-export function getFrameOption(product: Product, frameId: string) {
-  return product.frameOptions.find((option) => option.id === frameId) ?? getBaseFrameOption(product);
+export function isFrameOptionAvailableForSize(frameOption: FrameOption, sizeOption: SizeOption) {
+  return !frameOption.unavailableSizeIds?.includes(sizeOption.id);
+}
+
+export function getAvailableFrameOptions(product: Product, sizeOption: SizeOption) {
+  const availableFrameOptions = product.frameOptions.filter((option) =>
+    isFrameOptionAvailableForSize(option, sizeOption),
+  );
+
+  return availableFrameOptions.length ? availableFrameOptions : [getBaseFrameOption(product)];
+}
+
+export function getFrameOption(product: Product, frameId: string, sizeOption?: SizeOption) {
+  const frameOption = product.frameOptions.find((option) => option.id === frameId);
+
+  if (frameOption && (!sizeOption || isFrameOptionAvailableForSize(frameOption, sizeOption))) {
+    return frameOption;
+  }
+
+  return sizeOption ? getAvailableFrameOptions(product, sizeOption)[0] : getBaseFrameOption(product);
 }
 
 export function getFramePriceDelta(product: Product, sizeOption: SizeOption, frameOption: FrameOption) {
+  if (!isFrameOptionAvailableForSize(frameOption, sizeOption)) {
+    return 0;
+  }
+
+  if (frameOption.priceDeltaBySizeIdInCents?.[sizeOption.id] != null) {
+    return frameOption.priceDeltaBySizeIdInCents[sizeOption.id];
+  }
+
   if (frameOption.priceDeltaBySizeIndexInCents?.length) {
     const sizeIndex = Math.max(
       0,

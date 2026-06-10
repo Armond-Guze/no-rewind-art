@@ -16,6 +16,8 @@ export type FrameOption = {
   label: string;
   priceDeltaInCents?: number;
   priceDeltaBySizeIndexInCents?: number[];
+  priceDeltaBySizeIdInCents?: Record<string, number>;
+  unavailableSizeIds?: string[];
   badge?: string;
 };
 
@@ -119,13 +121,51 @@ const fallbackFrameOptions: FrameOption[] = [
     id: 'black-frame',
     label: 'Black Frame',
     priceDeltaInCents: 0,
-    priceDeltaBySizeIndexInCents: [3000, 4500, 6500, 9000, 12000],
+    priceDeltaBySizeIndexInCents: [4000, 4000, 6000, 8000, 10000],
+    priceDeltaBySizeIdInCents: {
+      '12x18': 4000,
+      '16x24': 4000,
+      '18x12': 4000,
+      '20x10': 4000,
+      '24x12': 4000,
+      '24x16': 4000,
+      '24x36': 6000,
+      '32x48': 13000,
+      '36x24': 6000,
+      '40x60': 10000,
+      '42x28': 13000,
+      '48x20': 8000,
+      '48x24': 8000,
+      '48x32': 13000,
+      '60x30': 10000,
+      '60x40': 10000,
+    },
+    unavailableSizeIds: ['30x15', '40x20'],
   },
   {
     id: 'white-frame',
     label: 'White Frame',
     priceDeltaInCents: 0,
-    priceDeltaBySizeIndexInCents: [3000, 4500, 6500, 9000, 12000],
+    priceDeltaBySizeIndexInCents: [4000, 4000, 6000, 8000, 10000],
+    priceDeltaBySizeIdInCents: {
+      '12x18': 4000,
+      '16x24': 4000,
+      '18x12': 4000,
+      '20x10': 4000,
+      '24x12': 4000,
+      '24x16': 4000,
+      '24x36': 6000,
+      '32x48': 13000,
+      '36x24': 6000,
+      '40x60': 10000,
+      '42x28': 13000,
+      '48x20': 8000,
+      '48x24': 8000,
+      '48x32': 13000,
+      '60x30': 10000,
+      '60x40': 10000,
+    },
+    unavailableSizeIds: ['30x15', '40x20'],
   },
 ];
 
