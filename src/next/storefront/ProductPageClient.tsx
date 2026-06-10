@@ -599,7 +599,9 @@ export default function ProductPageClient({
                   key={relatedProduct.id}
                   href={`/products/${relatedProduct.slug}`}
                 >
-                  <ProductImage product={relatedProduct} />
+                  <div className="related-product-media">
+                    <ProductImage product={relatedProduct} />
+                  </div>
                   <span>{relatedProduct.title}</span>
                   <strong>{formatPrice(relatedProduct.priceInCents)}</strong>
                 </Link>

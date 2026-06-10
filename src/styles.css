@@ -2892,32 +2892,42 @@ h3 {
 }
 
 .related-product {
-  --related-product-media-height: clamp(200px, 14vw, 260px);
+  --related-product-media-height: clamp(190px, 12.5vw, 236px);
+  --related-product-media-pad: clamp(12px, 1.1vw, 20px);
   display: grid;
-  grid-template-rows: var(--related-product-media-height) minmax(2.3em, auto) auto;
+  grid-template-rows: var(--related-product-media-height) minmax(1.15em, auto) auto;
   align-content: start;
-  gap: 10px;
+  gap: 7px;
   min-width: 0;
   color: #1f1f1f;
+}
+
+.related-product-media {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: var(--related-product-media-height);
+  min-width: 0;
 }
 
 .related-product .product-canvas-image {
   align-self: center;
   justify-self: center;
   width: min(100%, 260px);
+  max-height: calc(var(--related-product-media-height) - (var(--related-product-media-pad) * 2));
 }
 
 .related-product .product-canvas-image.shape-landscape {
-  width: min(100%, 300px);
+  width: min(100%, 296px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 1.56));
 }
 
 .related-product .product-canvas-image.shape-portrait {
-  width: min(58%, 172px);
-  min-width: min(100%, 128px);
+  width: min(50%, 142px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 0.64));
+  min-width: min(100%, 112px);
 }
 
 .related-product .product-canvas-image.shape-square {
-  width: min(82%, 220px);
+  width: min(78%, 204px, calc(var(--related-product-media-height) - (var(--related-product-media-pad) * 2)));
 }
 
 .related-product .product-canvas-image > div {
@@ -3034,7 +3044,7 @@ h3 {
 .related-product .artwork-mockup {
   align-self: center;
   justify-self: center;
-  width: min(100%, 260px);
+  width: min(100%, 244px, calc(var(--related-product-media-height) - (var(--related-product-media-pad) * 2)));
   aspect-ratio: 1;
   min-height: 0;
   background: #ebe7de;
@@ -3046,16 +3056,16 @@ h3 {
 
 .related-product > span {
   color: #222;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   font-weight: 900;
   line-height: 1.15;
   text-transform: uppercase;
-  min-height: 2.3em;
 }
 
 .related-product > strong {
   color: #555;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
+  line-height: 1.1;
 }
 
 .product-proof-grid {

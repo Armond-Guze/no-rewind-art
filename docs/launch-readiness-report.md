@@ -1,6 +1,6 @@
 # Armoze Launch Readiness Report
 
-Generated: 2026-06-07T17:58:26.028Z
+Generated: 2026-06-10T03:24:52.270Z
 
 ## Executive Summary
 
@@ -89,7 +89,7 @@ Generated: 2026-06-07T17:58:26.028Z
 | Stripe secret | set | needed for real checkout |
 | Stripe webhook secret | set | needed to mark paid orders |
 | Persistent orders DB | set | needed on Vercel so orders persist |
-| Owner email alerts | missing | needed for order notifications |
+| Owner email alerts | set | needed for order notifications |
 | Public client URL | set | should be https://armoze.com in production |
 
 Code currently supports Stripe checkout, Stripe webhook order capture, persistent order storage when a production database is configured, an admin order dashboard, and owner order emails when Resend is configured. It does not yet show an automatic print supplier order submission integration, so production/fulfillment still needs an operator step or a supplier API phase.
