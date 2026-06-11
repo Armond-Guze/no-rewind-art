@@ -5420,18 +5420,18 @@ h3 {
   }
 
   .frame-options button {
-    width: 52px;
-    height: 52px;
+    width: 64px;
+    height: 64px;
   }
 
   .frame-option-preview {
-    width: 36px;
-    height: 36px;
+    width: 48px;
+    height: 48px;
   }
 
   .frame-option-preview.has-image {
-    width: 44px;
-    height: 44px;
+    width: 54px;
+    height: 54px;
   }
 
   .size-options {
@@ -6933,18 +6933,17 @@ h3 {
     grid-column: 2;
     grid-row: 1;
     justify-self: center;
-    gap: 7px;
+    gap: 0;
     font-size: 0;
   }
 
   .site-header .brand-mark {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
   }
 
-  .site-header .brand-wordmark {
-    width: min(32vw, 118px);
-    max-height: 30px;
+  .site-header > .brand .brand-wordmark {
+    display: none;
   }
 
   .launch-promo-bar {

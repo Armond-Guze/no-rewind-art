@@ -334,7 +334,7 @@ function buildLineItems(cartItems) {
         unit_amount: item.unitAmount,
         product_data: {
           name: item.title,
-          description: `${item.description} Size: ${item.sizeLabel}. Frame: ${item.frameLabel}.`,
+          description: `Size: ${item.sizeLabel}. Frame: ${item.frameLabel}.`,
           ...(images ? { images } : {}),
           metadata: {
             productId: item.productId,
