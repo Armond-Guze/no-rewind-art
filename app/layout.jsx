@@ -4,8 +4,15 @@ export const metadata = {
   metadataBase: new URL('https://armoze.com'),
   applicationName: 'Armoze',
   icons: {
-    icon: '/armoze-logo.png',
-    apple: '/armoze-logo.png',
+    icon: [
+      {
+        url: '/favicon.png',
+        type: 'image/png',
+        sizes: '512x512',
+      },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/apple-touch-icon.png',
   },
 };
 
