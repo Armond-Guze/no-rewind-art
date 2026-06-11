@@ -100,6 +100,7 @@ export default function ProductPageClient({
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedFrameId, setSelectedFrameId] = useState(product.frameOptions[0]?.id ?? 'canvas');
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(searchSizeId || null);
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [checkoutError, setCheckoutError] = useState('');
@@ -444,7 +445,6 @@ export default function ProductPageClient({
             <h1>{product.title}</h1>
             <p className="listing-price">{formatPrice(selectedUnitPrice)}</p>
             <ProductTrustStrip />
-            <p className="listing-description">{product.longDescription}</p>
 
             <div className="option-group">
               <div className="option-label">
@@ -536,40 +536,63 @@ export default function ProductPageClient({
               </div>
             </div>
 
-            <div className="product-details-drawer">
-              <button
-                type="button"
-                aria-expanded={detailsOpen}
-                aria-controls={`${product.id}-details`}
-                onClick={() => setDetailsOpen((open) => !open)}
-              >
-                <span>Product Details</span>
-                <span aria-hidden="true">{detailsOpen ? '-' : '+'}</span>
-              </button>
-              {detailsOpen ? (
-                <div className="product-details-content" id={`${product.id}-details`}>
-                  <h2>{product.title}</h2>
-                  <p>{product.title} - Armoze canvas art</p>
+            <div className="product-info-drawers">
+              <div className="product-details-drawer">
+                <button
+                  type="button"
+                  aria-expanded={descriptionOpen}
+                  aria-controls={`${product.id}-description`}
+                  onClick={() => setDescriptionOpen((open) => !open)}
+                >
+                  <span>Product Description</span>
+                  <span aria-hidden="true">{descriptionOpen ? '-' : '+'}</span>
+                </button>
+                {descriptionOpen ? (
+                  <div
+                    className="product-details-content product-description-content"
+                    id={`${product.id}-description`}
+                  >
+                    <h2>Product Description</h2>
+                    <p>{product.longDescription}</p>
+                  </div>
+                ) : null}
+              </div>
 
-                  <h3>Canvas Details</h3>
-                  <ul>
-                    <li>Fully assembled</li>
-                    <li>Ready to hang</li>
-                    <li>Made to order</li>
-                    <li>Premium canvas materials</li>
-                    <li>Secure packaging to protect corners and surface quality</li>
-                    <li>Processing time: 2-3 business days</li>
-                    <li>Shipping time in the US: 2-5 business days</li>
-                  </ul>
+              <div className="product-details-drawer">
+                <button
+                  type="button"
+                  aria-expanded={detailsOpen}
+                  aria-controls={`${product.id}-details`}
+                  onClick={() => setDetailsOpen((open) => !open)}
+                >
+                  <span>Product Details</span>
+                  <span aria-hidden="true">{detailsOpen ? '-' : '+'}</span>
+                </button>
+                {detailsOpen ? (
+                  <div className="product-details-content" id={`${product.id}-details`}>
+                    <h2>{product.title}</h2>
+                    <p>{product.title} - Armoze canvas art</p>
 
-                  <h3>Artwork Notes</h3>
-                  <ul>
-                    {product.details.map((detail) => (
-                      <li key={detail}>{detail}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
+                    <h3>Canvas Details</h3>
+                    <ul>
+                      <li>Fully assembled</li>
+                      <li>Ready to hang</li>
+                      <li>Made to order</li>
+                      <li>Premium canvas materials</li>
+                      <li>Secure packaging to protect corners and surface quality</li>
+                      <li>Processing time: 2-3 business days</li>
+                      <li>Shipping time in the US: 2-5 business days</li>
+                    </ul>
+
+                    <h3>Artwork Notes</h3>
+                    <ul>
+                      {product.details.map((detail) => (
+                        <li key={detail}>{detail}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </aside>
         </section>

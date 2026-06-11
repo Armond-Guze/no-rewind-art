@@ -14,7 +14,7 @@ import {
   supportMailto,
 } from './product-utils';
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
-import { ProductImage } from './OptimizedArtwork';
+import { OptimizedRawImage, ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 
 const heroWordPool = ['present', 'driven', 'focused', 'steady', 'bold'];
@@ -219,7 +219,17 @@ export default function HomePageClient({
                 aria-hidden={index === activeHeroSlideIndex ? undefined : true}
                 tabIndex={index === activeHeroSlideIndex ? undefined : -1}
               >
-                <ProductImage product={product} priority={index === 0} />
+                {product.image ? (
+                  <OptimizedRawImage
+                    className="storefront-hero-image"
+                    src={product.image}
+                    alt={product.imageAlt}
+                    priority={index === 0}
+                    sizes="(max-width: 760px) 82vw, (max-width: 1200px) 44vw, 560px"
+                  />
+                ) : (
+                  <ProductImage product={product} priority={index === 0} />
+                )}
                 <span>{product.title}</span>
               </Link>
             ))}
