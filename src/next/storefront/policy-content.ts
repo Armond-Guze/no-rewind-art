@@ -52,28 +52,43 @@ export const policyPages: Record<PolicyPageKey, PolicyPageContent> = {
   returns: {
     title: 'Returns & Refunds',
     description:
-      'Review the Armoze returns and refunds policy for made-to-order canvas prints, damaged orders, cancellations, and replacement requests.',
-    updated: 'May 2026',
+      'Review the Armoze returns and refunds policy for canvas prints, including the 30-day return window, return shipping cost, damaged orders, cancellations, and refund timing.',
+    updated: 'June 2026',
     sections: [
       {
-        title: 'Made-to-order items',
+        title: '30-day return window',
         body: [
-          'Armoze prints are produced after an order is placed. Because each item is made to order, returns for buyer’s remorse, size changes, or preference changes are not guaranteed once production begins.',
-          'If you need to change or cancel an order, contact us quickly. Cancellation requests are easiest to handle within 24 hours of purchase and before production starts.',
+          'Armoze accepts returns for defective and non-defective products within 30 days of delivery for U.S. orders.',
+          'Returned canvas prints must be new, unused, unhung, and packed securely in the original packaging or equivalent protective packaging.',
+          `To start a return, email ${supportEmail} with your order number and the email address used at checkout before mailing anything back.`,
+        ],
+      },
+      {
+        title: 'Return method and cost',
+        body: [
+          'Returns are accepted by mail only. For non-defective returns such as buyer’s remorse, size preference, or style preference, the customer is responsible for creating the return label and paying return shipping.',
+          'Armoze does not charge a restocking fee for approved returns.',
         ],
       },
       {
         title: 'Damaged, defective, or wrong items',
         body: [
-          `If your item arrives damaged, defective, or different from what you ordered, email ${supportEmail} within 7 days of delivery.`,
-          'Include your order number, photos of the product, photos of the packaging, and a short description of the issue. After review, Armoze may provide a replacement, refund, or other resolution.',
+          `If your item arrives damaged, defective, or different from what you ordered, email ${supportEmail} within 30 days of delivery. Contacting us within 7 days is recommended so the issue can be reviewed quickly.`,
+          'Include your order number, photos of the product, photos of the packaging, and a short description of the issue. If the item is confirmed damaged, defective, or incorrect, Armoze may provide a prepaid return option when a return is needed, or may provide a replacement or refund without requiring a return.',
         ],
       },
       {
         title: 'Refund timing',
         body: [
-          'Approved refunds are sent back to the original payment method used at checkout.',
+          'Approved refunds are issued to the original payment method within 5 business days after the returned item is received and inspected, unless Armoze confirms that a return is not required for a damaged, defective, or incorrect item.',
           'After a refund is issued, your bank or card provider may take additional time to post the funds to your account.',
+        ],
+      },
+      {
+        title: 'Cancellations',
+        body: [
+          'If you need to change or cancel an order, contact us quickly. Cancellation requests are easiest to handle within 24 hours of purchase and before production starts.',
+          'Orders that have already entered production or shipped may need to follow the standard return process above.',
         ],
       },
       {

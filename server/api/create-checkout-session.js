@@ -1,5 +1,5 @@
 import { createCheckoutSession } from '../backend.js';
-import { errorJson, json, methodNotAllowed } from './_utils.js';
+import { errorJson, getBearerHeader, json, methodNotAllowed } from './_utils.js';
 import { assertRateLimit } from '../rate-limit.js';
 
 export async function POST(request) {
@@ -10,7 +10,7 @@ export async function POST(request) {
       windowMs: 10 * 60 * 1000,
     });
 
-    return json(await createCheckoutSession(await request.json()));
+    return json(await createCheckoutSession(await request.json(), getBearerHeader(request)));
   } catch (error) {
     return errorJson(error);
   }

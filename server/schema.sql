@@ -13,6 +13,10 @@ create table if not exists orders (
   amount_tax integer not null default 0,
   amount_total integer not null default 0,
   items jsonb not null default '[]'::jsonb,
+  carrier text,
+  tracking_number text,
+  tracking_url text,
+  shipped_at timestamptz,
   raw jsonb not null default '{}'::jsonb,
   owner_notification_sent_at timestamptz,
   created_at timestamptz not null default now(),
@@ -33,6 +37,9 @@ create table if not exists notifications (
 
 create index if not exists orders_updated_at_idx on orders (updated_at desc);
 create index if not exists orders_payment_status_idx on orders (payment_status);
+create index if not exists orders_customer_email_paid_idx
+  on orders (lower(customer_email), created_at desc)
+  where payment_status = 'paid';
 create index if not exists notifications_created_at_idx on notifications (created_at desc);
 
 create table if not exists products (

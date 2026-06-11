@@ -1,5 +1,5 @@
-import { generatePolicyMetadata, PolicyRoute } from '../../src/next/policy-route.jsx';
 import { getRouteSeo } from '../../src/next/seo.js';
+import SupportPageClient from '../../src/next/storefront/SupportPageClient';
 
 function JsonLd({ data }) {
   if (!data) {
@@ -16,16 +16,17 @@ function JsonLd({ data }) {
 }
 
 export async function generateMetadata() {
-  return generatePolicyMetadata('returns');
+  const routeSeo = await getRouteSeo(['support']);
+  return routeSeo.metadata || {};
 }
 
-export default async function ReturnsPage() {
-  const routeSeo = await getRouteSeo(['returns']);
+export default async function SupportPage() {
+  const routeSeo = await getRouteSeo(['support']);
 
   return (
     <>
       <JsonLd data={routeSeo.structuredData} />
-      <PolicyRoute pageKey="returns" />
+      <SupportPageClient />
     </>
   );
 }

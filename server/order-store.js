@@ -59,6 +59,10 @@ function normalizeOrder(order) {
     amountTax: Number(order.amountTax || 0),
     amountTotal: Number(order.amountTotal || 0),
     items: Array.isArray(order.items) ? order.items : [],
+    carrier: order.carrier || '',
+    trackingNumber: order.trackingNumber || '',
+    trackingUrl: order.trackingUrl || '',
+    shippedAt: order.shippedAt || null,
     raw: order.raw || {},
     ownerNotificationSentAt: order.ownerNotificationSentAt || null,
     createdAt: order.createdAt || timestamp,
@@ -188,7 +192,7 @@ class LocalOrderStore {
     return { orders };
   }
 
-  async updateFulfillmentStatus(orderId, fulfillmentStatus) {
+  async updateFulfillment(orderId, update) {
     const database = await readLocalDatabase();
     const existingIndex = database.orders.findIndex(
       (order) => order.id === orderId || order.stripeSessionId === orderId,
@@ -198,14 +202,28 @@ class LocalOrderStore {
       return null;
     }
 
+    const existingOrder = database.orders[existingIndex];
+    const nextFulfillmentStatus = update.fulfillmentStatus ?? existingOrder.fulfillmentStatus;
+    const shippedAt =
+      (nextFulfillmentStatus === 'shipped' || nextFulfillmentStatus === 'delivered') &&
+      !existingOrder.shippedAt
+        ? nowIso()
+        : update.shippedAt ?? existingOrder.shippedAt ?? null;
+
     database.orders[existingIndex] = {
-      ...database.orders[existingIndex],
-      fulfillmentStatus,
+      ...existingOrder,
+      ...update,
+      fulfillmentStatus: nextFulfillmentStatus,
+      shippedAt,
       updatedAt: nowIso(),
     };
     await writeLocalDatabase(database);
 
     return database.orders[existingIndex];
+  }
+
+  async updateFulfillmentStatus(orderId, fulfillmentStatus) {
+    return this.updateFulfillment(orderId, { fulfillmentStatus });
   }
 
   async markOwnerNotificationSent(orderId) {
@@ -291,11 +309,23 @@ class PostgresOrderStore {
           amount_tax integer not null default 0,
           amount_total integer not null default 0,
           items jsonb not null default '[]'::jsonb,
+          carrier text,
+          tracking_number text,
+          tracking_url text,
+          shipped_at timestamptz,
           raw jsonb not null default '{}'::jsonb,
           owner_notification_sent_at timestamptz,
           created_at timestamptz not null default now(),
           updated_at timestamptz not null default now()
         );
+      `);
+
+      await client.query(`
+        alter table orders
+          add column if not exists carrier text,
+          add column if not exists tracking_number text,
+          add column if not exists tracking_url text,
+          add column if not exists shipped_at timestamptz;
       `);
 
       await client.query(`
@@ -311,6 +341,15 @@ class PostgresOrderStore {
           created_at timestamptz not null default now()
         );
       `);
+
+      await client.query('create index if not exists orders_updated_at_idx on orders (updated_at desc)');
+      await client.query('create index if not exists orders_payment_status_idx on orders (payment_status)');
+      await client.query(`
+        create index if not exists orders_customer_email_paid_idx
+        on orders (lower(customer_email), created_at desc)
+        where payment_status = 'paid'
+      `);
+      await client.query('create index if not exists notifications_created_at_idx on notifications (created_at desc)');
     } finally {
       if (advisoryLockAcquired) {
         await client.query('select pg_advisory_unlock(421042, 20260513)').catch(() => {});
@@ -339,6 +378,10 @@ class PostgresOrderStore {
       amountTax: row.amount_tax,
       amountTotal: row.amount_total,
       items: row.items || [],
+      carrier: row.carrier || '',
+      trackingNumber: row.tracking_number || '',
+      trackingUrl: row.tracking_url || '',
+      shippedAt: row.shipped_at?.toISOString?.() || row.shipped_at || null,
       raw: row.raw || {},
       ownerNotificationSentAt: row.owner_notification_sent_at?.toISOString?.() || row.owner_notification_sent_at || null,
       createdAt: row.created_at?.toISOString?.() || row.created_at,
@@ -391,6 +434,10 @@ class PostgresOrderStore {
           amount_tax,
           amount_total,
           items,
+          carrier,
+          tracking_number,
+          tracking_url,
+          shipped_at,
           raw,
           owner_notification_sent_at,
           created_at,
@@ -398,7 +445,7 @@ class PostgresOrderStore {
         )
         values (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-          $13, $14::jsonb, $15::jsonb, $16, $17, $18
+          $13, $14::jsonb, $15, $16, $17, $18, $19::jsonb, $20, $21, $22
         )
         on conflict (id) do update set
           stripe_session_id = excluded.stripe_session_id,
@@ -414,6 +461,10 @@ class PostgresOrderStore {
           amount_tax = excluded.amount_tax,
           amount_total = excluded.amount_total,
           items = excluded.items,
+          carrier = excluded.carrier,
+          tracking_number = excluded.tracking_number,
+          tracking_url = excluded.tracking_url,
+          shipped_at = excluded.shipped_at,
           raw = excluded.raw,
           owner_notification_sent_at = excluded.owner_notification_sent_at,
           updated_at = excluded.updated_at
@@ -434,6 +485,10 @@ class PostgresOrderStore {
         merged.amountTax,
         merged.amountTotal,
         JSON.stringify(merged.items),
+        merged.carrier,
+        merged.trackingNumber,
+        merged.trackingUrl,
+        merged.shippedAt,
         JSON.stringify(merged.raw),
         merged.ownerNotificationSentAt,
         merged.createdAt,
@@ -491,18 +546,48 @@ class PostgresOrderStore {
     };
   }
 
-  async updateFulfillmentStatus(orderId, fulfillmentStatus) {
+  async updateFulfillment(orderId, update) {
+    const existing = await this.getOrder(orderId);
+
+    if (!existing) {
+      return null;
+    }
+
+    const nextFulfillmentStatus = update.fulfillmentStatus ?? existing.fulfillmentStatus;
+    const shippedAt =
+      (nextFulfillmentStatus === 'shipped' || nextFulfillmentStatus === 'delivered') &&
+      !existing.shippedAt
+        ? nowIso()
+        : update.shippedAt ?? existing.shippedAt ?? null;
+
     const result = await this.pool.query(
       `
         update orders
-        set fulfillment_status = $2, updated_at = now()
+        set
+          fulfillment_status = $2,
+          carrier = $3,
+          tracking_number = $4,
+          tracking_url = $5,
+          shipped_at = $6,
+          updated_at = now()
         where id = $1 or stripe_session_id = $1
         returning *
       `,
-      [orderId, fulfillmentStatus],
+      [
+        orderId,
+        nextFulfillmentStatus,
+        update.carrier ?? existing.carrier ?? '',
+        update.trackingNumber ?? existing.trackingNumber ?? '',
+        update.trackingUrl ?? existing.trackingUrl ?? '',
+        shippedAt,
+      ],
     );
 
     return this.rowToOrder(result.rows[0]);
+  }
+
+  async updateFulfillmentStatus(orderId, fulfillmentStatus) {
+    return this.updateFulfillment(orderId, { fulfillmentStatus });
   }
 
   async markOwnerNotificationSent(orderId) {

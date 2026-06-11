@@ -240,7 +240,7 @@ function NextSiteFooter() {
         <Link href="/collections/money-ambition">Money</Link>
         <Link href="/collections/discipline-focus">Focus</Link>
         <Link href="/collections/new-arrivals">New Arrivals</Link>
-        <Link href="/#support">Support</Link>
+        <Link href="/support">Support</Link>
         <Link href="/shipping">Shipping</Link>
         <Link href="/returns">Returns</Link>
         <Link href="/privacy">Privacy</Link>
@@ -248,8 +248,13 @@ function NextSiteFooter() {
       </nav>
 
       <section className="footer-support" aria-label="Customer support">
-        <span>Support</span>
-        <a href={supportMailto}>{supportEmail}</a>
+        <Link className="footer-support-label" href="/support">
+          Customer Support
+        </Link>
+        <a className="footer-support-email" href={supportMailto}>
+          {supportEmail}
+        </a>
+        <span>Replies within 1 business day</span>
       </section>
 
       <section className="footer-newsletter" aria-label="Newsletter signup">
@@ -282,7 +287,10 @@ function NextSiteFooter() {
       <details className="footer-policy-menu">
         <summary>Policies &amp; Support</summary>
         <nav aria-label="Footer policies">
-          <a href={supportMailto}>Support: {supportEmail}</a>
+          <Link href="/support">Customer Support</Link>
+          <a href={supportMailto}>Email: {supportEmail}</a>
+          <Link href="/account">Order History</Link>
+          <Link href="/shipping">Shipping Policy</Link>
           <Link href="/terms">Terms and Conditions</Link>
           <Link href="/privacy">Privacy Policy</Link>
           <Link href="/terms">Terms of Service</Link>

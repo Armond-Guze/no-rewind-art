@@ -96,6 +96,7 @@ function buildFeedItem(product, sizeOption, siteUrl) {
     xmlTag('g:price', formatFeedPrice(sizeOption.priceInCents)),
     xmlTag('g:brand', 'Armoze'),
     xmlTag('g:condition', 'new'),
+    xmlTag('g:return_policy_label', 'default'),
     xmlTag('g:size', sizeOption.label),
     xmlTag('g:color', 'Multicolor'),
     xmlTag('g:gender', 'unisex'),

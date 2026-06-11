@@ -21,6 +21,7 @@ import {
   launchOfferCode,
   sizeOptionMatches,
 } from './product-utils';
+import { supabaseClient } from '../../lib/supabase';
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 
@@ -221,10 +222,15 @@ export default function CartPageClient({
     });
 
     try {
+      const { data: authData } = supabaseClient
+        ? await supabaseClient.auth.getSession()
+        : { data: { session: null } };
+      const accessToken = authData.session?.access_token;
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
           items: cartProducts.map((item) => ({
@@ -260,7 +266,10 @@ export default function CartPageClient({
       <StorefrontTracker />
       <main className="standalone-cart-page">
         {checkoutResult === 'success' ? (
-          <div className="checkout-banner success">Payment complete. Your order is being prepared.</div>
+          <div className="checkout-banner success">
+            <span>Payment complete. Your order is being prepared.</span>
+            <Link href="/account">View order history</Link>
+          </div>
         ) : null}
 
         {checkoutResult === 'cancelled' ? (

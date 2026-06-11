@@ -165,7 +165,10 @@ export default function HomePageClient({
       <StorefrontTracker />
       <main id="top" className="home-page storefront-home">
         {checkoutResult === 'success' ? (
-          <div className="checkout-banner success">Payment complete. Your order is being prepared.</div>
+          <div className="checkout-banner success">
+            <span>Payment complete. Your order is being prepared.</span>
+            <Link href="/account">View order history</Link>
+          </div>
         ) : null}
 
         {checkoutResult === 'cancelled' ? (
@@ -285,8 +288,10 @@ export default function HomePageClient({
         </section>
 
         <section id="support" className="storefront-help-strip" aria-label="Shop support">
-          <span>Support</span>
+          <span>Customer support</span>
+          <Link href="/support">Get Help</Link>
           <a href={supportMailto}>{supportEmail}</a>
+          <small>Replies within 1 business day</small>
         </section>
       </main>
     </StorefrontShell>

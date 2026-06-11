@@ -141,6 +141,26 @@ async function getCustomerFromAuthorizationHeader(authorizationHeader = '') {
   };
 }
 
+async function getOptionalCustomerFromAuthorizationHeader(authorizationHeader = '') {
+  const token = authorizationHeader.startsWith('Bearer ')
+    ? authorizationHeader.slice('Bearer '.length).trim()
+    : '';
+
+  if (!token || !getSupabaseAuthClient()) {
+    return null;
+  }
+
+  try {
+    return await getCustomerFromAuthorizationHeader(authorizationHeader);
+  } catch (error) {
+    if (error.status === 401 || error.status === 503) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
 function publicOrderItem(item) {
   return {
     productId: item.productId || '',
@@ -164,9 +184,45 @@ function publicCustomerOrder(order) {
     amountTax: Number(order.amountTax || 0),
     amountTotal: Number(order.amountTotal || 0),
     items: Array.isArray(order.items) ? order.items.map(publicOrderItem) : [],
+    carrier: order.carrier || '',
+    trackingNumber: order.trackingNumber || '',
+    trackingUrl: order.trackingUrl || '',
+    shippedAt: order.shippedAt || null,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   };
+}
+
+function normalizeOptionalText(value, maxLength) {
+  const text = String(value || '').trim();
+
+  if (text.length > maxLength) {
+    throw httpError(`Keep this field under ${maxLength} characters.`);
+  }
+
+  return text;
+}
+
+function normalizeOptionalUrl(value) {
+  const url = normalizeOptionalText(value, 500);
+
+  if (!url) {
+    return '';
+  }
+
+  let parsedUrl;
+
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    throw httpError('Enter a valid tracking URL.');
+  }
+
+  if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+    throw httpError('Tracking URL must start with http or https.');
+  }
+
+  return parsedUrl.toString();
 }
 
 async function normalizeCartItems(items) {
@@ -294,7 +350,7 @@ function buildLineItems(cartItems) {
   });
 }
 
-function buildCheckoutDraft(session, cartItems) {
+function buildCheckoutDraft(session, cartItems, customer = null) {
   const amountSubtotal = cartItems.reduce((total, item) => total + item.lineTotal, 0);
 
   return {
@@ -310,6 +366,7 @@ function buildCheckoutDraft(session, cartItems) {
     amountTax: session.total_details?.amount_tax || 0,
     amountTotal: session.amount_total ?? amountSubtotal,
     items: cartItems,
+    customerEmail: customer?.email || session.customer_details?.email || session.customer_email || '',
     raw: {
       checkoutSession: {
         id: session.id,
@@ -369,7 +426,7 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
     paymentStatus,
     fulfillmentStatus: existingOrder?.fulfillmentStatus || 'new',
     customerName: session.customer_details?.name || existingOrder?.customerName || '',
-    customerEmail: session.customer_details?.email || existingOrder?.customerEmail || '',
+    customerEmail: session.customer_details?.email || session.customer_email || existingOrder?.customerEmail || '',
     currency: session.currency || existingOrder?.currency || 'usd',
     amountSubtotal: session.amount_subtotal ?? existingOrder?.amountSubtotal ?? 0,
     amountShipping: session.total_details?.amount_shipping || existingOrder?.amountShipping || 0,
@@ -453,7 +510,7 @@ export async function listPublicCatalog() {
   return productStore.listCatalog();
 }
 
-export async function createCheckoutSession(body) {
+export async function createCheckoutSession(body, authorizationHeader = '') {
   await ensureReady();
 
   if (!stripe) {
@@ -461,9 +518,11 @@ export async function createCheckoutSession(body) {
   }
 
   const cartItems = await normalizeCartItems(body?.items);
+  const customer = await getOptionalCustomerFromAuthorizationHeader(authorizationHeader);
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     line_items: buildLineItems(cartItems),
+    ...(customer?.email ? { customer_email: customer.email } : {}),
     billing_address_collection: 'auto',
     shipping_address_collection: {
       allowed_countries: ['US'],
@@ -502,7 +561,7 @@ export async function createCheckoutSession(body) {
     },
   });
 
-  await orderStore.upsertOrder(buildCheckoutDraft(session, cartItems));
+  await orderStore.upsertOrder(buildCheckoutDraft(session, cartItems, customer));
 
   return { url: session.url };
 }
@@ -664,16 +723,41 @@ export async function uploadAdminAsset(formData) {
   };
 }
 
-export async function updateAdminOrder(orderId, { fulfillmentStatus }) {
+export async function updateAdminOrder(orderId, body = {}) {
   await ensureReady();
 
   const allowedStatuses = new Set(['new', 'printing', 'shipped', 'delivered', 'cancelled']);
+  const updateBody = body && typeof body === 'object' ? body : {};
+  const update = {};
 
-  if (!allowedStatuses.has(fulfillmentStatus)) {
-    throw httpError('Invalid fulfillment status.');
+  if (Object.hasOwn(updateBody, 'fulfillmentStatus')) {
+    if (!allowedStatuses.has(updateBody.fulfillmentStatus)) {
+      throw httpError('Invalid fulfillment status.');
+    }
+
+    update.fulfillmentStatus = updateBody.fulfillmentStatus;
   }
 
-  const order = await orderStore.updateFulfillmentStatus(orderId, fulfillmentStatus);
+  if (Object.hasOwn(updateBody, 'carrier')) {
+    update.carrier = normalizeOptionalText(updateBody.carrier, 80);
+  }
+
+  if (Object.hasOwn(updateBody, 'trackingNumber')) {
+    update.trackingNumber = normalizeOptionalText(updateBody.trackingNumber, 120);
+  }
+
+  if (Object.hasOwn(updateBody, 'trackingUrl')) {
+    update.trackingUrl = normalizeOptionalUrl(updateBody.trackingUrl);
+  }
+
+  if (!Object.keys(update).length) {
+    throw httpError('Order update is empty.');
+  }
+
+  const order =
+    typeof orderStore.updateFulfillment === 'function'
+      ? await orderStore.updateFulfillment(orderId, update)
+      : await orderStore.updateFulfillmentStatus(orderId, update.fulfillmentStatus);
 
   if (!order) {
     throw httpError('Order not found.', 404);

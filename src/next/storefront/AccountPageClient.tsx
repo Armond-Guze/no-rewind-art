@@ -25,6 +25,10 @@ type CustomerOrder = {
   currency: string;
   amountTotal: number;
   items: CustomerOrderItem[];
+  carrier: string;
+  trackingNumber: string;
+  trackingUrl: string;
+  shippedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -56,6 +60,10 @@ function getFulfillmentLabel(status: string) {
 function getSupportHref(orderId: string) {
   const subject = encodeURIComponent(`Armoze order ${shortOrderId(orderId)}`);
   return `mailto:${supportEmail}?subject=${subject}`;
+}
+
+function hasTracking(order: CustomerOrder) {
+  return Boolean(order.carrier || order.trackingNumber || order.trackingUrl || order.shippedAt);
 }
 
 export default function AccountPageClient() {
@@ -317,6 +325,22 @@ export default function AccountPageClient() {
                           <div className={`account-order-status status-${order.fulfillmentStatus}`}>
                             {getFulfillmentLabel(order.fulfillmentStatus)}
                           </div>
+
+                          {hasTracking(order) ? (
+                            <div className="account-order-tracking">
+                              <Truck aria-hidden="true" size={18} />
+                              <div>
+                                <span>{order.carrier || 'Tracking'}</span>
+                                {order.trackingNumber ? <strong>{order.trackingNumber}</strong> : null}
+                                {order.shippedAt ? <small>Shipped {formatOrderDate(order.shippedAt)}</small> : null}
+                              </div>
+                              {order.trackingUrl ? (
+                                <a href={order.trackingUrl} target="_blank" rel="noreferrer">
+                                  Track package
+                                </a>
+                              ) : null}
+                            </div>
+                          ) : null}
 
                           <ul className="account-order-items">
                             {order.items.map((item, index) => (

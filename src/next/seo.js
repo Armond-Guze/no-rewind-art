@@ -1,5 +1,6 @@
 import { createProductStore } from '../../server/product-store.js';
 import { policyPages } from './storefront/policy-content.ts';
+import { supportEmail } from './storefront/product-utils.ts';
 
 export const siteUrl = 'https://armoze.com';
 
@@ -93,11 +94,46 @@ function getDefaultProductOffer(product) {
         },
       },
     },
-    hasMerchantReturnPolicy: {
-      '@type': 'MerchantReturnPolicy',
-      applicableCountry: 'US',
-      returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
-    },
+    hasMerchantReturnPolicy: getMerchantReturnPolicy({ offerLevel: true }),
+  };
+}
+
+function getMerchantReturnPolicy({ offerLevel = false } = {}) {
+  const basePolicy = {
+    '@type': 'MerchantReturnPolicy',
+    applicableCountry: 'US',
+    returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+    merchantReturnDays: 30,
+    returnMethod: 'https://schema.org/ReturnByMail',
+    returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
+    returnLabelSource: 'https://schema.org/ReturnLabelCustomerResponsibility',
+    merchantReturnLink: absoluteUrl('/returns'),
+  };
+
+  if (offerLevel) {
+    return basePolicy;
+  }
+
+  return {
+    ...basePolicy,
+    returnPolicyCountry: 'US',
+    itemCondition: 'https://schema.org/NewCondition',
+    customerRemorseReturnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
+    customerRemorseReturnLabelSource: 'https://schema.org/ReturnLabelCustomerResponsibility',
+    itemDefectReturnFees: 'https://schema.org/FreeReturn',
+    refundType: 'https://schema.org/FullRefund',
+    restockingFee: 0,
+  };
+}
+
+function getCustomerSupportContactPoint() {
+  return {
+    '@type': 'ContactPoint',
+    contactType: 'customer support',
+    email: supportEmail,
+    url: absoluteUrl('/support'),
+    areaServed: 'US',
+    availableLanguage: ['English'],
   };
 }
 
@@ -127,6 +163,8 @@ function getHomeStructuredData(featuredProducts) {
         name: 'Armoze',
         url: siteUrl,
         logo: absoluteUrl('/armoze-logo.png'),
+        contactPoint: getCustomerSupportContactPoint(),
+        hasMerchantReturnPolicy: getMerchantReturnPolicy(),
       },
       {
         '@type': 'WebSite',
@@ -146,6 +184,65 @@ function getHomeStructuredData(featuredProducts) {
           name: product.title,
           url: absoluteUrl(`/products/${product.slug}`),
         })),
+      },
+    ],
+  };
+}
+
+function getSupportStructuredData() {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${siteUrl}/#organization`,
+        name: 'Armoze',
+        url: siteUrl,
+        logo: absoluteUrl('/armoze-logo.png'),
+        contactPoint: getCustomerSupportContactPoint(),
+        hasMerchantReturnPolicy: getMerchantReturnPolicy(),
+      },
+      {
+        '@type': 'ContactPage',
+        '@id': `${siteUrl}/support#contact`,
+        name: 'Armoze customer support',
+        url: absoluteUrl('/support'),
+        description:
+          'Contact Armoze customer support for order help, shipping questions, damaged items, returns, refunds, and account support.',
+        mainEntity: {
+          '@type': 'ContactPoint',
+          contactType: 'customer support',
+          email: supportEmail,
+          url: absoluteUrl('/support'),
+          areaServed: 'US',
+          availableLanguage: ['English'],
+        },
+      },
+    ],
+  };
+}
+
+function getReturnsStructuredData() {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${siteUrl}/#organization`,
+        name: 'Armoze',
+        url: siteUrl,
+        logo: absoluteUrl('/armoze-logo.png'),
+        contactPoint: getCustomerSupportContactPoint(),
+        hasMerchantReturnPolicy: getMerchantReturnPolicy(),
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${siteUrl}/returns#webpage`,
+        name: 'Armoze Returns & Refunds',
+        url: absoluteUrl('/returns'),
+        description:
+          'Armoze accepts returns within 30 days of delivery by mail. Customers pay return shipping for non-defective returns; damaged, defective, or incorrect items are handled without extra return cost when approved.',
+        about: getMerchantReturnPolicy(),
       },
     ],
   };
@@ -385,6 +482,21 @@ export async function getRouteSeo(pathParts = []) {
         path: `/${section}`,
         image: '/armoze-logo.png',
       }),
+      structuredData: section === 'returns' ? getReturnsStructuredData() : undefined,
+    };
+  }
+
+  if (section === 'support' && pathParts.length === 1) {
+    return {
+      exists: true,
+      metadata: baseMetadata({
+        title: 'Customer Support',
+        description:
+          'Contact Armoze customer support for order help, shipping questions, tracking, damaged items, returns, refunds, and account support.',
+        path: '/support',
+        image: '/armoze-logo.png',
+      }),
+      structuredData: getSupportStructuredData(),
     };
   }
 

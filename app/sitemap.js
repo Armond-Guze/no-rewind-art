@@ -23,7 +23,7 @@ export default async function sitemap() {
       lastModified: product.updatedAt ? new Date(product.updatedAt) : now,
       priority: product.collectionSlugs.includes('best-sellers') ? 0.9 : 0.8,
     })),
-    ...['shipping', 'returns', 'privacy', 'terms'].map((path) => ({
+    ...['support', 'shipping', 'returns', 'privacy', 'terms'].map((path) => ({
       url: `${siteUrl}/${path}`,
       lastModified: now,
       priority: 0.4,

@@ -55,6 +55,10 @@ type AdminOrder = {
   currency: string;
   amountTotal: number;
   items: AdminOrderItem[];
+  carrier: string;
+  trackingNumber: string;
+  trackingUrl: string;
+  shippedAt?: string | null;
   ownerNotificationSentAt?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -83,6 +87,13 @@ type AdminDashboardResponse = {
   orders: AdminOrder[];
   summary: AdminSummary;
   notifications: AdminNotification[];
+};
+
+type AdminOrderUpdatePayload = {
+  fulfillmentStatus?: string;
+  carrier?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
 };
 
 type AdminProductDraft = Product & {
@@ -238,10 +249,10 @@ function dollarsListToCents(value: string) {
     .map(parseDollarsToCents);
 }
 
-async function updateAdminOrderStatus(
+async function updateAdminOrder(
   adminToken: string,
   orderId: string,
-  fulfillmentStatus: string,
+  update: AdminOrderUpdatePayload,
 ) {
   const response = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
     method: 'PATCH',
@@ -249,12 +260,12 @@ async function updateAdminOrderStatus(
       Authorization: `Bearer ${adminToken}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fulfillmentStatus }),
+    body: JSON.stringify(update),
   });
 
   if (!response.ok) {
     const data = (await response.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(data?.error || 'Order status could not be updated.');
+    throw new Error(data?.error || 'Order could not be updated.');
   }
 
   return (await response.json()) as { order: AdminOrder };
@@ -493,6 +504,21 @@ export default function AdminDashboardClient() {
     knownNotificationIds.current.clear();
   }
 
+  function replaceDashboardOrder(order: AdminOrder) {
+    setDashboard((currentDashboard) => {
+      if (!currentDashboard) {
+        return currentDashboard;
+      }
+
+      return {
+        ...currentDashboard,
+        orders: currentDashboard.orders.map((candidate) =>
+          candidate.id === order.id ? order : candidate,
+        ),
+      };
+    });
+  }
+
   async function handleFulfillmentChange(orderId: string, fulfillmentStatus: string) {
     if (!adminToken) {
       return;
@@ -502,22 +528,38 @@ export default function AdminDashboardClient() {
     setError('');
 
     try {
-      const { order } = await updateAdminOrderStatus(adminToken, orderId, fulfillmentStatus);
+      const { order } = await updateAdminOrder(adminToken, orderId, { fulfillmentStatus });
 
-      setDashboard((currentDashboard) => {
-        if (!currentDashboard) {
-          return currentDashboard;
-        }
-
-        return {
-          ...currentDashboard,
-          orders: currentDashboard.orders.map((candidate) =>
-            candidate.id === order.id ? order : candidate,
-          ),
-        };
-      });
+      replaceDashboardOrder(order);
     } catch (statusError) {
       setError(statusError instanceof Error ? statusError.message : 'Order status could not be updated.');
+    } finally {
+      setUpdatingOrderId('');
+    }
+  }
+
+  async function handleTrackingSubmit(order: AdminOrder, event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!adminToken) {
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+
+    setUpdatingOrderId(order.id);
+    setError('');
+
+    try {
+      const { order: updatedOrder } = await updateAdminOrder(adminToken, order.id, {
+        carrier: String(formData.get('carrier') || ''),
+        trackingNumber: String(formData.get('trackingNumber') || ''),
+        trackingUrl: String(formData.get('trackingUrl') || ''),
+      });
+
+      replaceDashboardOrder(updatedOrder);
+    } catch (trackingError) {
+      setError(trackingError instanceof Error ? trackingError.message : 'Tracking details could not be saved.');
     } finally {
       setUpdatingOrderId('');
     }
@@ -1154,6 +1196,63 @@ export default function AdminDashboardClient() {
                       ))}
                     </select>
                   </label>
+
+                  <form
+                    className="admin-tracking-form"
+                    key={`${order.id}-${order.updatedAt}-${order.trackingNumber}-${order.trackingUrl}`}
+                    onSubmit={(event) => {
+                      void handleTrackingSubmit(order, event);
+                    }}
+                  >
+                    <label>
+                      <span>Carrier</span>
+                      <input
+                        name="carrier"
+                        defaultValue={order.carrier}
+                        disabled={updatingOrderId === order.id}
+                        placeholder="USPS, UPS, FedEx"
+                      />
+                    </label>
+                    <label>
+                      <span>Tracking #</span>
+                      <input
+                        name="trackingNumber"
+                        defaultValue={order.trackingNumber}
+                        disabled={updatingOrderId === order.id}
+                        placeholder="Tracking number"
+                      />
+                    </label>
+                    <label className="admin-tracking-url">
+                      <span>Tracking URL</span>
+                      <input
+                        name="trackingUrl"
+                        type="url"
+                        defaultValue={order.trackingUrl}
+                        disabled={updatingOrderId === order.id}
+                        placeholder="https://..."
+                      />
+                    </label>
+                    <button
+                      className="button button-secondary"
+                      type="submit"
+                      disabled={updatingOrderId === order.id}
+                    >
+                      {updatingOrderId === order.id ? 'Saving' : 'Save Tracking'}
+                    </button>
+                  </form>
+
+                  {order.trackingNumber || order.trackingUrl || order.shippedAt ? (
+                    <div className="admin-tracking-summary">
+                      <span>{order.carrier || 'Carrier pending'}</span>
+                      {order.trackingNumber ? <strong>{order.trackingNumber}</strong> : null}
+                      {order.trackingUrl ? (
+                        <a href={order.trackingUrl} target="_blank" rel="noreferrer">
+                          Open tracking
+                        </a>
+                      ) : null}
+                      {order.shippedAt ? <small>Shipped {formatDateTime(order.shippedAt)}</small> : null}
+                    </div>
+                  ) : null}
                 </article>
               ))}
             </div>
