@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
@@ -16,6 +16,8 @@ const buttonClasses =
 
 const primaryButtonClasses = `${buttonClasses} border-white bg-white text-[0.84rem] text-black hover:bg-zinc-100`;
 const socialButtonClasses = `${buttonClasses} border-white/78 bg-transparent px-5 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] hover:border-white/90 hover:bg-white/[0.04]`;
+const subtleButtonClasses =
+  'mt-3 inline-flex min-h-[2.55rem] w-full items-center justify-center rounded-[0.7rem] border border-white/22 px-4 text-[0.78rem] font-semibold text-white/78 transition-colors hover:border-white/38 hover:bg-white/[0.04] hover:text-white disabled:cursor-not-allowed disabled:opacity-60';
 
 function GoogleIcon() {
   return (
@@ -49,7 +51,7 @@ function AppleIcon() {
 }
 
 function getRedirectUrl() {
-  return `${window.location.origin}/sign-in`;
+  return `${window.location.origin}/account`;
 }
 
 function AuthShell({ children }: { children: ReactNode }) {
@@ -103,6 +105,33 @@ export default function AuthPageClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
 
+  useEffect(() => {
+    if (!supabaseClient) {
+      return undefined;
+    }
+
+    let active = true;
+
+    void supabaseClient.auth.getSession().then(({ data }) => {
+      if (active && data.session) {
+        router.replace('/account');
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabaseClient.auth.onAuthStateChange((_event, nextSession) => {
+      if (active && nextSession) {
+        router.replace('/account');
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [router]);
+
   function goToEmailStep() {
     setError('');
     setInfo('');
@@ -151,7 +180,8 @@ export default function AuthPageClient() {
       });
 
       if (!signInError) {
-        setInfo('You are signed in.');
+        setInfo('Redirecting to your account.');
+        router.replace('/account');
         return;
       }
 
@@ -164,17 +194,96 @@ export default function AuthPageClient() {
       });
 
       if (signUpError) {
+        if (/already|registered|exists/i.test(signUpError.message)) {
+          setError('That email already has an account. Check your password or use the sign-in link below.');
+          return;
+        }
+
         throw signUpError;
       }
 
       if (data.session) {
-        setInfo('Your account is ready.');
+        setInfo('Redirecting to your account.');
+        router.replace('/account');
         return;
       }
 
       goToVerifyStep(normalizedEmail);
     } catch (authError) {
       setError(authError instanceof Error ? authError.message : 'Sign in could not be completed.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleMagicLink() {
+    if (!normalizedEmail) {
+      setError('Enter your email address first.');
+      return;
+    }
+
+    if (!supabaseClient) {
+      setError('Account sign in is almost ready. Store setup still needs to be completed.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+    setInfo('');
+
+    try {
+      const { error: linkError } = await supabaseClient.auth.signInWithOtp({
+        email: normalizedEmail,
+        options: {
+          emailRedirectTo: getRedirectUrl(),
+          shouldCreateUser: true,
+        },
+      });
+
+      if (linkError) {
+        throw linkError;
+      }
+
+      goToVerifyStep(normalizedEmail);
+      setInfo('Check your email for a secure sign-in link.');
+    } catch (linkError) {
+      setError(linkError instanceof Error ? linkError.message : 'Sign-in link could not be sent.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleResendVerification() {
+    if (!normalizedEmail) {
+      setError('Enter your email address first.');
+      return;
+    }
+
+    if (!supabaseClient) {
+      setError('Account sign in is almost ready. Store setup still needs to be completed.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+    setInfo('');
+
+    try {
+      const { error: resendError } = await supabaseClient.auth.resend({
+        type: 'signup',
+        email: normalizedEmail,
+        options: {
+          emailRedirectTo: getRedirectUrl(),
+        },
+      });
+
+      if (resendError) {
+        throw resendError;
+      }
+
+      setInfo('We sent a new confirmation link.');
+    } catch (resendError) {
+      setError(resendError instanceof Error ? resendError.message : 'Confirmation email could not be sent.');
     } finally {
       setIsSubmitting(false);
     }
@@ -264,6 +373,15 @@ export default function AuthPageClient() {
             <button className={`${primaryButtonClasses} mt-3 sm:mt-4`} type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Working' : 'Continue'}
             </button>
+
+            <button
+              className={subtleButtonClasses}
+              type="button"
+              onClick={() => void handleMagicLink()}
+              disabled={isSubmitting}
+            >
+              Email me a secure sign-in link
+            </button>
           </form>
         ) : null}
 
@@ -281,11 +399,19 @@ export default function AuthPageClient() {
             <div className="mt-4 sm:mt-5">
               <h2 className="text-[0.88rem] font-semibold tracking-tight text-white">Verify your email</h2>
               <p className="mt-1 text-[0.76rem] leading-5 text-white/64 sm:mt-1.5 sm:text-[0.78rem]">
-                We sent a confirmation link to {normalizedEmail}. Open it to finish creating your account.
+                We sent a confirmation link to {normalizedEmail}. Open it to finish and go to your account.
               </p>
               <p className="mt-2 text-[0.76rem] leading-5 text-white/72 sm:mt-3">
                 You can close this tab after confirming your email.
               </p>
+              <button
+                className={subtleButtonClasses}
+                type="button"
+                onClick={() => void handleResendVerification()}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Sending' : 'Resend confirmation email'}
+              </button>
             </div>
           </div>
         ) : null}

@@ -172,6 +172,14 @@ a {
   border: 0;
 }
 
+.brand-wordmark {
+  display: block;
+  width: clamp(118px, 11vw, 150px);
+  height: auto;
+  max-height: 38px;
+  object-fit: contain;
+}
+
 .nav-links {
   display: flex;
   align-items: center;
@@ -6873,13 +6881,18 @@ h3 {
     grid-column: 2;
     grid-row: 1;
     justify-self: center;
-    gap: 0;
+    gap: 7px;
     font-size: 0;
   }
 
   .site-header .brand-mark {
     width: 30px;
     height: 30px;
+  }
+
+  .site-header .brand-wordmark {
+    width: min(32vw, 118px);
+    max-height: 30px;
   }
 
   .launch-promo-bar {
@@ -6983,13 +6996,16 @@ h3 {
   }
 
   .mobile-menu-brand {
-    min-height: 36px;
+    min-height: 54px;
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 28px;
-    padding-left: 38px;
-    color: #151515;
+    width: calc(100% + 44px);
+    margin: -8px -22px 24px;
+    padding: 12px 22px 12px 60px;
+    background: #050506;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: #fff;
     font-size: 0.86rem;
     font-weight: 900;
     letter-spacing: 0.04em;
@@ -7000,6 +7016,11 @@ h3 {
   .mobile-menu-brand .brand-mark {
     width: 30px;
     height: 30px;
+  }
+
+  .mobile-menu-brand .brand-wordmark {
+    width: min(42vw, 138px);
+    max-height: 34px;
   }
 
   .site-header .nav-links.open,
