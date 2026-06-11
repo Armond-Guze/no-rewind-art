@@ -323,9 +323,22 @@ function getCheckoutImageUrls(item) {
   return [new URL(item.imagePath, clientUrl).toString()];
 }
 
+function getCheckoutFrameLabel(item) {
+  if (item.frameId === 'black-frame') {
+    return 'Black framed canvas';
+  }
+
+  if (item.frameId === 'white-frame') {
+    return 'White framed canvas';
+  }
+
+  return 'Canvas';
+}
+
 function buildLineItems(cartItems) {
   return cartItems.map((item) => {
     const images = getCheckoutImageUrls(item);
+    const frameLabel = getCheckoutFrameLabel(item);
 
     return {
       quantity: item.quantity,
@@ -334,7 +347,7 @@ function buildLineItems(cartItems) {
         unit_amount: item.unitAmount,
         product_data: {
           name: item.title,
-          description: `Size: ${item.sizeLabel}. Frame: ${item.frameLabel}.`,
+          description: `Size: ${item.sizeLabel} | ${frameLabel}`,
           ...(images ? { images } : {}),
           metadata: {
             productId: item.productId,
@@ -522,6 +535,7 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     line_items: buildLineItems(cartItems),
+    payment_method_types: ['card', 'amazon_pay', 'klarna', 'cashapp'],
     ...(customer?.email ? { customer_email: customer.email } : {}),
     billing_address_collection: 'auto',
     shipping_address_collection: {
