@@ -88,8 +88,8 @@ function getDefaultProductOffer(product) {
         },
         transitTime: {
           '@type': 'QuantitativeValue',
-          minValue: 3,
-          maxValue: 8,
+          minValue: 2,
+          maxValue: 5,
           unitCode: 'DAY',
         },
       },

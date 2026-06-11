@@ -539,11 +539,11 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
           delivery_estimate: {
             minimum: {
               unit: 'business_day',
-              value: 3,
+              value: 2,
             },
             maximum: {
               unit: 'business_day',
-              value: 8,
+              value: 5,
             },
           },
         },

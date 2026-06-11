@@ -559,7 +559,7 @@ export default function ProductPageClient({
                     <li>Premium canvas materials</li>
                     <li>Secure packaging to protect corners and surface quality</li>
                     <li>Processing time: 2-3 business days</li>
-                    <li>Shipping time in the US: 3-8 business days</li>
+                    <li>Shipping time in the US: 2-5 business days</li>
                   </ul>
 
                   <h3>Artwork Notes</h3>

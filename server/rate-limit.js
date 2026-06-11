@@ -1,15 +1,44 @@
 const buckets = new Map();
+let nextPruneAt = 0;
+
+export const rateLimits = {
+  checkout: {
+    key: 'checkout',
+    limit: 20,
+    windowMs: 10 * 60 * 1000,
+  },
+  newsletter: {
+    key: 'newsletter',
+    limit: 8,
+    windowMs: 15 * 60 * 1000,
+  },
+  accountOrders: {
+    key: 'account-orders',
+    limit: 60,
+    windowMs: 10 * 60 * 1000,
+  },
+  admin: {
+    key: 'admin',
+    limit: 120,
+    windowMs: 10 * 60 * 1000,
+  },
+  adminAuthFailed: {
+    key: 'admin-auth-failed',
+    limit: 8,
+    windowMs: 15 * 60 * 1000,
+  },
+};
 
 function getClientKey(request) {
   const forwardedFor = request.headers.get('x-forwarded-for') || '';
   const forwardedIp = forwardedFor.split(',')[0]?.trim();
-  const directIp =
+  const clientIp =
     request.headers.get('cf-connecting-ip') ||
     request.headers.get('x-real-ip') ||
     forwardedIp ||
     'unknown';
 
-  return directIp;
+  return clientIp;
 }
 
 function rateLimitError(retryAfterSeconds) {
@@ -19,8 +48,24 @@ function rateLimitError(retryAfterSeconds) {
   return error;
 }
 
+function pruneExpiredBuckets(now) {
+  if (now < nextPruneAt) {
+    return;
+  }
+
+  nextPruneAt = now + 5 * 60 * 1000;
+
+  for (const [bucketKey, bucket] of buckets.entries()) {
+    if (bucket.resetAt <= now) {
+      buckets.delete(bucketKey);
+    }
+  }
+}
+
 export function assertRateLimit(request, { key, limit, windowMs }) {
   const now = Date.now();
+  pruneExpiredBuckets(now);
+
   const bucketKey = `${key}:${getClientKey(request)}`;
   const bucket = buckets.get(bucketKey);
 

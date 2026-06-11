@@ -29,7 +29,7 @@ export const policyPages: Record<PolicyPageKey, PolicyPageContent> = {
       {
         title: 'Shipping estimates',
         body: [
-          'Standard shipping is currently offered for U.S. orders through Stripe Checkout. Estimated delivery is typically 3 to 8 business days after production is complete.',
+          'Standard shipping is currently offered for U.S. orders through Stripe Checkout. Estimated delivery is typically 2 to 5 business days after production is complete.',
           'Delivery dates are estimates, not guarantees. Carrier delays, weather, holidays, incorrect addresses, or production issues may affect timing.',
         ],
       },
