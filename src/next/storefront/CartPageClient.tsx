@@ -23,6 +23,7 @@ import {
 } from './product-utils';
 import { supabaseClient } from '../../lib/supabase';
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
+import { GoogleCustomerReviewsOptIn } from './GoogleCustomerReviewsOptIn';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 
 type CheckoutState = 'idle' | 'loading' | 'error';
@@ -264,6 +265,7 @@ export default function CartPageClient({
   return (
     <StorefrontShell>
       <StorefrontTracker />
+      <GoogleCustomerReviewsOptIn checkoutResult={checkoutResult} />
       <main className="standalone-cart-page">
         {checkoutResult === 'success' ? (
           <div className="checkout-banner success">

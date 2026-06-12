@@ -1,5 +1,7 @@
 import '../src/styles.css';
 
+import { GoogleCustomerReviewsBadge } from '../src/next/storefront/GoogleCustomerReviewsBadge';
+
 export const metadata = {
   metadataBase: new URL('https://armoze.com'),
   applicationName: 'Armoze',
@@ -19,7 +21,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body>{children}</body>
+      <body>
+        {children}
+        <GoogleCustomerReviewsBadge />
+      </body>
     </html>
   );
 }

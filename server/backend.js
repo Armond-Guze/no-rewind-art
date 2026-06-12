@@ -19,6 +19,7 @@ const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const clientUrl = process.env.CLIENT_URL || 'http://127.0.0.1:3000';
 const automaticTaxEnabled = process.env.STRIPE_AUTOMATIC_TAX === 'true';
 const adminApiToken = process.env.ADMIN_API_TOKEN;
+const googleCustomerReviewsMerchantId = Number(process.env.GOOGLE_CUSTOMER_REVIEWS_MERCHANT_ID || 5793512839);
 const allowUnsignedWebhooks = process.env.STRIPE_WEBHOOK_ALLOW_UNSIGNED === 'true';
 const supabaseUrl = normalizeSupabaseUrl(process.env.SUPABASE_URL || '');
 const supabasePublicUrl = normalizeSupabaseUrl(
@@ -223,6 +224,37 @@ function normalizeOptionalUrl(value) {
   }
 
   return parsedUrl.toString();
+}
+
+function normalizeStripeSessionId(value) {
+  const sessionId = String(value || '').trim();
+
+  if (!/^cs_(test|live)_[A-Za-z0-9_]+$/.test(sessionId)) {
+    throw httpError('Invalid checkout session.', 400);
+  }
+
+  return sessionId;
+}
+
+function addBusinessDays(date, businessDays) {
+  const nextDate = new Date(date);
+  let daysAdded = 0;
+
+  while (daysAdded < businessDays) {
+    nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+
+    const day = nextDate.getUTCDay();
+
+    if (day !== 0 && day !== 6) {
+      daysAdded += 1;
+    }
+  }
+
+  return nextDate;
+}
+
+function formatDateOnly(date) {
+  return date.toISOString().slice(0, 10);
 }
 
 async function normalizeCartItems(items) {
@@ -567,7 +599,7 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
     automatic_tax: {
       enabled: automaticTaxEnabled,
     },
-    success_url: `${clientUrl}/cart?checkout=success#cart`,
+    success_url: `${clientUrl}/cart?checkout=success&session_id={CHECKOUT_SESSION_ID}#cart`,
     cancel_url: `${clientUrl}/cart?checkout=cancelled#cart`,
     metadata: {
       brand: 'Armoze',
@@ -578,6 +610,54 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
   await orderStore.upsertOrder(buildCheckoutDraft(session, cartItems, customer));
 
   return { url: session.url };
+}
+
+export async function getGoogleCustomerReviewOptIn(sessionId) {
+  await ensureReady();
+
+  if (!stripe) {
+    throw httpError('Stripe is not configured.', 500);
+  }
+
+  if (!googleCustomerReviewsMerchantId) {
+    return { optIn: null };
+  }
+
+  const normalizedSessionId = normalizeStripeSessionId(sessionId);
+  const session = await stripe.checkout.sessions.retrieve(normalizedSessionId);
+
+  if (session.payment_status !== 'paid') {
+    return { optIn: null };
+  }
+
+  const order = await completeOrderFromCheckoutSession(session, 'paid');
+  const customerEmail =
+    session.customer_details?.email ||
+    session.customer_email ||
+    order.customerEmail ||
+    '';
+  const deliveryCountry =
+    session.shipping_details?.address?.country ||
+    session.customer_details?.address?.country ||
+    'US';
+
+  if (!customerEmail || !deliveryCountry) {
+    return { optIn: null };
+  }
+
+  const orderDate = session.created
+    ? new Date(session.created * 1000)
+    : new Date(order.createdAt || Date.now());
+
+  return {
+    optIn: {
+      merchantId: googleCustomerReviewsMerchantId,
+      orderId: order.id || session.id,
+      email: customerEmail,
+      deliveryCountry,
+      estimatedDeliveryDate: formatDateOnly(addBusinessDays(orderDate, 8)),
+    },
+  };
 }
 
 export async function subscribeToNewsletter(body) {

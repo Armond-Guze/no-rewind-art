@@ -14,6 +14,7 @@ import {
   supportMailto,
 } from './product-utils';
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
+import { GoogleCustomerReviewsOptIn } from './GoogleCustomerReviewsOptIn';
 import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 
@@ -82,7 +83,6 @@ function HomeProductCard({
             <h3>
               <Link href={`/products/${product.slug}`}>{product.title}</Link>
             </h3>
-            <span>{product.size}</span>
           </div>
           <strong>{formatPrice(product.priceInCents)}</strong>
         </div>
@@ -163,6 +163,7 @@ export default function HomePageClient({
   return (
     <StorefrontShell>
       <StorefrontTracker />
+      <GoogleCustomerReviewsOptIn checkoutResult={checkoutResult} />
       <main id="top" className="home-page storefront-home">
         {checkoutResult === 'success' ? (
           <div className="checkout-banner success">
@@ -188,10 +189,7 @@ export default function HomePageClient({
                 </em>
               </span>
             </h1>
-            <p>
-              Every gallery-quality canvas is ready to hang and designed to inspire focus,
-              execution, and a sharp mindset.
-            </p>
+            <p>Ready to hang. Built for focus.</p>
             <div className="hero-actions">
               <Link className="button button-primary" href="/collections/best-sellers">
                 Shop Best Sellers

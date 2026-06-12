@@ -89,7 +89,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 18px clamp(18px, 4vw, 56px);
+  padding: 16px clamp(18px, 4vw, 56px);
   background: rgba(5, 5, 6, 0.82);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(18px);
@@ -1491,8 +1491,8 @@ h3 {
 
 .listing-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(340px, 500px);
-  gap: clamp(24px, 3.5vw, 48px);
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 500px);
+  gap: clamp(22px, 3vw, 42px);
   align-items: start;
   padding: 24px clamp(18px, 4vw, 56px) clamp(32px, 5vw, 64px);
 }
@@ -2244,8 +2244,9 @@ h3 {
   }
 
   .listing-layout {
-    grid-template-columns: minmax(560px, 1.35fr) minmax(420px, 540px);
-    gap: clamp(24px, 2.2vw, 40px);
+    grid-template-columns: clamp(500px, 48vw, 730px) clamp(420px, 40vw, 540px);
+    gap: clamp(22px, 2vw, 36px);
+    justify-content: center;
     padding: 26px clamp(28px, 2.6vw, 54px) clamp(52px, 5vw, 86px);
   }
 
@@ -2268,18 +2269,18 @@ h3 {
   }
 
   .listing-layout .detail-artwork-shell {
-    width: min(1040px, 100%);
+    width: min(940px, 100%);
     margin-left: 0;
   }
 
   .listing-layout .detail-artwork-shell.shape-landscape,
   .listing-layout .detail-artwork-shell.mockup-product-shell.shape-landscape {
-    width: min(1120px, 100%);
+    width: min(1000px, 100%);
   }
 
   .listing-layout .detail-artwork-shell.shape-portrait,
   .listing-layout .detail-artwork-shell.mockup-product-shell.shape-portrait {
-    width: min(820px, 100%);
+    width: min(740px, 100%);
   }
 
   .listing-panel {
@@ -2359,19 +2360,19 @@ h3 {
 
 @media (min-width: 1440px) {
   .listing-layout {
-    grid-template-columns: minmax(820px, 1fr) minmax(500px, 620px);
-    gap: clamp(28px, 2.4vw, 48px);
+    grid-template-columns: clamp(640px, 46vw, 760px) clamp(500px, 39vw, 600px);
+    gap: clamp(24px, 2.1vw, 40px);
   }
 }
 
 @media (min-width: 1680px) {
   .listing-layout {
-    grid-template-columns: minmax(980px, 1fr) minmax(520px, 640px);
+    grid-template-columns: clamp(720px, 46vw, 820px) minmax(520px, 620px);
   }
 
   .listing-layout .detail-artwork-shell.shape-landscape,
   .listing-layout .detail-artwork-shell.mockup-product-shell.shape-landscape {
-    width: min(1220px, 100%);
+    width: min(1060px, 100%);
   }
 }
 
@@ -4920,8 +4921,8 @@ h3 {
     align-items: center;
     flex-direction: row;
     flex-wrap: wrap;
-    padding-top: 14px;
-    padding-bottom: 14px;
+    padding-top: 12px;
+    padding-bottom: 12px;
   }
 
   .mobile-menu-toggle {
@@ -6287,7 +6288,7 @@ h3 {
 }
 
 .storefront-hero {
-  --storefront-hero-height: clamp(500px, calc(100svh - 154px), 620px);
+  --storefront-hero-height: max(620px, calc(100svh - 108px));
   --storefront-hero-art-space: calc(var(--storefront-hero-height) - clamp(96px, 9vw, 132px));
   height: var(--storefront-hero-height);
   min-height: 0;
@@ -6640,7 +6641,7 @@ h3 {
 .storefront-home .product {
   height: 100%;
   display: grid;
-  grid-template-rows: var(--storefront-card-media-height) minmax(94px, 1fr);
+  grid-template-rows: var(--storefront-card-media-height) minmax(76px, 1fr);
   overflow: hidden;
   border: 1px solid rgba(21, 21, 21, 0.1);
   border-radius: 8px;
@@ -6678,10 +6679,10 @@ h3 {
 }
 
 .storefront-home .product-copy {
-  min-height: 94px;
+  min-height: 76px;
   display: grid;
   align-content: start;
-  padding: 14px;
+  padding: 12px 14px 13px;
 }
 
 .storefront-home .product-copy p {
@@ -6690,7 +6691,7 @@ h3 {
 
 .storefront-home .product-title-row {
   display: grid;
-  gap: 5px;
+  gap: 4px;
   margin-bottom: 0;
 }
 
@@ -6701,11 +6702,6 @@ h3 {
   text-transform: uppercase;
 }
 
-.storefront-home .product-title-row span {
-  font-size: 0.72rem;
-}
-
-.storefront-home .product-title-row span,
 .storefront-home .product-title-row strong,
 .storefront-home .product-copy p {
   color: #6a645c;
@@ -6736,7 +6732,7 @@ h3 {
   }
 
   .storefront-home .product-copy {
-    padding: 18px;
+    padding: 15px 16px 16px;
   }
 }
 
@@ -6885,21 +6881,21 @@ h3 {
 
 @media (max-width: 1120px) {
   .storefront-hero {
-    --storefront-hero-height: auto;
-    --storefront-hero-art-space: clamp(360px, 58vw, 560px);
-    height: auto;
+    --storefront-hero-height: max(720px, calc(100svh - 108px));
+    --storefront-hero-art-space: clamp(360px, 48svh, 560px);
+    height: var(--storefront-hero-height);
     grid-template-columns: 1fr;
-    min-height: auto;
+    min-height: var(--storefront-hero-height);
   }
 
   .storefront-hero-gallery {
-    height: auto;
+    height: var(--storefront-hero-art-space);
     max-width: 880px;
   }
 
   .storefront-hero-art {
-    height: auto;
-    min-height: var(--storefront-hero-art-space);
+    height: 100%;
+    min-height: 0;
   }
 
   .storefront-collections,
@@ -6915,7 +6911,7 @@ h3 {
     grid-template-columns: 38px minmax(0, 1fr) 38px;
     gap: 8px;
     align-items: center;
-    padding: 8px 12px;
+    padding: 7px 12px;
   }
 
   .site-header .brand {
@@ -7153,7 +7149,10 @@ h3 {
   }
 
   .storefront-hero {
-    --storefront-hero-art-space: clamp(260px, 42vh, 360px);
+    --storefront-hero-height: max(640px, calc(100svh - 79px));
+    --storefront-hero-art-space: clamp(250px, 42svh, 350px);
+    height: var(--storefront-hero-height);
+    min-height: var(--storefront-hero-height);
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -7163,9 +7162,10 @@ h3 {
 
   .storefront-hero-copy {
     order: 0;
+    flex: 1 1 auto;
     height: auto;
     display: grid;
-    align-content: start;
+    align-content: center;
     justify-items: center;
     width: 100%;
     padding: 24px 18px 28px;
@@ -7195,7 +7195,9 @@ h3 {
 
   .storefront-hero-gallery {
     order: -1;
+    flex: 0 0 var(--storefront-hero-art-space);
     width: 100%;
+    height: var(--storefront-hero-art-space);
     max-width: none;
     display: grid;
     place-items: center;
@@ -7206,8 +7208,8 @@ h3 {
 
   .storefront-hero-art {
     width: 100%;
-    height: auto;
-    min-height: var(--storefront-hero-art-space);
+    height: 100%;
+    min-height: 0;
     display: grid;
     place-items: center;
     padding: 22px 16px;
@@ -7342,7 +7344,7 @@ h3 {
   }
 
   .storefront-home .product-copy {
-    padding: 14px;
+    padding: 11px 12px 12px;
   }
 
   .storefront-home .product-title-row {
@@ -7355,7 +7357,6 @@ h3 {
     line-height: 1.1;
   }
 
-  .storefront-home .product-title-row span,
   .storefront-home .product-title-row strong {
     font-size: 0.68rem;
   }
