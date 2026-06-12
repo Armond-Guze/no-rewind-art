@@ -361,7 +361,7 @@ export default function ProductPageClient({
                         <div className="detail-artwork-surface">
                           {mobileGalleryImage === product.image ? (
                             <OptimizedCanvasImage
-                              className={`detail-artwork-image ${mobileFrameClass}`}
+                              className={`detail-artwork-image front-product-canvas ${mobileFrameClass}`}
                               product={product}
                               src={mobileGalleryImage}
                               alt={product.imageAlt}
@@ -415,7 +415,7 @@ export default function ProductPageClient({
                   <div className="detail-artwork-surface">
                     {selectedGalleryImage === product.image ? (
                       <OptimizedCanvasImage
-                        className={`detail-artwork-image ${frameClass}`}
+                        className={`detail-artwork-image front-product-canvas ${frameClass}`}
                         product={product}
                         src={selectedGalleryImage}
                         alt={product.imageAlt}

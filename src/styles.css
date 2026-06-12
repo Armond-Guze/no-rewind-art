@@ -7907,6 +7907,118 @@ h3 {
 
 .listing-gallery > .main-product-image
   .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.front-product-canvas.crop-square-source-2x1.ratio-2x1,
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.front-product-canvas.crop-square-source-3x2.ratio-3x2,
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image.front-product-canvas.crop-square-source-2x3.ratio-2x3,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.front-product-canvas.crop-square-source-2x1.ratio-2x1,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.front-product-canvas.crop-square-source-3x2.ratio-3x2,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image.front-product-canvas.crop-square-source-2x3.ratio-2x3 {
+  overflow: visible;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.front-product-canvas.crop-square-source-2x1.ratio-2x1
+  > div,
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.front-product-canvas.crop-square-source-3x2.ratio-3x2
+  > div,
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image.front-product-canvas.crop-square-source-2x3.ratio-2x3
+  > div,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.front-product-canvas.crop-square-source-2x1.ratio-2x1
+  > div,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.front-product-canvas.crop-square-source-3x2.ratio-3x2
+  > div,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image.front-product-canvas.crop-square-source-2x3.ratio-2x3
+  > div {
+  overflow: hidden;
+  background: transparent;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.front-product-canvas.crop-square-source-2x1.ratio-2x1
+  img,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.front-product-canvas.crop-square-source-2x1.ratio-2x1
+  img {
+  position: absolute;
+  z-index: 1;
+  left: -5.556%;
+  top: -61.111%;
+  aspect-ratio: 1 / 1;
+  width: 111.111%;
+  height: 222.222%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.front-product-canvas.crop-square-source-3x2.ratio-3x2
+  img,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-landscape
+  .product-canvas-image.front-product-canvas.crop-square-source-3x2.ratio-3x2
+  img {
+  position: absolute;
+  z-index: 1;
+  left: -5.556%;
+  top: -33.333%;
+  aspect-ratio: 1 / 1;
+  width: 111.111%;
+  height: 166.667%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image.front-product-canvas.crop-square-source-2x3.ratio-2x3
+  img,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image.front-product-canvas.crop-square-source-2x3.ratio-2x3
+  img {
+  position: absolute;
+  z-index: 1;
+  left: -33.333%;
+  top: -5.556%;
+  aspect-ratio: 1 / 1;
+  width: 166.667%;
+  height: 111.111%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-landscape
   .product-canvas-image.crop-square-source-4x3,
 .mobile-gallery-slide
   .detail-artwork-shell.front-product-shell.shape-landscape
