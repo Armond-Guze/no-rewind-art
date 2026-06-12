@@ -9,15 +9,15 @@ import { supabaseClient } from '../../lib/supabase';
 type AuthStep = 'email' | 'password' | 'verify';
 
 const inputClasses =
-  'h-[2.9rem] w-full rounded-[0.7rem] border border-white/62 bg-transparent px-3.5 text-[0.82rem] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] outline-none transition-[border-color,box-shadow] placeholder:text-white/66 focus:border-white/78 focus:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)] sm:h-[3.35rem] sm:rounded-[0.85rem] sm:px-4 sm:text-[0.84rem]';
+  'h-[3.25rem] w-full rounded-[0.85rem] border border-white/62 bg-transparent px-4 text-[0.9rem] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] outline-none transition-[border-color,box-shadow] placeholder:text-white/66 focus:border-white/78 focus:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)] sm:h-[3.45rem] sm:rounded-[0.9rem] sm:px-4 sm:text-[0.9rem]';
 
 const buttonClasses =
-  'inline-flex h-[2.9rem] w-full items-center justify-center rounded-[0.7rem] border text-[0.82rem] font-semibold transition-colors sm:h-[3.35rem] sm:rounded-[0.85rem] sm:text-[0.84rem]';
+  'inline-flex h-[3.25rem] w-full items-center justify-center rounded-[0.85rem] border text-[0.9rem] font-semibold transition-colors sm:h-[3.45rem] sm:rounded-[0.9rem] sm:text-[0.9rem]';
 
-const primaryButtonClasses = `${buttonClasses} border-white bg-white text-[0.84rem] text-black hover:bg-zinc-100`;
+const primaryButtonClasses = `${buttonClasses} border-white bg-white text-black hover:bg-zinc-100`;
 const socialButtonClasses = `${buttonClasses} border-white/78 bg-transparent px-5 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] hover:border-white/90 hover:bg-white/[0.04]`;
 const subtleButtonClasses =
-  'mt-3 inline-flex min-h-[2.55rem] w-full items-center justify-center rounded-[0.7rem] border border-white/22 px-4 text-[0.78rem] font-semibold text-white/78 transition-colors hover:border-white/38 hover:bg-white/[0.04] hover:text-white disabled:cursor-not-allowed disabled:opacity-60';
+  'mt-3 inline-flex min-h-[3rem] w-full items-center justify-center rounded-[0.85rem] border border-white/22 px-4 text-[0.84rem] font-semibold text-white/78 transition-colors hover:border-white/38 hover:bg-white/[0.04] hover:text-white disabled:cursor-not-allowed disabled:opacity-60';
 
 function GoogleIcon() {
   return (
@@ -57,7 +57,7 @@ function getRedirectUrl() {
 function AuthShell({ children }: { children: ReactNode }) {
   return (
     <main className="auth-shell min-h-[100svh] bg-[#070b10] text-white">
-      <div className="mx-auto flex max-w-6xl items-center px-4 py-3 sm:px-5 sm:py-5">
+      <div className="mx-auto flex max-w-6xl items-center px-5 py-4 sm:px-6 sm:py-5">
         <Link
           className="inline-flex items-center text-[0.8rem] font-medium text-white/70 transition-colors hover:text-white sm:text-sm"
           href="/"
@@ -69,21 +69,21 @@ function AuthShell({ children }: { children: ReactNode }) {
 
       <div className="h-px bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.24)_16%,rgba(255,255,255,0.72)_50%,rgba(255,255,255,0.24)_84%,rgba(255,255,255,0)_100%)] sm:h-[2px]" />
 
-      <div className="mx-auto flex min-h-[calc(100svh-45px)] w-full max-w-6xl items-start justify-center px-4 pt-3 pb-7 sm:min-h-[calc(100svh-73px)] sm:px-5 sm:pt-6 sm:pb-12">
-        <div className="w-full max-w-[420px] text-center sm:max-w-[500px]">
+      <div className="mx-auto flex min-h-[calc(100svh-57px)] w-full max-w-6xl items-start justify-center px-5 pt-9 pb-10 sm:min-h-[calc(100svh-73px)] sm:px-6 sm:pt-10 sm:pb-14">
+        <div className="w-full max-w-[460px] text-center sm:max-w-[540px]">
           <img
-            className="mx-auto mb-3 w-[104px] sm:mb-6 sm:w-[168px]"
+            className="mx-auto mb-4 w-[124px] sm:mb-6 sm:w-[176px]"
             src="/armoze-logo.png"
             alt="Armoze"
           />
           <h1 className="text-[0.98rem] font-semibold leading-tight tracking-tight text-white sm:text-[2.15rem]">
             Log in or sign up
           </h1>
-          <p className="mx-auto mt-1.5 max-w-[21rem] text-[0.72rem] leading-4 text-white/62 sm:mt-2 sm:max-w-[23rem] sm:text-[0.9rem] sm:leading-5">
+          <p className="mx-auto mt-2 max-w-[23rem] text-[0.82rem] leading-5 text-white/62 sm:mt-2.5 sm:max-w-[24rem] sm:text-[0.94rem] sm:leading-6">
             Get access to your Armoze account, order updates, and customer support.
           </p>
 
-          <div className="mx-auto mt-5 w-full max-w-[388px] sm:mt-7 sm:max-w-[404px]">{children}</div>
+          <div className="mx-auto mt-6 w-full max-w-[388px] sm:mt-8 sm:max-w-[420px]">{children}</div>
         </div>
       </div>
     </main>
@@ -312,7 +312,7 @@ export default function AuthPageClient() {
 
   return (
     <AuthShell>
-      <div className="mx-auto w-full max-w-[360px] text-white sm:max-w-[388px]">
+      <div className="mx-auto w-full max-w-[388px] text-white sm:max-w-[420px]">
         {step === 'email' ? (
           <form onSubmit={handleEmailSubmit}>
             <label className="sr-only" htmlFor="auth-email">
@@ -330,7 +330,7 @@ export default function AuthPageClient() {
               required
             />
 
-            <button className={`${primaryButtonClasses} mt-3 sm:mt-4`} type="submit">
+            <button className={`${primaryButtonClasses} mt-3.5 sm:mt-4`} type="submit">
               Continue
             </button>
           </form>
@@ -370,7 +370,7 @@ export default function AuthPageClient() {
               required
             />
 
-            <button className={`${primaryButtonClasses} mt-3 sm:mt-4`} type="submit" disabled={isSubmitting}>
+            <button className={`${primaryButtonClasses} mt-3.5 sm:mt-4`} type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Working' : 'Continue'}
             </button>
 
@@ -418,13 +418,13 @@ export default function AuthPageClient() {
 
         {step === 'email' ? (
           <>
-            <div className="my-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-[0.72rem] font-semibold text-white/62 sm:my-7 sm:gap-4 sm:text-[0.76rem]">
+            <div className="my-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3.5 text-[0.76rem] font-semibold text-white/62 sm:my-8 sm:gap-4 sm:text-[0.8rem]">
               <span className="h-px bg-white/20" />
               OR
               <span className="h-px bg-white/20" />
             </div>
 
-            <div className="grid gap-2.5 sm:gap-3">
+            <div className="grid gap-3 sm:gap-3.5">
               <button className={socialButtonClasses} type="button" onClick={() => void handleOAuth('google')}>
                 <span className="grid w-full grid-cols-[20px_minmax(0,1fr)_20px] items-center gap-3">
                   <GoogleIcon />

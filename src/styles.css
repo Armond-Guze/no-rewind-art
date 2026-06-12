@@ -64,12 +64,12 @@ a {
 }
 
 .auth-shell h1 {
-  font-size: 1.02rem;
+  font-size: 1.14rem;
   line-height: 1.25;
 }
 
 .auth-shell h2 {
-  font-size: 0.88rem;
+  font-size: 0.96rem;
   line-height: 1.25;
 }
 
@@ -6435,17 +6435,6 @@ h3 {
   justify-self: center;
 }
 
-.storefront-hero-image {
-  display: block;
-  width: min(86%, 560px, var(--storefront-hero-art-space));
-  height: auto;
-  max-width: 100%;
-  max-height: var(--storefront-hero-art-space);
-  border-radius: 8px;
-  object-fit: contain;
-  filter: drop-shadow(0 30px 24px rgba(0, 0, 0, 0.24));
-}
-
 .storefront-hero-art .product-canvas-image.shape-portrait,
 .storefront-hero-art .artwork-mockup.shape-portrait {
   width: min(58%, 360px, calc(var(--storefront-hero-art-space) * 0.66));
@@ -7236,11 +7225,6 @@ h3 {
     justify-self: center;
     margin-right: auto;
     margin-left: auto;
-  }
-
-  .storefront-hero-image {
-    width: min(calc(100vw - 56px), 340px, calc(var(--storefront-hero-art-space) - 44px));
-    max-height: calc(var(--storefront-hero-art-space) - 44px);
   }
 
   .storefront-hero-art .product-canvas-image.shape-portrait,
@@ -8630,7 +8614,22 @@ h3 {
 
 .listing-card-image .product-canvas-image,
 .storefront-home .product-image-link .product-canvas-image,
+.storefront-hero-art .product-canvas-image,
 .related-product .product-canvas-image {
+  --canvas-shadow-width: 112%;
+  --canvas-shadow-height: clamp(24px, 3vw, 52px);
+  --canvas-shadow-bottom: clamp(-24px, -1.45vw, -12px);
+  --canvas-shadow-opacity: 0.68;
+  --canvas-shadow-blur: clamp(18px, 2.7vw, 46px);
+  --canvas-surface-shadow:
+    0 42px 56px -34px rgba(0, 0, 0, 0.86),
+    0 19px 27px -18px rgba(0, 0, 0, 0.62),
+    0 6px 10px -5px rgba(0, 0, 0, 0.44);
+  --canvas-bezel-opacity: 0.92;
+  --canvas-face-highlight-opacity: 0.34;
+}
+
+.storefront-home .storefront-hero-gallery .storefront-hero-art .product-canvas-image {
   --canvas-shadow-width: 112%;
   --canvas-shadow-height: clamp(24px, 3vw, 52px);
   --canvas-shadow-bottom: clamp(-24px, -1.45vw, -12px);
@@ -8650,6 +8649,12 @@ h3 {
   --canvas-shadow-bottom: clamp(-28px, -1.6vw, -14px);
   --canvas-shadow-opacity: 0.72;
   --canvas-shadow-blur: clamp(22px, 3vw, 52px);
+}
+
+.listing-card-image .product-canvas-image.ratio-2x1.source-ratio-mismatch:not(.crop-square-source-2x1) img,
+.storefront-home .product-image-link .product-canvas-image.ratio-2x1.source-ratio-mismatch:not(.crop-square-source-2x1) img,
+.related-product .product-canvas-image.ratio-2x1.source-ratio-mismatch:not(.crop-square-source-2x1) img {
+  object-fit: contain;
 }
 
 .gallery-rail .product-canvas-image {

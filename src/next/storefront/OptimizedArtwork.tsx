@@ -169,6 +169,7 @@ export function OptimizedCanvasImage({
   }
 
   const normalizedAspectRatio = aspectRatio.replace(/\s/g, '');
+  const ratioClassName = `ratio-${normalizedAspectRatio.replace('/', 'x')}`;
   const displayShape =
     normalizedAspectRatio === '2/3' || normalizedAspectRatio === '3/4' || normalizedAspectRatio === '4/5'
       ? 'portrait'
@@ -182,9 +183,11 @@ export function OptimizedCanvasImage({
   const usesSquareSourceThreeFourCrop = hasSquareSource && displayShape === 'portrait' && normalizedAspectRatio === '3/4';
   const usesSquareSourceLandscapeCrop = hasSquareSource && displayShape === 'landscape' && normalizedAspectRatio === '3/2';
   const usesSourceRatioMismatch = isSourceRatioMismatch(src, aspectRatio);
+  const imageFitClassName = usesSourceRatioMismatch ? 'object-contain' : 'object-cover';
   const classNames = [
     'product-canvas-image',
     `shape-${displayShape}`,
+    ratioClassName,
     usesSquareSourceWideCrop ? 'crop-square-source-2x1' : undefined,
     usesSquareSourceFourThreeCrop ? 'crop-square-source-4x3' : undefined,
     usesSquareSourcePortraitCrop ? 'crop-square-source-2x3' : undefined,
@@ -206,7 +209,7 @@ export function OptimizedCanvasImage({
       {shadow ? <span className="product-canvas-shadow" aria-hidden="true" /> : null}
       <div className={surfaceClassName}>
         <Image
-          className="h-full w-full select-none object-cover object-center"
+          className={`h-full w-full select-none ${imageFitClassName} object-center`}
           loader={imageLoader}
           src={src}
           alt={alt}
