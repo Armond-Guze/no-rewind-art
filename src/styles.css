@@ -2923,8 +2923,9 @@ h3 {
 
 .related-products-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(14px, 2vw, 22px);
+  grid-template-columns: repeat(4, minmax(190px, 250px));
+  gap: clamp(10px, 1.2vw, 16px);
+  justify-content: center;
 }
 
 .related-product {
@@ -5028,7 +5029,11 @@ h3 {
     padding-bottom: 28px;
   }
 
-  .related-products-grid,
+  .related-products-grid {
+    grid-template-columns: repeat(2, minmax(190px, 250px));
+    gap: 12px;
+  }
+
   .product-proof-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

@@ -182,7 +182,7 @@ export default function HomePageClient({
           <div className="storefront-hero-copy">
             <p className="eyebrow">Armoze canvas prints</p>
             <h1 id="storefront-title">
-              <span>Art for the</span>
+              <span>Art for the </span>
               <span>
                 <em className="storefront-hero-keyword" key={activeHeroSlide?.product.id ?? 'refined'}>
                   {activeHeroSlide?.keyword ?? 'refined'}.

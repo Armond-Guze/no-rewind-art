@@ -52,7 +52,7 @@ export const policyPages: Record<PolicyPageKey, PolicyPageContent> = {
   returns: {
     title: 'Returns & Refunds',
     description:
-      'Review the Armoze returns and refunds policy for canvas prints, including the 30-day return window, return shipping cost, damaged orders, cancellations, and refund timing.',
+      'Review the Armoze returns and refunds policy for canvas prints, including the 30-day return window, return shipping, damaged orders, cancellations, and refunds.',
     updated: 'June 2026',
     sections: [
       {

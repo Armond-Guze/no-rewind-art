@@ -27,6 +27,20 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/lander',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/products/97-percent',
+        destination: '/collections/discipline-focus',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
