@@ -6312,7 +6312,7 @@ h3 {
   min-width: 0;
   max-width: none;
   display: grid;
-  align-content: start;
+  align-content: center;
   justify-items: start;
   padding: clamp(48px, 5vw, 72px) clamp(30px, 4.2vw, 64px) clamp(34px, 4vw, 58px);
   background: #050506;
@@ -8814,6 +8814,37 @@ h3 {
     0 52px 68px -42px rgba(0, 0, 0, 0.78),
     0 22px 30px -20px rgba(0, 0, 0, 0.56),
     0 7px 11px -6px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 560px) {
+  .mobile-gallery-slide
+    .detail-artwork-shell.front-product-shell.shape-landscape
+    .detail-artwork-surface:has(.product-canvas-image.crop-square-source-3x2) {
+    width: min(94%, calc(100vw - 48px));
+    aspect-ratio: 3 / 2;
+    overflow: visible;
+  }
+
+  .mobile-gallery-slide
+    .detail-artwork-shell.front-product-shell.shape-landscape
+    .product-canvas-image.crop-square-source-3x2 {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .mobile-gallery-slide
+    .detail-artwork-shell.front-product-shell.shape-landscape
+    .product-canvas-image.crop-square-source-3x2
+    img,
+  .mobile-gallery-slide
+    .detail-artwork-shell.front-product-shell.shape-landscape
+    .product-canvas-image.front-product-canvas.crop-square-source-3x2.ratio-3x2
+    img {
+    left: 0;
+    top: -25%;
+    width: 100%;
+    height: 150%;
+  }
 }
 
 @media (max-width: 760px) {
