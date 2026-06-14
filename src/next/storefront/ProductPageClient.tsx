@@ -10,6 +10,8 @@ import {
   Box,
   Check,
   ShieldCheck,
+  Star,
+  StarHalf,
 } from 'lucide-react';
 import { addStoredCartItem } from '../../cart';
 import type { FrameOption, Product } from '../../data/products';
@@ -77,12 +79,27 @@ function ProductTrustStrip() {
       </span>
       <span>
         <Check aria-hidden="true" size={14} />
-        Secure Stripe checkout
+        Returns accepted
       </span>
       <span>
         <Check aria-hidden="true" size={14} />
         Damage support
       </span>
+    </div>
+  );
+}
+
+function StoreRating() {
+  return (
+    <div className="store-rating" aria-label="Store rating: 4.5 out of 5 stars from 125 reviews">
+      <span className="store-rating-stars" aria-hidden="true">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Star fill="currentColor" key={index} size={17} strokeWidth={2.4} />
+        ))}
+        <StarHalf fill="currentColor" size={17} strokeWidth={2.4} />
+      </span>
+      <span>4.5 stars</span>
+      <span>125 reviews</span>
     </div>
   );
 }
@@ -442,6 +459,7 @@ export default function ProductPageClient({
 
           <aside className="listing-panel">
             <p className="listing-kicker">Armoze Original</p>
+            <StoreRating />
             <h1>{product.title}</h1>
             <p className="listing-price">{formatPrice(selectedUnitPrice)}</p>
             <ProductTrustStrip />
@@ -499,20 +517,20 @@ export default function ProductPageClient({
             </div>
 
             <button
-              className="button button-primary listing-cart-button"
-              type="button"
-              onClick={addSelectionToCart}
-            >
-              Add to Cart
-            </button>
-
-            <button
-              className="button button-secondary listing-cart-button"
+              className="button button-secondary listing-cart-button listing-buy-now-button"
               type="button"
               disabled={checkoutState === 'loading'}
               onClick={() => void startBuyNow()}
             >
-              {checkoutState === 'loading' ? 'Opening Checkout' : 'Buy Now'}
+              {checkoutState === 'loading' ? 'Opening checkout' : 'Buy it now'}
+            </button>
+
+            <button
+              className="button button-primary listing-cart-button listing-add-cart-button"
+              type="button"
+              onClick={addSelectionToCart}
+            >
+              Add to cart
             </button>
 
             {checkoutState === 'error' ? (
