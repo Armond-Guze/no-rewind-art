@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, Plus } from 'lucide-react';
+import { ArrowUpRight, Plus, Star } from 'lucide-react';
 import { addStoredCartItem } from '../../cart';
 import type { Product } from '../../data/products';
 import {
@@ -19,6 +19,52 @@ import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 
 const heroWordPool = ['present', 'driven', 'focused', 'steady', 'bold'];
+
+const etsyReviewHighlights = [
+  {
+    name: 'Lorie',
+    date: 'May 11, 2025',
+    rating: 5,
+    detail: 'Size: 24 x 18 | Style: No Frame',
+    quote:
+      "This cool piece just arrived & from the moment we opened it - we loved it. It's going to be such a nice addition to our rec room. I love the nostalgia aspect & the inspirational quote. It was shipped rather quickly & is just what we hoped it would be.",
+  },
+  {
+    name: 'Davis',
+    date: 'Jan 31, 2025',
+    rating: 5,
+    detail: 'Size: 24 x 18 | Style: Black Frame',
+    quote: 'This has great resolution and is perfect in our retro themed office',
+  },
+  {
+    name: 'Alex',
+    date: 'Jan 19, 2025',
+    rating: 5,
+    detail: 'Size: 16 x 12 | Style: Black Frame',
+    quote: 'Great picture for small home or wall!',
+  },
+  {
+    name: 'Michelle',
+    date: 'Sep 18, 2024',
+    rating: 5,
+    detail: 'Size: 48 x 32 | Style: Black Frame',
+    quote: 'Item was perfect and exactly how it was described',
+  },
+  {
+    name: 'Amanda',
+    date: 'Jul 23, 2024',
+    rating: 5,
+    detail: 'Etsy verified purchase',
+    quote: 'Looks amazing in our passport office',
+  },
+  {
+    name: 'Nicolas',
+    date: 'Dec 19, 2022',
+    rating: 5,
+    detail: 'Style: Black Frame | Size: 36 x 24',
+    quote: 'Great quality and frame. Print is very clear and arrived very quickly and well packaged.',
+  },
+];
 
 function getHeroKeywordCandidates(product: Product, index: number) {
   const productText = `${product.title} ${product.description} ${product.tone}`.toLowerCase();
@@ -271,30 +317,31 @@ export default function HomePageClient({
 
         <section className="storefront-social-proof" aria-labelledby="storefront-social-proof-title">
           <div className="storefront-social-proof-heading">
-            <p className="eyebrow">What buyers are saying</p>
-            <h2 id="storefront-social-proof-title">Built for the room you are becoming.</h2>
+            <p className="eyebrow">What Etsy buyers said</p>
+            <h2 id="storefront-social-proof-title">Proof from the first run.</h2>
             <p>
-              Early feedback is simple: the right wall piece makes a space feel sharper, more
-              intentional, and easier to step into every day.
+              Before Armoze.com, the work sold on Etsy as Mantality: 115 sales, a 4.7 average,
+              and 23 buyer reviews.
             </p>
+            <span className="storefront-social-proof-source">Originally reviewed on Etsy</span>
           </div>
 
-          <div className="storefront-social-proof-grid" aria-label="Buyer feedback themes">
-            <article>
-              <span>01</span>
-              <h3>The message hits daily.</h3>
-              <p>Customers look for art that feels like a reminder, not decoration.</p>
-            </article>
-            <article>
-              <span>02</span>
-              <h3>It cleans up the space.</h3>
-              <p>Designed for bedrooms, offices, studios, and work zones that need focus.</p>
-            </article>
-            <article>
-              <span>03</span>
-              <h3>Ready to hang matters.</h3>
-              <p>Canvas pieces arrive made to order, packaged carefully, and ready for the wall.</p>
-            </article>
+          <div className="storefront-review-carousel" aria-label="Etsy buyer reviews">
+            {etsyReviewHighlights.map((review) => (
+              <article className="storefront-review-card" key={`${review.name}-${review.date}`}>
+                <div className="storefront-review-stars" aria-label={`${review.rating} out of 5 stars`}>
+                  {Array.from({ length: review.rating }).map((_, starIndex) => (
+                    <Star aria-hidden="true" fill="currentColor" key={starIndex} size={17} strokeWidth={2.4} />
+                  ))}
+                </div>
+                <div className="storefront-review-meta">
+                  <strong>{review.name}</strong>
+                  <span>{review.date}</span>
+                </div>
+                <p className="storefront-review-detail">{review.detail}</p>
+                <p className="storefront-review-quote">{review.quote}</p>
+              </article>
+            ))}
           </div>
         </section>
 
