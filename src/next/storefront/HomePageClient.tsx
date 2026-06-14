@@ -269,6 +269,35 @@ export default function HomePageClient({
           </div>
         </section>
 
+        <section className="storefront-social-proof" aria-labelledby="storefront-social-proof-title">
+          <div className="storefront-social-proof-heading">
+            <p className="eyebrow">What buyers are saying</p>
+            <h2 id="storefront-social-proof-title">Built for the room you are becoming.</h2>
+            <p>
+              Early feedback is simple: the right wall piece makes a space feel sharper, more
+              intentional, and easier to step into every day.
+            </p>
+          </div>
+
+          <div className="storefront-social-proof-grid" aria-label="Buyer feedback themes">
+            <article>
+              <span>01</span>
+              <h3>The message hits daily.</h3>
+              <p>Customers look for art that feels like a reminder, not decoration.</p>
+            </article>
+            <article>
+              <span>02</span>
+              <h3>It cleans up the space.</h3>
+              <p>Designed for bedrooms, offices, studios, and work zones that need focus.</p>
+            </article>
+            <article>
+              <span>03</span>
+              <h3>Ready to hang matters.</h3>
+              <p>Canvas pieces arrive made to order, packaged carefully, and ready for the wall.</p>
+            </article>
+          </div>
+        </section>
+
         <section className="section shop-section storefront-shop-section new-arrivals-preview">
           <div className="section-heading">
             <div>

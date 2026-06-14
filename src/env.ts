@@ -13,9 +13,14 @@ const nextEnv: PublicEnv =
         VITE_GA_MEASUREMENT_ID: process.env.VITE_GA_MEASUREMENT_ID,
         VITE_GOOGLE_ADS_ID: process.env.VITE_GOOGLE_ADS_ID,
         VITE_GOOGLE_ADS_PURCHASE_LABEL: process.env.VITE_GOOGLE_ADS_PURCHASE_LABEL,
+        NEXT_PUBLIC_GA_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
         VITE_META_PIXEL_ID: process.env.VITE_META_PIXEL_ID,
       };
 
 export function getPublicEnv(name: string) {
+  if (name === 'VITE_GA_MEASUREMENT_ID') {
+    return nextEnv.VITE_GA_MEASUREMENT_ID || nextEnv.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
+  }
+
   return nextEnv[name] || '';
 }
