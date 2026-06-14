@@ -247,18 +247,26 @@ export default function HomePageClient({
           </div>
         </section>
 
-        <section className="storefront-quote-cta" aria-labelledby="storefront-quote-title">
-          <p className="eyebrow">Made for momentum</p>
-          <h2 id="storefront-quote-title">
-            <span>Made for those who <em>build.</em></span>
-          </h2>
-          <p className="storefront-quote-copy">
-            Canvas prints for focused, ambitious rooms.
-          </p>
-          <Link className="button button-primary" href="/collections/best-sellers">
-            Shop Best Sellers
-            <ArrowUpRight aria-hidden="true" size={16} />
-          </Link>
+        <section className="storefront-story-cta" aria-labelledby="storefront-story-title">
+          <div className="storefront-story-copy">
+            <p className="eyebrow">Why Armoze</p>
+            <h2 id="storefront-story-title">
+              <span>Made for rooms where you <em>lock in.</em></span>
+            </h2>
+            <p>
+              Made-to-order canvas prints for bedrooms, offices, studios, gyms, and creative spaces.
+              Sharp wall pieces built to push focus, ambition, and daily momentum.
+            </p>
+            <Link className="button button-primary" href="/collections/best-sellers">
+              Shop the Collection
+              <ArrowUpRight aria-hidden="true" size={16} />
+            </Link>
+          </div>
+          <div className="storefront-story-points" aria-label="Armoze canvas details">
+            <span>Made to order</span>
+            <span>Ready to hang</span>
+            <span>Built for focused spaces</span>
+          </div>
         </section>
 
         <section className="section shop-section storefront-shop-section new-arrivals-preview">
