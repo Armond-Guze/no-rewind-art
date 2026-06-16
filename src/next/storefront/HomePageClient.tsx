@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Plus, Star } from 'lucide-react';
-import { addStoredCartItem } from '../../cart';
+import { addStoredCartItem, notifyStoredCartUpdated, writeStoredCart } from '../../cart';
 import type { Product } from '../../data/products';
 import {
   formatPrice,
@@ -172,6 +172,9 @@ export default function HomePageClient({
 
     trackStorefrontEvent('purchase', { currency: 'USD' });
     window.sessionStorage.setItem(trackingKey, '1');
+
+    writeStoredCart([]);
+    notifyStoredCartUpdated([]);
   }, [checkoutResult]);
 
   const heroSlides = useMemo(() => {
@@ -317,16 +320,10 @@ export default function HomePageClient({
 
         <section className="storefront-social-proof" aria-labelledby="storefront-social-proof-title">
           <div className="storefront-social-proof-heading">
-            <p className="eyebrow">What Etsy buyers said</p>
-            <h2 id="storefront-social-proof-title">Proof from the first run.</h2>
-            <p>
-              Before Armoze.com, the work sold on Etsy as Mantality: 115 sales, a 4.7 average,
-              and 23 buyer reviews.
-            </p>
-            <span className="storefront-social-proof-source">Originally reviewed on Etsy</span>
+            <h2 id="storefront-social-proof-title">Reviews</h2>
           </div>
 
-          <div className="storefront-review-carousel" aria-label="Etsy buyer reviews">
+          <div className="storefront-review-carousel" aria-label="Buyer reviews">
             {etsyReviewHighlights.map((review) => (
               <article className="storefront-review-card" key={`${review.name}-${review.date}`}>
                 <div className="storefront-review-stars" aria-label={`${review.rating} out of 5 stars`}>

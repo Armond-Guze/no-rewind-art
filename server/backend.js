@@ -599,7 +599,7 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
     automatic_tax: {
       enabled: automaticTaxEnabled,
     },
-    success_url: `${clientUrl}/cart?checkout=success&session_id={CHECKOUT_SESSION_ID}#cart`,
+    success_url: `${clientUrl}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${clientUrl}/cart?checkout=cancelled#cart`,
     metadata: {
       brand: 'Armoze',
