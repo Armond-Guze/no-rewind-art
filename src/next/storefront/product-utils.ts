@@ -2,7 +2,8 @@ import type { Collection, FrameOption, Product, SizeOption } from '../../data/pr
 
 export const supportEmail = 'hello@armoze.com';
 export const supportMailto = `mailto:${supportEmail}`;
-export const launchOfferCode = 'FIRST10';
+export const launchOfferCode = 'FIRST15';
+export const launchOfferDiscount = '15%';
 
 export function formatPrice(cents: number, currency = 'USD') {
   return new Intl.NumberFormat('en-US', {

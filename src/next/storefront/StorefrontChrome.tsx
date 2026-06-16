@@ -11,6 +11,7 @@ import {
 } from '../../cart';
 import { supabaseClient } from '../../lib/supabase';
 import {
+  launchOfferDiscount,
   launchOfferCode,
   supportEmail,
   supportMailto,
@@ -55,7 +56,7 @@ function LaunchPromoBar() {
   return (
     <section className="launch-promo-bar" aria-label="Launch offer">
       <p>
-        Launch offer: 10% off your first order with code <strong>{launchOfferCode}</strong>
+        Launch offer: {launchOfferDiscount} off your first order with code <strong>{launchOfferCode}</strong>
       </p>
     </section>
   );
