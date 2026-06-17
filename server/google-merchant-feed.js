@@ -1,5 +1,10 @@
 import 'dotenv/config';
 import { createProductStore } from './product-store.js';
+import {
+  buildMerchantFeedDescription,
+  buildMerchantFeedTitle,
+  buildMerchantProductType,
+} from './seo-copy.js';
 
 const defaultSiteUrl = 'https://armoze.com';
 const merchantCategory = 'Home & Garden > Decor > Artwork > Posters, Prints, & Visual Artwork';
@@ -76,7 +81,7 @@ function buildFeedItem(product, sizeOption, siteUrl) {
   const productUrl = absoluteUrl(`/products/${product.slug}?size=${encodeURIComponent(sizeOption.id)}`, siteUrl);
   const checkoutUrl = absoluteTemplateUrl('/google-checkout/{id}', siteUrl);
   const imageUrl = absoluteUrl(product.image, siteUrl);
-  const description = stripHtml(product.seoDescription || product.longDescription || product.description);
+  const description = stripHtml(buildMerchantFeedDescription(product));
   const additionalImages = (product.gallery || [])
     .map((image) => absoluteUrl(image, siteUrl))
     .filter((image) => image && image !== imageUrl)
@@ -86,7 +91,7 @@ function buildFeedItem(product, sizeOption, siteUrl) {
     '<item>',
     xmlTag('g:id', itemId),
     xmlTag('g:item_group_id', product.id),
-    xmlTag('g:title', `${product.title} Canvas Print - ${sizeOption.label}`),
+    xmlTag('g:title', buildMerchantFeedTitle(product, sizeOption)),
     xmlTag('g:description', description),
     xmlTag('g:link', productUrl),
     xmlTag('g:checkout_link_template', checkoutUrl),
@@ -102,7 +107,7 @@ function buildFeedItem(product, sizeOption, siteUrl) {
     xmlTag('g:gender', 'unisex'),
     xmlTag('g:age_group', 'adult'),
     xmlTag('g:material', 'Canvas'),
-    xmlTag('g:product_type', `Canvas Prints > ${product.tone || 'Motivational'} Wall Art`),
+    xmlTag('g:product_type', buildMerchantProductType(product)),
     xmlTag('g:google_product_category', merchantCategory),
     xmlTag('g:identifier_exists', 'no'),
     xmlTag('g:custom_label_0', product.tone),

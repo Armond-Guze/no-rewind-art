@@ -1,4 +1,11 @@
 import { createProductStore } from '../../server/product-store.js';
+import {
+  buildCollectionSeoDescription,
+  buildCollectionSeoTitle,
+  buildProductSchemaDescription,
+  buildProductSeoDescription,
+  buildProductSeoTitle,
+} from '../../server/seo-copy.js';
 import { policyPages } from './storefront/policy-content.ts';
 import { supportEmail } from './storefront/product-utils.ts';
 
@@ -162,17 +169,27 @@ function getOrganizationStructuredData() {
 }
 
 export function getProductStructuredData(product) {
+  const aggregateRating =
+    product.rating && product.reviewCount
+      ? {
+          '@type': 'AggregateRating',
+          ratingValue: Number(product.rating).toFixed(1),
+          reviewCount: Number(product.reviewCount),
+        }
+      : undefined;
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.title,
     image: product.image ? [absoluteUrl(product.image)] : undefined,
-    description: product.seoDescription || product.longDescription || product.description,
+    description: buildProductSchemaDescription(product),
     brand: {
       '@type': 'Brand',
       name: 'Armoze',
     },
     sku: product.id,
+    aggregateRating,
     offers: getDefaultProductOffer(product),
   };
 }
@@ -253,15 +270,27 @@ function getReturnsStructuredData() {
 function getCollectionStructuredData(collection, products) {
   return {
     '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    name: collection.title,
-    description: collection.description,
-    itemListElement: products.map((product, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: product.title,
-      url: absoluteUrl(`/products/${product.slug}`),
-    })),
+    '@graph': [
+      getOrganizationStructuredData(),
+      {
+        '@type': 'CollectionPage',
+        '@id': `${siteUrl}/collections/${collection.slug}#webpage`,
+        name: buildCollectionSeoTitle(collection),
+        url: absoluteUrl(`/collections/${collection.slug}`),
+        description: buildCollectionSeoDescription(collection),
+      },
+      {
+        '@type': 'ItemList',
+        name: buildCollectionSeoTitle(collection),
+        description: buildCollectionSeoDescription(collection),
+        itemListElement: products.map((product, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: product.title,
+          url: absoluteUrl(`/products/${product.slug}`),
+        })),
+      },
+    ],
   };
 }
 
@@ -439,11 +468,8 @@ export async function getRouteSeo(pathParts = []) {
       exists: true,
       redirectTo: product.slug !== slug ? `/products/${product.slug}` : undefined,
       metadata: baseMetadata({
-        title: product.seoTitle || `${product.title} Canvas Print`,
-        description:
-          product.seoDescription ||
-          product.description ||
-          'Shop motivational canvas prints from Armoze.',
+        title: buildProductSeoTitle(product),
+        description: buildProductSeoDescription(product),
         path: `/products/${product.slug}`,
         image: product.image || searchLogoPath,
       }),
@@ -463,8 +489,8 @@ export async function getRouteSeo(pathParts = []) {
     return {
       exists: true,
       metadata: baseMetadata({
-        title: `${collection.title} Canvas Prints`,
-        description: collection.description,
+        title: buildCollectionSeoTitle(collection),
+        description: buildCollectionSeoDescription(collection),
         path: `/collections/${collection.slug}`,
         image: products[0]?.image || searchLogoPath,
       }),

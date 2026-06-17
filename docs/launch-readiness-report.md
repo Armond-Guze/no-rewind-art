@@ -1,20 +1,20 @@
 # Armoze Launch Readiness Report
 
-Generated: 2026-06-12T21:23:36.570Z
+Generated: 2026-06-17T04:14:51.687Z
 
 ## Executive Summary
 
-- Published products: 32
+- Published products: 30
 - Launch target: 20 products
-- Products passing hard launch checks: 20
-- Products with blockers: 12
-- Products with warnings: 15
-- Merchant feed items: 158
-- Sitemap product URLs: 32
+- Products passing hard launch checks: 30
+- Products with blockers: 0
+- Products with warnings: 8
+- Merchant feed items: 150
+- Sitemap product URLs: 30
 
 ## Launch Gate
 
-- Product count is launchable: 32 published products.
+- Product count is launchable: 30 published products.
 - Content gate is launchable: at least 20 products pass hard checks.
 - Merchant feed has the core required item fields and production URLs.
 
@@ -22,43 +22,30 @@ Generated: 2026-06-12T21:23:36.570Z
 
 | Product | Slug | Images | Status | Needs |
 | --- | --- | ---: | --- | --- |
-| Bookshelf Mindset | bookshelf | 7 | Ready | Ready |
-| Invest In Yourself | invest-in-yourself | 7 | Ready | Ready |
-| Life Has No Rewind | life-has-no-rewind | 7 | Ready | Ready |
-| Money Band Aid | money-band-aid | 7 | Ready | Ready |
-| Money Over Everything | money-over-everything | 7 | Ready | Ready |
-| Orange Rubberband Racks | orange-rubberband-racks | 7 | Ready | Ready |
-| Paycheck Energy | paycheck | 7 | Ready | Ready |
-| Reminder: Life Has No Rewind | reminder-life-has-no-rewind | 7 | Ready | Ready |
-| 100 Dollars White Marble | 100-dollars-white-marble | 6 | Ready | Ready |
-| Books of Motivation | books-of-motivation | 6 | Ready | Ready |
-| Go All In | go-all-in | 6 | Ready | Ready |
-| No Risk No Reward Lambo | no-risk-no-reward-lambo | 6 | Ready | Ready |
-| Play Again Casette | play-again-casette | 6 | Ready | Ready |
-| Reportcard | reportcard | 6 | Ready | Ready |
-| When Words Fail Music Speaks | when-words-fail-music-speaks | 6 | Ready | Ready |
-| Never Lose Sight Of Your Dreams | never-lose-sight-of-your-dreams | 5 | Ready | aim for 6 total images |
-| Rubber Band Stacks | rubber-band-stacks | 5 | Ready | aim for 6 total images |
-| Success Envelope | success-envelope | 5 | Ready | aim for 6 total images |
-| Money Vault | money-vault | 4 | Ready | aim for 6 total images |
-| Mindset Is Everything | mindset-is-everything | 5 | Ready | main image is 1470x955; aim for 6 total images |
+| Bookshelf Mindset | bookshelf | 11 | Ready | Ready |
+| Invest In Yourself | invest-in-yourself | 11 | Ready | Ready |
+| Money Band Aid | money-band-aid | 11 | Ready | Ready |
+| Orange Rubberband Racks | orange-rubberband-racks | 11 | Ready | Ready |
+| Paycheck Energy | paycheck | 11 | Ready | Ready |
+| 100 Dollars White Marble | 100-dollars-white-marble | 10 | Ready | Ready |
+| Books of Motivation | books-of-motivation | 10 | Ready | Ready |
+| Money Over Everything | money-over-everything | 10 | Ready | Ready |
+| No Risk No Reward Lambo | no-risk-no-reward-lambo | 10 | Ready | Ready |
+| Play Again Casette | play-again-casette | 10 | Ready | Ready |
+| Reportcard | reportcard | 10 | Ready | Ready |
+| When Words Fail Music Speaks | when-words-fail-music-speaks | 10 | Ready | Ready |
+| Go All In | go-all-in | 9 | Ready | Ready |
+| Life Has No Rewind | life-has-no-rewind | 9 | Ready | Ready |
+| Marble Money Black | marble-money-black | 9 | Ready | Ready |
+| Mindset Is Everything | mindset-is-everything | 9 | Ready | Ready |
+| Never Lose Sight Of Your Dreams | never-lose-sight-of-your-dreams | 9 | Ready | Ready |
+| Rubber Band Stacks | rubber-band-stacks | 9 | Ready | Ready |
+| Success Envelope | success-envelope | 9 | Ready | Ready |
+| Money Vault | money-vault | 8 | Ready | Ready |
 
 ## Product Blockers
 
-| Product | Main Issues |
-| --- | --- |
-| Keep Going | only 1 product image(s) |
-| Hello I Am | only 3 product image(s) |
-| Remember Who You Are | only 1 product image(s) |
-| Daily Reminder | only 1 product image(s) |
-| Money Band Clip | only 1 product image(s) |
-| Rent Due | only 1 product image(s) |
-| You Cant Turn Back The Clock | only 1 product image(s) |
-| Count Your Money | only 1 product image(s) |
-| Marble Money Black | needs 5 size options |
-| Money Buys Happiness | needs 5 size options |
-| No Risk No Rari Yellow | only 1 product image(s) |
-| Remember Your Why | only 1 product image(s) |
+No hard product blockers found.
 
 ## Collection Coverage
 
@@ -66,18 +53,18 @@ Generated: 2026-06-12T21:23:36.570Z
 | --- | ---: |
 | Best Sellers | 12 |
 | Money & Ambition | 13 |
-| Discipline & Focus | 16 |
+| Discipline & Focus | 14 |
 | Study & Creative | 2 |
-| New Arrivals | 20 |
+| New Arrivals | 18 |
 
 ## Google And SEO Outputs
 
 - Sitemap status: OK
 - Sitemap collections: 5
-- Sitemap products: 32
+- Sitemap products: 30
 - Merchant feed status: OK
-- Merchant feed expected item count: 158
-- Merchant feed actual item count: 158
+- Merchant feed expected item count: 150
+- Merchant feed actual item count: 150
 - Checkout link template present: yes
 - Free shipping field present: yes
 
