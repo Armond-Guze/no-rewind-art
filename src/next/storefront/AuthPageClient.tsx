@@ -73,7 +73,7 @@ function AuthShell({ children }: { children: ReactNode }) {
         <div className="w-full max-w-[460px] text-center sm:max-w-[540px]">
           <img
             className="mx-auto mb-4 w-[124px] sm:mb-6 sm:w-[176px]"
-            src="/armoze-logo.png"
+            src="/armoze-site-logo.png"
             alt="Armoze"
           />
           <h1 className="text-[0.98rem] font-semibold leading-tight tracking-tight text-white sm:text-[2.15rem]">

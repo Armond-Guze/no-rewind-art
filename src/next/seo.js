@@ -3,6 +3,11 @@ import { policyPages } from './storefront/policy-content.ts';
 import { supportEmail } from './storefront/product-utils.ts';
 
 export const siteUrl = 'https://armoze.com';
+const searchLogoPath = '/armoze-search-logo.png';
+const siteDescription =
+  'Armoze makes made-to-order motivational and money mindset canvas prints for bedrooms, offices, studios, and focused workspaces.';
+const homeDescription =
+  'Shop made-to-order Armoze motivational and money mindset canvas prints for bedrooms, offices, studios, and workspaces. Free U.S. shipping and 30-day returns.';
 
 const productStore = createProductStore();
 const productStoreReady = productStore.init();
@@ -24,7 +29,7 @@ function titleWithBrand(title) {
   return title === 'Armoze' ? title : `${title} | Armoze`;
 }
 
-function baseMetadata({ title, description, path = '/', image = '/armoze-logo.png', robots }) {
+function baseMetadata({ title, description, path = '/', image = searchLogoPath, robots }) {
   const canonical = absoluteUrl(path);
 
   return {
@@ -137,6 +142,25 @@ function getCustomerSupportContactPoint() {
   };
 }
 
+function getOrganizationStructuredData() {
+  return {
+    '@type': 'Organization',
+    '@id': `${siteUrl}/#organization`,
+    name: 'Armoze',
+    url: siteUrl,
+    description: siteDescription,
+    logo: {
+      '@type': 'ImageObject',
+      url: absoluteUrl(searchLogoPath),
+      contentUrl: absoluteUrl(searchLogoPath),
+      width: 512,
+      height: 512,
+    },
+    contactPoint: getCustomerSupportContactPoint(),
+    hasMerchantReturnPolicy: getMerchantReturnPolicy(),
+  };
+}
+
 export function getProductStructuredData(product) {
   return {
     '@context': 'https://schema.org',
@@ -157,20 +181,14 @@ function getHomeStructuredData(featuredProducts) {
   return {
     '@context': 'https://schema.org',
     '@graph': [
-      {
-        '@type': 'Organization',
-        '@id': `${siteUrl}/#organization`,
-        name: 'Armoze',
-        url: siteUrl,
-        logo: absoluteUrl('/armoze-search-logo.png'),
-        contactPoint: getCustomerSupportContactPoint(),
-        hasMerchantReturnPolicy: getMerchantReturnPolicy(),
-      },
+      getOrganizationStructuredData(),
       {
         '@type': 'WebSite',
         '@id': `${siteUrl}/#website`,
         name: 'Armoze',
         url: siteUrl,
+        description: siteDescription,
+        inLanguage: 'en-US',
         publisher: {
           '@id': `${siteUrl}/#organization`,
         },
@@ -193,15 +211,7 @@ function getSupportStructuredData() {
   return {
     '@context': 'https://schema.org',
     '@graph': [
-      {
-        '@type': 'Organization',
-        '@id': `${siteUrl}/#organization`,
-        name: 'Armoze',
-        url: siteUrl,
-        logo: absoluteUrl('/armoze-search-logo.png'),
-        contactPoint: getCustomerSupportContactPoint(),
-        hasMerchantReturnPolicy: getMerchantReturnPolicy(),
-      },
+      getOrganizationStructuredData(),
       {
         '@type': 'ContactPage',
         '@id': `${siteUrl}/support#contact`,
@@ -226,15 +236,7 @@ function getReturnsStructuredData() {
   return {
     '@context': 'https://schema.org',
     '@graph': [
-      {
-        '@type': 'Organization',
-        '@id': `${siteUrl}/#organization`,
-        name: 'Armoze',
-        url: siteUrl,
-        logo: absoluteUrl('/armoze-search-logo.png'),
-        contactPoint: getCustomerSupportContactPoint(),
-        hasMerchantReturnPolicy: getMerchantReturnPolicy(),
-      },
+      getOrganizationStructuredData(),
       {
         '@type': 'WebPage',
         '@id': `${siteUrl}/returns#webpage`,
@@ -417,11 +419,10 @@ export async function getRouteSeo(pathParts = []) {
     return {
       exists: true,
       metadata: baseMetadata({
-        title: 'Canvas Prints and Motivational Wall Art',
-        description:
-          'Shop Armoze canvas prints, motivational wall art, and new original artwork for ambitious rooms and workspaces.',
+        title: 'Motivational Canvas Prints for Offices & Bedrooms',
+        description: homeDescription,
         path: '/',
-        image: heroProduct?.image || '/armoze-logo.png',
+        image: heroProduct?.image || searchLogoPath,
       }),
       structuredData: getHomeStructuredData(featuredProducts),
     };
@@ -444,7 +445,7 @@ export async function getRouteSeo(pathParts = []) {
           product.description ||
           'Shop motivational canvas prints from Armoze.',
         path: `/products/${product.slug}`,
-        image: product.image || '/armoze-logo.png',
+        image: product.image || searchLogoPath,
       }),
       structuredData: getProductStructuredData(product),
     };
@@ -465,7 +466,7 @@ export async function getRouteSeo(pathParts = []) {
         title: `${collection.title} Canvas Prints`,
         description: collection.description,
         path: `/collections/${collection.slug}`,
-        image: products[0]?.image || '/armoze-logo.png',
+        image: products[0]?.image || searchLogoPath,
       }),
       structuredData: getCollectionStructuredData(collection, products),
     };
@@ -480,7 +481,7 @@ export async function getRouteSeo(pathParts = []) {
         title: page.title,
         description: page.description,
         path: `/${section}`,
-        image: '/armoze-logo.png',
+        image: searchLogoPath,
       }),
       structuredData: section === 'returns' ? getReturnsStructuredData() : undefined,
     };
@@ -494,7 +495,7 @@ export async function getRouteSeo(pathParts = []) {
         description:
           'Contact Armoze customer support for order help, shipping questions, tracking, damaged items, returns, refunds, and account support.',
         path: '/support',
-        image: '/armoze-logo.png',
+        image: searchLogoPath,
       }),
       structuredData: getSupportStructuredData(),
     };
@@ -507,7 +508,7 @@ export async function getRouteSeo(pathParts = []) {
         title: 'Cart',
         description: 'Review your Armoze canvas prints before secure checkout.',
         path: '/cart',
-        image: '/armoze-logo.png',
+        image: searchLogoPath,
         robots: { index: false, follow: false },
       }),
     };
@@ -533,7 +534,7 @@ export async function getRouteSeo(pathParts = []) {
         title: accountTitleBySection[section],
         description: accountDescriptionBySection[section],
         path: `/${section}`,
-        image: '/armoze-logo.png',
+        image: searchLogoPath,
         robots: { index: false, follow: false },
       }),
     };

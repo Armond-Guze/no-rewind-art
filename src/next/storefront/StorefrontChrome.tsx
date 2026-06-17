@@ -134,7 +134,7 @@ function NextSiteHeader() {
   return (
     <header className={`site-header${isHome ? ' home-header' : ''}${menuOpen ? ' menu-open' : ''}`}>
       <Link className="brand" href="/" aria-label="Armoze home">
-        <img className="brand-mark" src="/armoze-logo.png" alt="" aria-hidden="true" />
+        <img className="brand-mark" src="/armoze-site-logo.png" alt="" aria-hidden="true" />
         <img className="brand-wordmark" src="/armoze-wordmark.png" alt="Armoze" />
       </Link>
       <button
@@ -169,7 +169,7 @@ function NextSiteHeader() {
         aria-label="Primary navigation"
       >
         <div className="mobile-menu-brand" aria-hidden="true">
-          <img className="brand-mark" src="/armoze-logo.png" alt="" />
+          <img className="brand-mark" src="/armoze-site-logo.png" alt="" />
           <img className="brand-wordmark" src="/armoze-wordmark.png" alt="" />
         </div>
         <Link href="/collections/best-sellers" onClick={closeMenu}>Best Sellers</Link>
@@ -230,7 +230,7 @@ function NextSiteFooter() {
     <footer className="site-footer">
       <div className="footer-brand">
         <Link className="footer-logo" href="/" aria-label="Armoze home">
-          <img className="brand-mark" src="/armoze-logo.png" alt="" aria-hidden="true" />
+          <img className="brand-mark" src="/armoze-site-logo.png" alt="" aria-hidden="true" />
           <span>Armoze</span>
         </Link>
         <p>Motivational canvas prints for ambitious spaces.</p>
