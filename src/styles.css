@@ -2960,8 +2960,8 @@ h3 {
 }
 
 .related-product {
-  --related-product-media-height: clamp(190px, 12.5vw, 236px);
-  --related-product-media-pad: clamp(12px, 1.1vw, 20px);
+  --related-product-media-height: clamp(200px, 13.5vw, 252px);
+  --related-product-media-pad: clamp(6px, 0.7vw, 12px);
   display: grid;
   grid-template-rows: var(--related-product-media-height) minmax(1.15em, auto) auto;
   align-content: start;
@@ -2976,26 +2976,27 @@ h3 {
   width: 100%;
   height: var(--related-product-media-height);
   min-width: 0;
+  overflow: visible;
 }
 
 .related-product .product-canvas-image {
   align-self: center;
   justify-self: center;
-  width: min(100%, 260px);
+  width: min(100%, 300px);
   max-height: calc(var(--related-product-media-height) - (var(--related-product-media-pad) * 2));
 }
 
 .related-product .product-canvas-image.shape-landscape {
-  width: min(100%, 296px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 1.56));
+  width: min(100%, 340px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 1.9));
 }
 
 .related-product .product-canvas-image.shape-portrait {
-  width: min(50%, 142px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 0.64));
-  min-width: min(100%, 112px);
+  width: min(66%, 170px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 0.78));
+  min-width: min(100%, 128px);
 }
 
 .related-product .product-canvas-image.shape-square {
-  width: min(78%, 204px, calc(var(--related-product-media-height) - (var(--related-product-media-pad) * 2)));
+  width: min(88%, 224px, calc(var(--related-product-media-height) - (var(--related-product-media-pad) * 2)));
 }
 
 .related-product .product-canvas-image > div {
@@ -3112,14 +3113,14 @@ h3 {
 .related-product .artwork-mockup {
   align-self: center;
   justify-self: center;
-  width: min(100%, 270px, calc(var(--related-product-media-height) - (var(--related-product-media-pad) * 2)));
+  width: min(100%, 300px, calc(var(--related-product-media-height) - (var(--related-product-media-pad) * 1.2)));
   aspect-ratio: 1;
   min-height: 0;
   background: #ebe7de;
 }
 
 .related-product .artwork-mockup-print {
-  width: 74%;
+  width: 82%;
 }
 
 .related-product > span {
@@ -5067,21 +5068,21 @@ h3 {
 
   .related-product {
     --related-product-media-height: 210px;
-    --related-product-media-pad: 20px;
+    --related-product-media-pad: 10px;
   }
 
   .related-product .product-canvas-image,
   .related-product .product-canvas-image.shape-landscape {
-    width: min(100%, 260px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 1.5));
+    width: min(100%, 300px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 1.72));
   }
 
   .related-product .product-canvas-image.shape-portrait {
-    width: min(46%, 124px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 0.6));
-    min-width: min(100%, 104px);
+    width: min(58%, 150px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 0.7));
+    min-width: min(100%, 118px);
   }
 
   .related-product .product-canvas-image.shape-square {
-    width: min(72%, 180px, calc(var(--related-product-media-height) - (var(--related-product-media-pad) * 2)));
+    width: min(84%, 198px, calc(var(--related-product-media-height) - (var(--related-product-media-pad) * 2)));
   }
 
   .product-proof-grid {
@@ -5663,8 +5664,8 @@ h3 {
   }
 
   .related-product {
-    --related-product-media-height: clamp(210px, 52vw, 250px);
-    --related-product-media-pad: 16px;
+    --related-product-media-height: clamp(220px, 54vw, 260px);
+    --related-product-media-pad: 8px;
     scroll-snap-align: start;
     padding: 18px 14px 16px;
     border: 1px solid rgba(21, 21, 21, 0.1);
@@ -5678,15 +5679,15 @@ h3 {
 
   .related-product .product-canvas-image,
   .related-product .product-canvas-image.shape-landscape {
-    width: min(100%, 270px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 1.68));
+    width: min(100%, 300px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 1.8));
   }
 
   .related-product .product-canvas-image.shape-portrait {
-    width: min(58%, 140px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 0.66));
+    width: min(66%, 160px, calc((var(--related-product-media-height) - (var(--related-product-media-pad) * 2)) * 0.76));
   }
 
   .related-product .product-canvas-image.shape-square {
-    width: min(78%, 190px, calc(var(--related-product-media-height) - (var(--related-product-media-pad) * 2)));
+    width: min(88%, 210px, calc(var(--related-product-media-height) - (var(--related-product-media-pad) * 2)));
   }
 
   .related-product > span {
