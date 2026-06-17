@@ -5334,11 +5334,13 @@ h3 {
 
   .mobile-gallery-slide .main-product-image {
     --mobile-gallery-stage: clamp(320px, 94vw, 460px);
+    --mobile-gallery-pad-y: clamp(18px, 5vw, 28px);
+    --mobile-gallery-pad-total: clamp(36px, 10vw, 56px);
     min-height: var(--mobile-gallery-stage);
     height: var(--mobile-gallery-stage);
     display: grid;
     place-items: center;
-    padding: 20px 8px 30px;
+    padding: var(--mobile-gallery-pad-y) 8px;
     overflow: visible;
     background: #f7f5f0;
     transition:
@@ -5355,7 +5357,7 @@ h3 {
   .mobile-gallery-slide .main-product-image.mockup-product-image {
     min-height: var(--mobile-gallery-stage);
     height: var(--mobile-gallery-stage);
-    padding: 20px 8px 30px;
+    padding: var(--mobile-gallery-pad-y) 8px;
     background: #f7f5f0;
   }
 
@@ -5388,16 +5390,24 @@ h3 {
     place-items: center;
   }
 
+  .mobile-gallery-slide .detail-artwork-shell.front-product-shell {
+    transform: translateY(clamp(8px, 2.4vw, 16px));
+  }
+
+  .mobile-gallery-slide .detail-artwork-shell.front-product-shell.shape-portrait {
+    transform: translateY(clamp(4px, 1.4vw, 10px));
+  }
+
   .mobile-gallery-slide .detail-artwork-surface {
     max-width: calc(100vw - 48px);
-    max-height: calc(var(--mobile-gallery-stage, clamp(320px, 94vw, 460px)) - 56px);
+    max-height: calc(var(--mobile-gallery-stage, clamp(320px, 94vw, 460px)) - var(--mobile-gallery-pad-total, 56px));
     display: grid;
     place-items: center;
   }
 
   .mobile-gallery-slide .detail-artwork-shell img,
   .mobile-gallery-slide .detail-artwork-shell .product-art {
-    max-height: calc(var(--mobile-gallery-stage, clamp(320px, 94vw, 460px)) - 56px);
+    max-height: calc(var(--mobile-gallery-stage, clamp(320px, 94vw, 460px)) - var(--mobile-gallery-pad-total, 56px));
     width: auto;
     max-width: 100%;
     object-fit: contain;
@@ -5412,7 +5422,7 @@ h3 {
 
   .mobile-gallery-slide .detail-artwork-shell .product-canvas-image {
     max-width: calc(100vw - 56px);
-    max-height: calc(var(--mobile-gallery-stage, clamp(320px, 94vw, 460px)) - 56px);
+    max-height: calc(var(--mobile-gallery-stage, clamp(320px, 94vw, 460px)) - var(--mobile-gallery-pad-total, 56px));
     display: grid;
     align-items: center;
   }
