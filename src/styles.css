@@ -2616,6 +2616,8 @@ h3 {
 }
 
 .frame-option-preview-image {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
@@ -2695,6 +2697,47 @@ h3 {
     repeating-linear-gradient(90deg, rgba(21, 21, 21, 0.05) 0 1px, transparent 1px 5px),
     #f7f2e8;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.frame-option-preview.has-image.black::before,
+.frame-option-preview.has-image.white::before {
+  display: block;
+  z-index: 2;
+  background: transparent;
+  opacity: 1;
+  box-shadow:
+    inset 0 0 0 1px var(--preview-frame-line),
+    inset 0 2px 4px var(--preview-frame-light),
+    inset 0 -6px 9px var(--preview-frame-shade);
+}
+
+.frame-option-preview.has-image.black::after,
+.frame-option-preview.has-image.white::after {
+  display: block;
+  z-index: 3;
+  inset: 7px;
+  width: auto;
+  height: auto;
+  background: transparent;
+  box-shadow:
+    inset 0 0 0 3px var(--preview-frame-inner-lip, rgba(0, 0, 0, 0.16)),
+    inset 0 0 0 4px var(--preview-frame-groove, rgba(0, 0, 0, 0.22)),
+    inset 3px 3px 5px var(--preview-frame-groove-shade, rgba(0, 0, 0, 0.2)),
+    inset -2px -2px 4px var(--preview-frame-groove-light, rgba(255, 255, 255, 0.72));
+}
+
+.frame-option-preview.has-image.black {
+  --preview-frame-inner-lip: #050505;
+  --preview-frame-groove: rgba(0, 0, 0, 0.86);
+  --preview-frame-groove-shade: rgba(0, 0, 0, 0.68);
+  --preview-frame-groove-light: rgba(255, 255, 255, 0.07);
+}
+
+.frame-option-preview.has-image.white {
+  --preview-frame-inner-lip: #e6e7e2;
+  --preview-frame-groove: rgba(74, 81, 77, 0.42);
+  --preview-frame-groove-shade: rgba(58, 64, 60, 0.32);
+  --preview-frame-groove-light: rgba(255, 255, 255, 0.86);
 }
 
 .frame-options button.selected,
@@ -8473,6 +8516,9 @@ h3 {
   pointer-events: none;
   box-shadow:
     inset 0 0 0 var(--canvas-frame-lip) var(--canvas-frame-inner-lip),
+    inset 0 0 0 calc(var(--canvas-frame-lip) + 1px) var(--canvas-frame-groove-line),
+    inset 5px 5px 9px var(--canvas-frame-groove-shade),
+    inset -4px -4px 7px var(--canvas-frame-groove-highlight),
     inset 0 1px 2px var(--canvas-frame-inner-highlight),
     inset 0 -2px 3px rgba(0, 0, 0, 0.22);
 }
@@ -8494,6 +8540,12 @@ h3 {
   --canvas-frame-right-shade: rgba(0, 0, 0, 0.54);
   --canvas-frame-inner-lip: #050505;
   --canvas-frame-inner-highlight: rgba(255, 255, 255, 0.08);
+  --canvas-frame-groove-line: rgba(0, 0, 0, 0.86);
+  --canvas-frame-groove-shade: rgba(0, 0, 0, 0.72);
+  --canvas-frame-groove-highlight: rgba(255, 255, 255, 0.07);
+  --canvas-frame-art-edge: rgba(0, 0, 0, 0.82);
+  --canvas-frame-art-drop: rgba(0, 0, 0, 0.64);
+  --canvas-frame-art-highlight: rgba(255, 255, 255, 0.08);
   --canvas-frame-background:
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 11px),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 13px),
@@ -8506,13 +8558,19 @@ h3 {
   .product-canvas-image.frame-white,
 .mobile-gallery-slide
   .product-canvas-image.frame-white {
-  --canvas-frame-outer-line: rgba(0, 0, 0, 0.12);
+  --canvas-frame-outer-line: rgba(0, 0, 0, 0.16);
   --canvas-frame-top-light: rgba(255, 255, 255, 0.94);
-  --canvas-frame-bottom-shade: rgba(0, 0, 0, 0.16);
+  --canvas-frame-bottom-shade: rgba(0, 0, 0, 0.22);
   --canvas-frame-left-light: rgba(255, 255, 255, 0.72);
-  --canvas-frame-right-shade: rgba(0, 0, 0, 0.13);
-  --canvas-frame-inner-lip: #f3f1ea;
+  --canvas-frame-right-shade: rgba(0, 0, 0, 0.18);
+  --canvas-frame-inner-lip: #e7e8e4;
   --canvas-frame-inner-highlight: rgba(255, 255, 255, 0.9);
+  --canvas-frame-groove-line: rgba(75, 82, 78, 0.42);
+  --canvas-frame-groove-shade: rgba(54, 61, 57, 0.34);
+  --canvas-frame-groove-highlight: rgba(255, 255, 255, 0.88);
+  --canvas-frame-art-edge: rgba(70, 74, 70, 0.3);
+  --canvas-frame-art-drop: rgba(65, 69, 65, 0.26);
+  --canvas-frame-art-highlight: rgba(255, 255, 255, 0.9);
   --canvas-frame-background:
     repeating-linear-gradient(90deg, rgba(118, 108, 88, 0.04) 0 1px, transparent 1px 12px),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.42) 0 1px, transparent 1px 14px),
@@ -8527,8 +8585,11 @@ h3 {
   .product-canvas-image.frame-white::after {
   box-shadow:
     inset 0 0 0 var(--canvas-frame-lip) var(--canvas-frame-inner-lip),
+    inset 0 0 0 calc(var(--canvas-frame-lip) + 1px) var(--canvas-frame-groove-line),
+    inset 5px 5px 9px var(--canvas-frame-groove-shade),
+    inset -4px -4px 7px var(--canvas-frame-groove-highlight),
     inset 0 1px 2px rgba(255, 255, 255, 0.86),
-    inset 0 -2px 3px rgba(0, 0, 0, 0.08);
+    inset 0 -2px 4px rgba(0, 0, 0, 0.14);
 }
 
 .listing-gallery > .main-product-image
@@ -8546,8 +8607,9 @@ h3 {
   border-radius: 0;
   background: #f3f1ea;
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.36),
-    0 2px 4px rgba(255, 255, 255, 0.1),
+    0 0 0 1px var(--canvas-frame-art-edge),
+    -2px -2px 4px var(--canvas-frame-art-highlight),
+    6px 7px 12px var(--canvas-frame-art-drop),
     inset 0 0 0 1px var(--canvas-frame-inner-highlight),
     inset 0 2px 4px rgba(255, 255, 255, 0.12),
     inset 0 -5px 8px rgba(0, 0, 0, 0.16);
@@ -8561,11 +8623,12 @@ h3 {
   > div {
   background: #fbfaf5;
   box-shadow:
-    0 0 0 1px rgba(92, 86, 74, 0.18),
-    0 2px 4px rgba(255, 255, 255, 0.18),
+    0 0 0 1px var(--canvas-frame-art-edge),
+    -2px -2px 4px var(--canvas-frame-art-highlight),
+    6px 7px 12px var(--canvas-frame-art-drop),
     inset 0 0 0 1px var(--canvas-frame-inner-highlight),
     inset 0 2px 4px rgba(255, 255, 255, 0.3),
-    inset 0 -5px 8px rgba(0, 0, 0, 0.08);
+    inset 0 -5px 8px rgba(0, 0, 0, 0.1);
 }
 
 .listing-gallery > .main-product-image
@@ -8585,8 +8648,9 @@ h3 {
   .product-canvas-image.frame-white
   > div {
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.36),
-    0 2px 4px rgba(255, 255, 255, 0.1),
+    0 0 0 1px var(--canvas-frame-art-edge),
+    -2px -2px 4px var(--canvas-frame-art-highlight),
+    6px 7px 12px var(--canvas-frame-art-drop),
     inset 0 0 0 1px var(--canvas-frame-inner-highlight),
     inset 0 2px 4px rgba(255, 255, 255, 0.12),
     inset 0 -5px 8px rgba(0, 0, 0, 0.16);
@@ -9023,6 +9087,85 @@ h3 {
     inset 0 -10px 14px var(--canvas-frame-bottom-shade),
     inset 9px 0 13px var(--canvas-frame-left-light),
     inset -9px 0 13px var(--canvas-frame-right-shade);
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white {
+  --canvas-frame-rail: clamp(12px, 1.15vw, 24px);
+  --canvas-frame-lip: clamp(6px, 0.48vw, 10px);
+  --canvas-frame-outer-line: rgba(0, 0, 0, 0.2);
+  --canvas-frame-bottom-shade: rgba(0, 0, 0, 0.3);
+  --canvas-frame-right-shade: rgba(0, 0, 0, 0.24);
+  --canvas-frame-inner-lip: #f4f3ec;
+  --canvas-frame-groove-line: rgba(48, 54, 51, 0.56);
+  --canvas-frame-groove-shade: rgba(42, 48, 45, 0.44);
+  --canvas-frame-groove-highlight: rgba(255, 255, 255, 0.96);
+  --canvas-frame-art-edge: rgba(42, 48, 45, 0.46);
+  --canvas-frame-art-drop: rgba(54, 59, 55, 0.42);
+  --canvas-frame-art-highlight: rgba(255, 255, 255, 0.96);
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white::after,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white::after {
+  box-shadow:
+    inset 0 0 0 calc(var(--canvas-frame-lip) - 2px) var(--canvas-frame-inner-lip),
+    inset 0 0 0 calc(var(--canvas-frame-lip) - 1px) rgba(255, 255, 255, 0.92),
+    inset 0 0 0 calc(var(--canvas-frame-lip) + 2px) var(--canvas-frame-groove-line),
+    inset 8px 8px 12px var(--canvas-frame-groove-shade),
+    inset -6px -6px 10px var(--canvas-frame-groove-highlight),
+    inset 0 13px 14px -14px rgba(0, 0, 0, 0.48),
+    inset 0 -14px 16px -14px rgba(0, 0, 0, 0.36);
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black::after,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black::after {
+  box-shadow:
+    inset 0 0 0 calc(var(--canvas-frame-lip) - 1px) #080908,
+    inset 0 0 0 calc(var(--canvas-frame-lip) + 2px) rgba(0, 0, 0, 0.96),
+    inset 8px 8px 12px rgba(0, 0, 0, 0.78),
+    inset -6px -6px 10px rgba(255, 255, 255, 0.08),
+    inset 0 13px 14px -14px rgba(255, 255, 255, 0.16),
+    inset 0 -14px 16px -14px rgba(0, 0, 0, 0.72);
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell:is(.shape-landscape, .shape-portrait, .shape-square)
+  .product-canvas-image.frame-white
+  > div,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell:is(.shape-landscape, .shape-portrait, .shape-square)
+  .product-canvas-image.frame-white
+  > div {
+  box-shadow:
+    0 0 0 1px var(--canvas-frame-art-edge),
+    -3px -3px 5px var(--canvas-frame-art-highlight),
+    10px 12px 18px var(--canvas-frame-art-drop),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.8),
+    inset 0 2px 4px rgba(255, 255, 255, 0.32),
+    inset 0 -6px 9px rgba(0, 0, 0, 0.14);
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell:is(.shape-landscape, .shape-portrait, .shape-square)
+  .product-canvas-image.frame-black
+  > div,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell:is(.shape-landscape, .shape-portrait, .shape-square)
+  .product-canvas-image.frame-black
+  > div {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.88),
+    -2px -2px 4px rgba(255, 255, 255, 0.08),
+    10px 12px 18px rgba(0, 0, 0, 0.66),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 2px 4px rgba(255, 255, 255, 0.08),
+    inset 0 -6px 9px rgba(0, 0, 0, 0.28);
 }
 
 .listing-card-image .product-canvas-image,
