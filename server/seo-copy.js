@@ -83,6 +83,30 @@ function getProfileForProduct(product) {
   return toneProfiles[product?.tone] || toneProfiles.focus;
 }
 
+export function getProductSeoAliases(product, limit = 0) {
+  const aliases = Array.isArray(product?.seoAliases)
+    ? [...new Set(product.seoAliases.map((alias) => normalizeText(alias)).filter(Boolean))]
+    : [];
+
+  return limit > 0 ? aliases.slice(0, limit) : aliases;
+}
+
+function formatAliasList(aliases) {
+  if (!aliases.length) {
+    return '';
+  }
+
+  if (aliases.length === 1) {
+    return aliases[0];
+  }
+
+  if (aliases.length === 2) {
+    return `${aliases[0]} and ${aliases[1]}`;
+  }
+
+  return `${aliases.slice(0, -1).join(', ')}, and ${aliases.at(-1)}`;
+}
+
 export function buildProductSeoTitle(product) {
   const profile = getProfileForProduct(product);
   const title = normalizeText(product?.seoTitle);
@@ -97,13 +121,14 @@ export function buildProductSeoTitle(product) {
 export function buildProductSeoDescription(product) {
   const profile = getProfileForProduct(product);
   const seoDescription = normalizeText(product?.seoDescription);
+  const aliases = getProductSeoAliases(product, 2);
 
   if (seoDescription && !isGenericProductDescription(seoDescription)) {
     return cleanSentence(seoDescription);
   }
 
   return cleanSentence(
-    `Shop ${normalizeText(product?.title)} by Armoze, a ${profile.descriptionPhrase} for ${profile.audience || defaultAudience}`,
+    `Shop ${normalizeText(product?.title)} by Armoze, a ${profile.descriptionPhrase} for ${profile.audience || defaultAudience}${aliases.length ? `, including ${formatAliasList(aliases)}` : ''}`,
   );
 }
 
@@ -135,10 +160,17 @@ export function buildMerchantFeedTitle(product, sizeOption) {
 
 export function buildMerchantFeedDescription(product) {
   const profile = getProfileForProduct(product);
+  const aliases = getProductSeoAliases(product, 3);
 
-  return cleanSentence(
+  const baseDescription = cleanSentence(
     `${normalizeText(product?.title)} is a made-to-order ${profile.descriptionPhrase} designed for ${profile.audience || defaultAudience}`,
   );
+
+  if (!aliases.length) {
+    return baseDescription;
+  }
+
+  return `${baseDescription} Also fits ${formatAliasList(aliases)}.`;
 }
 
 export function buildMerchantProductType(product) {

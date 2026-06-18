@@ -84,6 +84,53 @@ function inferCollectionSlugs(tone) {
   return collectionSlugs
 }
 
+function inferSeoAliases(title, tone) {
+  const baseAliases = [
+    `${title} canvas print`,
+    `${title} wall art`,
+    'motivational canvas print',
+    'motivational wall art',
+  ];
+
+  if (tone === 'money') {
+    return [
+      ...baseAliases,
+      'money wall art',
+      'entrepreneur wall art',
+      'office motivation decor',
+      'ambition canvas print',
+    ];
+  }
+
+  if (tone === 'minimal') {
+    return [
+      ...baseAliases,
+      'study room wall art',
+      'creative workspace decor',
+      'reading room wall art',
+      'minimal office decor',
+    ];
+  }
+
+  if (tone === 'cassette') {
+    return [
+      ...baseAliases,
+      'retro motivational art',
+      'music room wall art',
+      'studio wall decor',
+      'nostalgic canvas print',
+    ];
+  }
+
+  return [
+    ...baseAliases,
+    'discipline wall art',
+    'focus room decor',
+    'gym motivation wall art',
+    'office wall art',
+  ];
+}
+
 async function readTopLevelFolders(root) {
   const entries = await readdir(root, {withFileTypes: true})
   return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a, b) => a.localeCompare(b))
@@ -437,6 +484,7 @@ for (const folder of unmatchedFolders) {
     title,
     seoTitle: `${title} Motivational Canvas Print`,
     seoDescription: `Shop ${title} by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.`,
+    seoAliases: inferSeoAliases(title, tone),
     description,
     longDescription,
     label: title,

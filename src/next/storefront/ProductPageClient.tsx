@@ -90,17 +90,39 @@ function ProductTrustStrip() {
   );
 }
 
-function StoreRating() {
+function StoreRating({ product }: { product: Product }) {
+  const rating = Number(product.rating || 0);
+  const reviewCount = Number(product.reviewCount || 0);
+
+  if (!rating || !reviewCount) {
+    return null;
+  }
+
+  const clampedRating = Math.max(0, Math.min(rating, 5));
+  const fullStars = Math.floor(clampedRating);
+  const hasHalfStar = clampedRating - fullStars >= 0.25 && clampedRating - fullStars < 0.75;
+  const roundedFullStars = clampedRating - fullStars >= 0.75 ? Math.min(fullStars + 1, 5) : fullStars;
+
   return (
-    <div className="store-rating" aria-label="Store rating: 4.5 out of 5 stars from 125 reviews">
+    <div
+      className="store-rating"
+      aria-label={`${product.title} rating: ${rating.toFixed(1)} out of 5 stars from ${reviewCount} reviews`}
+    >
       <span className="store-rating-stars" aria-hidden="true">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <Star fill="currentColor" key={index} size={17} strokeWidth={2.4} />
-        ))}
-        <StarHalf fill="currentColor" size={17} strokeWidth={2.4} />
+        {Array.from({ length: 5 }).map((_, index) => {
+          if (index < (hasHalfStar ? fullStars : roundedFullStars)) {
+            return <Star fill="currentColor" key={index} size={17} strokeWidth={2.4} />;
+          }
+
+          if (hasHalfStar && index === fullStars) {
+            return <StarHalf fill="currentColor" key={index} size={17} strokeWidth={2.4} />;
+          }
+
+          return <Star key={index} size={17} strokeWidth={2.4} />;
+        })}
       </span>
-      <span>4.5 stars</span>
-      <span>125 reviews</span>
+      <span>{rating.toFixed(1)} stars</span>
+      <span>{reviewCount} reviews</span>
     </div>
   );
 }
@@ -504,7 +526,7 @@ export default function ProductPageClient({
 
           <aside className="listing-panel">
             <p className="listing-kicker">Armoze Original</p>
-            <StoreRating />
+            <StoreRating product={product} />
             <h1>{product.title}</h1>
             <p className="listing-price">{formatPrice(selectedUnitPrice)}</p>
             <ProductTrustStrip />
@@ -635,6 +657,17 @@ export default function ProductPageClient({
                   <div className="product-details-content" id={`${product.id}-details`}>
                     <h2>{product.title}</h2>
                     <p>{product.title} - Armoze canvas art</p>
+
+                    {product.seoAliases?.length ? (
+                      <>
+                        <h3>Best For</h3>
+                        <ul>
+                          {product.seoAliases.map((alias) => (
+                            <li key={alias}>{alias}</li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : null}
 
                     <h3>Canvas Details</h3>
                     <ul>

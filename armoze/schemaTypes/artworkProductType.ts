@@ -263,6 +263,15 @@ export const artworkProductType = defineType({
     }),
     defineField({name: 'seoTitle', title: 'SEO Title', type: 'string'}),
     defineField({name: 'seoDescription', title: 'SEO Description', type: 'text', rows: 2}),
+    defineField({
+      name: 'seoAliases',
+      title: 'SEO Aliases',
+      type: 'array',
+      description:
+        'Natural keyword phrases and alternate search intents for this product, like office wall art, entrepreneur canvas print, or gym motivation decor.',
+      of: [defineArrayMember({type: 'string'})],
+      validation: (rule) => rule.unique(),
+    }),
   ],
   preview: {
     select: {

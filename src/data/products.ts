@@ -48,6 +48,7 @@ export type CatalogProduct = {
   id: string;
   slug: string;
   previousSlugs?: string[];
+  seoAliases?: string[];
   title: string;
   seoTitle?: string;
   seoDescription?: string;
@@ -348,6 +349,9 @@ export function normalizeProduct(
 
   return {
     ...product,
+    seoAliases: Array.isArray(product.seoAliases)
+      ? [...new Set(product.seoAliases.map((alias) => String(alias).trim()).filter(Boolean))]
+      : [],
     videos: normalizeProductVideos([...(product.videos || []), ...defaultProductVideos]),
     collectionSlugs: normalizeCollectionSlugs(product.collectionSlugs || []),
     artworkShape: product.artworkShape || getArtworkShapeFromSizePreset(product.sizePreset),

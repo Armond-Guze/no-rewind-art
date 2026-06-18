@@ -5,6 +5,7 @@ import {
   buildProductSchemaDescription,
   buildProductSeoDescription,
   buildProductSeoTitle,
+  getProductSeoAliases,
 } from '../../server/seo-copy.js';
 import { policyPages } from './storefront/policy-content.ts';
 import { supportEmail } from './storefront/product-utils.ts';
@@ -169,6 +170,15 @@ function getOrganizationStructuredData() {
 }
 
 export function getProductStructuredData(product) {
+  const productImages = [product.image, ...(product.gallery || [])]
+    .filter(Boolean)
+    .map((image) => absoluteUrl(image));
+  const seoAliases = getProductSeoAliases(product);
+  const additionalProperty = seoAliases.map((alias) => ({
+    '@type': 'PropertyValue',
+    name: 'Best for',
+    value: alias,
+  }));
   const aggregateRating =
     product.rating && product.reviewCount
       ? {
@@ -182,7 +192,7 @@ export function getProductStructuredData(product) {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.title,
-    image: product.image ? [absoluteUrl(product.image)] : undefined,
+    image: productImages.length ? productImages : undefined,
     description: buildProductSchemaDescription(product),
     brand: {
       '@type': 'Brand',
@@ -190,6 +200,7 @@ export function getProductStructuredData(product) {
     },
     sku: product.id,
     aggregateRating,
+    additionalProperty: additionalProperty.length ? additionalProperty : undefined,
     offers: getDefaultProductOffer(product),
   };
 }

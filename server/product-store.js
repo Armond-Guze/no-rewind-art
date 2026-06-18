@@ -259,6 +259,7 @@ function normalizeSanityProduct(
       id: document.productId || document._id,
       slug: document.slug,
       previousSlugs: Array.isArray(document.previousSlugs) ? document.previousSlugs : [],
+      seoAliases: Array.isArray(document.seoAliases) ? document.seoAliases : [],
       title: document.title,
       seoTitle: document.seoTitle,
       seoDescription: document.seoDescription,
@@ -324,6 +325,7 @@ const SANITY_PRODUCTS_QUERY = `*[
   productId,
   "slug": slug.current,
   previousSlugs,
+  seoAliases,
   title,
   seoTitle,
   seoDescription,
@@ -417,6 +419,10 @@ export function sanitizeProductUpdate(existingProduct, update) {
 
   if ('previousSlugs' in update) {
     next.previousSlugs = sanitizeTextArray(update.previousSlugs);
+  }
+
+  if ('seoAliases' in update) {
+    next.seoAliases = sanitizeTextArray(update.seoAliases);
   }
 
   if ('collectionSlugs' in update) {

@@ -4,6 +4,7 @@ import {
   buildMerchantFeedDescription,
   buildMerchantFeedTitle,
   buildMerchantProductType,
+  getProductSeoAliases,
 } from './seo-copy.js';
 
 const defaultSiteUrl = 'https://armoze.com';
@@ -82,6 +83,7 @@ function buildFeedItem(product, sizeOption, siteUrl) {
   const checkoutUrl = absoluteTemplateUrl('/google-checkout/{id}', siteUrl);
   const imageUrl = absoluteUrl(product.image, siteUrl);
   const description = stripHtml(buildMerchantFeedDescription(product));
+  const seoAliases = getProductSeoAliases(product, 4);
   const additionalImages = (product.gallery || [])
     .map((image) => absoluteUrl(image, siteUrl))
     .filter((image) => image && image !== imageUrl)
@@ -116,6 +118,10 @@ function buildFeedItem(product, sizeOption, siteUrl) {
     xmlTag('g:google_product_category', merchantCategory),
     xmlTag('g:identifier_exists', 'no'),
     xmlTag('g:custom_label_0', product.tone),
+    xmlTag('g:custom_label_1', seoAliases[0]),
+    xmlTag('g:custom_label_2', seoAliases[1]),
+    xmlTag('g:custom_label_3', seoAliases[2]),
+    xmlTag('g:custom_label_4', seoAliases[3]),
     '<g:shipping>',
     xmlTag('g:country', 'US'),
     xmlTag('g:service', 'Standard shipping'),
