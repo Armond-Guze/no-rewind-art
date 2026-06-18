@@ -113,6 +113,37 @@ function sanitizeTextArray(value) {
     : [];
 }
 
+function sanitizeVideoEntries(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const seenUrls = new Set();
+
+  return value
+    .map((video) => {
+      const id = sanitizeText(video?.id);
+      const title = sanitizeText(video?.title);
+      const url = sanitizeText(video?.url || video?.videoUrl);
+      const thumbnail = sanitizeText(video?.thumbnail || video?.thumbnailUrl);
+
+      return {
+        ...(id ? { id } : {}),
+        ...(title ? { title } : {}),
+        url,
+        ...(thumbnail ? { thumbnail } : {}),
+      };
+    })
+    .filter((video) => {
+      if (!video.url || seenUrls.has(video.url)) {
+        return false;
+      }
+
+      seenUrls.add(video.url);
+      return true;
+    });
+}
+
 function sanitizeHomepageProductIds(value) {
   return [...new Set(sanitizeTextArray(value))];
 }
@@ -216,6 +247,7 @@ function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets)
         .map((image) => image?.url || '')
         .filter(Boolean)
     : [];
+  const videos = sanitizeVideoEntries(document.productVideos);
 
   return normalizeProduct(
     {
@@ -233,6 +265,7 @@ function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets)
       artworkShape: getArtworkShapeFromSizePreset(document.sizePreset),
       aspectRatio: getProductAspectRatio(document),
       gallery,
+      videos,
       tone: document.tone || 'minimal',
       collectionSlugs: Array.isArray(document.collectionSlugs) ? document.collectionSlugs : [],
       priceInCents: document.priceInCents,
@@ -294,6 +327,11 @@ const SANITY_PRODUCTS_QUERY = `*[
   "galleryImages": galleryImages[]{
     "url": asset->url,
     alt
+  },
+  "productVideos": productVideos[]{
+    title,
+    "url": coalesce(videoFile.asset->url, videoUrl),
+    "thumbnail": thumbnail.asset->url
   },
   tone,
   collectionSlugs,
@@ -361,6 +399,10 @@ export function sanitizeProductUpdate(existingProduct, update) {
 
   if ('gallery' in update) {
     next.gallery = sanitizeTextArray(update.gallery);
+  }
+
+  if ('videos' in update) {
+    next.videos = sanitizeVideoEntries(update.videos);
   }
 
   if ('previousSlugs' in update) {

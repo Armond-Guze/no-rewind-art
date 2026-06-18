@@ -1,4 +1,4 @@
-import type { Collection, FrameOption, Product, SizeOption } from '../../data/products';
+import type { Collection, FrameOption, Product, ProductVideo, SizeOption } from '../../data/products';
 
 export const supportEmail = 'hello@armoze.com';
 export const supportMailto = `mailto:${supportEmail}`;
@@ -151,6 +151,55 @@ export function getProductGallery(product: Product) {
   return [product.image, ...(product.gallery ?? [])].filter(
     (image, index, gallery): image is string => Boolean(image) && gallery.indexOf(image) === index,
   );
+}
+
+export type ProductGalleryItem =
+  | { type: 'placeholder'; key: 'placeholder' }
+  | { type: 'image'; key: string; src: string; isPrimary: boolean }
+  | { type: 'video'; key: string; video: ProductVideo };
+
+export function getProductVideos(product: Pick<Product, 'videos'>) {
+  const seenUrls = new Set<string>();
+
+  return (product.videos ?? [])
+    .map((video) => {
+      const id = typeof video.id === 'string' ? video.id.trim() : undefined;
+      const title = typeof video.title === 'string' ? video.title.trim() : undefined;
+      const url = typeof video.url === 'string' ? video.url.trim() : '';
+      const thumbnail = typeof video.thumbnail === 'string' ? video.thumbnail.trim() : undefined;
+
+      return {
+        ...(id ? { id } : {}),
+        ...(title ? { title } : {}),
+        url,
+        ...(thumbnail ? { thumbnail } : {}),
+      };
+    })
+    .filter((video) => {
+      if (!video.url || seenUrls.has(video.url)) {
+        return false;
+      }
+
+      seenUrls.add(video.url);
+      return true;
+    });
+}
+
+export function getProductMediaGallery(product: Product): ProductGalleryItem[] {
+  const images = getProductGallery(product).map((src, index) => ({
+    type: 'image' as const,
+    key: `image-${index}-${src}`,
+    src,
+    isPrimary: src === product.image,
+  }));
+  const videos = getProductVideos(product).map((video, index) => ({
+    type: 'video' as const,
+    key: `video-${index}-${video.url}`,
+    video,
+  }));
+  const media = images.length ? [images[0], ...videos, ...images.slice(1)] : videos;
+
+  return media.length ? media : [{ type: 'placeholder', key: 'placeholder' }];
 }
 
 export function isProductMockupImage(product: Product, image: string | undefined) {

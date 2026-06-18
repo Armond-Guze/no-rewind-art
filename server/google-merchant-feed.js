@@ -86,6 +86,10 @@ function buildFeedItem(product, sizeOption, siteUrl) {
     .map((image) => absoluteUrl(image, siteUrl))
     .filter((image) => image && image !== imageUrl)
     .slice(0, 10);
+  const videoLinks = (product.videos || [])
+    .map((video) => absoluteUrl(video?.url, siteUrl))
+    .filter(Boolean)
+    .slice(0, 10);
 
   return [
     '<item>',
@@ -97,6 +101,7 @@ function buildFeedItem(product, sizeOption, siteUrl) {
     xmlTag('g:checkout_link_template', checkoutUrl),
     xmlTag('g:image_link', imageUrl),
     ...additionalImages.map((image) => xmlTag('g:additional_image_link', image)),
+    ...videoLinks.map((video) => xmlTag('g:video_link', video)),
     xmlTag('g:availability', 'in_stock'),
     xmlTag('g:price', formatFeedPrice(sizeOption.priceInCents)),
     xmlTag('g:brand', 'Armoze'),

@@ -121,6 +121,48 @@ export const artworkProductType = defineType({
       ],
     }),
     defineField({
+      name: 'productVideos',
+      title: 'Product Videos',
+      type: 'array',
+      description: 'Optional product videos for the storefront gallery and Google Merchant Center.',
+      of: [
+        defineArrayMember({
+          name: 'productVideo',
+          title: 'Product Video',
+          type: 'object',
+          fields: [
+            defineField({name: 'title', title: 'Title', type: 'string'}),
+            defineField({
+              name: 'videoFile',
+              title: 'Video File',
+              type: 'file',
+              description: 'Upload an MP4, WebM, or MOV when possible.',
+              options: {accept: 'video/mp4,video/webm,video/quicktime'},
+            }),
+            defineField({
+              name: 'videoUrl',
+              title: 'Video URL',
+              type: 'url',
+              description: 'Optional direct video URL if the file is hosted somewhere else.',
+            }),
+            defineField({
+              name: 'thumbnail',
+              title: 'Video Thumbnail',
+              type: 'image',
+              options: {hotspot: true},
+              fields: [defineField({name: 'alt', title: 'Alt Text', type: 'string'})],
+            }),
+          ],
+          preview: {
+            select: {title: 'title', media: 'thumbnail'},
+            prepare(selection) {
+              return {title: selection.title || 'Product video', media: selection.media}
+            },
+          },
+        }),
+      ],
+    }),
+    defineField({
       name: 'tone',
       title: 'Tone',
       type: 'string',

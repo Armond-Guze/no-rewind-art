@@ -22,6 +22,13 @@ export type FrameOption = {
   badge?: string;
 };
 
+export type ProductVideo = {
+  id?: string;
+  title?: string;
+  url: string;
+  thumbnail?: string;
+};
+
 export type Collection = {
   slug: string;
   title: string;
@@ -53,6 +60,7 @@ export type CatalogProduct = {
   artworkShape: ArtworkShape;
   aspectRatio?: string;
   gallery?: string[];
+  videos?: ProductVideo[];
   tone: ProductTone;
   collectionSlugs: string[];
   priceInCents?: number;

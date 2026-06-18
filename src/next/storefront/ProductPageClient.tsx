@@ -9,12 +9,13 @@ import {
   BadgeCheck,
   Box,
   Check,
+  Play,
   ShieldCheck,
   Star,
   StarHalf,
 } from 'lucide-react';
 import { addStoredCartItem } from '../../cart';
-import type { FrameOption, Product } from '../../data/products';
+import type { FrameOption, Product, ProductVideo } from '../../data/products';
 import {
   formatPrice,
   getAvailableFrameOptions,
@@ -24,7 +25,7 @@ import {
   getFeaturedSizeOption,
   getFramePreviewVariant,
   getProductAspectRatio,
-  getProductGallery,
+  getProductMediaGallery,
   isProductMockupImage,
   isSideMockupImage,
   launchOfferCode,
@@ -104,6 +105,35 @@ function StoreRating() {
   );
 }
 
+function ProductVideoThumbnail({ video }: { video: ProductVideo }) {
+  return (
+    <span className="gallery-video-thumbnail">
+      {video.thumbnail ? (
+        <Image src={video.thumbnail} alt="" fill sizes="82px" />
+      ) : null}
+      <span className="gallery-video-play">
+        <Play aria-hidden="true" fill="currentColor" size={18} strokeWidth={2.4} />
+      </span>
+    </span>
+  );
+}
+
+function ProductVideoPlayer({ title, video }: { title: string; video: ProductVideo }) {
+  return (
+    <div className="product-video-shell">
+      <video
+        className="product-video"
+        src={video.url}
+        poster={video.thumbnail}
+        controls
+        playsInline
+        preload="metadata"
+        aria-label={video.title || `${title} product video`}
+      />
+    </div>
+  );
+}
+
 export default function ProductPageClient({
   product,
   relatedProducts,
@@ -121,9 +151,12 @@ export default function ProductPageClient({
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [checkoutError, setCheckoutError] = useState('');
-  const gallery = getProductGallery(product);
-  const galleryItems = gallery.length ? gallery : ['placeholder'];
-  const selectedGalleryImage = gallery[selectedImage];
+  const galleryItems = getProductMediaGallery(product);
+  const selectedGalleryItem = galleryItems[selectedImage] ?? galleryItems[0];
+  const selectedGalleryImage =
+    selectedGalleryItem.type === 'image' ? selectedGalleryItem.src : undefined;
+  const selectedGalleryVideo =
+    selectedGalleryItem.type === 'video' ? selectedGalleryItem.video : null;
   const mobileGalleryRef = useRef<HTMLDivElement | null>(null);
   const mobileScrollFrame = useRef<number | null>(null);
   const isMockupGalleryImage = isProductMockupImage(product, selectedGalleryImage);
@@ -143,7 +176,7 @@ export default function ProductPageClient({
   const selectedUnitPrice = getConfiguredUnitPrice(product, selectedOption, selectedFrameOption);
   const productAspectRatio = getProductAspectRatio(product);
   const productDisplayShape = getDisplayArtworkShape(product);
-  const shouldShowFramePreview = selectedImage === 0;
+  const shouldShowFramePreview = selectedGalleryItem.type === 'image' && selectedGalleryItem.isPrimary;
   const frameClass =
     !shouldShowFramePreview
       ? 'frame-none'
@@ -309,22 +342,24 @@ export default function ProductPageClient({
 
         <section className="listing-layout">
           <div className="listing-gallery">
-            <div className="gallery-rail" aria-label="Product images">
-              {galleryItems.map((image, index) => (
+            <div className="gallery-rail" aria-label="Product media">
+              {galleryItems.map((item, index) => (
                 <button
                   className={index === selectedImage ? 'active' : ''}
-                  key={`${product.id}-${image}-${index}`}
+                  key={`${product.id}-${item.key}`}
                   type="button"
                   onClick={() => selectGalleryImage(index)}
-                  aria-label={`View ${product.title} image ${index + 1}`}
+                  aria-label={`View ${product.title} ${item.type === 'video' ? 'video' : 'image'} ${index + 1}`}
                 >
-                  {image === 'placeholder' ? (
+                  {item.type === 'placeholder' ? (
                     <ProductVisual product={product} />
-                  ) : image === product.image ? (
+                  ) : item.type === 'video' ? (
+                    <ProductVideoThumbnail video={item.video} />
+                  ) : item.isPrimary ? (
                     <OptimizedCanvasImage
                       className="gallery-thumbnail-canvas"
                       product={product}
-                      src={image}
+                      src={item.src}
                       alt=""
                       aspectRatio={productAspectRatio}
                       shape={productDisplayShape}
@@ -334,7 +369,7 @@ export default function ProductPageClient({
                     />
                   ) : (
                     <OptimizedRawImage
-                      src={image}
+                      src={item.src}
                       alt=""
                       aspectRatio={productAspectRatio}
                       sizes="82px"
@@ -349,22 +384,26 @@ export default function ProductPageClient({
               className="mobile-gallery-carousel"
               ref={mobileGalleryRef}
               onScroll={(event) => queueMobileGalleryIndexUpdate(event.currentTarget)}
-              aria-label={`${product.title} product images`}
+              aria-label={`${product.title} product media`}
             >
-              {galleryItems.map((image, index) => {
-                const mobileGalleryImage = image === 'placeholder' ? undefined : image;
+              {galleryItems.map((item, index) => {
+                const mobileGalleryImage = item.type === 'image' ? item.src : undefined;
+                const mobileGalleryVideo = item.type === 'video' ? item.video : null;
                 const mobileIsMockupImage = isProductMockupImage(product, mobileGalleryImage);
                 const mobileIsSideImage = isSideMockupImage(mobileGalleryImage);
                 const mobileIsFrontMockupImage = mobileIsMockupImage && !mobileIsSideImage;
-                const mobileFrameClass = index === 0 ? selectedFrameClass : 'frame-none';
+                const mobileFrameClass =
+                  item.type === 'image' && item.isPrimary ? selectedFrameClass : 'frame-none';
 
                 return (
                   <div
                     className={`mobile-gallery-slide${index === selectedImage ? ' is-active' : ''}`}
-                    key={`${product.id}-mobile-${image}-${index}`}
+                    key={`${product.id}-mobile-${item.key}`}
                   >
                     <div
-                      className={`main-product-image ${mobileGalleryImage ? 'gallery-product-image' : ''} ${
+                      className={`main-product-image ${
+                        mobileGalleryImage || mobileGalleryVideo ? 'gallery-product-image' : ''
+                      } ${mobileGalleryVideo ? 'video-product-image' : ''} ${
                         mobileIsMockupImage ? 'mockup-product-image' : ''
                       }`}
                     >
@@ -376,7 +415,9 @@ export default function ProductPageClient({
                         }`}
                       >
                         <div className="detail-artwork-surface">
-                          {mobileGalleryImage === product.image ? (
+                          {mobileGalleryVideo ? (
+                            <ProductVideoPlayer title={product.title} video={mobileGalleryVideo} />
+                          ) : mobileGalleryImage === product.image ? (
                             <OptimizedCanvasImage
                               className={`detail-artwork-image front-product-canvas ${mobileFrameClass}`}
                               product={product}
@@ -405,22 +446,24 @@ export default function ProductPageClient({
               })}
             </div>
             <div className="mobile-gallery-hint" aria-hidden="true">
-              {galleryItems.map((image, index) => (
+              {galleryItems.map((item, index) => (
                 <span
                   className={index === selectedImage ? 'is-active' : ''}
-                  key={`${product.id}-mobile-hint-${image}-${index}`}
+                  key={`${product.id}-mobile-hint-${item.key}`}
                 />
               ))}
             </div>
 
             <div
-              className={`main-product-image ${selectedGalleryImage ? 'gallery-product-image' : ''} ${
+              className={`main-product-image ${
+                selectedGalleryImage || selectedGalleryVideo ? 'gallery-product-image' : ''
+              } ${selectedGalleryVideo ? 'video-product-image' : ''} ${
                 isMockupGalleryImage ? 'mockup-product-image' : ''
               }`}
             >
               <div
                 className="product-gallery-transition"
-                key={`${product.id}-gallery-${selectedImage}-${frameClass}`}
+                key={`${product.id}-gallery-${selectedGalleryItem.key}-${frameClass}`}
               >
                 <div
                   className={`detail-artwork-shell frame-none shape-${productDisplayShape} ${
@@ -430,7 +473,9 @@ export default function ProductPageClient({
                   }`}
                 >
                   <div className="detail-artwork-surface">
-                    {selectedGalleryImage === product.image ? (
+                    {selectedGalleryVideo ? (
+                      <ProductVideoPlayer title={product.title} video={selectedGalleryVideo} />
+                    ) : selectedGalleryImage === product.image ? (
                       <OptimizedCanvasImage
                         className={`detail-artwork-image front-product-canvas ${frameClass}`}
                         product={product}
