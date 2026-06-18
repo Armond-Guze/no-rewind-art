@@ -3,6 +3,7 @@ import { createClient } from '@sanity/client';
 const SANITY_SITEMAP_PRODUCTS_QUERY = `*[
   _type == "artworkProduct"
   && defined(slug.current)
+  && !(_id in path("drafts.**"))
   && published != false
 ] | order(coalesce(sortOrder, 9999) asc, title asc) {
   _id,

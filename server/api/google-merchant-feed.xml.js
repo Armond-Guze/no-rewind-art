@@ -6,7 +6,7 @@ export async function GET() {
     return new Response(await buildGoogleMerchantFeedXml(), {
       status: 200,
       headers: {
-        'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
+        'Cache-Control': 'no-store, max-age=0',
         'Content-Type': 'application/xml; charset=utf-8',
       },
     });

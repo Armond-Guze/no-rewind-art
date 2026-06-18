@@ -249,7 +249,10 @@ function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets)
   );
 }
 
-const SANITY_CATALOG_SETTINGS_QUERY = `*[_type == "catalogSettings"][0]{
+const SANITY_CATALOG_SETTINGS_QUERY = `*[
+  _type == "catalogSettings"
+  && !(_id in path("drafts.**"))
+][0]{
   sizePresets{
     portraitTwoThree[]{id, label, priceInCents, badge, previewScale},
     portraitThreeFour[]{id, label, priceInCents, badge, previewScale},
@@ -260,7 +263,10 @@ const SANITY_CATALOG_SETTINGS_QUERY = `*[_type == "catalogSettings"][0]{
   }
 }`;
 
-const SANITY_HOMEPAGE_SETTINGS_QUERY = `*[_type == "homepageSettings"][0]{
+const SANITY_HOMEPAGE_SETTINGS_QUERY = `*[
+  _type == "homepageSettings"
+  && !(_id in path("drafts.**"))
+][0]{
   "heroProductIds": heroProducts[]->productId,
   "bestSellerProductIds": bestSellerProducts[]->productId,
   "newArrivalProductIds": newArrivalProducts[]->productId
@@ -269,6 +275,7 @@ const SANITY_HOMEPAGE_SETTINGS_QUERY = `*[_type == "homepageSettings"][0]{
 const SANITY_PRODUCTS_QUERY = `*[
   _type == "artworkProduct"
   && defined(slug.current)
+  && !(_id in path("drafts.**"))
 ] | order(coalesce(sortOrder, 9999) asc, title asc) {
   _id,
   productId,
@@ -663,8 +670,16 @@ export async function getSanityCatalogDiagnostics() {
 
   try {
     const result = await client.fetch(`{
-      "count": count(*[_type == "artworkProduct" && defined(slug.current)]),
-      "sample": *[_type == "artworkProduct" && defined(slug.current)] | order(coalesce(sortOrder, 9999) asc, title asc)[0]{
+      "count": count(*[
+        _type == "artworkProduct"
+        && defined(slug.current)
+        && !(_id in path("drafts.**"))
+      ]),
+      "sample": *[
+        _type == "artworkProduct"
+        && defined(slug.current)
+        && !(_id in path("drafts.**"))
+      ] | order(coalesce(sortOrder, 9999) asc, title asc)[0]{
         title,
         "image": mainImage.asset->url
       }
