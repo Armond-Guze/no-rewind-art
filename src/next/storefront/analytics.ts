@@ -38,7 +38,10 @@ declare global {
 const gaMeasurementId = getPublicEnv('VITE_GA_MEASUREMENT_ID');
 const googleAdsId = getPublicEnv('VITE_GOOGLE_ADS_ID');
 const googleAdsPurchaseLabel = getPublicEnv('VITE_GOOGLE_ADS_PURCHASE_LABEL');
+const googleAdsPurchaseEventName =
+  getPublicEnv('VITE_GOOGLE_ADS_PURCHASE_EVENT_NAME') || 'conversion_event_purchase';
 const metaPixelId = getPublicEnv('VITE_META_PIXEL_ID');
+let storefrontTrackingInitialized = false;
 
 function appendScript(src: string, id: string) {
   if (document.getElementById(id)) {
@@ -57,6 +60,11 @@ export function initStorefrontTracking() {
     return;
   }
 
+  if (storefrontTrackingInitialized) {
+    return;
+  }
+
+  storefrontTrackingInitialized = true;
   window.dataLayer ??= [];
   if (!window.gtag) {
     window.gtag = (...args: unknown[]) => {
@@ -99,14 +107,25 @@ export function trackStorefrontEvent(eventName: string, payload: EcommercePayloa
     return;
   }
 
+  initStorefrontTracking();
   window.gtag?.('event', eventName, payload);
 
-  if (eventName === 'purchase' && googleAdsId && googleAdsPurchaseLabel) {
-    window.gtag?.('event', 'conversion', {
-      send_to: `${googleAdsId}/${googleAdsPurchaseLabel}`,
+  if (eventName === 'purchase' && googleAdsId) {
+    const conversionPayload = {
       value: payload.value,
       currency: payload.currency || 'USD',
-    });
+    };
+
+    if (googleAdsPurchaseEventName) {
+      window.gtag?.('event', googleAdsPurchaseEventName, conversionPayload);
+    }
+
+    if (googleAdsPurchaseLabel) {
+      window.gtag?.('event', 'conversion', {
+        send_to: `${googleAdsId}/${googleAdsPurchaseLabel}`,
+        ...conversionPayload,
+      });
+    }
   }
 
   const metaEventByName: Record<string, string> = {

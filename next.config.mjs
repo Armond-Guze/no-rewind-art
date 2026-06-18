@@ -11,6 +11,8 @@ const publicEnv = {
   NEXT_PUBLIC_GA_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.VITE_GA_MEASUREMENT_ID || '',
   VITE_GOOGLE_ADS_ID: process.env.VITE_GOOGLE_ADS_ID || '',
   VITE_GOOGLE_ADS_PURCHASE_LABEL: process.env.VITE_GOOGLE_ADS_PURCHASE_LABEL || '',
+  VITE_GOOGLE_ADS_PURCHASE_EVENT_NAME:
+    process.env.VITE_GOOGLE_ADS_PURCHASE_EVENT_NAME || 'conversion_event_purchase',
   VITE_META_PIXEL_ID: process.env.VITE_META_PIXEL_ID || '',
 };
 

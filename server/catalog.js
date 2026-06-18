@@ -193,7 +193,34 @@ function getSizeOptionsForProduct(product, sizePresets) {
   );
 }
 
-export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets) {
+function normalizeProductVideos(videos = []) {
+  const videosByUrl = new Map();
+
+  videos.forEach((video) => {
+    const id = typeof video?.id === 'string' ? video.id.trim() : '';
+    const title = typeof video?.title === 'string' ? video.title.trim() : '';
+    const url = typeof video?.url === 'string' ? video.url.trim() : '';
+    const thumbnail = typeof video?.thumbnail === 'string' ? video.thumbnail.trim() : '';
+
+    if (!url) {
+      return;
+    }
+
+    const normalizedVideo = {
+      ...(id ? { id } : {}),
+      ...(title ? { title } : {}),
+      url,
+      ...(thumbnail ? { thumbnail } : {}),
+    };
+    const existingVideo = videosByUrl.get(url) || {};
+
+    videosByUrl.set(url, { ...normalizedVideo, ...existingVideo, url });
+  });
+
+  return [...videosByUrl.values()];
+}
+
+export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets, defaultProductVideos = []) {
   const sizeOptions = normalizeSizeOptions(getSizeOptionsForProduct(product, sizePresets));
   const frameOptions = normalizeFrameOptions(sizeOptions);
   const normalizedDefaultSizeId = normalizeSizeId(product.defaultSizeId, sizeOptions);
@@ -209,6 +236,7 @@ export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets)
 
   return {
     ...product,
+    videos: normalizeProductVideos([...(product.videos || []), ...defaultProductVideos]),
     collectionSlugs: normalizeCollectionSlugs(product.collectionSlugs),
     name: product.title,
     imagePath: product.image || '',
@@ -224,12 +252,16 @@ export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets)
 
 export function normalizeCatalogData(catalog = seedCatalog) {
   const sizePresets = normalizeSizePresets(catalog.sizePresets);
+  const defaultProductVideos = normalizeProductVideos([
+    ...(catalog.defaultProductVideos || []),
+    ...(catalog.defaultProductVideo ? [catalog.defaultProductVideo] : []),
+  ]);
 
   return {
     sizePresets,
     collections: catalog.collections,
     homepageSettings: catalog.homepageSettings || {},
-    products: catalog.products.map((product) => normalizeProduct(product, sizePresets)),
+    products: catalog.products.map((product) => normalizeProduct(product, sizePresets, defaultProductVideos)),
   };
 }
 

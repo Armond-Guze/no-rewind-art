@@ -197,7 +197,7 @@ export function getProductMediaGallery(product: Product): ProductGalleryItem[] {
     key: `video-${index}-${video.url}`,
     video,
   }));
-  const media = images.length ? [images[0], ...videos, ...images.slice(1)] : videos;
+  const media = [...images, ...videos];
 
   return media.length ? media : [{ type: 'placeholder', key: 'placeholder' }];
 }

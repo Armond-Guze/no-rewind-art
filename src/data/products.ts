@@ -89,6 +89,8 @@ export type CatalogData = {
   sizePresets: Record<string, SizeOption[]>;
   collections: Collection[];
   homepageSettings?: HomepageSettings;
+  defaultProductVideo?: ProductVideo;
+  defaultProductVideos?: ProductVideo[];
   products: CatalogProduct[];
 };
 
@@ -302,9 +304,34 @@ function getSizeOptionsForProduct(
   );
 }
 
+function normalizeProductVideos(videos: ProductVideo[] = []) {
+  const videosByUrl = new Map<string, ProductVideo>();
+
+  videos.forEach((video) => {
+    const url = video.url.trim();
+
+    if (!url) {
+      return;
+    }
+
+    const normalizedVideo = {
+      ...(video.id ? { id: video.id.trim() } : {}),
+      ...(video.title ? { title: video.title.trim() } : {}),
+      url,
+      ...(video.thumbnail ? { thumbnail: video.thumbnail.trim() } : {}),
+    };
+    const existingVideo = videosByUrl.get(url) || {};
+
+    videosByUrl.set(url, { ...normalizedVideo, ...existingVideo, url });
+  });
+
+  return [...videosByUrl.values()];
+}
+
 export function normalizeProduct(
   product: CatalogProduct,
   sizePresets: Record<string, SizeOption[]> = catalogData.sizePresets,
+  defaultProductVideos: ProductVideo[] = [],
 ): Product {
   const sizeOptions = normalizeSizeOptions(getSizeOptionsForProduct(product, sizePresets));
   const frameOptions = normalizeFrameOptions(sizeOptions);
@@ -321,6 +348,7 @@ export function normalizeProduct(
 
   return {
     ...product,
+    videos: normalizeProductVideos([...(product.videos || []), ...defaultProductVideos]),
     collectionSlugs: normalizeCollectionSlugs(product.collectionSlugs || []),
     artworkShape: product.artworkShape || getArtworkShapeFromSizePreset(product.sizePreset),
     aspectRatio: getProductAspectRatio(product),
@@ -334,12 +362,16 @@ export function normalizeProduct(
 
 export function normalizeCatalogData(data: CatalogData): NormalizedCatalog {
   const sizePresets = normalizeSizePresets(data.sizePresets);
+  const defaultProductVideos = normalizeProductVideos([
+    ...(data.defaultProductVideos || []),
+    ...(data.defaultProductVideo ? [data.defaultProductVideo] : []),
+  ]);
 
   return {
     sizePresets,
     collections: data.collections,
     homepageSettings: data.homepageSettings || {},
-    products: data.products.map((product) => normalizeProduct(product, sizePresets)),
+    products: data.products.map((product) => normalizeProduct(product, sizePresets, defaultProductVideos)),
   };
 }
 

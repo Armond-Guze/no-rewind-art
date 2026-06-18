@@ -118,30 +118,30 @@ function sanitizeVideoEntries(value) {
     return [];
   }
 
-  const seenUrls = new Set();
+  const videosByUrl = new Map();
 
-  return value
-    .map((video) => {
-      const id = sanitizeText(video?.id);
-      const title = sanitizeText(video?.title);
-      const url = sanitizeText(video?.url || video?.videoUrl);
-      const thumbnail = sanitizeText(video?.thumbnail || video?.thumbnailUrl);
+  value.forEach((video) => {
+    const id = sanitizeText(video?.id);
+    const title = sanitizeText(video?.title);
+    const url = sanitizeText(video?.url || video?.videoUrl);
+    const thumbnail = sanitizeText(video?.thumbnail || video?.thumbnailUrl);
 
-      return {
-        ...(id ? { id } : {}),
-        ...(title ? { title } : {}),
-        url,
-        ...(thumbnail ? { thumbnail } : {}),
-      };
-    })
-    .filter((video) => {
-      if (!video.url || seenUrls.has(video.url)) {
-        return false;
-      }
+    if (!url) {
+      return;
+    }
 
-      seenUrls.add(video.url);
-      return true;
-    });
+    const normalizedVideo = {
+      ...(id ? { id } : {}),
+      ...(title ? { title } : {}),
+      url,
+      ...(thumbnail ? { thumbnail } : {}),
+    };
+    const existingVideo = videosByUrl.get(url) || {};
+
+    videosByUrl.set(url, { ...normalizedVideo, ...existingVideo, url });
+  });
+
+  return [...videosByUrl.values()];
 }
 
 function sanitizeHomepageProductIds(value) {
@@ -240,14 +240,19 @@ function sanitizeFrameOptions(value) {
     .filter((option) => option.id && option.label);
 }
 
-function normalizeSanityProduct(document, sizePresets = seedCatalog.sizePresets) {
+function normalizeSanityProduct(
+  document,
+  sizePresets = seedCatalog.sizePresets,
+  defaultProductVideos = [],
+) {
   const mainImageUrl = document.mainImageUrl || '';
   const gallery = Array.isArray(document.galleryImages)
     ? document.galleryImages
         .map((image) => image?.url || '')
         .filter(Boolean)
     : [];
-  const videos = sanitizeVideoEntries(document.productVideos);
+  const productVideos = Array.isArray(document.productVideos) ? document.productVideos : [];
+  const videos = sanitizeVideoEntries([...productVideos, ...defaultProductVideos]);
 
   return normalizeProduct(
     {
@@ -293,6 +298,11 @@ const SANITY_CATALOG_SETTINGS_QUERY = `*[
     landscapeThreeTwo[]{id, label, priceInCents, badge, previewScale},
     landscapeFourThree[]{id, label, priceInCents, badge, previewScale},
     squareStandard[]{id, label, priceInCents, badge, previewScale}
+  },
+  "defaultProductVideo": defaultProductVideo{
+    title,
+    "url": coalesce(videoFile.asset->url, videoUrl),
+    "thumbnail": thumbnail.asset->url
   }
 }`;
 
@@ -651,8 +661,11 @@ class SanityProductStore {
         this.client.fetch(SANITY_PRODUCTS_QUERY),
       ]);
       const sizePresets = normalizeSanitySizePresets(settings);
+      const defaultProductVideos = sanitizeVideoEntries([settings?.defaultProductVideo]);
       const homepageSettings = normalizeSanityHomepageSettings(homepageSettingsDocument);
-      const products = documents.map((document) => normalizeSanityProduct(document, sizePresets));
+      const products = documents.map((document) =>
+        normalizeSanityProduct(document, sizePresets, defaultProductVideos),
+      );
 
       if (!products.length) {
         return this.getFallbackCatalog(options);

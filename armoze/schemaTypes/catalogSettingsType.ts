@@ -97,6 +97,42 @@ export const catalogSettingsType = defineType({
         ]),
       ],
     }),
+    defineField({
+      name: 'defaultProductVideo',
+      title: 'Default Product Video',
+      type: 'object',
+      description:
+        'Shown after all product images on every product page and included in Google Merchant Center for every product.',
+      fields: [
+        defineField({name: 'title', title: 'Title', type: 'string'}),
+        defineField({
+          name: 'videoFile',
+          title: 'Video File',
+          type: 'file',
+          description: 'Upload the shared MP4, WebM, or MOV product video.',
+          options: {accept: 'video/mp4,video/webm,video/quicktime'},
+        }),
+        defineField({
+          name: 'videoUrl',
+          title: 'Video URL',
+          type: 'url',
+          description: 'Optional direct video URL if the file is hosted somewhere else.',
+        }),
+        defineField({
+          name: 'thumbnail',
+          title: 'Video Thumbnail',
+          type: 'image',
+          options: {hotspot: true},
+          fields: [defineField({name: 'alt', title: 'Alt Text', type: 'string'})],
+        }),
+      ],
+      preview: {
+        select: {title: 'title', media: 'thumbnail'},
+        prepare(selection) {
+          return {title: selection.title || 'Default product video', media: selection.media}
+        },
+      },
+    }),
   ],
   preview: {
     select: {
