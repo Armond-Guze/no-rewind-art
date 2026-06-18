@@ -1,20 +1,20 @@
 # Armoze Launch Readiness Report
 
-Generated: 2026-06-17T04:14:51.687Z
+Generated: 2026-06-18T02:56:53.378Z
 
 ## Executive Summary
 
-- Published products: 30
+- Published products: 33
 - Launch target: 20 products
-- Products passing hard launch checks: 30
-- Products with blockers: 0
-- Products with warnings: 8
-- Merchant feed items: 150
-- Sitemap product URLs: 30
+- Products passing hard launch checks: 31
+- Products with blockers: 2
+- Products with warnings: 2
+- Merchant feed items: 165
+- Sitemap product URLs: 33
 
 ## Launch Gate
 
-- Product count is launchable: 30 published products.
+- Product count is launchable: 33 published products.
 - Content gate is launchable: at least 20 products pass hard checks.
 - Merchant feed has the core required item fields and production URLs.
 
@@ -22,49 +22,52 @@ Generated: 2026-06-17T04:14:51.687Z
 
 | Product | Slug | Images | Status | Needs |
 | --- | --- | ---: | --- | --- |
-| Bookshelf Mindset | bookshelf | 11 | Ready | Ready |
 | Invest In Yourself | invest-in-yourself | 11 | Ready | Ready |
 | Money Band Aid | money-band-aid | 11 | Ready | Ready |
 | Orange Rubberband Racks | orange-rubberband-racks | 11 | Ready | Ready |
-| Paycheck Energy | paycheck | 11 | Ready | Ready |
 | 100 Dollars White Marble | 100-dollars-white-marble | 10 | Ready | Ready |
-| Books of Motivation | books-of-motivation | 10 | Ready | Ready |
 | Money Over Everything | money-over-everything | 10 | Ready | Ready |
 | No Risk No Reward Lambo | no-risk-no-reward-lambo | 10 | Ready | Ready |
 | Play Again Casette | play-again-casette | 10 | Ready | Ready |
 | Reportcard | reportcard | 10 | Ready | Ready |
 | When Words Fail Music Speaks | when-words-fail-music-speaks | 10 | Ready | Ready |
+| Bookshelf Mindset | bookshelf | 9 | Ready | Ready |
+| Count Your Money | count-your-money | 9 | Ready | Ready |
 | Go All In | go-all-in | 9 | Ready | Ready |
 | Life Has No Rewind | life-has-no-rewind | 9 | Ready | Ready |
-| Marble Money Black | marble-money-black | 9 | Ready | Ready |
 | Mindset Is Everything | mindset-is-everything | 9 | Ready | Ready |
 | Never Lose Sight Of Your Dreams | never-lose-sight-of-your-dreams | 9 | Ready | Ready |
+| Paycheck Energy | paycheck | 9 | Ready | Ready |
+| Remember Your Why | remember-your-why | 9 | Ready | Ready |
 | Rubber Band Stacks | rubber-band-stacks | 9 | Ready | Ready |
+| Start Over Again | start-over-again | 9 | Ready | Ready |
 | Success Envelope | success-envelope | 9 | Ready | Ready |
-| Money Vault | money-vault | 8 | Ready | Ready |
 
 ## Product Blockers
 
-No hard product blockers found.
+| Product | Main Issues |
+| --- | --- |
+| Mountain To Success | only 1 product image(s) |
+| You Cant Measure Success | only 1 product image(s) |
 
 ## Collection Coverage
 
 | Collection | Products |
 | --- | ---: |
-| Best Sellers | 12 |
+| Best Sellers | 16 |
 | Money & Ambition | 13 |
-| Discipline & Focus | 14 |
+| Discipline & Focus | 18 |
 | Study & Creative | 2 |
-| New Arrivals | 18 |
+| New Arrivals | 17 |
 
 ## Google And SEO Outputs
 
 - Sitemap status: OK
 - Sitemap collections: 5
-- Sitemap products: 30
+- Sitemap products: 33
 - Merchant feed status: OK
-- Merchant feed expected item count: 150
-- Merchant feed actual item count: 150
+- Merchant feed expected item count: 165
+- Merchant feed actual item count: 165
 - Checkout link template present: yes
 - Free shipping field present: yes
 
