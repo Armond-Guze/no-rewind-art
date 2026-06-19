@@ -12,7 +12,7 @@ const publicEnv = {
   VITE_GOOGLE_ADS_ID: process.env.VITE_GOOGLE_ADS_ID || '',
   VITE_GOOGLE_ADS_PURCHASE_LABEL: process.env.VITE_GOOGLE_ADS_PURCHASE_LABEL || '',
   VITE_GOOGLE_ADS_PURCHASE_EVENT_NAME:
-    process.env.VITE_GOOGLE_ADS_PURCHASE_EVENT_NAME || 'conversion_event_purchase',
+    process.env.VITE_GOOGLE_ADS_PURCHASE_EVENT_NAME || 'conversion_event_purchase_1',
   VITE_META_PIXEL_ID: process.env.VITE_META_PIXEL_ID || '',
 };
 

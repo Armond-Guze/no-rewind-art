@@ -534,6 +534,52 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
   return order;
 }
 
+function getOrderTrackingItems(order) {
+  return (Array.isArray(order.items) ? order.items : []).map((item) => {
+    const quantity = Number(item.quantity || 1);
+    const lineTotal = Number(item.lineTotal || item.unitAmount || 0);
+    const unitAmount = Number(item.unitAmount || (quantity ? Math.round(lineTotal / quantity) : lineTotal));
+    const variant = [item.sizeLabel, item.frameLabel].filter(Boolean).join(' / ');
+
+    return {
+      item_id: item.productId || item.id || 'armoze-print',
+      item_name: item.title || 'Armoze print',
+      item_category: 'Canvas print',
+      price: unitAmount / 100,
+      quantity,
+      variant,
+    };
+  });
+}
+
+export async function getGoogleAdsConversion(sessionId) {
+  await ensureReady();
+
+  if (!stripe) {
+    throw httpError('Stripe is not configured.', 500);
+  }
+
+  const normalizedSessionId = normalizeStripeSessionId(sessionId);
+  const session = await stripe.checkout.sessions.retrieve(normalizedSessionId);
+
+  if (session.payment_status !== 'paid') {
+    return { conversion: null };
+  }
+
+  const order = await completeOrderFromCheckoutSession(session, 'paid');
+  const amountTotal = Number(order.amountTotal ?? session.amount_total ?? 0);
+  const currency = String(order.currency || session.currency || 'usd').toUpperCase();
+
+  return {
+    conversion: {
+      transaction_id: order.id || session.id,
+      currency,
+      value: amountTotal / 100,
+      items: getOrderTrackingItems(order),
+    },
+  };
+}
+
 export async function getHealth() {
   await ensureReady();
 

@@ -20,6 +20,9 @@ export default async function CartRoute({ searchParams }) {
   const merchantItemId = Array.isArray(resolvedSearchParams.item)
     ? resolvedSearchParams.item[0]
     : resolvedSearchParams.item;
+  const checkoutSessionId = Array.isArray(resolvedSearchParams.session_id)
+    ? resolvedSearchParams.session_id[0]
+    : resolvedSearchParams.session_id;
   const requestedFrameId = Array.isArray(resolvedSearchParams.frame)
     ? resolvedSearchParams.frame[0]
     : resolvedSearchParams.frame;
@@ -27,6 +30,7 @@ export default async function CartRoute({ searchParams }) {
   return (
     <CartPageClient
       products={catalog.products}
+      checkoutSessionId={checkoutSessionId}
       checkoutResult={checkoutResult}
       merchantItemId={merchantItemId}
       requestedFrameId={requestedFrameId}

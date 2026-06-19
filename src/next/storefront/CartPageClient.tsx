@@ -34,6 +34,22 @@ type CartLine = StoredCartItem & {
   frameOption: FrameOption;
 };
 
+type PurchaseConversionResponse = {
+  conversion?: {
+    transaction_id: string;
+    currency: string;
+    value: number;
+    items?: Array<{
+      item_id: string;
+      item_name: string;
+      item_category?: string;
+      price: number;
+      quantity: number;
+      variant: string;
+    }>;
+  } | null;
+};
+
 function buildCartLines(cart: StoredCartItem[], products: Product[]) {
   return cart
     .map((item) => {
@@ -64,6 +80,26 @@ function getCartSubtotal(cartProducts: CartLine[]) {
   );
 }
 
+function hasTrackedPurchase(trackingKey: string) {
+  try {
+    return (
+      window.localStorage.getItem(trackingKey) === '1' ||
+      window.sessionStorage.getItem(trackingKey) === '1'
+    );
+  } catch {
+    return false;
+  }
+}
+
+function markPurchaseTracked(trackingKey: string) {
+  try {
+    window.localStorage.setItem(trackingKey, '1');
+    window.sessionStorage.setItem(trackingKey, '1');
+  } catch {
+    // Conversion de-duping is best-effort; checkout cleanup should still continue.
+  }
+}
+
 function getProductByCartItemId(products: Product[], itemId: string | undefined) {
   if (!itemId) {
     return null;
@@ -91,11 +127,13 @@ function getProductByCartItemId(products: Product[], itemId: string | undefined)
 }
 
 export default function CartPageClient({
+  checkoutSessionId,
   checkoutResult,
   merchantItemId,
   products,
   requestedFrameId,
 }: {
+  checkoutSessionId?: string;
   checkoutResult?: string;
   merchantItemId?: string;
   products: Product[];
@@ -169,26 +207,75 @@ export default function CartPageClient({
       return;
     }
 
-    const trackingKey = 'armoze_purchase_return_tracked';
+    const trackingKey = checkoutSessionId
+      ? `armoze_purchase_return_tracked_${checkoutSessionId}`
+      : 'armoze_purchase_return_tracked';
 
-    if (window.sessionStorage.getItem(trackingKey) !== '1') {
-      const currentCart = readStoredCart();
-      const trackingLines = buildCartLines(currentCart, products);
-      const trackingItems = trackingLines.map((item) =>
-        getProductTrackingItem(item.product, item.sizeOption, item.frameOption, item.quantity),
-      );
-
-      trackStorefrontEvent('purchase', {
-        currency: 'USD',
-        value: getCartSubtotal(trackingLines) / 100,
-        items: trackingItems,
-      });
-      window.sessionStorage.setItem(trackingKey, '1');
+    if (hasTrackedPurchase(trackingKey)) {
+      writeStoredCart([]);
+      notifyStoredCartUpdated([]);
+      return;
     }
 
-    writeStoredCart([]);
-    notifyStoredCartUpdated([]);
-  }, [cartReady, checkoutResult, products]);
+    let cancelled = false;
+
+    async function trackPurchaseReturn() {
+      let tracked = false;
+      let serverChecked = false;
+
+      if (checkoutSessionId) {
+        try {
+          const response = await fetch(
+            `/api/google-ads/conversion?session_id=${encodeURIComponent(checkoutSessionId)}`,
+          );
+          serverChecked = response.ok;
+
+          if (response.ok) {
+            const data = (await response.json()) as PurchaseConversionResponse;
+
+            if (!cancelled && data.conversion) {
+              trackStorefrontEvent('purchase', data.conversion);
+              tracked = true;
+            }
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      if (!tracked && !serverChecked && !cancelled) {
+        const currentCart = readStoredCart();
+        const trackingLines = buildCartLines(currentCart, products);
+        const trackingItems = trackingLines.map((item) =>
+          getProductTrackingItem(item.product, item.sizeOption, item.frameOption, item.quantity),
+        );
+
+        if (trackingLines.length) {
+          trackStorefrontEvent('purchase', {
+            currency: 'USD',
+            value: getCartSubtotal(trackingLines) / 100,
+            items: trackingItems,
+          });
+          tracked = true;
+        }
+      }
+
+      if (tracked && !cancelled) {
+        markPurchaseTracked(trackingKey);
+      }
+
+      if (!cancelled) {
+        writeStoredCart([]);
+        notifyStoredCartUpdated([]);
+      }
+    }
+
+    void trackPurchaseReturn();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cartReady, checkoutResult, checkoutSessionId, products]);
 
   function updateQuantity(lineKey: string, nextQuantity: number) {
     const nextCart = cart

@@ -7,11 +7,12 @@ import { getBaseFrameOption, getConfiguredUnitPrice, getFeaturedSizeOption } fro
 type EcommercePayload = {
   currency?: string;
   value?: number;
+  transaction_id?: string;
   coupon?: string;
   items?: Array<{
     item_id: string;
     item_name: string;
-    item_category: string;
+    item_category?: string;
     price: number;
     quantity: number;
     variant: string;
@@ -39,7 +40,7 @@ const gaMeasurementId = getPublicEnv('VITE_GA_MEASUREMENT_ID');
 const googleAdsId = getPublicEnv('VITE_GOOGLE_ADS_ID');
 const googleAdsPurchaseLabel = getPublicEnv('VITE_GOOGLE_ADS_PURCHASE_LABEL');
 const googleAdsPurchaseEventName =
-  getPublicEnv('VITE_GOOGLE_ADS_PURCHASE_EVENT_NAME') || 'conversion_event_purchase';
+  getPublicEnv('VITE_GOOGLE_ADS_PURCHASE_EVENT_NAME') || 'conversion_event_purchase_1';
 const metaPixelId = getPublicEnv('VITE_META_PIXEL_ID');
 let storefrontTrackingInitialized = false;
 
@@ -114,6 +115,7 @@ export function trackStorefrontEvent(eventName: string, payload: EcommercePayloa
     const conversionPayload = {
       value: payload.value,
       currency: payload.currency || 'USD',
+      ...(payload.transaction_id ? { transaction_id: payload.transaction_id } : {}),
     };
 
     if (googleAdsPurchaseEventName) {
