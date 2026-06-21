@@ -9406,18 +9406,22 @@ h3 {
   }
 
   .collection-page .listing-grid {
-    --collection-card-media-height: clamp(166px, 47vw, 226px);
-    gap: 8px 6px;
-    padding: 6px 6px 34px;
+    --collection-card-media-height: clamp(178px, 50vw, 256px);
+    gap: 4px;
+    padding: 0 0 34px;
+  }
+
+  .collection-page .listing-card {
+    border-radius: 0;
   }
 
   .collection-page .listing-card-image {
-    padding: 6px;
+    padding: 3px;
   }
 
   .collection-page .listing-card-image .product-canvas-image.shape-portrait,
   .collection-page .listing-card-image .artwork-mockup.shape-portrait {
-    width: min(76%, calc((var(--collection-card-media-height) - 34px) * 0.72));
+    width: min(82%, calc((var(--collection-card-media-height) - 22px) * 0.72));
   }
 
   .collection-page .listing-card-copy {
