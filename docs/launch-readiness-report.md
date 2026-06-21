@@ -1,20 +1,20 @@
 # Armoze Launch Readiness Report
 
-Generated: 2026-06-18T02:56:53.378Z
+Generated: 2026-06-20T19:51:14.535Z
 
 ## Executive Summary
 
-- Published products: 33
+- Published products: 36
 - Launch target: 20 products
-- Products passing hard launch checks: 31
-- Products with blockers: 2
-- Products with warnings: 2
-- Merchant feed items: 165
-- Sitemap product URLs: 33
+- Products passing hard launch checks: 36
+- Products with blockers: 0
+- Products with warnings: 1
+- Merchant feed items: 180
+- Sitemap product URLs: 36
 
 ## Launch Gate
 
-- Product count is launchable: 33 published products.
+- Product count is launchable: 36 published products.
 - Content gate is launchable: at least 20 products pass hard checks.
 - Merchant feed has the core required item fields and production URLs.
 
@@ -28,7 +28,7 @@ Generated: 2026-06-18T02:56:53.378Z
 | 100 Dollars White Marble | 100-dollars-white-marble | 10 | Ready | Ready |
 | Money Over Everything | money-over-everything | 10 | Ready | Ready |
 | No Risk No Reward Lambo | no-risk-no-reward-lambo | 10 | Ready | Ready |
-| Play Again Casette | play-again-casette | 10 | Ready | Ready |
+| Play Again Cassette | play-again-cassette | 10 | Ready | Ready |
 | Reportcard | reportcard | 10 | Ready | Ready |
 | When Words Fail Music Speaks | when-words-fail-music-speaks | 10 | Ready | Ready |
 | Bookshelf Mindset | bookshelf | 9 | Ready | Ready |
@@ -36,38 +36,35 @@ Generated: 2026-06-18T02:56:53.378Z
 | Go All In | go-all-in | 9 | Ready | Ready |
 | Life Has No Rewind | life-has-no-rewind | 9 | Ready | Ready |
 | Mindset Is Everything | mindset-is-everything | 9 | Ready | Ready |
-| Never Lose Sight Of Your Dreams | never-lose-sight-of-your-dreams | 9 | Ready | Ready |
 | Paycheck Energy | paycheck | 9 | Ready | Ready |
 | Remember Your Why | remember-your-why | 9 | Ready | Ready |
 | Rubber Band Stacks | rubber-band-stacks | 9 | Ready | Ready |
 | Start Over Again | start-over-again | 9 | Ready | Ready |
 | Success Envelope | success-envelope | 9 | Ready | Ready |
+| Books of Motivation | books-of-motivation | 8 | Ready | Ready |
 
 ## Product Blockers
 
-| Product | Main Issues |
-| --- | --- |
-| Mountain To Success | only 1 product image(s) |
-| You Cant Measure Success | only 1 product image(s) |
+No hard product blockers found.
 
 ## Collection Coverage
 
 | Collection | Products |
 | --- | ---: |
 | Best Sellers | 16 |
-| Money & Ambition | 13 |
-| Discipline & Focus | 18 |
+| Money & Ambition | 12 |
+| Discipline & Focus | 22 |
 | Study & Creative | 2 |
-| New Arrivals | 17 |
+| New Arrivals | 20 |
 
 ## Google And SEO Outputs
 
 - Sitemap status: OK
 - Sitemap collections: 5
-- Sitemap products: 33
+- Sitemap products: 36
 - Merchant feed status: OK
-- Merchant feed expected item count: 165
-- Merchant feed actual item count: 165
+- Merchant feed expected item count: 180
+- Merchant feed actual item count: 180
 - Checkout link template present: yes
 - Free shipping field present: yes
 

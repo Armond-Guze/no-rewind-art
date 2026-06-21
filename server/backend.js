@@ -547,7 +547,7 @@ function getOrderTrackingItems(order) {
       item_category: 'Canvas print',
       price: unitAmount / 100,
       quantity,
-      variant,
+      item_variant: variant,
     };
   });
 }

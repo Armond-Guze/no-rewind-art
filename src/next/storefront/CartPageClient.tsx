@@ -45,7 +45,8 @@ type PurchaseConversionResponse = {
       item_category?: string;
       price: number;
       quantity: number;
-      variant: string;
+      item_variant?: string;
+      variant?: string;
     }>;
   } | null;
 };

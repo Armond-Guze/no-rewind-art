@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Plus, Star } from 'lucide-react';
-import { addStoredCartItem, notifyStoredCartUpdated, writeStoredCart } from '../../cart';
+import { addStoredCartItem } from '../../cart';
 import type { Product } from '../../data/products';
 import {
   formatPrice,
@@ -159,24 +159,6 @@ export default function HomePageClient({
   newArrivalProducts: Product[];
   heroProducts: Product[];
 }) {
-  useEffect(() => {
-    if (checkoutResult !== 'success') {
-      return;
-    }
-
-    const trackingKey = 'armoze_purchase_return_tracked';
-
-    if (window.sessionStorage.getItem(trackingKey) === '1') {
-      return;
-    }
-
-    trackStorefrontEvent('purchase', { currency: 'USD' });
-    window.sessionStorage.setItem(trackingKey, '1');
-
-    writeStoredCart([]);
-    notifyStoredCartUpdated([]);
-  }, [checkoutResult]);
-
   const heroSlides = useMemo(() => {
     const productsWithImages = heroProducts.filter((product) => product.image);
     const slideProducts = productsWithImages.length ? productsWithImages : heroProducts;

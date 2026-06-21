@@ -15,7 +15,8 @@ type EcommercePayload = {
     item_category?: string;
     price: number;
     quantity: number;
-    variant: string;
+    item_variant?: string;
+    variant?: string;
   }>;
 };
 
@@ -165,6 +166,6 @@ export function getProductTrackingItem(
     item_category: product.tone,
     price: getConfiguredUnitPrice(product, sizeOption, frameOption) / 100,
     quantity,
-    variant: `${sizeOption.label} / ${frameOption.label}`,
+    item_variant: `${sizeOption.label} / ${frameOption.label}`,
   };
 }
