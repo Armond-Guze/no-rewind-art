@@ -696,7 +696,6 @@ export default function ProductPageClient({
         {relatedProducts.length ? (
           <section className="related-products-section" aria-labelledby="related-products-title">
             <div className="product-section-heading">
-              <p className="eyebrow">More to consider</p>
               <h2 id="related-products-title">Related products</h2>
             </div>
             <div className="related-products-grid">
