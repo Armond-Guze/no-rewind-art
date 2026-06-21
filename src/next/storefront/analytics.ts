@@ -30,7 +30,7 @@ type QueuedMetaPixel = {
 
 declare global {
   interface Window {
-    dataLayer?: unknown[][];
+    dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
     fbq?: QueuedMetaPixel;
     _fbq?: QueuedMetaPixel;
@@ -69,8 +69,10 @@ export function initStorefrontTracking() {
   storefrontTrackingInitialized = true;
   window.dataLayer ??= [];
   if (!window.gtag) {
-    window.gtag = (...args: unknown[]) => {
-      window.dataLayer?.push(args);
+    window.gtag = function gtag() {
+      // Google Tag expects the native arguments object, matching its install snippet.
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer?.push(arguments);
     };
     window.gtag('js', new Date());
   }
