@@ -713,6 +713,11 @@ export default function ProductPageClient({
                 </Link>
               ))}
             </div>
+            {relatedProducts.length > 1 ? (
+              <div className="related-products-scroll-cue" aria-hidden="true">
+                <span />
+              </div>
+            ) : null}
           </section>
         ) : null}
 

@@ -300,10 +300,101 @@ function NextSiteFooter() {
       </details>
 
       <div className="footer-bottom">
-        <span>2026 Armoze</span>
-        <span>Made to order</span>
-        <span>Secure checkout</span>
+        <div className="footer-bottom-meta">
+          <span>2026 Armoze</span>
+          <span>Made to order</span>
+          <span>Secure checkout</span>
+        </div>
+        <nav className="footer-social-links" aria-label="Social media">
+          <a
+            href="https://www.instagram.com/itsarmoze"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Armoze on Instagram"
+          >
+            <InstagramIcon />
+          </a>
+          <a
+            href="https://www.youtube.com/@itsarmoze"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Armoze on YouTube"
+          >
+            <YouTubeIcon />
+          </a>
+          <a
+            href="https://www.tiktok.com/@itsarmoze"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Armoze on TikTok"
+          >
+            <TikTokIcon />
+          </a>
+        </nav>
       </div>
     </footer>
+  );
+}
+
+function InstagramIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="footer-social-icon"
+      focusable="false"
+      viewBox="0 0 24 24"
+    >
+      <rect
+        x="4"
+        y="4"
+        width="16"
+        height="16"
+        rx="4.4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <circle cx="12" cy="12" r="3.35" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="16.65" cy="7.35" r="1.05" fill="currentColor" />
+    </svg>
+  );
+}
+
+function YouTubeIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="footer-social-icon"
+      focusable="false"
+      viewBox="0 0 24 24"
+    >
+      <rect
+        x="3"
+        y="6.6"
+        width="18"
+        height="10.8"
+        rx="3.2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path d="M10.4 9.55v4.9L14.85 12l-4.45-2.45Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function TikTokIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="footer-social-icon"
+      focusable="false"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M15.7 3c.3 2.4 1.7 3.9 4.1 4.1v3.2c-1.4.1-2.7-.3-4-1v5.9c0 3.7-2.3 5.8-5.6 5.8-3.1 0-5.3-2.1-5.3-5 0-3.1 2.4-5.2 5.7-5.2.3 0 .7 0 1 .1v3.4c-.3-.1-.6-.1-.9-.1-1.4 0-2.3.7-2.3 1.8s.8 1.8 2 1.8c1.4 0 2.1-.7 2.1-2.4V3h3.2Z"
+        fill="currentColor"
+      />
+    </svg>
   );
 }

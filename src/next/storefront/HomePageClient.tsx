@@ -211,7 +211,6 @@ export default function HomePageClient({
 
         <section className="storefront-hero" aria-labelledby="storefront-title">
           <div className="storefront-hero-copy">
-            <p className="eyebrow">Armoze canvas prints</p>
             <h1 id="storefront-title">
               <span>Art for the </span>
               <span>
@@ -229,11 +228,6 @@ export default function HomePageClient({
               <Link className="button button-secondary" href="/collections/new-arrivals">
                 New Arrivals
               </Link>
-            </div>
-            <div className="storefront-proof-row" aria-label="Store benefits">
-              <span>Made to order</span>
-              <span>Canvas prints</span>
-              <span>Free U.S. shipping</span>
             </div>
           </div>
 
@@ -282,11 +276,10 @@ export default function HomePageClient({
           <div className="storefront-story-copy">
             <p className="eyebrow">Why Armoze</p>
             <h2 id="storefront-story-title">
-              <span>Made for rooms where you <em>lock in.</em></span>
+              <span>Built for <em>focus.</em></span>
             </h2>
             <p>
-              Made-to-order canvas prints for bedrooms, offices, studios, gyms, and creative spaces.
-              Sharp wall pieces built to push focus, ambition, and daily momentum.
+              Ready-to-hang canvas prints for bedrooms, offices, studios, and focused spaces.
             </p>
             <Link className="button button-primary" href="/collections/best-sellers">
               Shop the Collection
