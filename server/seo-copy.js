@@ -1,4 +1,5 @@
 const defaultAudience = 'offices, bedrooms, studios, and focused workspaces';
+const metaDescriptionMaxLength = 155;
 
 const toneProfiles = {
   money: {
@@ -75,6 +76,28 @@ function cleanSentence(value) {
   return text.endsWith('.') ? text : `${text}.`;
 }
 
+function limitMetaDescription(value, maxLength = metaDescriptionMaxLength) {
+  const text = cleanSentence(value);
+
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  const trimmedText = text.slice(0, maxLength - 1);
+  const sentenceBreak = Math.max(
+    trimmedText.lastIndexOf('. '),
+    trimmedText.lastIndexOf('; '),
+  );
+  const wordBreak = trimmedText.lastIndexOf(' ');
+  const breakAt = sentenceBreak > 80 ? sentenceBreak + 1 : wordBreak;
+  const shortened = trimmedText
+    .slice(0, breakAt > 80 ? breakAt : maxLength - 1)
+    .replace(/[,;:\s-]+$/g, '')
+    .trim();
+
+  return `${shortened}.`;
+}
+
 function isGenericProductDescription(value) {
   return /motivational canvas print for offices, bedrooms, studios, and creative spaces/i.test(value || '');
 }
@@ -124,11 +147,19 @@ export function buildProductSeoDescription(product) {
   const aliases = getProductSeoAliases(product, 2);
 
   if (seoDescription && !isGenericProductDescription(seoDescription)) {
-    return cleanSentence(seoDescription);
+    return limitMetaDescription(seoDescription);
   }
 
-  return cleanSentence(
-    `Shop ${normalizeText(product?.title)} by Armoze, a ${profile.descriptionPhrase} for ${profile.audience || defaultAudience}${aliases.length ? `, including ${formatAliasList(aliases)}` : ''}`,
+  const baseDescription =
+    `Shop ${normalizeText(product?.title)} by Armoze, a ${profile.descriptionPhrase} for ${profile.audience || defaultAudience}`;
+  const descriptionWithAliases = aliases.length
+    ? `${baseDescription}, including ${formatAliasList(aliases)}`
+    : baseDescription;
+
+  return limitMetaDescription(
+    descriptionWithAliases.length <= metaDescriptionMaxLength
+      ? descriptionWithAliases
+      : baseDescription,
   );
 }
 

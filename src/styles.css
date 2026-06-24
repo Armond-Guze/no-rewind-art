@@ -6853,6 +6853,12 @@ h3 {
   color: #151515;
 }
 
+.storefront-home .storefront-story-cta .button-primary:hover {
+  border-color: #f0a32a;
+  background: #f0a32a;
+  color: #050506;
+}
+
 .storefront-story-points {
   display: grid;
   gap: 0;

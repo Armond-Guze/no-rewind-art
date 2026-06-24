@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import { createProductStore } from '../../server/product-store.js';
 import {
   buildCollectionSeoDescription,
@@ -11,6 +12,11 @@ import { policyPages } from './storefront/policy-content.ts';
 import { supportEmail } from './storefront/product-utils.ts';
 
 export const siteUrl = 'https://armoze.com';
+export const storefrontRevalidateSeconds = 3600;
+const storefrontCatalogCacheVersion =
+  process.env.STOREFRONT_CATALOG_CACHE_VERSION ||
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  '2026-06-24-size-price-reduction';
 const searchLogoPath = '/armoze-search-logo.png';
 const siteDescription =
   'Armoze makes made-to-order motivational and money mindset canvas prints for bedrooms, offices, studios, and focused workspaces.';
@@ -19,10 +25,20 @@ const homeDescription =
 
 const productStore = createProductStore();
 const productStoreReady = productStore.init();
+const getCachedCatalog = unstable_cache(
+  async () => {
+    await productStoreReady;
+    return productStore.listCatalog();
+  },
+  ['armoze-storefront-catalog', storefrontCatalogCacheVersion],
+  {
+    revalidate: storefrontRevalidateSeconds,
+    tags: ['armoze-storefront-catalog'],
+  },
+);
 
 export async function getCatalog() {
-  await productStoreReady;
-  return productStore.listCatalog();
+  return getCachedCatalog();
 }
 
 export function absoluteUrl(path = '/') {

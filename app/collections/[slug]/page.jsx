@@ -6,6 +6,9 @@ import {
 } from '../../../src/next/seo.js';
 import CollectionPageClient from '../../../src/next/storefront/CollectionPageClient';
 
+export const dynamicParams = true;
+export const revalidate = 3600;
+
 function JsonLd({ data }) {
   if (!data) {
     return null;
@@ -39,6 +42,14 @@ export async function generateMetadata({ params }) {
   }
 
   return routeSeo.metadata || {};
+}
+
+export async function generateStaticParams() {
+  const catalog = await getCatalog();
+
+  return catalog.collections.map((collection) => ({
+    slug: collection.slug,
+  }));
 }
 
 export default async function CollectionRoute({ params }) {

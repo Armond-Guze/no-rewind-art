@@ -7,6 +7,9 @@ import {
 import { getRelatedProducts } from '../../../src/next/storefront/product-utils';
 import ProductPageClient from '../../../src/next/storefront/ProductPageClient';
 
+export const dynamicParams = true;
+export const revalidate = 3600;
+
 function JsonLd({ data }) {
   if (!data) {
     return null;
@@ -26,28 +29,6 @@ async function getSlug(params) {
   return resolvedParams?.slug || '';
 }
 
-async function getSearchParams(searchParams) {
-  return (await searchParams) || {};
-}
-
-function appendSearchParams(path, searchParams) {
-  const nextParams = new URLSearchParams();
-
-  Object.entries(searchParams).forEach(([key, value]) => {
-    if (Array.isArray(value)) {
-      value.forEach((item) => nextParams.append(key, item));
-      return;
-    }
-
-    if (value != null) {
-      nextParams.set(key, value);
-    }
-  });
-
-  const query = nextParams.toString();
-  return query ? `${path}?${query}` : path;
-}
-
 export async function generateMetadata({ params }) {
   const routeSeo = await getRouteSeo(['products', await getSlug(params)]);
 
@@ -64,9 +45,18 @@ export async function generateMetadata({ params }) {
   return routeSeo.metadata || {};
 }
 
-export default async function ProductRoute({ params, searchParams }) {
+export async function generateStaticParams() {
+  const catalog = await getCatalog();
+
+  return catalog.products
+    .filter((product) => product.published)
+    .map((product) => ({
+      slug: product.slug,
+    }));
+}
+
+export default async function ProductRoute({ params }) {
   const slug = await getSlug(params);
-  const resolvedSearchParams = await getSearchParams(searchParams);
   const routeSeo = await getRouteSeo(['products', slug]);
 
   if (!routeSeo.exists) {
@@ -74,7 +64,7 @@ export default async function ProductRoute({ params, searchParams }) {
   }
 
   if (routeSeo.redirectTo) {
-    redirect(appendSearchParams(routeSeo.redirectTo, resolvedSearchParams));
+    redirect(routeSeo.redirectTo);
   }
 
   const catalog = await getCatalog();
@@ -84,17 +74,12 @@ export default async function ProductRoute({ params, searchParams }) {
     notFound();
   }
 
-  const searchSizeId = Array.isArray(resolvedSearchParams.size)
-    ? resolvedSearchParams.size[0]
-    : resolvedSearchParams.size;
-
   return (
     <>
       <JsonLd data={routeSeo.structuredData} />
       <ProductPageClient
         product={product}
         relatedProducts={getRelatedProducts(catalog.products, product)}
-        searchSizeId={searchSizeId}
       />
     </>
   );

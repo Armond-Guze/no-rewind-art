@@ -43,6 +43,7 @@ import {
   ProductVisual,
 } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
+import { useUrlSearchParam } from './url-search';
 
 const framePreviewImages: Record<string, string> = {
   canvas: '/product-support/frame-option-canvas.jpg',
@@ -159,16 +160,18 @@ function ProductVideoPlayer({ title, video }: { title: string; video: ProductVid
 export default function ProductPageClient({
   product,
   relatedProducts,
-  searchSizeId,
+  searchSizeId: initialSearchSizeId,
 }: {
   product: Product;
   relatedProducts: Product[];
   searchSizeId?: string;
 }) {
   const router = useRouter();
+  const querySizeId = useUrlSearchParam('size');
+  const searchSizeId = initialSearchSizeId ?? querySizeId ?? undefined;
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedFrameId, setSelectedFrameId] = useState(product.frameOptions[0]?.id ?? 'canvas');
-  const [selectedSizeId, setSelectedSizeId] = useState<string | null>(searchSizeId || null);
+  const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');

@@ -17,6 +17,7 @@ import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
 import { GoogleCustomerReviewsOptIn } from './GoogleCustomerReviewsOptIn';
 import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
+import { useUrlSearchParam } from './url-search';
 
 const heroWordPool = ['present', 'driven', 'focused', 'steady', 'bold'];
 
@@ -149,7 +150,7 @@ function HomeProductCard({
 }
 
 export default function HomePageClient({
-  checkoutResult,
+  checkoutResult: initialCheckoutResult,
   featuredProducts,
   newArrivalProducts,
   heroProducts,
@@ -159,6 +160,8 @@ export default function HomePageClient({
   newArrivalProducts: Product[];
   heroProducts: Product[];
 }) {
+  const queryCheckoutResult = useUrlSearchParam('checkout');
+  const checkoutResult = initialCheckoutResult ?? queryCheckoutResult ?? undefined;
   const heroSlides = useMemo(() => {
     const productsWithImages = heroProducts.filter((product) => product.image);
     const slideProducts = productsWithImages.length ? productsWithImages : heroProducts;
