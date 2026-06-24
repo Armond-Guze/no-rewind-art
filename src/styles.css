@@ -158,19 +158,21 @@ a {
 }
 
 .brand {
-  display: inline-flex;
+  display: inline-grid;
   align-items: center;
+  place-items: center;
   gap: 0;
+  width: 42px;
+  height: 42px;
   color: var(--paper);
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: clamp(1.78rem, 2.4vw, 2.42rem);
-  font-weight: 400;
-  line-height: 1;
-  text-transform: lowercase;
+  font-size: 0;
 }
 
-.brand-text {
-  display: inline-block;
+.brand-mark {
+  width: 42px;
+  height: 42px;
+  display: block;
+  object-fit: contain;
 }
 
 .nav-links {
@@ -7322,9 +7324,14 @@ h3 {
     grid-row: 1;
     justify-self: center;
     gap: 0;
-    font-size: 1.78rem;
-    font-weight: 400;
-    line-height: 1;
+    width: 32px;
+    height: 32px;
+    font-size: 0;
+  }
+
+  .site-header .brand-mark {
+    width: 32px;
+    height: 32px;
   }
 
   .launch-promo-bar {
@@ -7439,11 +7446,11 @@ h3 {
     background: #050506;
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     color: #fff;
-    font-size: 2rem;
-    font-weight: 400;
-    letter-spacing: 0;
-    line-height: 1;
-    text-transform: lowercase;
+  }
+
+  .mobile-menu-brand .brand-mark {
+    width: 34px;
+    height: 34px;
   }
 
   .site-header .nav-links.open,

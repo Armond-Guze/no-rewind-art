@@ -134,7 +134,7 @@ function NextSiteHeader() {
   return (
     <header className={`site-header${isHome ? ' home-header' : ''}${menuOpen ? ' menu-open' : ''}`}>
       <Link className="brand" href="/" aria-label="Armoze home">
-        <span className="brand-text">armoze</span>
+        <img className="brand-mark" src="/armoze-site-logo.png" alt="" aria-hidden="true" />
       </Link>
       <button
         className="mobile-menu-toggle"
@@ -168,7 +168,7 @@ function NextSiteHeader() {
         aria-label="Primary navigation"
       >
         <div className="mobile-menu-brand" aria-hidden="true">
-          armoze
+          <img className="brand-mark" src="/armoze-site-logo.png" alt="" />
         </div>
         <Link href="/collections/best-sellers" onClick={closeMenu}>Best Sellers</Link>
         <Link href="/collections/money-ambition" onClick={closeMenu}>Money</Link>
