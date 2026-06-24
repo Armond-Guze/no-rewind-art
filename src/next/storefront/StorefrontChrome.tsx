@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
-import { CircleUserRound, Menu, X } from 'lucide-react';
+import { ArrowRight, CircleUserRound, Menu, X } from 'lucide-react';
 import {
   cartUpdatedEvent,
   getStoredCartCount,
@@ -56,7 +56,7 @@ function LaunchPromoBar() {
   return (
     <section className="launch-promo-bar" aria-label="Launch offer">
       <p>
-        Launch offer: {launchOfferDiscount} off your first order with code <strong>{launchOfferCode}</strong>
+        Enjoy {launchOfferDiscount} off with code <strong>{launchOfferCode}</strong>
       </p>
     </section>
   );
@@ -134,8 +134,7 @@ function NextSiteHeader() {
   return (
     <header className={`site-header${isHome ? ' home-header' : ''}${menuOpen ? ' menu-open' : ''}`}>
       <Link className="brand" href="/" aria-label="Armoze home">
-        <img className="brand-mark" src="/armoze-site-logo.png" alt="" aria-hidden="true" />
-        <img className="brand-wordmark" src="/armoze-wordmark.png" alt="Armoze" />
+        <span className="brand-text">armoze</span>
       </Link>
       <button
         className="mobile-menu-toggle"
@@ -169,8 +168,7 @@ function NextSiteHeader() {
         aria-label="Primary navigation"
       >
         <div className="mobile-menu-brand" aria-hidden="true">
-          <img className="brand-mark" src="/armoze-site-logo.png" alt="" />
-          <img className="brand-wordmark" src="/armoze-wordmark.png" alt="" />
+          armoze
         </div>
         <Link href="/collections/best-sellers" onClick={closeMenu}>Best Sellers</Link>
         <Link href="/collections/money-ambition" onClick={closeMenu}>Money</Link>
@@ -196,6 +194,35 @@ function NextSiteFooter() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [newsletterMessage, setNewsletterMessage] = useState('New drops, restocks, and studio updates. No spam.');
+  const footerLinkGroups = [
+    {
+      title: 'Shop',
+      links: [
+        { href: '/collections/best-sellers', label: 'Best Sellers' },
+        { href: '/collections/new-arrivals', label: 'New Arrivals' },
+        { href: '/collections/money-ambition', label: 'Money' },
+        { href: '/collections/discipline-focus', label: 'Focus' },
+      ],
+    },
+    {
+      title: 'Company',
+      links: [
+        { href: '/support', label: 'Support' },
+        { href: '/account', label: 'Account' },
+        { href: '/sign-in', label: 'Profile' },
+      ],
+    },
+    {
+      title: 'Information',
+      links: [
+        { href: '/support', label: 'Contact' },
+        { href: '/shipping', label: 'Shipping' },
+        { href: '/returns', label: 'Returns' },
+        { href: '/privacy', label: 'Privacy' },
+        { href: '/terms', label: 'Terms' },
+      ],
+    },
+  ];
 
   async function handleNewsletterSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -228,62 +255,64 @@ function NextSiteFooter() {
 
   return (
     <footer className="site-footer">
-      <div className="footer-brand">
-        <Link className="footer-logo" href="/" aria-label="Armoze home">
-          <img className="brand-mark" src="/armoze-site-logo.png" alt="" aria-hidden="true" />
-          <span>Armoze</span>
-        </Link>
-        <p>Motivational canvas prints for ambitious spaces.</p>
-      </div>
-
-      <nav className="footer-links" aria-label="Footer navigation">
-        <Link href="/collections/best-sellers">Best Sellers</Link>
-        <Link href="/collections/money-ambition">Money</Link>
-        <Link href="/collections/discipline-focus">Focus</Link>
-        <Link href="/collections/new-arrivals">New Arrivals</Link>
-        <Link href="/support">Support</Link>
-        <Link href="/shipping">Shipping</Link>
-        <Link href="/returns">Returns</Link>
-        <Link href="/privacy">Privacy</Link>
-        <Link href="/terms">Terms</Link>
-      </nav>
-
-      <section className="footer-support" aria-label="Customer support">
-        <Link className="footer-support-label" href="/support">
-          Customer Support
-        </Link>
-        <a className="footer-support-email" href={supportMailto}>
-          {supportEmail}
-        </a>
-        <span>Replies within 1 business day</span>
-      </section>
-
-      <section className="footer-newsletter" aria-label="Newsletter signup">
-        <div>
-          <span>Newsletter</span>
-          <h2>Get the next drop first.</h2>
+      <div className="footer-main">
+        <div className="footer-brand">
+          <Link className="footer-logo" href="/" aria-label="Armoze home">
+            Armoze
+          </Link>
+          <p>Motivational canvas prints made for focused rooms, ambitious routines, and better everyday walls.</p>
+          <p className="footer-copyright">2026 Armoze. Secure checkout by Stripe.</p>
         </div>
-        <form onSubmit={handleNewsletterSubmit}>
-          <label className="sr-only" htmlFor="next-newsletter-email">
-            Email address
-          </label>
-          <div className="newsletter-form-row">
-            <input
-              id="next-newsletter-email"
-              type="email"
-              value={newsletterEmail}
-              onChange={(event) => setNewsletterEmail(event.target.value)}
-              placeholder="Email address"
-              autoComplete="email"
-              required
-            />
-            <button type="submit" disabled={newsletterStatus === 'loading'}>
-              {newsletterStatus === 'loading' ? 'Joining' : 'Sign Up'}
-            </button>
-          </div>
-          <p className={`newsletter-message ${newsletterStatus}`}>{newsletterMessage}</p>
-        </form>
-      </section>
+
+        <nav className="footer-link-columns" aria-label="Footer navigation">
+          {footerLinkGroups.map((group) => (
+            <section className="footer-link-column" key={group.title}>
+              <h2>{group.title}</h2>
+              {group.links.map((link) => (
+                <Link href={link.href} key={`${group.title}-${link.href}`}>
+                  {link.label}
+                </Link>
+              ))}
+            </section>
+          ))}
+          <section className="footer-link-column">
+            <h2>Socials</h2>
+            <a href="https://www.instagram.com/itsarmoze" target="_blank" rel="noopener noreferrer">
+              Instagram
+            </a>
+            <a href="https://www.tiktok.com/@itsarmoze" target="_blank" rel="noopener noreferrer">
+              TikTok
+            </a>
+            <a href="https://www.youtube.com/@itsarmoze" target="_blank" rel="noopener noreferrer">
+              YouTube
+            </a>
+          </section>
+        </nav>
+
+        <section className="footer-newsletter" aria-label="Newsletter signup">
+          <h2>Straight to Your Space</h2>
+          <form onSubmit={handleNewsletterSubmit}>
+            <label className="sr-only" htmlFor="next-newsletter-email">
+              Email address
+            </label>
+            <div className="newsletter-form-row">
+              <input
+                id="next-newsletter-email"
+                type="email"
+                value={newsletterEmail}
+                onChange={(event) => setNewsletterEmail(event.target.value)}
+                placeholder="Your E-mail"
+                autoComplete="email"
+                required
+              />
+              <button type="submit" disabled={newsletterStatus === 'loading'} aria-label="Sign up for the newsletter">
+                <ArrowRight aria-hidden="true" size={18} strokeWidth={2.4} />
+              </button>
+            </div>
+            <p className={`newsletter-message ${newsletterStatus}`}>{newsletterMessage}</p>
+          </form>
+        </section>
+      </div>
 
       <details className="footer-policy-menu">
         <summary>Policies &amp; Support</summary>
@@ -300,101 +329,11 @@ function NextSiteFooter() {
       </details>
 
       <div className="footer-bottom">
-        <div className="footer-bottom-meta">
-          <span>2026 Armoze</span>
-          <span>Made to order</span>
-          <span>Secure checkout</span>
+        <div className="footer-market-selectors" aria-label="Store settings">
+          <span className="footer-market-pill">United States (USD $)</span>
+          <span className="footer-market-pill">English</span>
         </div>
-        <nav className="footer-social-links" aria-label="Social media">
-          <a
-            href="https://www.instagram.com/itsarmoze"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Armoze on Instagram"
-          >
-            <InstagramIcon />
-          </a>
-          <a
-            href="https://www.youtube.com/@itsarmoze"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Armoze on YouTube"
-          >
-            <YouTubeIcon />
-          </a>
-          <a
-            href="https://www.tiktok.com/@itsarmoze"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Armoze on TikTok"
-          >
-            <TikTokIcon />
-          </a>
-        </nav>
       </div>
     </footer>
-  );
-}
-
-function InstagramIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="footer-social-icon"
-      focusable="false"
-      viewBox="0 0 24 24"
-    >
-      <rect
-        x="4"
-        y="4"
-        width="16"
-        height="16"
-        rx="4.4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <circle cx="12" cy="12" r="3.35" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="16.65" cy="7.35" r="1.05" fill="currentColor" />
-    </svg>
-  );
-}
-
-function YouTubeIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="footer-social-icon"
-      focusable="false"
-      viewBox="0 0 24 24"
-    >
-      <rect
-        x="3"
-        y="6.6"
-        width="18"
-        height="10.8"
-        rx="3.2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <path d="M10.4 9.55v4.9L14.85 12l-4.45-2.45Z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function TikTokIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="footer-social-icon"
-      focusable="false"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M15.7 3c.3 2.4 1.7 3.9 4.1 4.1v3.2c-1.4.1-2.7-.3-4-1v5.9c0 3.7-2.3 5.8-5.6 5.8-3.1 0-5.3-2.1-5.3-5 0-3.1 2.4-5.2 5.7-5.2.3 0 .7 0 1 .1v3.4c-.3-.1-.6-.1-.9-.1-1.4 0-2.3.7-2.3 1.8s.8 1.8 2 1.8c1.4 0 2.1-.7 2.1-2.4V3h3.2Z"
-        fill="currentColor"
-      />
-    </svg>
   );
 }

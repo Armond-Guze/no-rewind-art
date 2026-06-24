@@ -2,18 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, Plus, Star } from 'lucide-react';
-import { addStoredCartItem } from '../../cart';
+import { ArrowUpRight, Star } from 'lucide-react';
 import type { Product } from '../../data/products';
 import {
   formatPrice,
-  getBaseFrameOption,
-  getBaseSizeOption,
-  getConfiguredUnitPrice,
   supportEmail,
   supportMailto,
 } from './product-utils';
-import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
 import { GoogleCustomerReviewsOptIn } from './GoogleCustomerReviewsOptIn';
 import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
@@ -96,29 +91,10 @@ function getHeroKeywordCandidates(product: Product, index: number) {
 function HomeProductCard({
   product,
   priority = false,
-  showDescription = true,
 }: {
   product: Product;
   priority?: boolean;
-  showDescription?: boolean;
 }) {
-  function quickAdd() {
-    const sizeOption = getBaseSizeOption(product);
-    const frameOption = getBaseFrameOption(product);
-
-    addStoredCartItem({
-      productId: product.id,
-      sizeId: sizeOption.id,
-      frameId: frameOption.id,
-      quantity: 1,
-    });
-    trackStorefrontEvent('add_to_cart', {
-      currency: 'USD',
-      value: getConfiguredUnitPrice(product, sizeOption, frameOption) / 100,
-      items: [getProductTrackingItem(product, sizeOption, frameOption)],
-    });
-  }
-
   return (
     <article className="product">
       <Link className="product-image-link" href={`/products/${product.slug}`}>
@@ -126,23 +102,12 @@ function HomeProductCard({
       </Link>
       <div className="product-copy">
         <div className="product-title-row">
-          <div>
-            <h3>
-              <Link href={`/products/${product.slug}`}>{product.title}</Link>
-            </h3>
-          </div>
-          <strong>{formatPrice(product.priceInCents)}</strong>
+          <h3>
+            <Link href={`/products/${product.slug}`}>{product.title}</Link>
+          </h3>
         </div>
-        {showDescription ? <p>{product.description}</p> : null}
-        <div className="product-actions">
-          <Link className="text-action" href={`/products/${product.slug}`}>
-            View Details
-            <ArrowUpRight aria-hidden="true" size={16} />
-          </Link>
-          <button className="text-action" type="button" onClick={quickAdd}>
-            Add to Cart
-            <Plus aria-hidden="true" size={16} />
-          </button>
+        <div className="product-card-meta">
+          <strong>{formatPrice(product.priceInCents)}</strong>
         </div>
       </div>
     </article>
@@ -338,7 +303,6 @@ export default function HomePageClient({
                 key={product.id}
                 product={product}
                 priority={index < 2}
-                showDescription={false}
               />
             ))}
           </div>

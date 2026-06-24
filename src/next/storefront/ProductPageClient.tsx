@@ -9,6 +9,8 @@ import {
   BadgeCheck,
   Box,
   Check,
+  ChevronDown,
+  ChevronUp,
   Play,
   ShieldCheck,
   Star,
@@ -174,6 +176,7 @@ export default function ProductPageClient({
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [shippingOpen, setShippingOpen] = useState(false);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [checkoutError, setCheckoutError] = useState('');
   const galleryItems = getProductMediaGallery(product);
@@ -632,8 +635,12 @@ export default function ProductPageClient({
                   aria-controls={`${product.id}-description`}
                   onClick={() => setDescriptionOpen((open) => !open)}
                 >
-                  <span>Product Description</span>
-                  <span aria-hidden="true">{descriptionOpen ? '-' : '+'}</span>
+                  <span>Description</span>
+                  {descriptionOpen ? (
+                    <ChevronUp aria-hidden="true" size={18} strokeWidth={2.4} />
+                  ) : (
+                    <ChevronDown aria-hidden="true" size={18} strokeWidth={2.4} />
+                  )}
                 </button>
                 {descriptionOpen ? (
                   <div
@@ -654,7 +661,11 @@ export default function ProductPageClient({
                   onClick={() => setDetailsOpen((open) => !open)}
                 >
                   <span>Product Details</span>
-                  <span aria-hidden="true">{detailsOpen ? '-' : '+'}</span>
+                  {detailsOpen ? (
+                    <ChevronUp aria-hidden="true" size={18} strokeWidth={2.4} />
+                  ) : (
+                    <ChevronDown aria-hidden="true" size={18} strokeWidth={2.4} />
+                  )}
                 </button>
                 {detailsOpen ? (
                   <div className="product-details-content" id={`${product.id}-details`}>
@@ -688,6 +699,34 @@ export default function ProductPageClient({
                       {product.details.map((detail) => (
                         <li key={detail}>{detail}</li>
                       ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="product-details-drawer">
+                <button
+                  type="button"
+                  aria-expanded={shippingOpen}
+                  aria-controls={`${product.id}-shipping-returns`}
+                  onClick={() => setShippingOpen((open) => !open)}
+                >
+                  <span>Shipping &amp; Returns</span>
+                  {shippingOpen ? (
+                    <ChevronUp aria-hidden="true" size={18} strokeWidth={2.4} />
+                  ) : (
+                    <ChevronDown aria-hidden="true" size={18} strokeWidth={2.4} />
+                  )}
+                </button>
+                {shippingOpen ? (
+                  <div className="product-details-content" id={`${product.id}-shipping-returns`}>
+                    <h2>Shipping &amp; Returns</h2>
+                    <ul>
+                      <li>Free U.S. shipping on every order</li>
+                      <li>Processing time: 2-3 business days</li>
+                      <li>U.S. shipping time: 2-5 business days after processing</li>
+                      <li>Returns accepted within 30 days of delivery</li>
+                      <li>Damaged, defective, or incorrect items are handled at no extra return cost when approved</li>
                     </ul>
                   </div>
                 ) : null}
