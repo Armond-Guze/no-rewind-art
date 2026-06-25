@@ -510,7 +510,7 @@ function NextSiteFooter() {
 
         <nav className="footer-mobile-accordions" aria-label="Footer mobile navigation">
           {mobileFooterGroups.map((group) => (
-            <details className="footer-mobile-accordion" key={group.title} open>
+            <details className="footer-mobile-accordion" key={group.title}>
               <summary>{group.title}</summary>
               <div className="footer-mobile-accordion-links">
                 {group.links.map((link) =>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Star } from 'lucide-react';
 import type { HomepageHeroImage, HomepageSettings, Product } from '../../data/products';
@@ -16,7 +16,7 @@ import { useUrlSearchParam } from './url-search';
 
 const heroWordPool = ['present', 'driven', 'focused', 'steady', 'bold'];
 
-type NewArrivalsShowcaseItem =
+type HomepageMediaItem =
   | {
       type: 'image';
       id: string;
@@ -41,6 +41,13 @@ type HeroShowcaseSlide =
       product: Product;
       keyword: string;
     };
+
+type BestSellersCarouselItem = {
+  item: HomepageMediaItem;
+  key: string;
+  clone: boolean;
+  realStart: boolean;
+};
 
 const etsyReviewHighlights = [
   {
@@ -117,13 +124,27 @@ function getHeroKeywordCandidates(product: Product, index: number) {
 function HomeProductCard({
   product,
   priority = false,
+  className,
+  interactive = true,
+  realStart = false,
 }: {
   product: Product;
   priority?: boolean;
+  className?: string;
+  interactive?: boolean;
+  realStart?: boolean;
 }) {
   return (
-    <article className="product">
-      <Link className="product-image-link" href={`/products/${product.slug}`}>
+    <article
+      aria-hidden={interactive ? undefined : true}
+      className={['product', className].filter(Boolean).join(' ')}
+      data-carousel-real-start={realStart ? 'true' : undefined}
+    >
+      <Link
+        className="product-image-link"
+        href={`/products/${product.slug}`}
+        tabIndex={interactive ? undefined : -1}
+      >
         <ProductImage product={product} priority={priority} />
       </Link>
       <div className="product-copy">
@@ -132,7 +153,9 @@ function HomeProductCard({
         </span>
         <div className="product-title-row">
           <h3>
-            <Link href={`/products/${product.slug}`}>{product.title}</Link>
+            <Link href={`/products/${product.slug}`} tabIndex={interactive ? undefined : -1}>
+              {product.title}
+            </Link>
           </h3>
         </div>
         <div className="product-card-meta">
@@ -154,9 +177,15 @@ function getHomepageImageLinkLabel(image: HomepageHeroImage, fallback: string) {
 function HomeImageCard({
   image,
   priority = false,
+  className,
+  interactive = true,
+  realStart = false,
 }: {
   image: HomepageHeroImage;
   priority?: boolean;
+  className?: string;
+  interactive?: boolean;
+  realStart?: boolean;
 }) {
   const href = getHomepageImageProductHref(image);
   const imageElement = (
@@ -170,12 +199,17 @@ function HomeImageCard({
   );
 
   return (
-    <article className="product homepage-image-card">
+    <article
+      aria-hidden={interactive ? undefined : true}
+      className={['product homepage-image-card', className].filter(Boolean).join(' ')}
+      data-carousel-real-start={realStart ? 'true' : undefined}
+    >
       {href ? (
         <Link
           aria-label={getHomepageImageLinkLabel(image, 'View featured product')}
           className="product-image-link homepage-image-card-media"
           href={href}
+          tabIndex={interactive ? undefined : -1}
         >
           {imageElement}
         </Link>
@@ -188,7 +222,134 @@ function HomeImageCard({
   );
 }
 
-function NewArrivalsMobileShowcase({ items }: { items: NewArrivalsShowcaseItem[] }) {
+function HomeMediaCard({
+  item,
+  priority = false,
+  className,
+  interactive = true,
+  realStart = false,
+}: {
+  item: HomepageMediaItem;
+  priority?: boolean;
+  className?: string;
+  interactive?: boolean;
+  realStart?: boolean;
+}) {
+  if (item.type === 'image') {
+    return (
+      <HomeImageCard
+        className={className}
+        image={item.image}
+        interactive={interactive}
+        priority={priority}
+        realStart={realStart}
+      />
+    );
+  }
+
+  return (
+    <HomeProductCard
+      className={className}
+      interactive={interactive}
+      priority={priority}
+      product={item.product}
+      realStart={realStart}
+    />
+  );
+}
+
+function BestSellersCarousel({
+  className,
+  items,
+}: {
+  className?: string;
+  items: HomepageMediaItem[];
+}) {
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const hasEdgePeek = items.length > 1;
+  const carouselItems: BestSellersCarouselItem[] = hasEdgePeek
+    ? [
+        {
+          item: items[items.length - 1],
+          key: `leading-${items[items.length - 1].id}`,
+          clone: true,
+          realStart: false,
+        },
+        ...items.map((item, index) => ({
+          item,
+          key: `real-${index}-${item.id}`,
+          clone: false,
+          realStart: index === 0,
+        })),
+        {
+          item: items[0],
+          key: `trailing-${items[0].id}`,
+          clone: true,
+          realStart: false,
+        },
+      ]
+    : items.map((item, index) => ({
+        item,
+        key: `real-${index}-${item.id}`,
+        clone: false,
+        realStart: index === 0,
+      }));
+
+  useEffect(() => {
+    const carousel = carouselRef.current;
+
+    if (!carousel || !hasEdgePeek || !window.matchMedia('(max-width: 900px)').matches) {
+      return;
+    }
+
+    const setInitialPeek = () => {
+      const firstRealCard = carousel.querySelector<HTMLElement>('[data-carousel-real-start="true"]');
+
+      if (!firstRealCard) {
+        return;
+      }
+
+      const styles = window.getComputedStyle(carousel);
+      const peek = Number.parseFloat(styles.getPropertyValue('--best-sellers-edge-peek')) || 44;
+      const targetScrollLeft = Math.max(0, firstRealCard.offsetLeft - peek);
+
+      carousel.scrollTo({ left: targetScrollLeft, behavior: 'auto' });
+      carousel.scrollLeft = targetScrollLeft;
+    };
+
+    const frame = window.requestAnimationFrame(setInitialPeek);
+    const timeout = window.setTimeout(setInitialPeek, 250);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timeout);
+    };
+  }, [hasEdgePeek, items]);
+
+  return (
+    <div
+      className={[
+        'product-grid best-sellers-carousel',
+        hasEdgePeek ? 'has-edge-peek' : undefined,
+        className,
+      ].filter(Boolean).join(' ')}
+      ref={carouselRef}
+    >
+      {carouselItems.map(({ clone, item, key, realStart }, index) => (
+        <HomeMediaCard
+          className={clone ? 'best-sellers-edge-clone' : undefined}
+          interactive={!clone}
+          item={item}
+          key={key}
+          priority={!clone && index < 3}
+          realStart={realStart}
+        />
+      ))}
+    </div>
+  );
+}
+
+function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
   if (!items.length) {
     return null;
   }
@@ -212,10 +373,10 @@ function NewArrivalsMobileShowcase({ items }: { items: NewArrivalsShowcaseItem[]
                 const className = `new-arrivals-mobile-slide new-arrivals-mobile-slide-${(index % 3) + 1}`;
                 const key = `${reelIndex}-${index}-${item.id}`;
                 const isLeadingPeek = items.length > 1 && index === 0;
+                const ariaHidden = reelIndex === 1 || isLeadingPeek ? true : undefined;
 
                 if (item.type === 'image') {
                   const { image } = item;
-                  const href = getHomepageImageProductHref(image);
                   const imageElement = (
                     <img
                       alt={reelIndex === 1 ? '' : image.alt || 'Armoze new arrivals artwork'}
@@ -226,33 +387,21 @@ function NewArrivalsMobileShowcase({ items }: { items: NewArrivalsShowcaseItem[]
                     />
                   );
 
-                  return href ? (
-                    <Link
-                      aria-label={getHomepageImageLinkLabel(image, 'View new arrival product')}
-                      className={className}
-                      href={href}
-                      key={key}
-                      tabIndex={reelIndex === 1 || isLeadingPeek ? -1 : undefined}
-                    >
-                      {imageElement}
-                    </Link>
-                  ) : (
-                    <div className={className} key={key}>
+                  return (
+                    <div aria-hidden={ariaHidden} className={className} key={key}>
                       {imageElement}
                     </div>
                   );
                 }
 
                 return (
-                  <Link
-                    aria-label={`View ${item.product.title}`}
+                  <div
+                    aria-hidden={ariaHidden}
                     className={className}
-                    href={`/products/${item.product.slug}`}
                     key={key}
-                    tabIndex={reelIndex === 1 || isLeadingPeek ? -1 : undefined}
                   >
                     <ProductImage product={item.product} />
-                  </Link>
+                  </div>
                 );
               })}
             </div>
@@ -379,7 +528,33 @@ export default function HomePageClient({
     () => homepageNewArrivalImages?.filter((image) => image.url).slice(0, 4) ?? [],
     [homepageNewArrivalImages],
   );
-  const newArrivalShowcaseItems = useMemo<NewArrivalsShowcaseItem[]>(
+  const bestSellerGridItems = useMemo<HomepageMediaItem[]>(
+    () => {
+      if (bestSellerGridImages.length) {
+        return bestSellerGridImages.map((image, index) => ({
+          type: 'image' as const,
+          id: `${image.url}-${index}`,
+          image,
+        }));
+      }
+
+      return featuredProducts.map((product) => ({
+        type: 'product' as const,
+        id: product.id,
+        product,
+      }));
+    },
+    [bestSellerGridImages, featuredProducts],
+  );
+  const bestSellerMobileItems = useMemo<HomepageMediaItem[]>(
+    () => bestSellerMobileImages.map((image, index) => ({
+      type: 'image' as const,
+      id: `${image.url}-${index}`,
+      image,
+    })),
+    [bestSellerMobileImages],
+  );
+  const newArrivalShowcaseItems = useMemo<HomepageMediaItem[]>(
     () => {
       const uploadedImages = (homepageNewArrivalMobileImages?.length
         ? homepageNewArrivalMobileImages
@@ -540,36 +715,16 @@ export default function HomePageClient({
             </Link>
           </div>
 
-          <div className={`product-grid best-sellers-carousel${
-            bestSellerMobileImages.length ? ' has-mobile-image-overrides' : ''
-          }`}>
-            {bestSellerGridImages.length
-              ? bestSellerGridImages.map((image, index) => (
-                <HomeImageCard
-                  image={image}
-                  key={`${image.url}-${index}`}
-                  priority={index < 2}
-                />
-              ))
-              : featuredProducts.map((product, index) => (
-                <HomeProductCard
-                  key={product.id}
-                  product={product}
-                  priority={index < 2}
-                />
-              ))}
-          </div>
+          <BestSellersCarousel
+            className={bestSellerMobileItems.length ? 'has-mobile-image-overrides' : undefined}
+            items={bestSellerGridItems}
+          />
 
-          {bestSellerMobileImages.length ? (
-            <div className="product-grid best-sellers-carousel best-sellers-mobile-image-carousel">
-              {bestSellerMobileImages.map((image, index) => (
-                <HomeImageCard
-                  image={image}
-                  key={`${image.url}-${index}`}
-                  priority={index < 2}
-                />
-              ))}
-            </div>
+          {bestSellerMobileItems.length ? (
+            <BestSellersCarousel
+              className="best-sellers-mobile-image-carousel"
+              items={bestSellerMobileItems}
+            />
           ) : null}
         </section>
 
@@ -630,8 +785,6 @@ export default function HomePageClient({
             </Link>
           </div>
 
-          <NewArrivalsMobileShowcase items={newArrivalShowcaseItems} />
-
           <div className="product-grid">
             {newArrivalGridImages.length
               ? newArrivalGridImages.map((image, index) => (
@@ -656,6 +809,10 @@ export default function HomePageClient({
           <Link href="/support">Get Help</Link>
           <a href={supportMailto}>{supportEmail}</a>
           <small>Replies within 1 business day</small>
+        </section>
+
+        <section className="storefront-bottom-slideshow" aria-label="New arrivals artwork preview">
+          <NewArrivalsMobileShowcase items={newArrivalShowcaseItems} />
         </section>
       </main>
     </StorefrontShell>
