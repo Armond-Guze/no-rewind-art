@@ -7,7 +7,7 @@ import {
 } from '../src/next/seo.js';
 import HomePageClient from '../src/next/storefront/HomePageClient';
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 function JsonLd({ data }) {
   if (!data) {

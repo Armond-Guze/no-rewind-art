@@ -12,7 +12,7 @@ import { policyPages } from './storefront/policy-content.ts';
 import { supportEmail } from './storefront/product-utils.ts';
 
 export const siteUrl = 'https://armoze.com';
-export const storefrontRevalidateSeconds = 3600;
+export const storefrontRevalidateSeconds = 60;
 const storefrontCatalogCacheVersion =
   process.env.STOREFRONT_CATALOG_CACHE_VERSION ||
   process.env.VERCEL_GIT_COMMIT_SHA ||

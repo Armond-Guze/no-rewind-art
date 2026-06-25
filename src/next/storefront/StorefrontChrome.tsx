@@ -366,11 +366,22 @@ function NextSiteHeader({
   );
 }
 
+type FooterLink = {
+  href: string;
+  label: string;
+  external?: boolean;
+};
+
+type FooterLinkGroup = {
+  title: string;
+  links: FooterLink[];
+};
+
 function NextSiteFooter() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [newsletterMessage, setNewsletterMessage] = useState('New drops, restocks, and studio updates. No spam.');
-  const footerLinkGroups = [
+  const footerLinkGroups: FooterLinkGroup[] = [
     {
       title: 'Shop',
       links: [
@@ -397,6 +408,18 @@ function NextSiteFooter() {
         { href: '/privacy', label: 'Privacy' },
         { href: '/terms', label: 'Terms' },
       ],
+    },
+  ];
+  const footerSocialLinks: FooterLink[] = [
+    { href: 'https://www.instagram.com/itsarmoze', label: 'Instagram', external: true },
+    { href: 'https://www.tiktok.com/@itsarmoze', label: 'TikTok', external: true },
+    { href: 'https://www.youtube.com/@itsarmoze', label: 'YouTube', external: true },
+  ];
+  const mobileFooterGroups: FooterLinkGroup[] = [
+    ...footerLinkGroups,
+    {
+      title: 'Socials',
+      links: footerSocialLinks,
     },
   ];
 
@@ -437,7 +460,7 @@ function NextSiteFooter() {
             Armoze
           </Link>
           <p>Motivational canvas prints made for focused rooms, ambitious routines, and better everyday walls.</p>
-          <p className="footer-copyright">2026 Armoze. Secure checkout by Stripe.</p>
+          <p className="footer-copyright">&copy; 2026 Armoze.</p>
         </div>
 
         <nav className="footer-link-columns" aria-label="Footer navigation">
@@ -453,20 +476,16 @@ function NextSiteFooter() {
           ))}
           <section className="footer-link-column">
             <h2>Socials</h2>
-            <a href="https://www.instagram.com/itsarmoze" target="_blank" rel="noopener noreferrer">
-              Instagram
-            </a>
-            <a href="https://www.tiktok.com/@itsarmoze" target="_blank" rel="noopener noreferrer">
-              TikTok
-            </a>
-            <a href="https://www.youtube.com/@itsarmoze" target="_blank" rel="noopener noreferrer">
-              YouTube
-            </a>
+            {footerSocialLinks.map((link) => (
+              <a href={link.href} key={link.href} target="_blank" rel="noopener noreferrer">
+                {link.label}
+              </a>
+            ))}
           </section>
         </nav>
 
         <section className="footer-newsletter" aria-label="Newsletter signup">
-          <h2>Straight to Your Space</h2>
+          <h2>Straight to Your Routine</h2>
           <form onSubmit={handleNewsletterSubmit}>
             <label className="sr-only" htmlFor="next-newsletter-email">
               Email address
@@ -488,6 +507,27 @@ function NextSiteFooter() {
             <p className={`newsletter-message ${newsletterStatus}`}>{newsletterMessage}</p>
           </form>
         </section>
+
+        <nav className="footer-mobile-accordions" aria-label="Footer mobile navigation">
+          {mobileFooterGroups.map((group) => (
+            <details className="footer-mobile-accordion" key={group.title} open>
+              <summary>{group.title}</summary>
+              <div className="footer-mobile-accordion-links">
+                {group.links.map((link) =>
+                  link.external ? (
+                    <a href={link.href} key={link.href} target="_blank" rel="noopener noreferrer">
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link href={link.href} key={link.href}>
+                      {link.label}
+                    </Link>
+                  ),
+                )}
+              </div>
+            </details>
+          ))}
+        </nav>
       </div>
 
       <details className="footer-policy-menu">
@@ -509,6 +549,7 @@ function NextSiteFooter() {
           <span className="footer-market-pill">United States (USD $)</span>
           <span className="footer-market-pill">English</span>
         </div>
+        <p className="footer-bottom-copy">&copy; 2026 Armoze.</p>
       </div>
     </footer>
   );
