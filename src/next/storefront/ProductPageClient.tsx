@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   BadgeCheck,
@@ -168,7 +167,6 @@ export default function ProductPageClient({
   relatedProducts: Product[];
   searchSizeId?: string;
 }) {
-  const router = useRouter();
   const querySizeId = useUrlSearchParam('size');
   const searchSizeId = initialSearchSizeId ?? querySizeId ?? undefined;
   const [selectedImage, setSelectedImage] = useState(0);
@@ -304,9 +302,6 @@ export default function ProductPageClient({
       value: selectedUnitPrice / 100,
       items: [trackingItem],
     });
-    router.push(
-      `/cart?item=${encodeURIComponent(`${product.id}-${selectedOption.id}`)}&frame=${encodeURIComponent(selectedFrameOption.id)}`,
-    );
   }
 
   async function startBuyNow() {

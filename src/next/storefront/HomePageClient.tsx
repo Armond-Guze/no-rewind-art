@@ -445,16 +445,47 @@ function BestSellersCarousel({
   );
 }
 
+function getHomepageMediaItemOrderKey(item: HomepageMediaItem) {
+  if (item.type === 'image') {
+    return item.image.productSlug || item.image.url;
+  }
+
+  return item.product.slug || item.product.id;
+}
+
+function keepOrderedUniqueNeighbors(items: HomepageMediaItem[]) {
+  const orderedItems: HomepageMediaItem[] = [];
+
+  items.forEach((item) => {
+    const lastItem = orderedItems[orderedItems.length - 1];
+
+    if (lastItem && getHomepageMediaItemOrderKey(lastItem) === getHomepageMediaItemOrderKey(item)) {
+      return;
+    }
+
+    orderedItems.push(item);
+  });
+
+  while (
+    orderedItems.length > 1 &&
+    getHomepageMediaItemOrderKey(orderedItems[0]) === getHomepageMediaItemOrderKey(orderedItems[orderedItems.length - 1])
+  ) {
+    orderedItems.pop();
+  }
+
+  return orderedItems;
+}
+
 function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
-  if (!items.length) {
+  const orderedItems = keepOrderedUniqueNeighbors(items);
+
+  if (!orderedItems.length) {
     return null;
   }
 
-  const reelItems = items.length > 1 ? [items[items.length - 1], ...items] : items;
-
   return (
     <div
-      className={`new-arrivals-mobile-showcase${items.length > 1 ? ' has-edge-peek' : ''}`}
+      className="new-arrivals-mobile-showcase"
       aria-label="New arrivals artwork preview"
     >
       <div className="new-arrivals-mobile-viewport">
@@ -465,11 +496,10 @@ function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
               className="new-arrivals-mobile-reel"
               key={reelIndex}
             >
-              {reelItems.map((item, index) => {
+              {orderedItems.map((item, index) => {
                 const className = `new-arrivals-mobile-slide new-arrivals-mobile-slide-${(index % 3) + 1}`;
                 const key = `${reelIndex}-${index}-${item.id}`;
-                const isLeadingPeek = items.length > 1 && index === 0;
-                const ariaHidden = reelIndex === 1 || isLeadingPeek ? true : undefined;
+                const ariaHidden = reelIndex === 1 ? true : undefined;
 
                 if (item.type === 'image') {
                   const { image } = item;

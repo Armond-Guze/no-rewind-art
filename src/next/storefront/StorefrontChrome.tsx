@@ -1,22 +1,32 @@
 'use client';
 
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
-import { ArrowRight, CircleUserRound, Menu, Search, ShoppingBag, X } from 'lucide-react';
+import { ArrowRight, CircleUserRound, Menu, Minus, Plus, Search, ShoppingBag, X } from 'lucide-react';
 import {
   cartUpdatedEvent,
   getStoredCartCount,
+  notifyStoredCartUpdated,
+  readStoredCart,
+  writeStoredCart,
+  type StoredCartItem,
 } from '../../cart';
+import { products as catalogProducts, type FrameOption, type Product, type SizeOption } from '../../data/products';
 import { supabaseClient } from '../../lib/supabase';
 import {
+  formatPrice,
+  getConfiguredUnitPrice,
+  getFrameOption,
+  getSizeOption,
   launchOfferDiscount,
   launchOfferCode,
   supportEmail,
   supportMailto,
 } from './product-utils';
-import { initStorefrontTracking, trackStorefrontEvent } from './analytics';
+import { getProductTrackingItem, initStorefrontTracking, trackStorefrontEvent } from './analytics';
+import { ProductImage } from './OptimizedArtwork';
 
 export function StorefrontTracker({
   eventName,
@@ -45,8 +55,14 @@ export function StorefrontShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
   const { isScrolled, isHidden } = useStorefrontTopChromeState(menuOpen || searchOpen);
   const isHome = pathname === '/';
+  const openCartDrawer = () => {
+    setMenuOpen(false);
+    setSearchOpen(false);
+    setCartDrawerOpen(true);
+  };
 
   return (
     <>
@@ -58,8 +74,10 @@ export function StorefrontShell({ children }: { children: ReactNode }) {
         setSearchOpen={setSearchOpen}
         isScrolled={isScrolled}
         isHidden={isHidden}
+        onCartOpen={openCartDrawer}
       />
       {children}
+      <CartDrawer isOpen={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />
       <NextSiteFooter />
     </>
   );
@@ -151,6 +169,7 @@ function NextSiteHeader({
   setSearchOpen,
   isScrolled,
   isHidden,
+  onCartOpen,
 }: {
   menuOpen: boolean;
   setMenuOpen: (menuOpen: boolean | ((open: boolean) => boolean)) => void;
@@ -158,6 +177,7 @@ function NextSiteHeader({
   setSearchOpen: (searchOpen: boolean | ((open: boolean) => boolean)) => void;
   isScrolled: boolean;
   isHidden: boolean;
+  onCartOpen: () => void;
 }) {
   const pathname = usePathname();
   const [cartCount, setCartCount] = useState(0);
@@ -167,6 +187,11 @@ function NextSiteHeader({
   const closeOverlays = () => {
     setMenuOpen(false);
     setSearchOpen(false);
+  };
+  const handleCartClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    closeOverlays();
+    onCartOpen();
   };
   const isHome = pathname === '/';
   const accountHref = user ? '/account' : '/sign-in';
@@ -290,7 +315,7 @@ function NextSiteHeader({
         href="/cart"
         aria-label={`View cart${cartCount ? `, ${cartCount} item${cartCount === 1 ? '' : 's'}` : ''}`}
         title="View cart"
-        onClick={closeOverlays}
+        onClick={handleCartClick}
       >
         <ShoppingBag aria-hidden="true" size={22} />
         <span className="mobile-cart-count" aria-hidden="true">{cartCount}</span>
@@ -348,7 +373,7 @@ function NextSiteHeader({
         <Link href="/collections/new-arrivals" onClick={closeMenu}>New Arrivals</Link>
         {!menuOpen ? (
           <>
-            <Link className="desktop-cart-nav-link" href="/cart" onClick={closeMenu}>Cart ({cartCount})</Link>
+            <Link className="desktop-cart-nav-link" href="/cart" onClick={handleCartClick}>Cart ({cartCount})</Link>
             <Link
               className={`account-nav-link desktop-account-nav-link${user ? ' signed-in' : ''}`}
               href={accountHref}
@@ -363,6 +388,324 @@ function NextSiteHeader({
         ) : null}
       </nav>
     </header>
+  );
+}
+
+type CartDrawerLine = StoredCartItem & {
+  product: Product;
+  sizeOption: SizeOption;
+  frameOption: FrameOption;
+  unitPrice: number;
+};
+
+const freeShippingThresholdCents = 10000;
+
+function buildCartDrawerLines(cart: StoredCartItem[]) {
+  return cart
+    .map((item) => {
+      const product = catalogProducts.find((candidate) => candidate.id === item.productId);
+
+      if (!product) {
+        return null;
+      }
+
+      const sizeOption = getSizeOption(product, item.sizeId);
+      const frameOption = getFrameOption(product, item.frameId, sizeOption);
+
+      return {
+        ...item,
+        product,
+        sizeOption,
+        frameOption,
+        unitPrice: getConfiguredUnitPrice(product, sizeOption, frameOption),
+      };
+    })
+    .filter((item): item is CartDrawerLine => Boolean(item));
+}
+
+function getCartDrawerSubtotal(cartLines: CartDrawerLine[]) {
+  return cartLines.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
+}
+
+function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [cart, setCart] = useState<StoredCartItem[]>([]);
+  const [cartReady, setCartReady] = useState(false);
+  const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [checkoutError, setCheckoutError] = useState('');
+  const cartLines = useMemo(() => buildCartDrawerLines(cart), [cart]);
+  const subtotal = useMemo(() => getCartDrawerSubtotal(cartLines), [cartLines]);
+  const itemCount = cartLines.reduce((total, item) => total + item.quantity, 0);
+  const freeShippingRemaining = Math.max(0, freeShippingThresholdCents - subtotal);
+  const freeShippingProgress = Math.min(1, subtotal / freeShippingThresholdCents);
+
+  const closeDrawer = useCallback(() => {
+    setCheckoutError('');
+    setCheckoutState('idle');
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    const syncStoredCart = () => {
+      setCart(readStoredCart());
+      setCartReady(true);
+    };
+
+    syncStoredCart();
+    window.addEventListener(cartUpdatedEvent, syncStoredCart);
+    window.addEventListener('storage', syncStoredCart);
+
+    return () => {
+      window.removeEventListener(cartUpdatedEvent, syncStoredCart);
+      window.removeEventListener('storage', syncStoredCart);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    document.body.classList.add('cart-drawer-lock');
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeDrawer();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.classList.remove('cart-drawer-lock');
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, closeDrawer]);
+
+  function updateQuantity(lineKey: string, nextQuantity: number) {
+    const nextCart = cart
+      .map((item) =>
+        item.lineKey === lineKey
+          ? { ...item, quantity: Math.max(0, Math.min(nextQuantity, 10)) }
+          : item,
+      )
+      .filter((item) => item.quantity > 0);
+
+    writeStoredCart(nextCart);
+    notifyStoredCartUpdated(nextCart);
+  }
+
+  function removeItem(lineKey: string) {
+    const nextCart = cart.filter((item) => item.lineKey !== lineKey);
+
+    writeStoredCart(nextCart);
+    notifyStoredCartUpdated(nextCart);
+  }
+
+  async function startCheckout() {
+    if (!cartLines.length) {
+      return;
+    }
+
+    setCheckoutState('loading');
+    setCheckoutError('');
+
+    const trackingItems = cartLines.map((item) =>
+      getProductTrackingItem(item.product, item.sizeOption, item.frameOption, item.quantity),
+    );
+
+    trackStorefrontEvent('begin_checkout', {
+      currency: 'USD',
+      value: subtotal / 100,
+      coupon: launchOfferCode,
+      items: trackingItems,
+    });
+
+    try {
+      const { data: authData } = supabaseClient
+        ? await supabaseClient.auth.getSession()
+        : { data: { session: null } };
+      const accessToken = authData.session?.access_token;
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({
+          items: cartLines.map((item) => ({
+            id: item.productId,
+            sizeId: item.sizeOption.id,
+            frameId: item.frameOption.id,
+            quantity: item.quantity,
+          })),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(errorData?.error || 'Checkout request failed');
+      }
+
+      const data = (await response.json()) as { url?: string };
+
+      if (!data.url) {
+        throw new Error('Checkout URL missing');
+      }
+
+      window.location.assign(data.url);
+    } catch (error) {
+      console.error(error);
+      setCheckoutError(error instanceof Error ? error.message : 'Checkout request failed');
+      setCheckoutState('error');
+    }
+  }
+
+  return (
+    <>
+      <button
+        aria-label="Close shopping bag"
+        className={`cart-drawer-backdrop${isOpen ? ' open' : ''}`}
+        type="button"
+        onClick={closeDrawer}
+      />
+      <aside
+        aria-hidden={isOpen ? undefined : true}
+        aria-label="Shopping bag"
+        aria-modal="true"
+        className={`cart-drawer${isOpen ? ' open' : ''}`}
+        role="dialog"
+      >
+        <header className="cart-drawer-header">
+          <div>
+            <strong>Bag</strong>
+            <span>
+              {cartReady ? `${itemCount} item${itemCount === 1 ? '' : 's'}` : 'Loading'}
+            </span>
+          </div>
+          <button className="cart-drawer-close" type="button" onClick={closeDrawer}>
+            Close
+          </button>
+        </header>
+
+        {cartReady && cartLines.length ? (
+          <>
+            <div className="cart-drawer-shipping">
+              <strong>
+                {freeShippingRemaining > 0
+                  ? `You're ${formatPrice(freeShippingRemaining)} away from free shipping.`
+                  : 'Free shipping unlocked.'}
+              </strong>
+              <span
+                aria-hidden="true"
+                className="cart-drawer-shipping-progress"
+                style={{ '--cart-drawer-progress': freeShippingProgress } as CSSProperties}
+              />
+            </div>
+
+            <div className="cart-drawer-body">
+              <div className="cart-drawer-items">
+                {cartLines.map(({ frameOption, lineKey, product, quantity, sizeOption, unitPrice }) => (
+                  <article className="cart-drawer-item" key={lineKey}>
+                    <Link className="cart-drawer-item-media" href={`/products/${product.slug}`} onClick={closeDrawer}>
+                      {product.image ? (
+                        <img alt={product.imageAlt || product.title} src={product.image} />
+                      ) : (
+                        <ProductImage product={product} />
+                      )}
+                    </Link>
+                    <div className="cart-drawer-item-main">
+                      <div className="cart-drawer-item-topline">
+                        <div>
+                          <h3>
+                            <Link href={`/products/${product.slug}`} onClick={closeDrawer}>
+                              {product.title}
+                            </Link>
+                          </h3>
+                          <p>{sizeOption.label}</p>
+                          <p>{frameOption.label}</p>
+                        </div>
+                        <strong>{formatPrice(unitPrice)}</strong>
+                      </div>
+                      <div className="cart-drawer-item-actions">
+                        <div className="cart-drawer-quantity-controls" aria-label={`${product.title} quantity`}>
+                          <button
+                            aria-label={`Decrease ${product.title} quantity`}
+                            type="button"
+                            onClick={() => updateQuantity(lineKey, quantity - 1)}
+                          >
+                            <Minus aria-hidden="true" size={15} />
+                          </button>
+                          <span>{quantity}</span>
+                          <button
+                            aria-label={`Increase ${product.title} quantity`}
+                            type="button"
+                            onClick={() => updateQuantity(lineKey, quantity + 1)}
+                          >
+                            <Plus aria-hidden="true" size={15} />
+                          </button>
+                        </div>
+                        <button className="cart-drawer-remove" type="button" onClick={() => removeItem(lineKey)}>
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+
+            <footer className="cart-drawer-footer">
+              <details className="cart-drawer-note">
+                <summary>Add order note +</summary>
+                <textarea aria-label="Order note" rows={3} />
+              </details>
+              <div className="cart-drawer-summary-row">
+                <span>Subtotal</span>
+                <strong>{formatPrice(subtotal)} USD</strong>
+              </div>
+              <div className="cart-drawer-summary-row">
+                <span>Delivery Charges</span>
+                <small>Tax included and shipping calculated at checkout</small>
+              </div>
+              <div className="cart-drawer-footer-actions">
+                <button
+                  className="cart-drawer-checkout"
+                  disabled={checkoutState === 'loading'}
+                  type="button"
+                  onClick={startCheckout}
+                >
+                  {checkoutState === 'loading' ? 'Opening checkout' : 'Checkout'}
+                </button>
+                <button className="cart-drawer-secondary-action" type="button" onClick={closeDrawer}>
+                  Shopping bag
+                  <ArrowRight aria-hidden="true" size={14} />
+                </button>
+              </div>
+              {checkoutState === 'error' ? (
+                <p className="cart-drawer-error">
+                  {checkoutError || 'Checkout could not be started. Please try again.'}
+                </p>
+              ) : null}
+            </footer>
+          </>
+        ) : (
+          <div className="cart-drawer-empty">
+            <ShoppingBag aria-hidden="true" size={34} />
+            <h3>{cartReady ? 'Your bag is empty' : 'Loading your bag'}</h3>
+            <p>
+              {cartReady
+                ? 'Add a print from the shop to start checkout.'
+                : 'Checking your saved Armoze prints.'}
+            </p>
+            {cartReady ? (
+              <Link className="cart-drawer-browse" href="/collections/best-sellers" onClick={closeDrawer}>
+                Browse prints
+              </Link>
+            ) : null}
+          </div>
+        )}
+      </aside>
+    </>
   );
 }
 
