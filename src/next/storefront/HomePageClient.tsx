@@ -275,6 +275,8 @@ export default function HomePageClient({
   const queryCheckoutResult = useUrlSearchParam('checkout');
   const checkoutResult = initialCheckoutResult ?? queryCheckoutResult ?? undefined;
   const heroSlideshowImages = homepageSettings?.heroSlideshowImages;
+  const homepageBestSellerImages = homepageSettings?.bestSellerImages;
+  const homepageBestSellerMobileImages = homepageSettings?.bestSellerMobileImages;
   const homepageNewArrivalImages = homepageSettings?.newArrivalImages;
   const homepageNewArrivalMobileImages = homepageSettings?.newArrivalMobileImages;
   const heroSlides = useMemo<HeroShowcaseSlide[]>(() => {
@@ -320,6 +322,16 @@ export default function HomePageClient({
   const hasHeroSlideshowImages = heroSlides.some((slide) => slide.type === 'image');
   const hasHomepageHeroMedia =
     !hasHeroSlideshowImages && (hasHomepageMobileHeroMedia || hasHomepageDesktopHeroMedia);
+  const bestSellerGridImages = useMemo(
+    () => homepageBestSellerImages?.filter((image) => image.url).slice(0, 8) ?? [],
+    [homepageBestSellerImages],
+  );
+  const bestSellerMobileImages = useMemo(
+    () => (homepageBestSellerMobileImages?.length ? homepageBestSellerMobileImages : homepageBestSellerImages)
+      ?.filter((image) => image.url)
+      .slice(0, 8) ?? [],
+    [homepageBestSellerImages, homepageBestSellerMobileImages],
+  );
   const newArrivalGridImages = useMemo(
     () => homepageNewArrivalImages?.filter((image) => image.url).slice(0, 4) ?? [],
     [homepageNewArrivalImages],
@@ -469,15 +481,37 @@ export default function HomePageClient({
             </Link>
           </div>
 
-          <div className="product-grid best-sellers-carousel">
-            {featuredProducts.map((product, index) => (
-              <HomeProductCard
-                key={product.id}
-                product={product}
-                priority={index < 2}
-              />
-            ))}
+          <div className={`product-grid best-sellers-carousel${
+            bestSellerMobileImages.length ? ' has-mobile-image-overrides' : ''
+          }`}>
+            {bestSellerGridImages.length
+              ? bestSellerGridImages.map((image, index) => (
+                <HomeImageCard
+                  image={image}
+                  key={`${image.url}-${index}`}
+                  priority={index < 2}
+                />
+              ))
+              : featuredProducts.map((product, index) => (
+                <HomeProductCard
+                  key={product.id}
+                  product={product}
+                  priority={index < 2}
+                />
+              ))}
           </div>
+
+          {bestSellerMobileImages.length ? (
+            <div className="product-grid best-sellers-carousel best-sellers-mobile-image-carousel">
+              {bestSellerMobileImages.map((image, index) => (
+                <HomeImageCard
+                  image={image}
+                  key={`${image.url}-${index}`}
+                  priority={index < 2}
+                />
+              ))}
+            </div>
+          ) : null}
         </section>
 
         <section className="storefront-story-cta" aria-labelledby="storefront-story-title">

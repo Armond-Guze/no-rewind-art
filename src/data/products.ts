@@ -51,6 +51,8 @@ export type HomepageSettings = {
   heroMobileImage?: HomepageHeroImage;
   heroDesktopImage?: HomepageHeroImage;
   bestSellerProductIds?: string[];
+  bestSellerImages?: HomepageHeroImage[];
+  bestSellerMobileImages?: HomepageHeroImage[];
   newArrivalProductIds?: string[];
   newArrivalImages?: HomepageHeroImage[];
   newArrivalMobileImages?: HomepageHeroImage[];

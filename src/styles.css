@@ -7133,17 +7133,21 @@ h3 {
   max-height: 92%;
 }
 
-.storefront-home .new-arrivals-preview .homepage-image-card-media {
+.storefront-home .homepage-image-card-media {
   aspect-ratio: 1 / 1;
   padding: 0;
 }
 
-.storefront-home .new-arrivals-preview .homepage-image-card-media img {
+.storefront-home .homepage-image-card-media img {
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
   object-position: center;
+}
+
+.storefront-home #shop .best-sellers-mobile-image-carousel {
+  display: none;
 }
 
 .storefront-home .product-copy {
@@ -10626,5 +10630,21 @@ h3 {
     .storefront-home .new-arrivals-preview .new-arrivals-mobile-slide {
       scroll-snap-align: start;
     }
+  }
+}
+
+@media (max-width: 900px) {
+  .storefront-home #shop .best-sellers-carousel.has-mobile-image-overrides {
+    display: none;
+  }
+
+  .storefront-home #shop .best-sellers-mobile-image-carousel {
+    display: grid;
+  }
+}
+
+@media (min-width: 901px) {
+  .storefront-home #shop .best-sellers-mobile-image-carousel {
+    display: none;
   }
 }

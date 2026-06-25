@@ -114,6 +114,18 @@ export const homepageSettingsType = defineType({
       'Pick up to 8 products for the homepage Best Sellers section, in the exact order they should show.',
       8,
     ),
+    mobileImageCarouselField(
+      'bestSellerImages',
+      'Homepage Best Sellers Images',
+      'Pick up to 8 standalone images for the desktop/tablet Best Sellers grid. If empty, the storefront uses the selected Best Sellers products.',
+      8,
+    ),
+    mobileImageCarouselField(
+      'bestSellerMobileImages',
+      'Mobile Best Sellers Image Slider',
+      'Pick up to 8 standalone images for the mobile Best Sellers carousel. If empty, mobile uses Homepage Best Sellers Images, then the selected Best Sellers products.',
+      8,
+    ),
     productReferenceList(
       'newArrivalProducts',
       'Homepage New Arrivals',

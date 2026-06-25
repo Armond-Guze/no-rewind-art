@@ -15,6 +15,7 @@
     "sync:artwork": "node scripts/sync-artwork-library.mjs",
     "test:notification": "node scripts/send-test-order-notification.mjs",
     "build": "next build",
+    "deploy": "npm --prefix armoze run deploy",
     "preview": "next start -H 127.0.0.1",
     "lint": "eslint ."
   },

@@ -182,6 +182,8 @@ function normalizeSanityHomepageSettings(settings) {
   const heroMobileImage = normalizeSanityImage(settings.heroMobileImage);
   const heroDesktopImage = normalizeSanityImage(settings.heroDesktopImage);
   const heroSlideshowImages = normalizeSanityImageList(settings.heroSlideshowImages, 5);
+  const bestSellerImages = normalizeSanityImageList(settings.bestSellerImages, 8);
+  const bestSellerMobileImages = normalizeSanityImageList(settings.bestSellerMobileImages, 8);
   const newArrivalImages = normalizeSanityImageList(settings.newArrivalImages, 4);
   const newArrivalMobileImages = normalizeSanityImageList(settings.newArrivalMobileImages, 5);
 
@@ -191,6 +193,8 @@ function normalizeSanityHomepageSettings(settings) {
     ...(heroMobileImage ? { heroMobileImage } : {}),
     ...(heroDesktopImage ? { heroDesktopImage } : {}),
     bestSellerProductIds: sanitizeHomepageProductIds(settings.bestSellerProductIds),
+    ...(bestSellerImages.length ? { bestSellerImages } : {}),
+    ...(bestSellerMobileImages.length ? { bestSellerMobileImages } : {}),
     newArrivalProductIds: sanitizeHomepageProductIds(settings.newArrivalProductIds),
     ...(newArrivalImages.length ? { newArrivalImages } : {}),
     ...(newArrivalMobileImages.length ? { newArrivalMobileImages } : {}),
@@ -368,6 +372,18 @@ const SANITY_HOMEPAGE_SETTINGS_QUERY = `*[
     "height": asset->metadata.dimensions.height
   },
   "bestSellerProductIds": bestSellerProducts[]->productId,
+  "bestSellerImages": bestSellerImages[]{
+    "url": asset->url,
+    alt,
+    "width": asset->metadata.dimensions.width,
+    "height": asset->metadata.dimensions.height
+  },
+  "bestSellerMobileImages": bestSellerMobileImages[]{
+    "url": asset->url,
+    alt,
+    "width": asset->metadata.dimensions.width,
+    "height": asset->metadata.dimensions.height
+  },
   "newArrivalProductIds": newArrivalProducts[]->productId,
   "newArrivalImages": newArrivalImages[]{
     "url": asset->url,
