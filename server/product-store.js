@@ -166,6 +166,14 @@ function normalizeSanityImage(image) {
   };
 }
 
+function normalizeSanityImageList(images, maxItems) {
+  if (!Array.isArray(images)) {
+    return [];
+  }
+
+  return images.map(normalizeSanityImage).filter(Boolean).slice(0, maxItems);
+}
+
 function normalizeSanityHomepageSettings(settings) {
   if (!settings || typeof settings !== 'object') {
     return {};
@@ -173,16 +181,18 @@ function normalizeSanityHomepageSettings(settings) {
 
   const heroMobileImage = normalizeSanityImage(settings.heroMobileImage);
   const heroDesktopImage = normalizeSanityImage(settings.heroDesktopImage);
-  const newArrivalMobileImages = Array.isArray(settings.newArrivalMobileImages)
-    ? settings.newArrivalMobileImages.map(normalizeSanityImage).filter(Boolean).slice(0, 5)
-    : [];
+  const heroSlideshowImages = normalizeSanityImageList(settings.heroSlideshowImages, 5);
+  const newArrivalImages = normalizeSanityImageList(settings.newArrivalImages, 4);
+  const newArrivalMobileImages = normalizeSanityImageList(settings.newArrivalMobileImages, 5);
 
   return {
     heroProductIds: sanitizeHomepageProductIds(settings.heroProductIds),
+    ...(heroSlideshowImages.length ? { heroSlideshowImages } : {}),
     ...(heroMobileImage ? { heroMobileImage } : {}),
     ...(heroDesktopImage ? { heroDesktopImage } : {}),
     bestSellerProductIds: sanitizeHomepageProductIds(settings.bestSellerProductIds),
     newArrivalProductIds: sanitizeHomepageProductIds(settings.newArrivalProductIds),
+    ...(newArrivalImages.length ? { newArrivalImages } : {}),
     ...(newArrivalMobileImages.length ? { newArrivalMobileImages } : {}),
   };
 }
@@ -339,6 +349,12 @@ const SANITY_HOMEPAGE_SETTINGS_QUERY = `*[
   && !(_id in path("drafts.**"))
 ][0]{
   "heroProductIds": heroProducts[]->productId,
+  "heroSlideshowImages": heroSlideshowImages[]{
+    "url": asset->url,
+    alt,
+    "width": asset->metadata.dimensions.width,
+    "height": asset->metadata.dimensions.height
+  },
   "heroMobileImage": heroMobileImage{
     "url": asset->url,
     alt,
@@ -353,6 +369,12 @@ const SANITY_HOMEPAGE_SETTINGS_QUERY = `*[
   },
   "bestSellerProductIds": bestSellerProducts[]->productId,
   "newArrivalProductIds": newArrivalProducts[]->productId,
+  "newArrivalImages": newArrivalImages[]{
+    "url": asset->url,
+    alt,
+    "width": asset->metadata.dimensions.width,
+    "height": asset->metadata.dimensions.height
+  },
   "newArrivalMobileImages": newArrivalMobileImages[]{
     "url": asset->url,
     alt,

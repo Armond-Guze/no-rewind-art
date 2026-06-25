@@ -6702,6 +6702,18 @@ h3 {
   object-position: center;
 }
 
+.storefront-hero-image-slide {
+  overflow: hidden;
+}
+
+.storefront-hero-image-slide > img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
 .storefront-hero-art .product-canvas-image,
 .storefront-hero-art .artwork-mockup {
   width: min(100%, 920px, calc(var(--storefront-hero-art-space) * 1.78));
@@ -7119,6 +7131,19 @@ h3 {
 .storefront-home .product-image-link .raw-product-image.shape-portrait {
   width: min(72%, 430px);
   max-height: 92%;
+}
+
+.storefront-home .new-arrivals-preview .homepage-image-card-media {
+  aspect-ratio: 1 / 1;
+  padding: 0;
+}
+
+.storefront-home .new-arrivals-preview .homepage-image-card-media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
 }
 
 .storefront-home .product-copy {

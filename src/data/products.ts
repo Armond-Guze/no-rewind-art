@@ -47,10 +47,12 @@ export type Collection = {
 
 export type HomepageSettings = {
   heroProductIds?: string[];
+  heroSlideshowImages?: HomepageHeroImage[];
   heroMobileImage?: HomepageHeroImage;
   heroDesktopImage?: HomepageHeroImage;
   bestSellerProductIds?: string[];
   newArrivalProductIds?: string[];
+  newArrivalImages?: HomepageHeroImage[];
   newArrivalMobileImages?: HomepageHeroImage[];
 };
 

@@ -90,6 +90,12 @@ export const homepageSettingsType = defineType({
       'Pick up to 5 products for the large homepage slideshow, in the exact order they should rotate.',
       5,
     ),
+    mobileImageCarouselField(
+      'heroSlideshowImages',
+      'Hero Slideshow Images',
+      'Pick up to 5 standalone images for the homepage hero slideshow. If empty, the storefront uses the selected Hero Slideshow products.',
+      5,
+    ),
     heroImageField(
       'heroMobileImage',
       'Mobile Hero Image',
@@ -112,6 +118,12 @@ export const homepageSettingsType = defineType({
       'newArrivalProducts',
       'Homepage New Arrivals',
       'Pick up to 4 products for the homepage New Arrivals section. Products picked as Best Sellers are hidden from this section on the storefront.',
+      4,
+    ),
+    mobileImageCarouselField(
+      'newArrivalImages',
+      'Homepage New Arrivals Images',
+      'Pick up to 4 standalone images for the homepage New Arrivals grid. If empty, the storefront uses the selected New Arrivals products.',
       4,
     ),
     mobileImageCarouselField(

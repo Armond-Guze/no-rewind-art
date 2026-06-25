@@ -28,6 +28,20 @@ type NewArrivalsShowcaseItem =
       product: Product;
     };
 
+type HeroShowcaseSlide =
+  | {
+      type: 'image';
+      id: string;
+      image: HomepageHeroImage;
+      keyword: string;
+    }
+  | {
+      type: 'product';
+      id: string;
+      product: Product;
+      keyword: string;
+    };
+
 const etsyReviewHighlights = [
   {
     name: 'Lorie',
@@ -124,6 +138,28 @@ function HomeProductCard({
         <div className="product-card-meta">
           <strong>{formatPrice(product.priceInCents)}</strong>
         </div>
+      </div>
+    </article>
+  );
+}
+
+function HomeImageCard({
+  image,
+  priority = false,
+}: {
+  image: HomepageHeroImage;
+  priority?: boolean;
+}) {
+  return (
+    <article className="product homepage-image-card">
+      <div className="product-image-link homepage-image-card-media">
+        <img
+          alt={image.alt || 'Armoze artwork preview'}
+          height={image.height || undefined}
+          loading={priority ? 'eager' : 'lazy'}
+          src={image.url}
+          width={image.width || undefined}
+        />
       </div>
     </article>
   );
@@ -238,7 +274,24 @@ export default function HomePageClient({
 }) {
   const queryCheckoutResult = useUrlSearchParam('checkout');
   const checkoutResult = initialCheckoutResult ?? queryCheckoutResult ?? undefined;
-  const heroSlides = useMemo(() => {
+  const heroSlideshowImages = homepageSettings?.heroSlideshowImages;
+  const homepageNewArrivalImages = homepageSettings?.newArrivalImages;
+  const homepageNewArrivalMobileImages = homepageSettings?.newArrivalMobileImages;
+  const heroSlides = useMemo<HeroShowcaseSlide[]>(() => {
+    const heroImageSlides = heroSlideshowImages
+      ?.filter((image) => image.url)
+      .slice(0, 5)
+      .map((image, index) => ({
+        type: 'image' as const,
+        id: `${image.url}-${index}`,
+        image,
+        keyword: heroWordPool[index % heroWordPool.length],
+      }));
+
+    if (heroImageSlides?.length) {
+      return heroImageSlides;
+    }
+
     const productsWithImages = heroProducts.filter((product) => product.image);
     const slideProducts = productsWithImages.length ? productsWithImages : heroProducts;
     const usedKeywords = new Set<string>();
@@ -251,18 +304,32 @@ export default function HomePageClient({
 
       usedKeywords.add(keyword);
 
-      return { product, keyword };
+      return {
+        type: 'product' as const,
+        id: product.id,
+        product,
+        keyword,
+      };
     });
-  }, [heroProducts]);
+  }, [heroSlideshowImages, heroProducts]);
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const activeHeroSlideIndex = heroSlides.length ? activeHeroIndex % heroSlides.length : 0;
   const activeHeroSlide = heroSlides[activeHeroSlideIndex];
   const hasHomepageMobileHeroMedia = Boolean(homepageSettings?.heroMobileImage?.url);
   const hasHomepageDesktopHeroMedia = Boolean(homepageSettings?.heroDesktopImage?.url);
-  const hasHomepageHeroMedia = hasHomepageMobileHeroMedia || hasHomepageDesktopHeroMedia;
+  const hasHeroSlideshowImages = heroSlides.some((slide) => slide.type === 'image');
+  const hasHomepageHeroMedia =
+    !hasHeroSlideshowImages && (hasHomepageMobileHeroMedia || hasHomepageDesktopHeroMedia);
+  const newArrivalGridImages = useMemo(
+    () => homepageNewArrivalImages?.filter((image) => image.url).slice(0, 4) ?? [],
+    [homepageNewArrivalImages],
+  );
   const newArrivalShowcaseItems = useMemo<NewArrivalsShowcaseItem[]>(
     () => {
-      const uploadedImages = homepageSettings?.newArrivalMobileImages
+      const uploadedImages = (homepageNewArrivalMobileImages?.length
+        ? homepageNewArrivalMobileImages
+        : homepageNewArrivalImages
+      )
         ?.filter((image) => image.url)
         .slice(0, 5)
         .map((image, index) => ({
@@ -284,12 +351,12 @@ export default function HomePageClient({
           product,
         }));
     },
-    [homepageSettings?.newArrivalMobileImages, newArrivalProducts],
+    [homepageNewArrivalImages, homepageNewArrivalMobileImages, newArrivalProducts],
   );
   const heroGalleryClassName = [
     'storefront-hero-gallery',
-    hasHomepageMobileHeroMedia ? 'has-mobile-hero-media' : undefined,
-    hasHomepageDesktopHeroMedia ? 'has-desktop-hero-media' : undefined,
+    hasHomepageHeroMedia && hasHomepageMobileHeroMedia ? 'has-mobile-hero-media' : undefined,
+    hasHomepageHeroMedia && hasHomepageDesktopHeroMedia ? 'has-desktop-hero-media' : undefined,
   ].filter(Boolean).join(' ');
 
   useEffect(() => {
@@ -327,7 +394,7 @@ export default function HomePageClient({
             <h1 id="storefront-title">
               <span>Art for the </span>
               <span>
-                <em className="storefront-hero-keyword" key={activeHeroSlide?.product.id ?? 'refined'}>
+                <em className="storefront-hero-keyword" key={activeHeroSlide?.id ?? 'refined'}>
                   {activeHeroSlide?.keyword ?? 'refined'}.
                 </em>
               </span>
@@ -351,20 +418,42 @@ export default function HomePageClient({
                 desktopImage={homepageSettings?.heroDesktopImage}
               />
             ) : null}
-            {heroSlides.map(({ product }, index) => (
-              <Link
-                className={`storefront-hero-art storefront-hero-art-${index + 1}${
-                  index === activeHeroSlideIndex ? ' is-active' : ''
-                }`}
-                key={product.id}
-                href={`/products/${product.slug}`}
-                aria-hidden={index === activeHeroSlideIndex ? undefined : true}
-                tabIndex={index === activeHeroSlideIndex ? undefined : -1}
-              >
-                <ProductImage product={product} priority={index === 0} />
-                <span>{product.title}</span>
-              </Link>
-            ))}
+            {heroSlides.map((slide, index) => {
+              const className = `storefront-hero-art storefront-hero-art-${index + 1}${
+                slide.type === 'image' ? ' storefront-hero-image-slide' : ''
+              }${index === activeHeroSlideIndex ? ' is-active' : ''}`;
+
+              if (slide.type === 'image') {
+                return (
+                  <div
+                    aria-hidden={index === activeHeroSlideIndex ? undefined : true}
+                    className={className}
+                    key={slide.id}
+                  >
+                    <img
+                      alt={slide.image.alt || 'Armoze featured artwork'}
+                      height={slide.image.height || undefined}
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      src={slide.image.url}
+                      width={slide.image.width || undefined}
+                    />
+                  </div>
+                );
+              }
+
+              return (
+                <Link
+                  className={className}
+                  key={slide.id}
+                  href={`/products/${slide.product.slug}`}
+                  aria-hidden={index === activeHeroSlideIndex ? undefined : true}
+                  tabIndex={index === activeHeroSlideIndex ? undefined : -1}
+                >
+                  <ProductImage product={slide.product} priority={index === 0} />
+                  <span>{slide.product.title}</span>
+                </Link>
+              );
+            })}
           </div>
         </section>
 
@@ -451,13 +540,21 @@ export default function HomePageClient({
           <NewArrivalsMobileShowcase items={newArrivalShowcaseItems} />
 
           <div className="product-grid">
-            {newArrivalProducts.map((product, index) => (
-              <HomeProductCard
-                key={product.id}
-                product={product}
-                priority={index < 2}
-              />
-            ))}
+            {newArrivalGridImages.length
+              ? newArrivalGridImages.map((image, index) => (
+                <HomeImageCard
+                  image={image}
+                  key={`${image.url}-${index}`}
+                  priority={index < 2}
+                />
+              ))
+              : newArrivalProducts.map((product, index) => (
+                <HomeProductCard
+                  key={product.id}
+                  product={product}
+                  priority={index < 2}
+                />
+              ))}
           </div>
         </section>
 
