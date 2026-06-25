@@ -66,6 +66,13 @@ const mobileImageCarouselField = (name: string, title: string, description: stri
             type: 'string',
             description: 'Describe this mobile carousel image for accessibility.',
           }),
+          defineField({
+            name: 'linkedProduct',
+            title: 'Linked Product',
+            type: 'reference',
+            description: 'Optional. When set, this image links to the selected product page.',
+            to: [{type: 'artworkProduct'}],
+          }),
         ],
       }),
     ],

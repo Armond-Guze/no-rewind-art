@@ -157,12 +157,16 @@ function normalizeSanityImage(image) {
 
   const width = sanitizeNumber(image?.width);
   const height = sanitizeNumber(image?.height);
+  const productSlug = sanitizeText(image?.productSlug);
+  const productTitle = sanitizeText(image?.productTitle);
 
   return {
     url,
     ...(sanitizeText(image?.alt) ? { alt: sanitizeText(image.alt) } : {}),
     ...(width ? { width } : {}),
     ...(height ? { height } : {}),
+    ...(productSlug ? { productSlug } : {}),
+    ...(productTitle ? { productTitle } : {}),
   };
 }
 
@@ -357,7 +361,9 @@ const SANITY_HOMEPAGE_SETTINGS_QUERY = `*[
     "url": asset->url,
     alt,
     "width": asset->metadata.dimensions.width,
-    "height": asset->metadata.dimensions.height
+    "height": asset->metadata.dimensions.height,
+    "productSlug": linkedProduct->slug.current,
+    "productTitle": linkedProduct->title
   },
   "heroMobileImage": heroMobileImage{
     "url": asset->url,
@@ -376,26 +382,34 @@ const SANITY_HOMEPAGE_SETTINGS_QUERY = `*[
     "url": asset->url,
     alt,
     "width": asset->metadata.dimensions.width,
-    "height": asset->metadata.dimensions.height
+    "height": asset->metadata.dimensions.height,
+    "productSlug": linkedProduct->slug.current,
+    "productTitle": linkedProduct->title
   },
   "bestSellerMobileImages": bestSellerMobileImages[]{
     "url": asset->url,
     alt,
     "width": asset->metadata.dimensions.width,
-    "height": asset->metadata.dimensions.height
+    "height": asset->metadata.dimensions.height,
+    "productSlug": linkedProduct->slug.current,
+    "productTitle": linkedProduct->title
   },
   "newArrivalProductIds": newArrivalProducts[]->productId,
   "newArrivalImages": newArrivalImages[]{
     "url": asset->url,
     alt,
     "width": asset->metadata.dimensions.width,
-    "height": asset->metadata.dimensions.height
+    "height": asset->metadata.dimensions.height,
+    "productSlug": linkedProduct->slug.current,
+    "productTitle": linkedProduct->title
   },
   "newArrivalMobileImages": newArrivalMobileImages[]{
     "url": asset->url,
     alt,
     "width": asset->metadata.dimensions.width,
-    "height": asset->metadata.dimensions.height
+    "height": asset->metadata.dimensions.height,
+    "productSlug": linkedProduct->slug.current,
+    "productTitle": linkedProduct->title
   }
 }`;
 

@@ -143,6 +143,14 @@ function HomeProductCard({
   );
 }
 
+function getHomepageImageProductHref(image: HomepageHeroImage) {
+  return image.productSlug ? `/products/${image.productSlug}` : undefined;
+}
+
+function getHomepageImageLinkLabel(image: HomepageHeroImage, fallback: string) {
+  return image.productTitle ? `View ${image.productTitle}` : fallback;
+}
+
 function HomeImageCard({
   image,
   priority = false,
@@ -150,17 +158,32 @@ function HomeImageCard({
   image: HomepageHeroImage;
   priority?: boolean;
 }) {
+  const href = getHomepageImageProductHref(image);
+  const imageElement = (
+    <img
+      alt={image.alt || 'Armoze artwork preview'}
+      height={image.height || undefined}
+      loading={priority ? 'eager' : 'lazy'}
+      src={image.url}
+      width={image.width || undefined}
+    />
+  );
+
   return (
     <article className="product homepage-image-card">
-      <div className="product-image-link homepage-image-card-media">
-        <img
-          alt={image.alt || 'Armoze artwork preview'}
-          height={image.height || undefined}
-          loading={priority ? 'eager' : 'lazy'}
-          src={image.url}
-          width={image.width || undefined}
-        />
-      </div>
+      {href ? (
+        <Link
+          aria-label={getHomepageImageLinkLabel(image, 'View featured product')}
+          className="product-image-link homepage-image-card-media"
+          href={href}
+        >
+          {imageElement}
+        </Link>
+      ) : (
+        <div className="product-image-link homepage-image-card-media">
+          {imageElement}
+        </div>
+      )}
     </article>
   );
 }
@@ -170,8 +193,13 @@ function NewArrivalsMobileShowcase({ items }: { items: NewArrivalsShowcaseItem[]
     return null;
   }
 
+  const reelItems = items.length > 1 ? [items[items.length - 1], ...items] : items;
+
   return (
-    <div className="new-arrivals-mobile-showcase" aria-label="New arrivals artwork preview">
+    <div
+      className={`new-arrivals-mobile-showcase${items.length > 1 ? ' has-edge-peek' : ''}`}
+      aria-label="New arrivals artwork preview"
+    >
       <div className="new-arrivals-mobile-viewport">
         <div className="new-arrivals-mobile-track">
           {[0, 1].map((reelIndex) => (
@@ -180,22 +208,37 @@ function NewArrivalsMobileShowcase({ items }: { items: NewArrivalsShowcaseItem[]
               className="new-arrivals-mobile-reel"
               key={reelIndex}
             >
-              {items.map((item, index) => {
+              {reelItems.map((item, index) => {
                 const className = `new-arrivals-mobile-slide new-arrivals-mobile-slide-${(index % 3) + 1}`;
-                const key = `${reelIndex}-${item.id}`;
+                const key = `${reelIndex}-${index}-${item.id}`;
+                const isLeadingPeek = items.length > 1 && index === 0;
 
                 if (item.type === 'image') {
                   const { image } = item;
+                  const href = getHomepageImageProductHref(image);
+                  const imageElement = (
+                    <img
+                      alt={reelIndex === 1 ? '' : image.alt || 'Armoze new arrivals artwork'}
+                      height={image.height || undefined}
+                      loading={reelIndex === 0 && index === 0 ? 'eager' : 'lazy'}
+                      src={image.url}
+                      width={image.width || undefined}
+                    />
+                  );
 
-                  return (
+                  return href ? (
+                    <Link
+                      aria-label={getHomepageImageLinkLabel(image, 'View new arrival product')}
+                      className={className}
+                      href={href}
+                      key={key}
+                      tabIndex={reelIndex === 1 || isLeadingPeek ? -1 : undefined}
+                    >
+                      {imageElement}
+                    </Link>
+                  ) : (
                     <div className={className} key={key}>
-                      <img
-                        alt={reelIndex === 1 ? '' : image.alt || 'Armoze new arrivals artwork'}
-                        height={image.height || undefined}
-                        loading={reelIndex === 0 && index === 0 ? 'eager' : 'lazy'}
-                        src={image.url}
-                        width={image.width || undefined}
-                      />
+                      {imageElement}
                     </div>
                   );
                 }
@@ -206,7 +249,7 @@ function NewArrivalsMobileShowcase({ items }: { items: NewArrivalsShowcaseItem[]
                     className={className}
                     href={`/products/${item.product.slug}`}
                     key={key}
-                    tabIndex={reelIndex === 1 ? -1 : undefined}
+                    tabIndex={reelIndex === 1 || isLeadingPeek ? -1 : undefined}
                   >
                     <ProductImage product={item.product} />
                   </Link>
@@ -436,19 +479,35 @@ export default function HomePageClient({
               }${index === activeHeroSlideIndex ? ' is-active' : ''}`;
 
               if (slide.type === 'image') {
-                return (
+                const href = getHomepageImageProductHref(slide.image);
+                const imageElement = (
+                  <img
+                    alt={slide.image.alt || 'Armoze featured artwork'}
+                    height={slide.image.height || undefined}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    src={slide.image.url}
+                    width={slide.image.width || undefined}
+                  />
+                );
+
+                return href ? (
+                  <Link
+                    aria-label={getHomepageImageLinkLabel(slide.image, 'View featured product')}
+                    aria-hidden={index === activeHeroSlideIndex ? undefined : true}
+                    className={className}
+                    href={href}
+                    key={slide.id}
+                    tabIndex={index === activeHeroSlideIndex ? undefined : -1}
+                  >
+                    {imageElement}
+                  </Link>
+                ) : (
                   <div
                     aria-hidden={index === activeHeroSlideIndex ? undefined : true}
                     className={className}
                     key={slide.id}
                   >
-                    <img
-                      alt={slide.image.alt || 'Armoze featured artwork'}
-                      height={slide.image.height || undefined}
-                      loading={index === 0 ? 'eager' : 'lazy'}
-                      src={slide.image.url}
-                      width={slide.image.width || undefined}
-                    />
+                    {imageElement}
                   </div>
                 );
               }

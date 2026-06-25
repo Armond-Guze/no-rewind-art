@@ -34,6 +34,8 @@ export type HomepageHeroImage = {
   alt?: string;
   width?: number;
   height?: number;
+  productSlug?: string;
+  productTitle?: string;
 };
 
 export type Collection = {

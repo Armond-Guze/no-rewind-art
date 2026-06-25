@@ -10509,20 +10509,30 @@ h3 {
 
 @keyframes new-arrivals-mobile-drift {
   from {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(var(--new-arrivals-mobile-start), 0, 0);
   }
 
   to {
-    transform: translate3d(-50%, 0, 0);
+    transform: translate3d(calc(-50% + var(--new-arrivals-mobile-start)), 0, 0);
   }
 }
 
 @media (max-width: 760px) {
   .storefront-home .new-arrivals-preview .new-arrivals-mobile-showcase {
+    --new-arrivals-mobile-gap: 8px;
+    --new-arrivals-mobile-peek: clamp(42px, 12vw, 56px);
+    --new-arrivals-mobile-slide-width: clamp(238px, 78vw, 340px);
+    --new-arrivals-mobile-start: 0px;
     display: block;
     width: 100vw;
     margin: -2px calc(50% - 50vw) 26px;
     overflow: hidden;
+  }
+
+  .storefront-home .new-arrivals-preview .new-arrivals-mobile-showcase.has-edge-peek {
+    --new-arrivals-mobile-start: calc(
+      var(--new-arrivals-mobile-peek) - var(--new-arrivals-mobile-slide-width) - var(--new-arrivals-mobile-gap)
+    );
   }
 
   .storefront-home .new-arrivals-preview .new-arrivals-mobile-viewport {
@@ -10545,14 +10555,14 @@ h3 {
     flex: 0 0 auto;
     display: flex;
     align-items: stretch;
-    gap: 6px;
-    padding-right: 6px;
+    gap: var(--new-arrivals-mobile-gap);
+    padding-right: var(--new-arrivals-mobile-gap);
   }
 
   .storefront-home .new-arrivals-preview .new-arrivals-mobile-slide {
     position: relative;
-    flex: 0 0 clamp(190px, 62vw, 260px);
-    height: clamp(220px, 64vw, 302px);
+    flex: 0 0 var(--new-arrivals-mobile-slide-width);
+    height: clamp(300px, 98vw, 420px);
     display: grid;
     place-items: center;
     overflow: hidden;
@@ -10621,6 +10631,7 @@ h3 {
 
     .storefront-home .new-arrivals-preview .new-arrivals-mobile-track {
       animation: none;
+      transform: translate3d(var(--new-arrivals-mobile-start), 0, 0);
     }
 
     .storefront-home .new-arrivals-preview .new-arrivals-mobile-reel + .new-arrivals-mobile-reel {
