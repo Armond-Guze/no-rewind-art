@@ -48,6 +48,30 @@ const heroImageField = (
     ],
   })
 
+const mobileImageCarouselField = (name: string, title: string, description: string, maxItems: number) =>
+  defineField({
+    name,
+    title,
+    type: 'array',
+    description,
+    of: [
+      defineArrayMember({
+        type: 'image',
+        title: 'Image',
+        options: {hotspot: true},
+        fields: [
+          defineField({
+            name: 'alt',
+            title: 'Alt Text',
+            type: 'string',
+            description: 'Describe this mobile carousel image for accessibility.',
+          }),
+        ],
+      }),
+    ],
+    validation: (rule) => rule.max(maxItems),
+  })
+
 export const homepageSettingsType = defineType({
   name: 'homepageSettings',
   title: 'Homepage Settings',
@@ -89,6 +113,12 @@ export const homepageSettingsType = defineType({
       'Homepage New Arrivals',
       'Pick up to 4 products for the homepage New Arrivals section. Products picked as Best Sellers are hidden from this section on the storefront.',
       4,
+    ),
+    mobileImageCarouselField(
+      'newArrivalMobileImages',
+      'Mobile New Arrivals Image Slider',
+      'Pick up to 5 standalone images for the mobile-only sliding image strip under New Arrivals. If empty, the storefront uses the selected New Arrivals product images.',
+      5,
     ),
   ],
   preview: {

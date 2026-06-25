@@ -10565,7 +10565,8 @@ h3 {
   .storefront-home .new-arrivals-preview .new-arrivals-mobile-slide .product-canvas-image.source-ratio-mismatch img,
   .storefront-home .new-arrivals-preview .new-arrivals-mobile-slide .product-canvas-image[class*="crop-square-source"] img,
   .storefront-home .new-arrivals-preview .new-arrivals-mobile-slide .artwork-mockup-print img,
-  .storefront-home .new-arrivals-preview .new-arrivals-mobile-slide .product-art img {
+  .storefront-home .new-arrivals-preview .new-arrivals-mobile-slide .product-art img,
+  .storefront-home .new-arrivals-preview .new-arrivals-mobile-slide > img {
     position: static;
     inset: auto;
     width: 100%;

@@ -16,6 +16,18 @@ import { useUrlSearchParam } from './url-search';
 
 const heroWordPool = ['present', 'driven', 'focused', 'steady', 'bold'];
 
+type NewArrivalsShowcaseItem =
+  | {
+      type: 'image';
+      id: string;
+      image: HomepageHeroImage;
+    }
+  | {
+      type: 'product';
+      id: string;
+      product: Product;
+    };
+
 const etsyReviewHighlights = [
   {
     name: 'Lorie',
@@ -117,8 +129,8 @@ function HomeProductCard({
   );
 }
 
-function NewArrivalsMobileShowcase({ products }: { products: Product[] }) {
-  if (!products.length) {
+function NewArrivalsMobileShowcase({ items }: { items: NewArrivalsShowcaseItem[] }) {
+  if (!items.length) {
     return null;
   }
 
@@ -132,17 +144,38 @@ function NewArrivalsMobileShowcase({ products }: { products: Product[] }) {
               className="new-arrivals-mobile-reel"
               key={reelIndex}
             >
-              {products.map((product, index) => (
-                <Link
-                  aria-label={`View ${product.title}`}
-                  className={`new-arrivals-mobile-slide new-arrivals-mobile-slide-${(index % 3) + 1}`}
-                  href={`/products/${product.slug}`}
-                  key={`${reelIndex}-${product.id}`}
-                  tabIndex={reelIndex === 1 ? -1 : undefined}
-                >
-                  <ProductImage product={product} />
-                </Link>
-              ))}
+              {items.map((item, index) => {
+                const className = `new-arrivals-mobile-slide new-arrivals-mobile-slide-${(index % 3) + 1}`;
+                const key = `${reelIndex}-${item.id}`;
+
+                if (item.type === 'image') {
+                  const { image } = item;
+
+                  return (
+                    <div className={className} key={key}>
+                      <img
+                        alt={reelIndex === 1 ? '' : image.alt || 'Armoze new arrivals artwork'}
+                        height={image.height || undefined}
+                        loading={reelIndex === 0 && index === 0 ? 'eager' : 'lazy'}
+                        src={image.url}
+                        width={image.width || undefined}
+                      />
+                    </div>
+                  );
+                }
+
+                return (
+                  <Link
+                    aria-label={`View ${item.product.title}`}
+                    className={className}
+                    href={`/products/${item.product.slug}`}
+                    key={key}
+                    tabIndex={reelIndex === 1 ? -1 : undefined}
+                  >
+                    <ProductImage product={item.product} />
+                  </Link>
+                );
+              })}
             </div>
           ))}
         </div>
@@ -227,9 +260,31 @@ export default function HomePageClient({
   const hasHomepageMobileHeroMedia = Boolean(homepageSettings?.heroMobileImage?.url);
   const hasHomepageDesktopHeroMedia = Boolean(homepageSettings?.heroDesktopImage?.url);
   const hasHomepageHeroMedia = hasHomepageMobileHeroMedia || hasHomepageDesktopHeroMedia;
-  const newArrivalShowcaseProducts = useMemo(
-    () => newArrivalProducts.filter((product) => product.image).slice(0, 5),
-    [newArrivalProducts],
+  const newArrivalShowcaseItems = useMemo<NewArrivalsShowcaseItem[]>(
+    () => {
+      const uploadedImages = homepageSettings?.newArrivalMobileImages
+        ?.filter((image) => image.url)
+        .slice(0, 5)
+        .map((image, index) => ({
+          type: 'image' as const,
+          id: `${image.url}-${index}`,
+          image,
+        }));
+
+      if (uploadedImages?.length) {
+        return uploadedImages;
+      }
+
+      return newArrivalProducts
+        .filter((product) => product.image)
+        .slice(0, 5)
+        .map((product) => ({
+          type: 'product' as const,
+          id: product.id,
+          product,
+        }));
+    },
+    [homepageSettings?.newArrivalMobileImages, newArrivalProducts],
   );
   const heroGalleryClassName = [
     'storefront-hero-gallery',
@@ -393,7 +448,7 @@ export default function HomePageClient({
             </Link>
           </div>
 
-          <NewArrivalsMobileShowcase products={newArrivalShowcaseProducts} />
+          <NewArrivalsMobileShowcase items={newArrivalShowcaseItems} />
 
           <div className="product-grid">
             {newArrivalProducts.map((product, index) => (

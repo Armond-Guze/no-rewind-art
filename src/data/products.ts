@@ -51,6 +51,7 @@ export type HomepageSettings = {
   heroDesktopImage?: HomepageHeroImage;
   bestSellerProductIds?: string[];
   newArrivalProductIds?: string[];
+  newArrivalMobileImages?: HomepageHeroImage[];
 };
 
 export type CatalogProduct = {

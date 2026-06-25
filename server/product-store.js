@@ -173,6 +173,9 @@ function normalizeSanityHomepageSettings(settings) {
 
   const heroMobileImage = normalizeSanityImage(settings.heroMobileImage);
   const heroDesktopImage = normalizeSanityImage(settings.heroDesktopImage);
+  const newArrivalMobileImages = Array.isArray(settings.newArrivalMobileImages)
+    ? settings.newArrivalMobileImages.map(normalizeSanityImage).filter(Boolean).slice(0, 5)
+    : [];
 
   return {
     heroProductIds: sanitizeHomepageProductIds(settings.heroProductIds),
@@ -180,6 +183,7 @@ function normalizeSanityHomepageSettings(settings) {
     ...(heroDesktopImage ? { heroDesktopImage } : {}),
     bestSellerProductIds: sanitizeHomepageProductIds(settings.bestSellerProductIds),
     newArrivalProductIds: sanitizeHomepageProductIds(settings.newArrivalProductIds),
+    ...(newArrivalMobileImages.length ? { newArrivalMobileImages } : {}),
   };
 }
 
@@ -348,7 +352,13 @@ const SANITY_HOMEPAGE_SETTINGS_QUERY = `*[
     "height": asset->metadata.dimensions.height
   },
   "bestSellerProductIds": bestSellerProducts[]->productId,
-  "newArrivalProductIds": newArrivalProducts[]->productId
+  "newArrivalProductIds": newArrivalProducts[]->productId,
+  "newArrivalMobileImages": newArrivalMobileImages[]{
+    "url": asset->url,
+    alt,
+    "width": asset->metadata.dimensions.width,
+    "height": asset->metadata.dimensions.height
+  }
 }`;
 
 const SANITY_PRODUCTS_QUERY = `*[
