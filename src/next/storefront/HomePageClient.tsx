@@ -101,6 +101,9 @@ function HomeProductCard({
         <ProductImage product={product} priority={priority} />
       </Link>
       <div className="product-copy">
+        <span className="product-card-thumb" aria-hidden="true">
+          <ProductImage product={product} />
+        </span>
         <div className="product-title-row">
           <h3>
             <Link href={`/products/${product.slug}`}>{product.title}</Link>
@@ -111,6 +114,40 @@ function HomeProductCard({
         </div>
       </div>
     </article>
+  );
+}
+
+function NewArrivalsMobileShowcase({ products }: { products: Product[] }) {
+  if (!products.length) {
+    return null;
+  }
+
+  return (
+    <div className="new-arrivals-mobile-showcase" aria-label="New arrivals artwork preview">
+      <div className="new-arrivals-mobile-viewport">
+        <div className="new-arrivals-mobile-track">
+          {[0, 1].map((reelIndex) => (
+            <div
+              aria-hidden={reelIndex === 1 ? true : undefined}
+              className="new-arrivals-mobile-reel"
+              key={reelIndex}
+            >
+              {products.map((product, index) => (
+                <Link
+                  aria-label={`View ${product.title}`}
+                  className={`new-arrivals-mobile-slide new-arrivals-mobile-slide-${(index % 3) + 1}`}
+                  href={`/products/${product.slug}`}
+                  key={`${reelIndex}-${product.id}`}
+                  tabIndex={reelIndex === 1 ? -1 : undefined}
+                >
+                  <ProductImage product={product} />
+                </Link>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -190,6 +227,10 @@ export default function HomePageClient({
   const hasHomepageMobileHeroMedia = Boolean(homepageSettings?.heroMobileImage?.url);
   const hasHomepageDesktopHeroMedia = Boolean(homepageSettings?.heroDesktopImage?.url);
   const hasHomepageHeroMedia = hasHomepageMobileHeroMedia || hasHomepageDesktopHeroMedia;
+  const newArrivalShowcaseProducts = useMemo(
+    () => newArrivalProducts.filter((product) => product.image).slice(0, 5),
+    [newArrivalProducts],
+  );
   const heroGalleryClassName = [
     'storefront-hero-gallery',
     hasHomepageMobileHeroMedia ? 'has-mobile-hero-media' : undefined,
@@ -284,7 +325,7 @@ export default function HomePageClient({
             </Link>
           </div>
 
-          <div className="product-grid">
+          <div className="product-grid best-sellers-carousel">
             {featuredProducts.map((product, index) => (
               <HomeProductCard
                 key={product.id}
@@ -351,6 +392,8 @@ export default function HomePageClient({
               <ArrowUpRight aria-hidden="true" size={16} />
             </Link>
           </div>
+
+          <NewArrivalsMobileShowcase products={newArrivalShowcaseProducts} />
 
           <div className="product-grid">
             {newArrivalProducts.map((product, index) => (
