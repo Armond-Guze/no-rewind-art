@@ -148,13 +148,36 @@ function sanitizeHomepageProductIds(value) {
   return [...new Set(sanitizeTextArray(value))];
 }
 
+function normalizeSanityImage(image) {
+  const url = sanitizeText(image?.url);
+
+  if (!url) {
+    return undefined;
+  }
+
+  const width = sanitizeNumber(image?.width);
+  const height = sanitizeNumber(image?.height);
+
+  return {
+    url,
+    ...(sanitizeText(image?.alt) ? { alt: sanitizeText(image.alt) } : {}),
+    ...(width ? { width } : {}),
+    ...(height ? { height } : {}),
+  };
+}
+
 function normalizeSanityHomepageSettings(settings) {
   if (!settings || typeof settings !== 'object') {
     return {};
   }
 
+  const heroMobileImage = normalizeSanityImage(settings.heroMobileImage);
+  const heroDesktopImage = normalizeSanityImage(settings.heroDesktopImage);
+
   return {
     heroProductIds: sanitizeHomepageProductIds(settings.heroProductIds),
+    ...(heroMobileImage ? { heroMobileImage } : {}),
+    ...(heroDesktopImage ? { heroDesktopImage } : {}),
     bestSellerProductIds: sanitizeHomepageProductIds(settings.bestSellerProductIds),
     newArrivalProductIds: sanitizeHomepageProductIds(settings.newArrivalProductIds),
   };
@@ -312,6 +335,18 @@ const SANITY_HOMEPAGE_SETTINGS_QUERY = `*[
   && !(_id in path("drafts.**"))
 ][0]{
   "heroProductIds": heroProducts[]->productId,
+  "heroMobileImage": heroMobileImage{
+    "url": asset->url,
+    alt,
+    "width": asset->metadata.dimensions.width,
+    "height": asset->metadata.dimensions.height
+  },
+  "heroDesktopImage": heroDesktopImage{
+    "url": asset->url,
+    alt,
+    "width": asset->metadata.dimensions.width,
+    "height": asset->metadata.dimensions.height
+  },
   "bestSellerProductIds": bestSellerProducts[]->productId,
   "newArrivalProductIds": newArrivalProducts[]->productId
 }`;

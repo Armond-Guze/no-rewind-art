@@ -26,6 +26,28 @@ const productReferenceList = (name: string, title: string, description: string, 
         }),
   })
 
+const heroImageField = (
+  name: string,
+  title: string,
+  description: string,
+  recommendedSize: string,
+) =>
+  defineField({
+    name,
+    title,
+    type: 'image',
+    description: `${description} Recommended Photoshop export: ${recommendedSize}. This is separate from product images.`,
+    options: {hotspot: true},
+    fields: [
+      defineField({
+        name: 'alt',
+        title: 'Alt Text',
+        type: 'string',
+        description: 'Describe the room/mockup image for accessibility and SEO.',
+      }),
+    ],
+  })
+
 export const homepageSettingsType = defineType({
   name: 'homepageSettings',
   title: 'Homepage Settings',
@@ -43,6 +65,18 @@ export const homepageSettingsType = defineType({
       'Hero Slideshow Products',
       'Pick up to 5 products for the large homepage slideshow, in the exact order they should rotate.',
       5,
+    ),
+    heroImageField(
+      'heroMobileImage',
+      'Mobile Hero Image',
+      'Optional full-screen mobile homepage image. Use this for vertical room mockups shown behind the mobile headline.',
+      '1170 x 2532 px',
+    ),
+    heroImageField(
+      'heroDesktopImage',
+      'Desktop Hero Image',
+      'Optional desktop homepage hero image. Use this when you want the desktop hero visual to be independent from products.',
+      '2880 x 1800 px',
     ),
     productReferenceList(
       'bestSellerProducts',

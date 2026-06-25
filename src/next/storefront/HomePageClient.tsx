@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Star } from 'lucide-react';
-import type { Product } from '../../data/products';
+import type { HomepageHeroImage, HomepageSettings, Product } from '../../data/products';
 import {
   formatPrice,
   supportEmail,
@@ -114,16 +114,57 @@ function HomeProductCard({
   );
 }
 
+function StorefrontHeroMedia({
+  mobileImage,
+  desktopImage,
+}: {
+  mobileImage?: HomepageHeroImage;
+  desktopImage?: HomepageHeroImage;
+}) {
+  const fallbackImage = desktopImage ?? mobileImage;
+
+  if (!fallbackImage?.url) {
+    return null;
+  }
+
+  const fallbackAlt = fallbackImage.alt || mobileImage?.alt || desktopImage?.alt || 'Armoze room mockup';
+  const className = [
+    'storefront-hero-art',
+    'storefront-hero-media-frame',
+    'is-active',
+    mobileImage?.url ? 'has-mobile-image' : undefined,
+    desktopImage?.url ? 'has-desktop-image' : undefined,
+  ].filter(Boolean).join(' ');
+
+  return (
+    <div className={className}>
+      <picture className="storefront-hero-media">
+        {mobileImage?.url ? <source media="(max-width: 760px)" srcSet={mobileImage.url} /> : null}
+        {desktopImage?.url ? <source media="(min-width: 761px)" srcSet={desktopImage.url} /> : null}
+        <img
+          src={fallbackImage.url}
+          alt={fallbackAlt}
+          width={fallbackImage.width || undefined}
+          height={fallbackImage.height || undefined}
+          loading="eager"
+        />
+      </picture>
+    </div>
+  );
+}
+
 export default function HomePageClient({
   checkoutResult: initialCheckoutResult,
   featuredProducts,
   newArrivalProducts,
   heroProducts,
+  homepageSettings,
 }: {
   checkoutResult?: string;
   featuredProducts: Product[];
   newArrivalProducts: Product[];
   heroProducts: Product[];
+  homepageSettings?: HomepageSettings;
 }) {
   const queryCheckoutResult = useUrlSearchParam('checkout');
   const checkoutResult = initialCheckoutResult ?? queryCheckoutResult ?? undefined;
@@ -146,6 +187,14 @@ export default function HomePageClient({
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const activeHeroSlideIndex = heroSlides.length ? activeHeroIndex % heroSlides.length : 0;
   const activeHeroSlide = heroSlides[activeHeroSlideIndex];
+  const hasHomepageMobileHeroMedia = Boolean(homepageSettings?.heroMobileImage?.url);
+  const hasHomepageDesktopHeroMedia = Boolean(homepageSettings?.heroDesktopImage?.url);
+  const hasHomepageHeroMedia = hasHomepageMobileHeroMedia || hasHomepageDesktopHeroMedia;
+  const heroGalleryClassName = [
+    'storefront-hero-gallery',
+    hasHomepageMobileHeroMedia ? 'has-mobile-hero-media' : undefined,
+    hasHomepageDesktopHeroMedia ? 'has-desktop-hero-media' : undefined,
+  ].filter(Boolean).join(' ');
 
   useEffect(() => {
     if (heroSlides.length <= 1 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -199,7 +248,13 @@ export default function HomePageClient({
             </div>
           </div>
 
-          <div className="storefront-hero-gallery" aria-label="Featured artwork">
+          <div className={heroGalleryClassName} aria-label="Featured artwork">
+            {hasHomepageHeroMedia ? (
+              <StorefrontHeroMedia
+                mobileImage={homepageSettings?.heroMobileImage}
+                desktopImage={homepageSettings?.heroDesktopImage}
+              />
+            ) : null}
             {heroSlides.map(({ product }, index) => (
               <Link
                 className={`storefront-hero-art storefront-hero-art-${index + 1}${

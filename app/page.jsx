@@ -42,6 +42,7 @@ export default async function HomeRoute() {
         featuredProducts={featuredProducts}
         newArrivalProducts={newArrivalProducts}
         heroProducts={heroProducts}
+        homepageSettings={catalog.homepageSettings}
       />
     </>
   );

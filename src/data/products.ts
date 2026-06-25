@@ -29,6 +29,13 @@ export type ProductVideo = {
   thumbnail?: string;
 };
 
+export type HomepageHeroImage = {
+  url: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+};
+
 export type Collection = {
   slug: string;
   title: string;
@@ -40,6 +47,8 @@ export type Collection = {
 
 export type HomepageSettings = {
   heroProductIds?: string[];
+  heroMobileImage?: HomepageHeroImage;
+  heroDesktopImage?: HomepageHeroImage;
   bestSellerProductIds?: string[];
   newArrivalProductIds?: string[];
 };

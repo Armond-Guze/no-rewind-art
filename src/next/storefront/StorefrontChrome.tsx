@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
-import { ArrowRight, CircleUserRound, Menu, X } from 'lucide-react';
+import { ArrowRight, CircleUserRound, Menu, Search, ShoppingBag, X } from 'lucide-react';
 import {
   cartUpdatedEvent,
   getStoredCartCount,
@@ -42,32 +42,132 @@ export function StorefrontTracker({
 }
 
 export function StorefrontShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const { isScrolled, isHidden } = useStorefrontTopChromeState(menuOpen || searchOpen);
+  const isHome = pathname === '/';
+
   return (
     <>
-      <NextSiteHeader />
-      <LaunchPromoBar />
+      <LaunchPromoBar isHome={isHome} isScrolled={isScrolled} isHidden={isHidden} />
+      <NextSiteHeader
+        menuOpen={menuOpen}
+        setMenuOpen={setMenuOpen}
+        searchOpen={searchOpen}
+        setSearchOpen={setSearchOpen}
+        isScrolled={isScrolled}
+        isHidden={isHidden}
+      />
       {children}
       <NextSiteFooter />
     </>
   );
 }
 
-function LaunchPromoBar() {
+function useStorefrontTopChromeState(menuOpen: boolean) {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let frameId = 0;
+
+    const updateScrollState = () => {
+      const nextScrollY = Math.max(0, window.scrollY);
+      const scrollDelta = nextScrollY - lastScrollY;
+
+      setIsScrolled(nextScrollY > 14);
+      setIsHidden((currentHidden) => {
+        if (menuOpen || nextScrollY < 92) {
+          return false;
+        }
+
+        if (scrollDelta > 3) {
+          return true;
+        }
+
+        if (scrollDelta < 0) {
+          return false;
+        }
+
+        return currentHidden;
+      });
+
+      lastScrollY = nextScrollY;
+      frameId = 0;
+    };
+
+    const handleScroll = () => {
+      if (!frameId) {
+        frameId = window.requestAnimationFrame(updateScrollState);
+      }
+    };
+
+    updateScrollState();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [menuOpen]);
+
+  return { isScrolled, isHidden };
+}
+
+function LaunchPromoBar({
+  isHome,
+  isScrolled,
+  isHidden,
+}: {
+  isHome: boolean;
+  isScrolled: boolean;
+  isHidden: boolean;
+}) {
+  const className = [
+    'launch-promo-bar',
+    isHome ? 'home-promo-bar' : undefined,
+    isScrolled ? 'is-scrolled' : undefined,
+    isHidden ? 'is-hidden' : undefined,
+  ].filter(Boolean).join(' ');
+
   return (
-    <section className="launch-promo-bar" aria-label="Launch offer">
+    <section className={className} aria-label="Launch offer">
       <p>
-        Enjoy {launchOfferDiscount} off with code <strong>{launchOfferCode}</strong>
+        Launch offer: {launchOfferDiscount} off your first order with code <strong>{launchOfferCode}</strong>
       </p>
     </section>
   );
 }
 
-function NextSiteHeader() {
+function NextSiteHeader({
+  menuOpen,
+  setMenuOpen,
+  searchOpen,
+  setSearchOpen,
+  isScrolled,
+  isHidden,
+}: {
+  menuOpen: boolean;
+  setMenuOpen: (menuOpen: boolean | ((open: boolean) => boolean)) => void;
+  searchOpen: boolean;
+  setSearchOpen: (searchOpen: boolean | ((open: boolean) => boolean)) => void;
+  isScrolled: boolean;
+  isHidden: boolean;
+}) {
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [user, setUser] = useState<User | null>(null);
   const closeMenu = () => setMenuOpen(false);
+  const closeSearch = () => setSearchOpen(false);
+  const closeOverlays = () => {
+    setMenuOpen(false);
+    setSearchOpen(false);
+  };
   const isHome = pathname === '/';
   const accountHref = user ? '/account' : '/sign-in';
   const accountLabel = user ? 'View account' : 'Sign in or create account';
@@ -113,15 +213,18 @@ function NextSiteHeader() {
   }, []);
 
   useEffect(() => {
-    document.body.classList.toggle('mobile-menu-lock', menuOpen);
+    const hasOpenOverlay = menuOpen || searchOpen;
+
+    document.body.classList.toggle('mobile-menu-lock', hasOpenOverlay);
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMenuOpen(false);
+        setSearchOpen(false);
       }
     };
 
-    if (menuOpen) {
+    if (hasOpenOverlay) {
       window.addEventListener('keydown', handleKeyDown);
     }
 
@@ -129,10 +232,16 @@ function NextSiteHeader() {
       document.body.classList.remove('mobile-menu-lock');
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [menuOpen]);
+  }, [menuOpen, searchOpen, setMenuOpen, setSearchOpen]);
 
   return (
-    <header className={`site-header${isHome ? ' home-header' : ''}${menuOpen ? ' menu-open' : ''}`}>
+    <header
+      className={`site-header${isHome ? ' home-header' : ''}${menuOpen ? ' menu-open' : ''}${
+        searchOpen ? ' search-open' : ''
+      }${
+        isScrolled ? ' is-scrolled' : ''
+      }${isHidden ? ' is-hidden' : ''}`}
+    >
       <Link className="brand" href="/" aria-label="Armoze home">
         <img className="brand-mark" src="/armoze-site-logo.png" alt="" aria-hidden="true" />
       </Link>
@@ -142,26 +251,89 @@ function NextSiteHeader() {
         aria-controls="primary-navigation"
         aria-expanded={menuOpen}
         aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-        onClick={() => setMenuOpen((open) => !open)}
+        onClick={() => {
+          setSearchOpen(false);
+          setMenuOpen((open) => !open);
+        }}
       >
-        {menuOpen ? <X aria-hidden="true" size={22} /> : <Menu aria-hidden="true" size={22} />}
+        {menuOpen ? (
+          <X aria-hidden="true" size={22} />
+        ) : (
+          <Menu aria-hidden="true" className="mobile-menu-icon" size={22} strokeWidth={2.8} />
+        )}
+      </button>
+      <button
+        className="mobile-search-nav-button"
+        type="button"
+        aria-controls="mobile-site-search"
+        aria-expanded={searchOpen}
+        aria-label={searchOpen ? 'Close search' : 'Open search'}
+        onClick={() => {
+          setMenuOpen(false);
+          setSearchOpen((open) => !open);
+        }}
+      >
+        <Search aria-hidden="true" size={21} strokeWidth={2.2} />
       </button>
       <Link
         className={`mobile-account-nav-link${user ? ' signed-in' : ''}`}
         href={accountHref}
         aria-label={accountLabel}
         title={accountLabel}
-        onClick={closeMenu}
+        onClick={closeOverlays}
       >
         <CircleUserRound aria-hidden="true" size={22} />
         <span className="sr-only">{accountLabel}</span>
       </Link>
+      <Link
+        className="mobile-cart-nav-link"
+        href="/cart"
+        aria-label={`View cart${cartCount ? `, ${cartCount} item${cartCount === 1 ? '' : 's'}` : ''}`}
+        title="View cart"
+        onClick={closeOverlays}
+      >
+        <ShoppingBag aria-hidden="true" size={22} />
+        <span className="mobile-cart-count" aria-hidden="true">{cartCount}</span>
+        <span className="sr-only">View cart</span>
+      </Link>
       <button
-        className={`mobile-menu-backdrop${menuOpen ? ' open' : ''}`}
+        className={`mobile-menu-backdrop${menuOpen || searchOpen ? ' open' : ''}`}
         type="button"
-        aria-label="Close navigation menu"
-        onClick={closeMenu}
+        aria-label="Close navigation overlay"
+        onClick={closeOverlays}
       />
+      <section
+        className={`mobile-search-panel${searchOpen ? ' open' : ''}`}
+        id="mobile-site-search"
+        aria-label="Site search"
+        aria-hidden={searchOpen ? undefined : true}
+      >
+        <button className="mobile-search-close" type="button" onClick={closeSearch}>
+          Close
+        </button>
+        <form className="mobile-search-form" action="/collections/best-sellers">
+          <label className="sr-only" htmlFor="mobile-search-query">
+            Search products
+          </label>
+          <input
+            id="mobile-search-query"
+            name="search"
+            type="search"
+            placeholder="Search products, categories, inspiration"
+            autoComplete="off"
+          />
+          <button type="submit" aria-label="Submit search">
+            <ArrowRight aria-hidden="true" size={18} />
+          </button>
+        </form>
+        <p>Search for products, categories, information, inspiration, etc.</p>
+        <div className="mobile-search-suggestions" aria-label="Search suggestions">
+          <strong>Suggestions:</strong>
+          <Link href="/collections/best-sellers" onClick={closeSearch}>Best Sellers</Link>
+          <Link href="/collections/discipline-focus" onClick={closeSearch}>Focus</Link>
+          <Link href="/collections/money-ambition" onClick={closeSearch}>Money</Link>
+        </div>
+      </section>
       <nav
         className={`nav-links${menuOpen ? ' open' : ''}`}
         id="primary-navigation"
@@ -174,17 +346,21 @@ function NextSiteHeader() {
         <Link href="/collections/money-ambition" onClick={closeMenu}>Money</Link>
         <Link href="/collections/discipline-focus" onClick={closeMenu}>Focus</Link>
         <Link href="/collections/new-arrivals" onClick={closeMenu}>New Arrivals</Link>
-        <Link href="/cart" onClick={closeMenu}>Cart ({cartCount})</Link>
-        <Link
-          className={`account-nav-link desktop-account-nav-link${user ? ' signed-in' : ''}`}
-          href={accountHref}
-          aria-label={accountLabel}
-          title={accountLabel}
-          onClick={closeMenu}
-        >
-          <CircleUserRound aria-hidden="true" size={22} />
-          <span className="sr-only">{accountLabel}</span>
-        </Link>
+        {!menuOpen ? (
+          <>
+            <Link className="desktop-cart-nav-link" href="/cart" onClick={closeMenu}>Cart ({cartCount})</Link>
+            <Link
+              className={`account-nav-link desktop-account-nav-link${user ? ' signed-in' : ''}`}
+              href={accountHref}
+              aria-label={accountLabel}
+              title={accountLabel}
+              onClick={closeMenu}
+            >
+              <CircleUserRound aria-hidden="true" size={22} />
+              <span className="sr-only">{accountLabel}</span>
+            </Link>
+          </>
+        ) : null}
       </nav>
     </header>
   );
