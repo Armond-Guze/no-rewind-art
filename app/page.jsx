@@ -39,6 +39,7 @@ export default async function HomeRoute() {
     <>
       <JsonLd data={routeSeo.structuredData} />
       <HomePageClient
+        allProducts={catalog.products}
         featuredProducts={featuredProducts}
         newArrivalProducts={newArrivalProducts}
         heroProducts={heroProducts}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Star } from 'lucide-react';
 import type { HomepageHeroImage, HomepageSettings, Product } from '../../data/products';
@@ -21,6 +21,7 @@ type HomepageMediaItem =
       type: 'image';
       id: string;
       image: HomepageHeroImage;
+      product?: Product;
     }
   | {
       type: 'product';
@@ -176,18 +177,23 @@ function getHomepageImageLinkLabel(image: HomepageHeroImage, fallback: string) {
 
 function HomeImageCard({
   image,
+  product,
   priority = false,
   className,
   interactive = true,
   realStart = false,
+  showProductOverlay = false,
 }: {
   image: HomepageHeroImage;
+  product?: Product;
   priority?: boolean;
   className?: string;
   interactive?: boolean;
   realStart?: boolean;
+  showProductOverlay?: boolean;
 }) {
-  const href = getHomepageImageProductHref(image);
+  const href = product ? `/products/${product.slug}` : getHomepageImageProductHref(image);
+  const overlayProduct = showProductOverlay ? product : undefined;
   const imageElement = (
     <img
       alt={image.alt || 'Armoze artwork preview'}
@@ -218,6 +224,35 @@ function HomeImageCard({
           {imageElement}
         </div>
       )}
+      {overlayProduct ? (
+        <Link
+          aria-label={`View ${overlayProduct.title}`}
+          className="product-copy homepage-image-product-copy"
+          href={`/products/${overlayProduct.slug}`}
+          tabIndex={interactive ? undefined : -1}
+        >
+          <span className="product-card-thumb" aria-hidden="true">
+            {overlayProduct.image ? (
+              <img
+                alt=""
+                className="product-card-thumb-image"
+                loading="lazy"
+                src={overlayProduct.image}
+              />
+            ) : (
+              <ProductImage product={overlayProduct} />
+            )}
+          </span>
+          <div className="product-title-row">
+            <h3>
+              {overlayProduct.title}
+            </h3>
+          </div>
+          <div className="product-card-meta">
+            <strong>{formatPrice(overlayProduct.priceInCents)}</strong>
+          </div>
+        </Link>
+      ) : null}
     </article>
   );
 }
@@ -228,12 +263,14 @@ function HomeMediaCard({
   className,
   interactive = true,
   realStart = false,
+  showImageProductOverlay = false,
 }: {
   item: HomepageMediaItem;
   priority?: boolean;
   className?: string;
   interactive?: boolean;
   realStart?: boolean;
+  showImageProductOverlay?: boolean;
 }) {
   if (item.type === 'image') {
     return (
@@ -241,8 +278,10 @@ function HomeMediaCard({
         className={className}
         image={item.image}
         interactive={interactive}
+        product={item.product}
         priority={priority}
         realStart={realStart}
+        showProductOverlay={showImageProductOverlay}
       />
     );
   }
@@ -298,31 +337,87 @@ function BestSellersCarousel({
   useEffect(() => {
     const carousel = carouselRef.current;
 
-    if (!carousel || !hasEdgePeek || !window.matchMedia('(max-width: 900px)').matches) {
+    if (
+      !carousel ||
+      !hasEdgePeek ||
+      !window.matchMedia('(max-width: 900px)').matches
+    ) {
       return;
     }
 
-    const setInitialPeek = () => {
+    const getLoopPositions = () => {
+      const cards = Array.from(carousel.children) as HTMLElement[];
       const firstRealCard = carousel.querySelector<HTMLElement>('[data-carousel-real-start="true"]');
+      const lastRealCard = cards[cards.length - 2];
 
-      if (!firstRealCard) {
-        return;
+      if (!firstRealCard || !lastRealCard) {
+        return null;
       }
 
       const styles = window.getComputedStyle(carousel);
       const peek = Number.parseFloat(styles.getPropertyValue('--best-sellers-edge-peek')) || 44;
-      const targetScrollLeft = Math.max(0, firstRealCard.offsetLeft - peek);
+      const gap = Number.parseFloat(styles.columnGap || styles.gap) || 0;
+      const cardStep = firstRealCard.offsetWidth + gap;
 
-      carousel.scrollTo({ left: targetScrollLeft, behavior: 'auto' });
-      carousel.scrollLeft = targetScrollLeft;
+      return {
+        cardStep,
+        firstTarget: Math.max(0, firstRealCard.offsetLeft - peek),
+        lastTarget: Math.max(0, lastRealCard.offsetLeft - peek),
+      };
     };
 
+    const jumpTo = (scrollLeft: number) => {
+      carousel.scrollTo({ left: scrollLeft, behavior: 'auto' });
+      carousel.scrollLeft = scrollLeft;
+    };
+
+    const setInitialPeek = () => {
+      const positions = getLoopPositions();
+
+      if (!positions) {
+        return;
+      }
+
+      jumpTo(positions.firstTarget);
+    };
+
+    let scrollTimer: number | undefined;
+    const handleLoopScroll = () => {
+      if (scrollTimer) {
+        window.clearTimeout(scrollTimer);
+      }
+
+      scrollTimer = window.setTimeout(() => {
+        const positions = getLoopPositions();
+
+        if (!positions) {
+          return;
+        }
+
+        const { cardStep, firstTarget, lastTarget } = positions;
+
+        if (carousel.scrollLeft < firstTarget - cardStep / 2) {
+          jumpTo(lastTarget);
+          return;
+        }
+
+        if (carousel.scrollLeft > lastTarget + cardStep / 2) {
+          jumpTo(firstTarget);
+        }
+      }, 120);
+    };
+
+    carousel.addEventListener('scroll', handleLoopScroll, { passive: true });
     const frame = window.requestAnimationFrame(setInitialPeek);
-    const timeout = window.setTimeout(setInitialPeek, 250);
+    const timeouts = [250, 900, 1800].map((delay) => window.setTimeout(setInitialPeek, delay));
 
     return () => {
+      carousel.removeEventListener('scroll', handleLoopScroll);
       window.cancelAnimationFrame(frame);
-      window.clearTimeout(timeout);
+      timeouts.forEach((timeout) => window.clearTimeout(timeout));
+      if (scrollTimer) {
+        window.clearTimeout(scrollTimer);
+      }
     };
   }, [hasEdgePeek, items]);
 
@@ -343,6 +438,7 @@ function BestSellersCarousel({
           key={key}
           priority={!clone && index < 3}
           realStart={realStart}
+          showImageProductOverlay
         />
       ))}
     </div>
@@ -452,12 +548,14 @@ function StorefrontHeroMedia({
 }
 
 export default function HomePageClient({
+  allProducts,
   checkoutResult: initialCheckoutResult,
   featuredProducts,
   newArrivalProducts,
   heroProducts,
   homepageSettings,
 }: {
+  allProducts: Product[];
   checkoutResult?: string;
   featuredProducts: Product[];
   newArrivalProducts: Product[];
@@ -471,6 +569,13 @@ export default function HomePageClient({
   const homepageBestSellerMobileImages = homepageSettings?.bestSellerMobileImages;
   const homepageNewArrivalImages = homepageSettings?.newArrivalImages;
   const homepageNewArrivalMobileImages = homepageSettings?.newArrivalMobileImages;
+  const productsBySlug = useMemo(() => {
+    return new Map(allProducts.map((product) => [product.slug, product]));
+  }, [allProducts]);
+  const getLinkedImageProduct = useCallback(
+    (image: HomepageHeroImage) => (image.productSlug ? productsBySlug.get(image.productSlug) : undefined),
+    [productsBySlug],
+  );
   const heroSlides = useMemo<HeroShowcaseSlide[]>(() => {
     const heroImageSlides = heroSlideshowImages
       ?.filter((image) => image.url)
@@ -535,6 +640,7 @@ export default function HomePageClient({
           type: 'image' as const,
           id: `${image.url}-${index}`,
           image,
+          product: getLinkedImageProduct(image),
         }));
       }
 
@@ -544,15 +650,16 @@ export default function HomePageClient({
         product,
       }));
     },
-    [bestSellerGridImages, featuredProducts],
+    [bestSellerGridImages, featuredProducts, getLinkedImageProduct],
   );
   const bestSellerMobileItems = useMemo<HomepageMediaItem[]>(
     () => bestSellerMobileImages.map((image, index) => ({
       type: 'image' as const,
       id: `${image.url}-${index}`,
       image,
+      product: getLinkedImageProduct(image),
     })),
-    [bestSellerMobileImages],
+    [bestSellerMobileImages, getLinkedImageProduct],
   );
   const newArrivalShowcaseItems = useMemo<HomepageMediaItem[]>(
     () => {
@@ -785,7 +892,7 @@ export default function HomePageClient({
             </Link>
           </div>
 
-          <div className="product-grid">
+          <div className="product-grid new-arrivals-grid">
             {newArrivalGridImages.length
               ? newArrivalGridImages.map((image, index) => (
                 <HomeImageCard

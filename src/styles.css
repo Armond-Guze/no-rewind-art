@@ -7146,6 +7146,10 @@ h3 {
   object-position: center;
 }
 
+.storefront-home .homepage-image-product-copy {
+  text-decoration: none;
+}
+
 .storefront-home #shop .best-sellers-mobile-image-carousel {
   display: none;
 }
@@ -8287,7 +8291,7 @@ h3 {
 
   .storefront-home #shop .best-sellers-carousel {
     grid-auto-columns: calc(100vw - 64px);
-    gap: 0;
+    gap: 4px;
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
@@ -8365,28 +8369,35 @@ h3 {
   .storefront-home #shop .best-sellers-carousel .product-copy {
     position: absolute;
     right: auto;
-    bottom: 28px;
-    left: 50%;
+    bottom: clamp(16px, 4vw, 24px);
+    left: clamp(14px, 4vw, 18px);
     z-index: 2;
     width: min(72%, 248px);
-    min-height: 64px;
+    min-height: 74px;
     display: grid;
-    grid-template-columns: 46px minmax(0, 1fr);
-    gap: 12px;
+    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-rows: 1fr auto auto 1fr;
+    gap: 1px 14px;
     align-items: center;
-    padding: 10px 14px 10px 10px;
+    padding: 0 14px 0 0;
+    overflow: hidden;
+    border-radius: 8px;
     background: rgba(255, 255, 255, 0.96);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
-    transform: translateX(-50%);
   }
 
   .storefront-home #shop .best-sellers-carousel .product-card-thumb {
-    grid-row: 1 / span 2;
-    width: 46px;
-    height: 46px;
+    grid-row: 1 / -1;
+    align-self: stretch;
+    width: 64px;
+    height: 100%;
+    min-height: 74px;
+    box-sizing: border-box;
     display: grid;
-    place-items: center;
+    place-items: stretch;
+    padding-left: 5px;
     overflow: hidden;
+    border-radius: 0;
     background: #f4f4f4;
   }
 
@@ -8413,39 +8424,48 @@ h3 {
   }
 
   .storefront-home #shop .best-sellers-carousel .product-card-thumb img {
+    display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover !important;
+    object-fit: contain !important;
     object-position: center;
   }
 
   .storefront-home #shop .best-sellers-carousel .product-title-row {
     grid-column: 2;
+    grid-row: 2;
+    align-self: end;
     display: block;
     min-width: 0;
   }
 
   .storefront-home #shop .best-sellers-carousel .product-title-row h3 {
-    display: -webkit-box;
+    display: block;
     overflow: hidden;
     color: #151515;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 900;
-    letter-spacing: 0.04em;
-    line-height: 1.08;
+    letter-spacing: 0.035em;
+    line-height: 1;
+    margin: 0;
     text-overflow: ellipsis;
     text-transform: uppercase;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    white-space: nowrap;
   }
 
   .storefront-home #shop .best-sellers-carousel .product-card-meta {
     grid-column: 2;
-    margin-top: 5px;
+    grid-row: 3;
+    align-self: start;
+    margin-top: 0;
     color: #151515;
     font-size: 0.72rem;
-    font-weight: 800;
+    font-weight: 400;
     line-height: 1;
+  }
+
+  .storefront-home #shop .best-sellers-carousel .product-card-meta strong {
+    font-weight: inherit;
   }
 
   .storefront-help-strip {
@@ -10199,6 +10219,30 @@ h3 {
     padding: 0;
   }
 
+  .storefront-home .new-arrivals-preview .new-arrivals-grid {
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100vw - 6px) / 2);
+    grid-template-columns: none;
+    gap: 6px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-padding-inline: 0;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .storefront-home .new-arrivals-preview .new-arrivals-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .storefront-home .new-arrivals-preview .new-arrivals-grid .product {
+    scroll-snap-align: none;
+  }
+
+  .storefront-home .new-arrivals-preview .new-arrivals-grid .product:nth-child(odd) {
+    scroll-snap-align: start;
+  }
+
   .storefront-home .product {
     border-radius: 0;
     overflow: visible;
@@ -10303,12 +10347,12 @@ h3 {
 
 @media (max-width: 900px) {
   .storefront-home #shop .best-sellers-carousel {
-    --best-sellers-edge-peek: clamp(18px, 6vw, 26px);
+    --best-sellers-edge-peek: clamp(34px, 10vw, 44px);
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: calc(100vw - 64px);
     grid-template-columns: none;
-    gap: 0;
+    gap: 4px;
     width: 100vw;
     max-width: none;
     margin-left: calc(50% - 50vw);
@@ -10389,28 +10433,35 @@ h3 {
   .storefront-home #shop .best-sellers-carousel .product-copy {
     position: absolute;
     right: auto;
-    bottom: 28px;
-    left: 50%;
+    bottom: clamp(16px, 4vw, 24px);
+    left: clamp(14px, 4vw, 18px);
     z-index: 2;
     width: min(72%, 248px);
-    min-height: 64px;
+    min-height: 74px;
     display: grid;
-    grid-template-columns: 46px minmax(0, 1fr);
-    gap: 12px;
+    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-rows: 1fr auto auto 1fr;
+    gap: 1px 14px;
     align-items: center;
-    padding: 10px 14px 10px 10px;
+    padding: 0 14px 0 0;
+    overflow: hidden;
+    border-radius: 8px;
     background: rgba(255, 255, 255, 0.96);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
-    transform: translateX(-50%);
   }
 
   .storefront-home #shop .best-sellers-carousel .product-card-thumb {
-    grid-row: 1 / span 2;
-    width: 46px;
-    height: 46px;
+    grid-row: 1 / -1;
+    align-self: stretch;
+    width: 64px;
+    height: 100%;
+    min-height: 74px;
+    box-sizing: border-box;
     display: grid;
-    place-items: center;
+    place-items: stretch;
+    padding-left: 5px;
     overflow: hidden;
+    border-radius: 0;
     background: #f4f4f4;
   }
 
@@ -10437,40 +10488,49 @@ h3 {
   }
 
   .storefront-home #shop .best-sellers-carousel .product-card-thumb img {
+    display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover !important;
+    object-fit: contain !important;
     object-position: center;
   }
 
   .storefront-home #shop .best-sellers-carousel .product-title-row {
     grid-column: 2;
+    grid-row: 2;
+    align-self: end;
     display: block;
     min-width: 0;
     padding: 0;
   }
 
   .storefront-home #shop .best-sellers-carousel .product-title-row h3 {
-    display: -webkit-box;
+    display: block;
     overflow: hidden;
     color: #151515;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 900;
-    letter-spacing: 0.04em;
-    line-height: 1.08;
+    letter-spacing: 0.035em;
+    line-height: 1;
+    margin: 0;
     text-overflow: ellipsis;
     text-transform: uppercase;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    white-space: nowrap;
   }
 
   .storefront-home #shop .best-sellers-carousel .product-card-meta {
     grid-column: 2;
-    margin-top: 5px;
+    grid-row: 3;
+    align-self: start;
+    margin-top: 0;
     color: #151515;
     font-size: 0.72rem;
-    font-weight: 800;
+    font-weight: 400;
     line-height: 1;
+  }
+
+  .storefront-home #shop .best-sellers-carousel .product-card-meta strong {
+    font-weight: inherit;
   }
 }
 
