@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type MouseEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
@@ -398,8 +398,6 @@ type CartDrawerLine = StoredCartItem & {
   unitPrice: number;
 };
 
-const freeShippingThresholdCents = 10000;
-
 function buildCartDrawerLines(cart: StoredCartItem[]) {
   return cart
     .map((item) => {
@@ -435,8 +433,6 @@ function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
   const cartLines = useMemo(() => buildCartDrawerLines(cart), [cart]);
   const subtotal = useMemo(() => getCartDrawerSubtotal(cartLines), [cartLines]);
   const itemCount = cartLines.reduce((total, item) => total + item.quantity, 0);
-  const freeShippingRemaining = Math.max(0, freeShippingThresholdCents - subtotal);
-  const freeShippingProgress = Math.min(1, subtotal / freeShippingThresholdCents);
 
   const closeDrawer = useCallback(() => {
     setCheckoutError('');
@@ -589,19 +585,6 @@ function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
 
         {cartReady && cartLines.length ? (
           <>
-            <div className="cart-drawer-shipping">
-              <strong>
-                {freeShippingRemaining > 0
-                  ? `You're ${formatPrice(freeShippingRemaining)} away from free shipping.`
-                  : 'Free shipping unlocked.'}
-              </strong>
-              <span
-                aria-hidden="true"
-                className="cart-drawer-shipping-progress"
-                style={{ '--cart-drawer-progress': freeShippingProgress } as CSSProperties}
-              />
-            </div>
-
             <div className="cart-drawer-body">
               <div className="cart-drawer-items">
                 {cartLines.map(({ frameOption, lineKey, product, quantity, sizeOption, unitPrice }) => (
@@ -665,7 +648,7 @@ function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
               </div>
               <div className="cart-drawer-summary-row">
                 <span>Delivery Charges</span>
-                <small>Tax included and shipping calculated at checkout</small>
+                <small>Free shipping. Tax calculated at checkout.</small>
               </div>
               <div className="cart-drawer-footer-actions">
                 <button
