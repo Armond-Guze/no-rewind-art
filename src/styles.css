@@ -3075,7 +3075,7 @@ h3 {
   align-items: start;
 }
 
-.related-products-mobile-carousel {
+.related-products-grid .best-sellers-edge-clone {
   display: none;
 }
 
@@ -3085,9 +3085,8 @@ h3 {
 
 .related-product {
   display: grid;
-  grid-template-rows: auto auto auto;
+  grid-template-rows: auto;
   align-content: start;
-  gap: 5px;
   min-width: 0;
   padding: 0;
   border: 0;
@@ -5630,24 +5629,96 @@ h3 {
     padding-bottom: 28px;
   }
 
-  .related-products-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-    max-width: 640px;
+  .related-products-grid.best-sellers-carousel {
+    --best-sellers-edge-peek: clamp(34px, 10vw, 44px);
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: calc(100vw - 64px);
+    grid-template-columns: none;
+    width: 100vw;
+    max-width: none;
+    gap: 4px;
+    margin-inline: calc(50% - 50vw);
+    padding: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-behavior: smooth;
+    scroll-padding-inline: var(--best-sellers-edge-peek) 16px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    touch-action: pan-x;
   }
 
-  .related-product .product-canvas-image,
-  .related-product .product-canvas-image.shape-landscape {
-    width: min(96%, 460px);
+  .related-products-grid.best-sellers-carousel::-webkit-scrollbar {
+    display: none;
   }
 
-  .related-product .product-canvas-image.shape-portrait {
-    width: min(72%, 320px);
-    min-width: 0;
+  .related-products-grid.best-sellers-carousel .related-product {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 4px;
+    background: #e8e8e6;
+    box-shadow: none;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
-  .related-product .product-canvas-image.shape-square {
-    width: min(82%, 360px);
+  .related-products-grid.best-sellers-carousel.has-edge-peek .best-sellers-edge-clone {
+    display: grid;
+  }
+
+  .related-products-grid.best-sellers-carousel .related-product-media {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    overflow: hidden;
+    background: #e8e8e6;
+  }
+
+  .related-products-grid.best-sellers-carousel .product-canvas-image,
+  .related-products-grid.best-sellers-carousel .artwork-mockup,
+  .related-products-grid.best-sellers-carousel .product-art {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none;
+    max-height: none;
+    aspect-ratio: auto !important;
+  }
+
+  .related-products-grid.best-sellers-carousel .product-canvas-shadow {
+    display: none;
+  }
+
+  .related-products-grid.best-sellers-carousel .product-canvas-image > div,
+  .related-products-grid.best-sellers-carousel .artwork-mockup-print,
+  .related-products-grid.best-sellers-carousel .product-art {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .related-products-grid.best-sellers-carousel .product-canvas-image img,
+  .related-products-grid.best-sellers-carousel .product-canvas-image.source-ratio-mismatch img,
+  .related-products-grid.best-sellers-carousel .product-canvas-image[class*="crop-square-source"] img,
+  .related-products-grid.best-sellers-carousel .artwork-mockup-print img,
+  .related-products-grid.best-sellers-carousel .product-art img {
+    position: static;
+    inset: auto;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: cover !important;
+    object-position: center;
+    transform: none;
   }
 
   .product-proof-grid {
@@ -6206,18 +6277,21 @@ h3 {
 
   .related-products-grid {
     display: grid;
-    grid-auto-flow: row;
-    grid-auto-columns: auto;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: calc(100vw - 64px);
+    grid-template-columns: none;
     width: 100vw;
     max-width: none;
-    gap: 22px 6px;
+    gap: 4px;
     margin-inline: calc(50% - 50vw);
-    padding: 0 6px;
-    overflow: visible;
-    overscroll-behavior-inline: auto;
-    scroll-snap-type: none;
+    padding: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-behavior: smooth;
+    scroll-padding-inline: clamp(34px, 10vw, 44px) 16px;
+    scroll-snap-type: x mandatory;
     scrollbar-width: none;
+    touch-action: pan-x;
   }
 
   .related-products-scroll-cue {
@@ -6238,67 +6312,87 @@ h3 {
   }
 
   .related-product {
-    grid-template-rows: auto auto auto;
-    scroll-snap-align: none;
-    gap: 4px;
-    border-radius: 0;
-    overflow: visible;
+    position: relative;
+    aspect-ratio: 4 / 5;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 4px;
     padding: 0;
     border: 0;
-    background: transparent;
+    background: #e8e8e6;
     box-shadow: none;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .related-products-grid.has-edge-peek .best-sellers-edge-clone {
+    display: grid;
   }
 
   .related-product-media {
-    aspect-ratio: 1 / 1;
-    height: auto;
-    padding: clamp(8px, 2.4vw, 14px);
-    overflow: visible;
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    overflow: hidden;
     background: #e8e8e6;
   }
 
   .related-product .product-canvas-image,
   .related-product .product-canvas-image.shape-landscape {
-    width: min(92%, 320px);
-    max-height: 78%;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none;
+    max-height: none;
+    aspect-ratio: auto !important;
   }
 
   .related-product .product-canvas-image.shape-portrait {
-    width: min(74%, 230px);
-    height: auto;
+    width: 100% !important;
+    height: 100% !important;
     max-width: none;
-    min-width: 0;
+    max-height: none;
+    aspect-ratio: auto !important;
   }
 
   .related-product .product-canvas-image.shape-square {
-    width: min(84%, 260px);
-  }
-
-  .related-product > span {
-    padding: 4px 10px 0;
-    font-size: 0.7rem;
-    line-height: 1.05;
-  }
-
-  .related-product > strong {
-    padding: 0 10px;
-    font-size: 0.64rem;
-    line-height: 1;
-  }
-
-  .related-products-grid .related-product {
-    overflow: visible;
-  }
-
-  .related-products-grid .related-product-media {
-    overflow: visible;
-  }
-
-  .related-products-grid .related-product .product-canvas-image.shape-portrait {
-    width: min(74%, 230px);
-    height: auto;
+    width: 100% !important;
+    height: 100% !important;
     max-width: none;
-    min-width: 0;
+    max-height: none;
+    aspect-ratio: auto !important;
+  }
+
+  .related-product .product-canvas-shadow {
+    display: none;
+  }
+
+  .related-product .product-canvas-image > div,
+  .related-product .artwork-mockup-print,
+  .related-product .product-art {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .related-product .product-canvas-image img,
+  .related-product .product-canvas-image.source-ratio-mismatch img,
+  .related-product .product-canvas-image[class*="crop-square-source"] img,
+  .related-product .artwork-mockup-print img,
+  .related-product .product-art img {
+    position: static;
+    inset: auto;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: cover !important;
+    object-position: center;
+    transform: none;
   }
 
   .admin-page {
@@ -11385,10 +11479,6 @@ h3 {
   }
 
   .product-page .related-products-grid {
-    display: none;
-  }
-
-  .product-page .related-products-mobile-carousel {
     --best-sellers-edge-peek: clamp(34px, 10vw, 44px);
     display: grid;
     grid-auto-flow: column;
@@ -11409,11 +11499,11 @@ h3 {
     touch-action: pan-x;
   }
 
-  .product-page .related-products-mobile-carousel::-webkit-scrollbar {
+  .product-page .related-products-grid::-webkit-scrollbar {
     display: none;
   }
 
-  .product-page .related-products-mobile-carousel .product {
+  .product-page .related-products-grid .product {
     position: relative;
     aspect-ratio: 4 / 5;
     height: auto;
@@ -11427,11 +11517,11 @@ h3 {
     scroll-snap-stop: always;
   }
 
-  .product-page .related-products-mobile-carousel.has-edge-peek .best-sellers-edge-clone {
+  .product-page .related-products-grid.has-edge-peek .best-sellers-edge-clone {
     display: grid;
   }
 
-  .product-page .related-products-mobile-carousel .product-image-link {
+  .product-page .related-products-grid .product-image-link {
     position: absolute;
     inset: 0;
     aspect-ratio: auto;
@@ -11442,9 +11532,9 @@ h3 {
     background: #e8e8e6;
   }
 
-  .product-page .related-products-mobile-carousel .product-image-link .product-canvas-image,
-  .product-page .related-products-mobile-carousel .product-image-link .artwork-mockup,
-  .product-page .related-products-mobile-carousel .product-image-link .product-art {
+  .product-page .related-products-grid .product-image-link .product-canvas-image,
+  .product-page .related-products-grid .product-image-link .artwork-mockup,
+  .product-page .related-products-grid .product-image-link .product-art {
     width: 100% !important;
     height: 100% !important;
     max-width: none;
@@ -11452,20 +11542,20 @@ h3 {
     aspect-ratio: auto !important;
   }
 
-  .product-page .related-products-mobile-carousel .product-image-link .product-canvas-shadow {
+  .product-page .related-products-grid .product-image-link .product-canvas-shadow {
     display: none;
   }
 
-  .product-page .related-products-mobile-carousel .product-image-link .product-canvas-image > div,
-  .product-page .related-products-mobile-carousel .product-image-link .artwork-mockup-print,
-  .product-page .related-products-mobile-carousel .product-image-link .product-art {
+  .product-page .related-products-grid .product-image-link .product-canvas-image > div,
+  .product-page .related-products-grid .product-image-link .artwork-mockup-print,
+  .product-page .related-products-grid .product-image-link .product-art {
     width: 100%;
     height: 100%;
     border-radius: 0;
     box-shadow: none;
   }
 
-  .product-page .related-products-mobile-carousel .product-image-link img {
+  .product-page .related-products-grid .product-image-link img {
     position: static;
     inset: auto;
     width: 100%;
@@ -11480,10 +11570,6 @@ h3 {
 
 @media (min-width: 901px) {
   .storefront-home #shop .best-sellers-mobile-image-carousel {
-    display: none;
-  }
-
-  .product-page .related-products-mobile-carousel {
     display: none;
   }
 }

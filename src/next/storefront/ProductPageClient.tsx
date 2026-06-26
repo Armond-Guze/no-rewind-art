@@ -165,7 +165,7 @@ type RelatedProductsCarouselItem = {
   realStart: boolean;
 };
 
-function RelatedProductsMobileCarousel({ products }: { products: Product[] }) {
+function RelatedProductsCarousel({ products }: { products: Product[] }) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const hasEdgePeek = products.length > 1;
   const carouselItems: RelatedProductsCarouselItem[] = hasEdgePeek
@@ -286,7 +286,7 @@ function RelatedProductsMobileCarousel({ products }: { products: Product[] }) {
   return (
     <div
       className={[
-        'product-grid best-sellers-carousel related-products-mobile-carousel',
+        'related-products-grid best-sellers-carousel',
         hasEdgePeek ? 'has-edge-peek' : undefined,
       ].filter(Boolean).join(' ')}
       ref={carouselRef}
@@ -295,11 +295,11 @@ function RelatedProductsMobileCarousel({ products }: { products: Product[] }) {
         <article
           aria-hidden={clone ? true : undefined}
           aria-label={clone ? undefined : relatedProduct.title}
-          className={['product', clone ? 'best-sellers-edge-clone' : undefined].filter(Boolean).join(' ')}
+          className={['related-product product', clone ? 'best-sellers-edge-clone' : undefined].filter(Boolean).join(' ')}
           data-carousel-real-start={realStart ? 'true' : undefined}
           key={key}
         >
-          <div className="product-image-link">
+          <div className="related-product-media product-image-link">
             <ProductImage product={relatedProduct} priority={!clone && index < 3} />
           </div>
         </article>
@@ -863,22 +863,7 @@ export default function ProductPageClient({
             <div className="product-section-heading">
               <h2 id="related-products-title">Related products</h2>
             </div>
-            <div className="related-products-grid">
-              {relatedProducts.map((relatedProduct) => (
-                <Link
-                  className="related-product"
-                  key={relatedProduct.id}
-                  href={`/products/${relatedProduct.slug}`}
-                >
-                  <div className="related-product-media">
-                    <ProductImage product={relatedProduct} />
-                  </div>
-                  <span>{relatedProduct.title}</span>
-                  <strong>{formatPrice(relatedProduct.priceInCents)}</strong>
-                </Link>
-              ))}
-            </div>
-            <RelatedProductsMobileCarousel products={relatedProducts} />
+            <RelatedProductsCarousel products={relatedProducts} />
             {relatedProducts.length > 1 ? (
               <div className="related-products-scroll-cue" aria-hidden="true">
                 <span />
