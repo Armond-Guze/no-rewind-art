@@ -612,7 +612,7 @@ function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
                 {cartLines.map(({ frameOption, lineKey, product, quantity, sizeOption, unitPrice }) => (
                   <article className="cart-drawer-item" key={lineKey}>
                     <Link className="cart-drawer-item-media" href={`/products/${product.slug}`} onClick={closeDrawer}>
-                      <ProductImage product={product} />
+                      <ProductImage product={product} priority />
                     </Link>
                     <div className="cart-drawer-item-main">
                       <div className="cart-drawer-item-topline">

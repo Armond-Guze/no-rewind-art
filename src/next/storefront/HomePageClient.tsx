@@ -478,7 +478,7 @@ function keepOrderedUniqueNeighbors(items: HomepageMediaItem[]) {
 
 function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
   const orderedItems = keepOrderedUniqueNeighbors(items);
-  const reelIndexes = [0, 1, 2];
+  const reelIndexes = Array.from({ length: 8 }, (_, index) => index);
 
   if (!orderedItems.length) {
     return null;

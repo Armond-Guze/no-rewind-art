@@ -386,7 +386,7 @@ export default function CartPageClient({
                   {cartProducts.map(({ lineKey, product, quantity, sizeOption, frameOption }) => (
                     <div className="cart-item" key={lineKey}>
                       <Link className="cart-item-media" href={`/products/${product.slug}`}>
-                        <ProductImage product={product} />
+                        <ProductImage product={product} priority />
                       </Link>
                       <div className="cart-item-details">
                         <h3>{product.title}</h3>
