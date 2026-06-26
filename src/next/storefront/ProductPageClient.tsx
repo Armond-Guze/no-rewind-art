@@ -664,36 +664,12 @@ export default function ProductPageClient({
                 </button>
                 {detailsOpen ? (
                   <div className="product-details-content" id={`${product.id}-details`}>
-                    <h2>{product.title}</h2>
-                    <p>{product.title} - Armoze canvas art</p>
-
-                    {product.seoAliases?.length ? (
-                      <>
-                        <h3>Best For</h3>
-                        <ul>
-                          {product.seoAliases.map((alias) => (
-                            <li key={alias}>{alias}</li>
-                          ))}
-                        </ul>
-                      </>
-                    ) : null}
-
-                    <h3>Canvas Details</h3>
+                    <h2>Product Details</h2>
                     <ul>
-                      <li>Fully assembled</li>
-                      <li>Ready to hang</li>
+                      <li>Ready-to-hang canvas print</li>
                       <li>Made to order</li>
-                      <li>Premium canvas materials</li>
-                      <li>Secure packaging to protect corners and surface quality</li>
-                      <li>Processing time: 2-3 business days</li>
-                      <li>Shipping time in the US: 2-5 business days</li>
-                    </ul>
-
-                    <h3>Artwork Notes</h3>
-                    <ul>
-                      {product.details.map((detail) => (
-                        <li key={detail}>{detail}</li>
-                      ))}
+                      <li>Premium canvas finish</li>
+                      <li>Securely packed for delivery</li>
                     </ul>
                   </div>
                 ) : null}
@@ -717,11 +693,11 @@ export default function ProductPageClient({
                   <div className="product-details-content" id={`${product.id}-shipping-returns`}>
                     <h2>Shipping &amp; Returns</h2>
                     <ul>
-                      <li>Free U.S. shipping on every order</li>
-                      <li>Processing time: 2-3 business days</li>
-                      <li>U.S. shipping time: 2-5 business days after processing</li>
-                      <li>Returns accepted within 30 days of delivery</li>
-                      <li>Damaged, defective, or incorrect items are handled at no extra return cost when approved</li>
+                      <li>Free U.S. shipping</li>
+                      <li>Made in 2-3 business days</li>
+                      <li>Ships in 2-5 business days after production</li>
+                      <li>30-day returns on eligible orders</li>
+                      <li>Support for damaged or incorrect orders</li>
                     </ul>
                   </div>
                 ) : null}

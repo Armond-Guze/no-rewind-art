@@ -478,6 +478,7 @@ function keepOrderedUniqueNeighbors(items: HomepageMediaItem[]) {
 
 function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
   const orderedItems = keepOrderedUniqueNeighbors(items);
+  const reelIndexes = [0, 1, 2];
 
   if (!orderedItems.length) {
     return null;
@@ -490,22 +491,22 @@ function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
     >
       <div className="new-arrivals-mobile-viewport">
         <div className="new-arrivals-mobile-track">
-          {[0, 1].map((reelIndex) => (
+          {reelIndexes.map((reelIndex) => (
             <div
-              aria-hidden={reelIndex === 1 ? true : undefined}
+              aria-hidden={reelIndex > 0 ? true : undefined}
               className="new-arrivals-mobile-reel"
               key={reelIndex}
             >
               {orderedItems.map((item, index) => {
                 const className = `new-arrivals-mobile-slide new-arrivals-mobile-slide-${(index % 3) + 1}`;
                 const key = `${reelIndex}-${index}-${item.id}`;
-                const ariaHidden = reelIndex === 1 ? true : undefined;
+                const ariaHidden = reelIndex > 0 ? true : undefined;
 
                 if (item.type === 'image') {
                   const { image } = item;
                   const imageElement = (
                     <img
-                      alt={reelIndex === 1 ? '' : image.alt || 'Armoze new arrivals artwork'}
+                      alt={reelIndex > 0 ? '' : image.alt || 'Armoze new arrivals artwork'}
                       height={image.height || undefined}
                       loading={reelIndex === 0 && index === 0 ? 'eager' : 'lazy'}
                       src={image.url}

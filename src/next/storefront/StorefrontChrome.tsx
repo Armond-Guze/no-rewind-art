@@ -269,6 +269,7 @@ function NextSiteHeader({
     >
       <Link className="brand" href="/" aria-label="Armoze home">
         <img className="brand-mark" src="/armoze-site-logo.png" alt="" aria-hidden="true" />
+        <img className="brand-wordmark" src="/armoze-wordmark.png" alt="" aria-hidden="true" />
       </Link>
       <button
         className="mobile-menu-toggle"
@@ -371,22 +372,43 @@ function NextSiteHeader({
         <Link href="/collections/money-ambition" onClick={closeMenu}>Money</Link>
         <Link href="/collections/discipline-focus" onClick={closeMenu}>Focus</Link>
         <Link href="/collections/new-arrivals" onClick={closeMenu}>New Arrivals</Link>
-        {!menuOpen ? (
-          <>
-            <Link className="desktop-cart-nav-link" href="/cart" onClick={handleCartClick}>Cart ({cartCount})</Link>
-            <Link
-              className={`account-nav-link desktop-account-nav-link${user ? ' signed-in' : ''}`}
-              href={accountHref}
-              aria-label={accountLabel}
-              title={accountLabel}
-              onClick={closeMenu}
-            >
-              <CircleUserRound aria-hidden="true" size={22} />
-              <span className="sr-only">{accountLabel}</span>
-            </Link>
-          </>
-        ) : null}
       </nav>
+      <div className="desktop-header-actions">
+        <form className="desktop-search-form" action="/collections/best-sellers">
+          <label className="sr-only" htmlFor="desktop-search-query">
+            Search products
+          </label>
+          <input
+            id="desktop-search-query"
+            name="search"
+            type="search"
+            placeholder="Search"
+            autoComplete="off"
+          />
+          <button type="submit" aria-label="Submit search">
+            <Search aria-hidden="true" size={18} strokeWidth={2.4} />
+          </button>
+        </form>
+        <Link
+          className={`desktop-login-nav-link${user ? ' signed-in' : ''}`}
+          href={accountHref}
+          aria-label={accountLabel}
+          title={accountLabel}
+          onClick={closeMenu}
+        >
+          {user ? 'Account' : 'Login'}
+        </Link>
+        <Link
+          className="desktop-bag-nav-link"
+          href="/cart"
+          aria-label={`View bag${cartCount ? `, ${cartCount} item${cartCount === 1 ? '' : 's'}` : ''}`}
+          title="View bag"
+          onClick={handleCartClick}
+        >
+          <span>Bag</span>
+          <span className="desktop-bag-count" aria-hidden="true">{cartCount}</span>
+        </Link>
+      </div>
     </header>
   );
 }
@@ -590,11 +612,7 @@ function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
                 {cartLines.map(({ frameOption, lineKey, product, quantity, sizeOption, unitPrice }) => (
                   <article className="cart-drawer-item" key={lineKey}>
                     <Link className="cart-drawer-item-media" href={`/products/${product.slug}`} onClick={closeDrawer}>
-                      {product.image ? (
-                        <img alt={product.imageAlt || product.title} src={product.image} />
-                      ) : (
-                        <ProductImage product={product} />
-                      )}
+                      <ProductImage product={product} />
                     </Link>
                     <div className="cart-drawer-item-main">
                       <div className="cart-drawer-item-topline">

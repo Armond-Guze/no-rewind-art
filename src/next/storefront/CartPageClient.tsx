@@ -24,6 +24,7 @@ import {
 import { supabaseClient } from '../../lib/supabase';
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
 import { GoogleCustomerReviewsOptIn } from './GoogleCustomerReviewsOptIn';
+import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 
 type CheckoutState = 'idle' | 'loading' | 'error';
@@ -384,7 +385,10 @@ export default function CartPageClient({
                 <div className="cart-items">
                   {cartProducts.map(({ lineKey, product, quantity, sizeOption, frameOption }) => (
                     <div className="cart-item" key={lineKey}>
-                      <div>
+                      <Link className="cart-item-media" href={`/products/${product.slug}`}>
+                        <ProductImage product={product} />
+                      </Link>
+                      <div className="cart-item-details">
                         <h3>{product.title}</h3>
                         <p>
                           {sizeOption.label} · {frameOption.label} ·{' '}
