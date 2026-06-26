@@ -15,15 +15,17 @@ const collectionNavItems = [
 ];
 
 export default function CollectionPageClient({
+  allProducts,
   collection,
   products,
 }: {
+  allProducts: Product[];
   collection: Collection;
   collections: Collection[];
   products: Product[];
 }) {
   return (
-    <StorefrontShell>
+    <StorefrontShell products={allProducts}>
       <StorefrontTracker />
       <main className="collection-page">
         <section className="collection-toolbar" aria-label="Shop category controls">

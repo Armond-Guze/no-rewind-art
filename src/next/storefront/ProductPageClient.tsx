@@ -158,11 +158,163 @@ function ProductVideoPlayer({ title, video }: { title: string; video: ProductVid
   );
 }
 
+type RelatedProductsCarouselItem = {
+  product: Product;
+  key: string;
+  clone: boolean;
+  realStart: boolean;
+};
+
+function RelatedProductsMobileCarousel({ products }: { products: Product[] }) {
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const hasEdgePeek = products.length > 1;
+  const carouselItems: RelatedProductsCarouselItem[] = hasEdgePeek
+    ? [
+        {
+          product: products[products.length - 1],
+          key: `leading-${products[products.length - 1].id}`,
+          clone: true,
+          realStart: false,
+        },
+        ...products.map((relatedProduct, index) => ({
+          product: relatedProduct,
+          key: `real-${index}-${relatedProduct.id}`,
+          clone: false,
+          realStart: index === 0,
+        })),
+        {
+          product: products[0],
+          key: `trailing-${products[0].id}`,
+          clone: true,
+          realStart: false,
+        },
+      ]
+    : products.map((relatedProduct, index) => ({
+        product: relatedProduct,
+        key: `real-${index}-${relatedProduct.id}`,
+        clone: false,
+        realStart: index === 0,
+      }));
+
+  useEffect(() => {
+    const carousel = carouselRef.current;
+
+    if (
+      !carousel ||
+      !hasEdgePeek ||
+      !window.matchMedia('(max-width: 900px)').matches
+    ) {
+      return;
+    }
+
+    const getLoopPositions = () => {
+      const cards = Array.from(carousel.children) as HTMLElement[];
+      const firstRealCard = carousel.querySelector<HTMLElement>('[data-carousel-real-start="true"]');
+      const lastRealCard = cards[cards.length - 2];
+
+      if (!firstRealCard || !lastRealCard) {
+        return null;
+      }
+
+      const styles = window.getComputedStyle(carousel);
+      const peek = Number.parseFloat(styles.getPropertyValue('--best-sellers-edge-peek')) || 44;
+      const gap = Number.parseFloat(styles.columnGap || styles.gap) || 0;
+      const cardStep = firstRealCard.offsetWidth + gap;
+
+      return {
+        cardStep,
+        firstTarget: Math.max(0, firstRealCard.offsetLeft - peek),
+        lastTarget: Math.max(0, lastRealCard.offsetLeft - peek),
+      };
+    };
+
+    const jumpTo = (scrollLeft: number) => {
+      carousel.scrollTo({ left: scrollLeft, behavior: 'auto' });
+      carousel.scrollLeft = scrollLeft;
+    };
+
+    const setInitialPeek = () => {
+      const positions = getLoopPositions();
+
+      if (!positions) {
+        return;
+      }
+
+      jumpTo(positions.firstTarget);
+    };
+
+    let scrollTimer: number | undefined;
+    const handleLoopScroll = () => {
+      if (scrollTimer) {
+        window.clearTimeout(scrollTimer);
+      }
+
+      scrollTimer = window.setTimeout(() => {
+        const positions = getLoopPositions();
+
+        if (!positions) {
+          return;
+        }
+
+        const { cardStep, firstTarget, lastTarget } = positions;
+
+        if (carousel.scrollLeft < firstTarget - cardStep / 2) {
+          jumpTo(lastTarget);
+          return;
+        }
+
+        if (carousel.scrollLeft > lastTarget + cardStep / 2) {
+          jumpTo(firstTarget);
+        }
+      }, 120);
+    };
+
+    carousel.addEventListener('scroll', handleLoopScroll, { passive: true });
+    const frame = window.requestAnimationFrame(setInitialPeek);
+    const timeouts = [250, 900, 1800].map((delay) => window.setTimeout(setInitialPeek, delay));
+
+    return () => {
+      carousel.removeEventListener('scroll', handleLoopScroll);
+      window.cancelAnimationFrame(frame);
+      timeouts.forEach((timeout) => window.clearTimeout(timeout));
+      if (scrollTimer) {
+        window.clearTimeout(scrollTimer);
+      }
+    };
+  }, [hasEdgePeek, products]);
+
+  return (
+    <div
+      className={[
+        'product-grid best-sellers-carousel related-products-mobile-carousel',
+        hasEdgePeek ? 'has-edge-peek' : undefined,
+      ].filter(Boolean).join(' ')}
+      ref={carouselRef}
+    >
+      {carouselItems.map(({ clone, key, product: relatedProduct, realStart }, index) => (
+        <article
+          aria-hidden={clone ? true : undefined}
+          aria-label={clone ? undefined : relatedProduct.title}
+          className={['product', clone ? 'best-sellers-edge-clone' : undefined].filter(Boolean).join(' ')}
+          data-carousel-real-start={realStart ? 'true' : undefined}
+          key={key}
+        >
+          <div className="product-image-link">
+            <ProductImage product={relatedProduct} priority={!clone && index < 3} />
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 export default function ProductPageClient({
+  catalogProducts,
   product,
   relatedProducts,
   searchSizeId: initialSearchSizeId,
 }: {
+  catalogProducts: Product[];
   product: Product;
   relatedProducts: Product[];
   searchSizeId?: string;
@@ -353,7 +505,7 @@ export default function ProductPageClient({
   }
 
   return (
-    <StorefrontShell>
+    <StorefrontShell products={catalogProducts}>
       <StorefrontTracker />
       <main className="product-page">
         <div className="product-page-header">
@@ -726,6 +878,7 @@ export default function ProductPageClient({
                 </Link>
               ))}
             </div>
+            <RelatedProductsMobileCarousel products={relatedProducts} />
             {relatedProducts.length > 1 ? (
               <div className="related-products-scroll-cue" aria-hidden="true">
                 <span />

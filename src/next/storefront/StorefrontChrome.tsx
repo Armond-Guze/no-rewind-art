@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type MouseEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
@@ -51,11 +51,18 @@ export function StorefrontTracker({
   return null;
 }
 
-export function StorefrontShell({ children }: { children: ReactNode }) {
+export function StorefrontShell({
+  children,
+  products,
+}: {
+  children: ReactNode;
+  products?: Product[];
+}) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
+  const drawerProducts = products?.length ? products : catalogProducts;
   const { isScrolled, isHidden } = useStorefrontTopChromeState(menuOpen || searchOpen);
   const isHome = pathname === '/';
   const openCartDrawer = () => {
@@ -77,7 +84,12 @@ export function StorefrontShell({ children }: { children: ReactNode }) {
         onCartOpen={openCartDrawer}
       />
       {children}
-      <CartDrawer isOpen={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />
+      <CartDrawer
+        products={drawerProducts}
+        shouldFetchCatalog={!products?.length}
+        isOpen={cartDrawerOpen}
+        onClose={() => setCartDrawerOpen(false)}
+      />
       <NextSiteFooter />
     </>
   );
@@ -420,10 +432,10 @@ type CartDrawerLine = StoredCartItem & {
   unitPrice: number;
 };
 
-function buildCartDrawerLines(cart: StoredCartItem[]) {
+function buildCartDrawerLines(cart: StoredCartItem[], products: Product[]) {
   return cart
     .map((item) => {
-      const product = catalogProducts.find((candidate) => candidate.id === item.productId);
+      const product = products.find((candidate) => candidate.id === item.productId);
 
       if (!product) {
         return null;
@@ -447,12 +459,29 @@ function getCartDrawerSubtotal(cartLines: CartDrawerLine[]) {
   return cartLines.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
 }
 
-function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+type PublicCatalogResponse = {
+  products?: Product[];
+};
+
+function CartDrawer({
+  products,
+  shouldFetchCatalog,
+  isOpen,
+  onClose,
+}: {
+  products: Product[];
+  shouldFetchCatalog: boolean;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   const [cart, setCart] = useState<StoredCartItem[]>([]);
   const [cartReady, setCartReady] = useState(false);
+  const [fetchedProducts, setFetchedProducts] = useState<Product[] | null>(null);
+  const catalogFetchState = useRef<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [checkoutError, setCheckoutError] = useState('');
-  const cartLines = useMemo(() => buildCartDrawerLines(cart), [cart]);
+  const drawerProducts = shouldFetchCatalog ? fetchedProducts ?? products : products;
+  const cartLines = useMemo(() => buildCartDrawerLines(cart, drawerProducts), [cart, drawerProducts]);
   const subtotal = useMemo(() => getCartDrawerSubtotal(cartLines), [cartLines]);
   const itemCount = cartLines.reduce((total, item) => total + item.quantity, 0);
 
@@ -477,6 +506,53 @@ function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
       window.removeEventListener('storage', syncStoredCart);
     };
   }, []);
+
+  useEffect(() => {
+    if (!shouldFetchCatalog || !cartReady || !cart.length || catalogFetchState.current !== 'idle') {
+      return;
+    }
+
+    let cancelled = false;
+    catalogFetchState.current = 'loading';
+
+    async function fetchPublicCatalog() {
+      try {
+        const response = await fetch('/api/products', {
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Public catalog request failed');
+        }
+
+        const catalog = (await response.json()) as PublicCatalogResponse;
+
+        if (!cancelled && Array.isArray(catalog.products) && catalog.products.length) {
+          setFetchedProducts(catalog.products);
+          catalogFetchState.current = 'ready';
+          return;
+        }
+
+        if (!cancelled) {
+          catalogFetchState.current = 'error';
+        }
+      } catch (error) {
+        console.warn('Cart drawer catalog unavailable; using bundled catalog.', error);
+
+        if (!cancelled) {
+          catalogFetchState.current = 'error';
+        }
+      }
+    }
+
+    void fetchPublicCatalog();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cart.length, cartReady, shouldFetchCatalog]);
 
   useEffect(() => {
     if (!isOpen) {

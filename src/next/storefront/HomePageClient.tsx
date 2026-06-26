@@ -740,7 +740,7 @@ export default function HomePageClient({
   }, [heroSlides.length]);
 
   return (
-    <StorefrontShell>
+    <StorefrontShell products={allProducts}>
       <StorefrontTracker />
       <GoogleCustomerReviewsOptIn checkoutResult={checkoutResult} />
       <main id="top" className="home-page storefront-home">

@@ -78,6 +78,7 @@ export default async function ProductRoute({ params }) {
     <>
       <JsonLd data={routeSeo.structuredData} />
       <ProductPageClient
+        catalogProducts={catalog.products}
         product={product}
         relatedProducts={getRelatedProducts(catalog.products, product)}
       />

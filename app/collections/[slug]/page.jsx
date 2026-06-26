@@ -71,6 +71,7 @@ export default async function CollectionRoute({ params }) {
     <>
       <JsonLd data={routeSeo.structuredData} />
       <CollectionPageClient
+        allProducts={catalog.products}
         collection={collection}
         collections={catalog.collections}
         products={getProductsForCollection(catalog, collection.slug)}

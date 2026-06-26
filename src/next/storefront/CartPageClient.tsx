@@ -352,7 +352,7 @@ export default function CartPageClient({
   }
 
   return (
-    <StorefrontShell>
+    <StorefrontShell products={products}>
       <StorefrontTracker />
       <GoogleCustomerReviewsOptIn checkoutResult={checkoutResult} />
       <main className="standalone-cart-page">
