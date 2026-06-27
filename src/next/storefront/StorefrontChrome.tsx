@@ -17,9 +17,11 @@ import { products as catalogProducts, type FrameOption, type Product, type SizeO
 import { supabaseClient } from '../../lib/supabase';
 import {
   formatPrice,
+  getCartProductImage,
   getConfiguredUnitPrice,
   getFrameOption,
   getSizeOption,
+  getSizeOptionAspectRatio,
   launchOfferDiscount,
   launchOfferCode,
   supportEmail,
@@ -893,7 +895,12 @@ function CartDrawer({
                 {cartLines.map(({ frameOption, lineKey, product, quantity, sizeOption, unitPrice }) => (
                   <article className="cart-drawer-item" key={lineKey}>
                     <Link className="cart-drawer-item-media" href={`/products/${product.slug}`} onClick={closeDrawer}>
-                      <ProductImage product={product} priority />
+                      <ProductImage
+                        product={product}
+                        src={getCartProductImage(product)}
+                        aspectRatio={getSizeOptionAspectRatio(sizeOption)}
+                        priority
+                      />
                     </Link>
                     <div className="cart-drawer-item-main">
                       <div className="cart-drawer-item-topline">

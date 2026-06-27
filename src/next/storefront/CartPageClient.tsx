@@ -15,9 +15,11 @@ import {
 import type { FrameOption, Product, SizeOption } from '../../data/products';
 import {
   formatPrice,
+  getCartProductImage,
   getConfiguredUnitPrice,
   getFrameOption,
   getSizeOption,
+  getSizeOptionAspectRatio,
   launchOfferCode,
   sizeOptionMatches,
 } from './product-utils';
@@ -386,7 +388,12 @@ export default function CartPageClient({
                   {cartProducts.map(({ lineKey, product, quantity, sizeOption, frameOption }) => (
                     <div className="cart-item" key={lineKey}>
                       <Link className="cart-item-media" href={`/products/${product.slug}`}>
-                        <ProductImage product={product} priority />
+                        <ProductImage
+                          product={product}
+                          src={getCartProductImage(product)}
+                          aspectRatio={getSizeOptionAspectRatio(sizeOption)}
+                          priority
+                        />
                       </Link>
                       <div className="cart-item-details">
                         <h3>{product.title}</h3>

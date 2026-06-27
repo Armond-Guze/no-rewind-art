@@ -229,17 +229,25 @@ export function OptimizedCanvasImage({
 
 export function ProductImage({
   product,
+  src,
+  aspectRatio,
   priority = false,
   loading,
 }: {
   product: Product;
+  src?: string;
+  aspectRatio?: string;
   priority?: boolean;
   loading?: 'eager' | 'lazy';
 }) {
-  if (product.image) {
+  const imageSrc = src ?? product.image;
+
+  if (imageSrc) {
     return (
       <OptimizedCanvasImage
         product={product}
+        src={imageSrc}
+        aspectRatio={aspectRatio}
         loading={loading}
         priority={priority}
         sizes="(max-width: 760px) 90vw, (max-width: 1200px) 48vw, 760px"

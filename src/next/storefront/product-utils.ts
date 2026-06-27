@@ -31,6 +31,51 @@ export function getSizeOption(product: Product, sizeId: string) {
   return product.sizeOptions.find((option) => sizeOptionMatches(option, sizeId)) ?? getBaseSizeOption(product);
 }
 
+function getGreatestCommonDivisor(left: number, right: number) {
+  let a = Math.abs(Math.round(left));
+  let b = Math.abs(Math.round(right));
+
+  while (b) {
+    const next = a % b;
+    a = b;
+    b = next;
+  }
+
+  return a || 1;
+}
+
+function getSimplifiedAspectRatio(width: number, height: number) {
+  const normalizedWidth = Math.round(width * 1000);
+  const normalizedHeight = Math.round(height * 1000);
+
+  if (!normalizedWidth || !normalizedHeight) {
+    return undefined;
+  }
+
+  const divisor = getGreatestCommonDivisor(normalizedWidth, normalizedHeight);
+
+  return `${normalizedWidth / divisor} / ${normalizedHeight / divisor}`;
+}
+
+export function getSizeOptionAspectRatio(sizeOption?: Pick<SizeOption, 'id' | 'label'>) {
+  if (!sizeOption) {
+    return undefined;
+  }
+
+  const sizeMatch =
+    sizeOption.id.match(/(\d+(?:\.\d+)?)\s*(?:x|×)\s*(\d+(?:\.\d+)?)/i) ??
+    sizeOption.label.match(/(\d+(?:\.\d+)?)\s*(?:x|×)\s*(\d+(?:\.\d+)?)/i);
+
+  if (!sizeMatch) {
+    return undefined;
+  }
+
+  const width = Number(sizeMatch[1]);
+  const height = Number(sizeMatch[2]);
+
+  return getSimplifiedAspectRatio(width, height);
+}
+
 export function getBaseFrameOption(product: Product) {
   return product.frameOptions[0];
 }
@@ -145,6 +190,14 @@ export function getProductAspectRatio(product: Pick<Product, 'aspectRatio' | 'ar
   }
 
   return '1 / 1';
+}
+
+export function getCartProductImage(product: Pick<Product, 'gallery' | 'image'>) {
+  const sourceImage = product.gallery?.find((image) =>
+    /(?:^|[/_-])source(?:[._-]|$)/i.test(image),
+  );
+
+  return sourceImage ?? product.image;
 }
 
 export function getProductGallery(product: Product) {
