@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Star } from 'lucide-react';
 import type { HomepageHeroImage, HomepageSettings, Product } from '../../data/products';
@@ -15,6 +15,7 @@ import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 import { useUrlSearchParam } from './url-search';
 
 const heroWordPool = ['present', 'driven', 'focused', 'steady', 'bold'];
+const newArrivalsMobileReelCount = 8;
 
 type HomepageMediaItem =
   | {
@@ -478,7 +479,10 @@ function keepOrderedUniqueNeighbors(items: HomepageMediaItem[]) {
 
 function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
   const orderedItems = keepOrderedUniqueNeighbors(items);
-  const reelIndexes = Array.from({ length: 8 }, (_, index) => index);
+  const reelIndexes = Array.from({ length: newArrivalsMobileReelCount }, (_, index) => index);
+  const trackStyle = {
+    '--new-arrivals-mobile-loop-shift': `-${100 / newArrivalsMobileReelCount}%`,
+  } as CSSProperties;
 
   if (!orderedItems.length) {
     return null;
@@ -490,7 +494,7 @@ function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
       aria-label="New arrivals artwork preview"
     >
       <div className="new-arrivals-mobile-viewport">
-        <div className="new-arrivals-mobile-track">
+        <div className="new-arrivals-mobile-track" style={trackStyle}>
           {reelIndexes.map((reelIndex) => (
             <div
               aria-hidden={reelIndex > 0 ? true : undefined}
@@ -501,6 +505,7 @@ function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
                 const className = `new-arrivals-mobile-slide new-arrivals-mobile-slide-${(index % 3) + 1}`;
                 const key = `${reelIndex}-${index}-${item.id}`;
                 const ariaHidden = reelIndex > 0 ? true : undefined;
+                const loading = reelIndex < 2 ? 'eager' : 'lazy';
 
                 if (item.type === 'image') {
                   const { image } = item;
@@ -508,7 +513,7 @@ function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
                     <img
                       alt={reelIndex > 0 ? '' : image.alt || 'Armoze new arrivals artwork'}
                       height={image.height || undefined}
-                      loading={reelIndex === 0 && index === 0 ? 'eager' : 'lazy'}
+                      loading={loading}
                       src={image.url}
                       width={image.width || undefined}
                     />
@@ -527,7 +532,7 @@ function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
                     className={className}
                     key={key}
                   >
-                    <ProductImage product={item.product} />
+                    <ProductImage product={item.product} loading={loading} />
                   </div>
                 );
               })}

@@ -29,6 +29,7 @@ type OptimizedArtworkProps = {
   aspectRatio?: string;
   shape?: 'landscape' | 'portrait' | 'square';
   className?: string;
+  loading?: 'eager' | 'lazy';
   priority?: boolean;
   shadow?: boolean;
   sizes?: string;
@@ -160,6 +161,7 @@ export function OptimizedCanvasImage({
   aspectRatio = getProductAspectRatio(product),
   shape = getDisplayArtworkShape(product),
   className,
+  loading,
   priority = false,
   shadow = true,
   sizes = '(max-width: 760px) 92vw, 760px',
@@ -203,6 +205,7 @@ export function OptimizedCanvasImage({
   ].join(' ');
   const dimensions = getImageDimensions(src, aspectRatio);
   const imageLoader = getImageLoader(src);
+  const imageLoading = loading ?? (priority ? 'eager' : undefined);
 
   return (
     <div className={classNames} style={{ aspectRatio }}>
@@ -216,7 +219,7 @@ export function OptimizedCanvasImage({
           width={dimensions.width}
           height={dimensions.height}
           preload={priority}
-          loading={priority ? 'eager' : undefined}
+          loading={imageLoading}
           sizes={sizes}
         />
       </div>
@@ -224,11 +227,20 @@ export function OptimizedCanvasImage({
   );
 }
 
-export function ProductImage({ product, priority = false }: { product: Product; priority?: boolean }) {
+export function ProductImage({
+  product,
+  priority = false,
+  loading,
+}: {
+  product: Product;
+  priority?: boolean;
+  loading?: 'eager' | 'lazy';
+}) {
   if (product.image) {
     return (
       <OptimizedCanvasImage
         product={product}
+        loading={loading}
         priority={priority}
         sizes="(max-width: 760px) 90vw, (max-width: 1200px) 48vw, 760px"
       />
