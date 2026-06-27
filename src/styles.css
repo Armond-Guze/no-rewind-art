@@ -5402,6 +5402,188 @@ h3 {
   color: #ffb6a9;
 }
 
+.newsletter-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(18px, 4vw, 34px);
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.newsletter-popup {
+  position: relative;
+  width: min(420px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: clamp(24px, 4vw, 34px);
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  border-radius: 8px;
+  background: #f4f1eb;
+  color: #151515;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.32);
+}
+
+.newsletter-popup-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(17, 17, 17, 0.16);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.68);
+  color: #151515;
+  cursor: pointer;
+}
+
+.newsletter-popup-copy {
+  display: grid;
+  gap: 8px;
+  padding-right: 28px;
+}
+
+.newsletter-popup-copy p {
+  margin: 0;
+  color: #9c6a1b;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.newsletter-popup-copy h2 {
+  margin: 0;
+  max-width: 9ch;
+  color: #111;
+  font-size: clamp(2.25rem, 8vw, 3.35rem);
+  font-weight: 900;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.newsletter-popup-copy span {
+  max-width: 30ch;
+  color: #4c4c4c;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.newsletter-popup-form {
+  display: grid;
+  gap: 10px;
+}
+
+.newsletter-popup-form input,
+.newsletter-popup-form button,
+.newsletter-popup-success button {
+  min-height: 48px;
+  border-radius: 4px;
+  font: inherit;
+}
+
+.newsletter-popup-form input {
+  width: 100%;
+  padding: 0 14px;
+  border: 1px solid #c8c3b9;
+  background: #fff;
+  color: #111;
+  outline: none;
+}
+
+.newsletter-popup-form input:focus {
+  border-color: #111;
+}
+
+.newsletter-popup-form button,
+.newsletter-popup-success button {
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.newsletter-popup-form button:disabled {
+  cursor: wait;
+  opacity: 0.74;
+}
+
+.newsletter-popup-success {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.newsletter-popup-code {
+  min-height: 48px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 16px;
+  border: 1px dashed #111;
+  border-radius: 4px;
+  background: #fff;
+  color: #111;
+  font-size: 1.22rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.newsletter-popup-success button {
+  padding: 0 16px;
+}
+
+.newsletter-popup-message {
+  min-height: 18px;
+  margin: 0;
+  color: #5d5d5d;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.newsletter-popup-message.success {
+  color: #0f7a37;
+}
+
+.newsletter-popup-message.error {
+  color: #b52c1f;
+}
+
+@media (max-width: 520px) {
+  .newsletter-popup-overlay {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .newsletter-popup {
+    width: 100%;
+    gap: 16px;
+    padding: 24px 18px 18px;
+  }
+
+  .newsletter-popup-copy h2 {
+    max-width: 8ch;
+    font-size: clamp(2rem, 12vw, 2.85rem);
+  }
+
+  .newsletter-popup-success {
+    grid-template-columns: 1fr;
+  }
+
+  .newsletter-popup-success button {
+    width: 100%;
+  }
+}
+
 .policy-page ~ .site-footer .footer-link-column a {
   color: #fff;
 }

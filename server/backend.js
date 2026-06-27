@@ -5,7 +5,7 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { findFrameOption, findProduct, findSizeOption, getFramePriceDelta } from './catalog.js';
 import { createNewsletterStore } from './newsletter-store.js';
-import { sendOwnerOrderNotification } from './notifications.js';
+import { sendNewsletterDiscountEmail, sendOwnerOrderNotification } from './notifications.js';
 import { createOrderStore } from './order-store.js';
 import { createProductStore } from './product-store.js';
 
@@ -18,6 +18,7 @@ const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const clientUrl = process.env.CLIENT_URL || 'http://127.0.0.1:3000';
 const automaticTaxEnabled = process.env.STRIPE_AUTOMATIC_TAX === 'true';
+const stripeProductTaxCode = process.env.STRIPE_PRODUCT_TAX_CODE || '';
 const adminApiToken = process.env.ADMIN_API_TOKEN;
 const googleCustomerReviewsMerchantId = Number(process.env.GOOGLE_CUSTOMER_REVIEWS_MERCHANT_ID || 5793512839);
 const allowUnsignedWebhooks = process.env.STRIPE_WEBHOOK_ALLOW_UNSIGNED === 'true';
@@ -35,6 +36,8 @@ const supabasePublicKey =
   '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const supabaseStorageBucket = process.env.SUPABASE_STORAGE_BUCKET || 'artwork';
+const newsletterDiscountCode = process.env.NEWSLETTER_DISCOUNT_CODE || 'FIRST15';
+const newsletterDiscountLabel = process.env.NEWSLETTER_DISCOUNT_LABEL || '15%';
 
 const stripe = stripeSecretKey
   ? new Stripe(stripeSecretKey, {
@@ -377,9 +380,11 @@ function buildLineItems(cartItems) {
       price_data: {
         currency: 'usd',
         unit_amount: item.unitAmount,
+        tax_behavior: 'exclusive',
         product_data: {
           name: item.title,
           description: `Size: ${item.sizeLabel} | ${frameLabel}`,
+          ...(stripeProductTaxCode ? { tax_code: stripeProductTaxCode } : {}),
           ...(images ? { images } : {}),
           metadata: {
             productId: item.productId,
@@ -587,6 +592,8 @@ export async function getHealth() {
     ok: true,
     stripeConfigured: Boolean(stripe),
     stripeWebhookConfigured: Boolean(stripeWebhookSecret),
+    stripeAutomaticTaxEnabled: automaticTaxEnabled,
+    stripeProductTaxCodeConfigured: Boolean(stripeProductTaxCode),
     storage: orderStore.type,
     catalogStorage: productStore.type,
     newsletterStorage: newsletterStore.type,
@@ -713,9 +720,27 @@ export async function subscribeToNewsletter(body) {
     email: normalizeNewsletterEmail(body?.email),
     source: body?.source || 'footer',
   });
+  let discountEmail = {
+    sent: false,
+    skipped: true,
+    reason: 'Discount email was not requested.',
+  };
+
+  if (body?.sendDiscountEmail !== false) {
+    discountEmail = await sendNewsletterDiscountEmail({
+      email: subscriber.email,
+      discountCode: newsletterDiscountCode,
+      discountLabel: newsletterDiscountLabel,
+    });
+  }
 
   return {
     ok: true,
+    discount: {
+      code: newsletterDiscountCode,
+      label: newsletterDiscountLabel,
+    },
+    email: discountEmail,
     subscriber: {
       email: subscriber.email,
       status: subscriber.status,

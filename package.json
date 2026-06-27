@@ -13,6 +13,7 @@
     "launch:audit": "node scripts/launch-readiness-audit.mjs",
     "launch:audit:strict": "node scripts/launch-readiness-audit.mjs --strict",
     "sync:artwork": "node scripts/sync-artwork-library.mjs",
+    "prices:drop-tiers": "node scripts/apply-size-price-drop.mjs",
     "test:notification": "node scripts/send-test-order-notification.mjs",
     "build": "next build",
     "deploy": "npm --prefix armoze run deploy",

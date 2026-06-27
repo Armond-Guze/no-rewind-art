@@ -427,3 +427,52 @@ ORDER_NOTIFICATION_FROM=Armoze Orders <orders@resend.dev>
 Production should use `DATABASE_URL` or the Supabase/Vercel integration's
 `POSTGRES_URL`; Vercel serverless functions should not depend on local JSON
 files for order persistence.
+
+## Price Tier Drops, Tax, and Feeds
+
+The storefront uses one product catalog for product pages, cart pricing, Stripe
+Checkout line items, analytics item values, and the Google Merchant feed. When
+`SANITY_CATALOG_ENABLED=true`, Sanity `catalogSettings.sizePresets` is the live
+price source. The committed `src/data/catalog.json` is the fallback/source
+target.
+
+Current launch price drops by size tier:
+
+```text
+Tier 1: -$5
+Tier 2: -$10
+Tier 3: -$15
+Tier 4: -$20
+Tier 5: -$25
+```
+
+Preview the live Sanity sync:
+
+```bash
+npm run prices:drop-tiers
+```
+
+Apply the target prices from `src/data/catalog.json` to Sanity:
+
+```bash
+npm run prices:drop-tiers -- --apply
+```
+
+After applying live prices:
+
+1. Set `STRIPE_AUTOMATIC_TAX=true` in Vercel Production after Stripe Tax is
+   configured with the business address, registrations/nexus, and default tax
+   settings. Set `STRIPE_PRODUCT_TAX_CODE=txcd_99999999` for general tangible
+   goods unless Stripe recommends a more specific code for the catalog.
+2. Redeploy Vercel so Checkout uses the updated tax setting.
+3. If testing with a Stripe test key, configure Stripe Tax in test mode too.
+   Test and live mode have separate tax settings; Checkout will not calculate
+   tax in test mode until test mode has a valid head office address and tax
+   registration.
+4. Confirm `/merchant-feed.xml` or `/api/google-merchant-feed.xml` shows the
+   same prices as the public product pages.
+5. In Google Merchant Center, fetch the feed again and confirm products are not
+   disapproved for price mismatch.
+6. In Google Ads, leave purchase conversion tracking as-is unless the conversion
+   label/account changed; Shopping and Performance Max pricing comes from the
+   Merchant Center feed.

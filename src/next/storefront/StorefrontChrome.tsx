@@ -28,6 +28,12 @@ import {
 import { getProductTrackingItem, initStorefrontTracking, trackStorefrontEvent } from './analytics';
 import { ProductImage } from './OptimizedArtwork';
 
+const newsletterPopupDelayMs = 12000;
+const newsletterPopupDismissMs = 7 * 24 * 60 * 60 * 1000;
+const newsletterPopupSubscribedDismissMs = 365 * 24 * 60 * 60 * 1000;
+const newsletterPopupDismissedUntilKey = 'armoze-newsletter-popup-dismissed-until';
+const newsletterPopupSubscribedKey = 'armoze-newsletter-popup-subscribed';
+
 export function StorefrontTracker({
   eventName,
   payload,
@@ -90,8 +96,207 @@ export function StorefrontShell({
         isOpen={cartDrawerOpen}
         onClose={() => setCartDrawerOpen(false)}
       />
+      <NewsletterDiscountPopup />
       <NextSiteFooter />
     </>
+  );
+}
+
+type NewsletterResponse = {
+  discount?: {
+    code?: string;
+    label?: string;
+  };
+  email?: {
+    sent?: boolean;
+  };
+  error?: string;
+};
+
+function getStoredDismissedUntil() {
+  if (typeof window === 'undefined') {
+    return 0;
+  }
+
+  return Number(window.localStorage.getItem(newsletterPopupDismissedUntilKey) || 0);
+}
+
+function rememberNewsletterPopupDismissal(durationMs: number) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.setItem(
+    newsletterPopupDismissedUntilKey,
+    String(Date.now() + durationMs),
+  );
+}
+
+function NewsletterDiscountPopup() {
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const [email, setEmail] = useState('');
+  const [open, setOpen] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState(`Join the list and get ${launchOfferDiscount} off your first order.`);
+  const [discountCode, setDiscountCode] = useState(launchOfferCode);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    if (window.localStorage.getItem(newsletterPopupSubscribedKey) === 'true') {
+      return undefined;
+    }
+
+    if (getStoredDismissedUntil() > Date.now()) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setOpen(true);
+    }, newsletterPopupDelayMs);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    emailInputRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false);
+        rememberNewsletterPopupDismissal(newsletterPopupDismissMs);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus('loading');
+    setMessage('Saving your email...');
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, source: 'popup' }),
+      });
+      const data = (await response.json().catch(() => ({}))) as NewsletterResponse;
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Newsletter signup failed.');
+      }
+
+      const nextDiscountCode = data.discount?.code || launchOfferCode;
+
+      setDiscountCode(nextDiscountCode);
+      setSubmitted(true);
+      setStatus('success');
+      setMessage(
+        data.email?.sent
+          ? `Check your inbox. Your code is ${nextDiscountCode}.`
+          : `Your code is ${nextDiscountCode}. Use it at checkout.`,
+      );
+      setEmail('');
+      trackStorefrontEvent('sign_up');
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(newsletterPopupSubscribedKey, 'true');
+      }
+
+      rememberNewsletterPopupDismissal(newsletterPopupSubscribedDismissMs);
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Newsletter signup failed.');
+    }
+  }
+
+  async function handleCopyCode() {
+    try {
+      await navigator.clipboard.writeText(discountCode);
+      setMessage(`Copied ${discountCode}.`);
+    } catch {
+      setMessage(`Your code is ${discountCode}.`);
+    }
+  }
+
+  function handleClose() {
+    setOpen(false);
+    rememberNewsletterPopupDismissal(submitted ? newsletterPopupSubscribedDismissMs : newsletterPopupDismissMs);
+  }
+
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div className="newsletter-popup-overlay" role="presentation">
+      <section
+        aria-labelledby="newsletter-popup-title"
+        aria-modal="true"
+        className="newsletter-popup"
+        role="dialog"
+      >
+        <button
+          type="button"
+          className="newsletter-popup-close"
+          onClick={handleClose}
+          aria-label="Close newsletter discount popup"
+        >
+          <X aria-hidden="true" size={18} strokeWidth={2.4} />
+        </button>
+
+        <div className="newsletter-popup-copy">
+          <p>{launchOfferDiscount} off your first order</p>
+          <h2 id="newsletter-popup-title">Get the launch code.</h2>
+          <span>Bold canvas drops, restocks, and studio updates.</span>
+        </div>
+
+        {submitted ? (
+          <div className="newsletter-popup-success">
+            <span className="newsletter-popup-code">{discountCode}</span>
+            <button type="button" onClick={handleCopyCode}>
+              Copy code
+            </button>
+          </div>
+        ) : (
+          <form className="newsletter-popup-form" onSubmit={handleSubmit}>
+            <label className="sr-only" htmlFor="newsletter-popup-email">
+              Email address
+            </label>
+            <input
+              id="newsletter-popup-email"
+              ref={emailInputRef}
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="Your E-mail"
+              autoComplete="email"
+              required
+            />
+            <button type="submit" disabled={status === 'loading'}>
+              {status === 'loading' ? 'Sending' : 'Send my code'}
+            </button>
+          </form>
+        )}
+
+        <p className={`newsletter-popup-message ${status}`} aria-live="polite">
+          {message}
+        </p>
+      </section>
+    </div>
   );
 }
 
@@ -854,18 +1059,30 @@ function NextSiteFooter() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email: newsletterEmail }),
+        body: JSON.stringify({ email: newsletterEmail, source: 'footer' }),
       });
-      const data = await response.json().catch(() => ({}));
+      const data = (await response.json().catch(() => ({}))) as NewsletterResponse;
 
       if (!response.ok) {
         throw new Error(data.error || 'Newsletter signup failed.');
       }
 
+      const discountCode = data.discount?.code || launchOfferCode;
+
       setNewsletterStatus('success');
-      setNewsletterMessage('You are on the list. First looks will land in your inbox.');
+      setNewsletterMessage(
+        data.email?.sent
+          ? `You are on the list. Your ${discountCode} code is in your inbox.`
+          : `You are on the list. Your code is ${discountCode}.`,
+      );
       trackStorefrontEvent('sign_up');
       setNewsletterEmail('');
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(newsletterPopupSubscribedKey, 'true');
+      }
+
+      rememberNewsletterPopupDismissal(newsletterPopupSubscribedDismissMs);
     } catch (error) {
       setNewsletterStatus('error');
       setNewsletterMessage(error instanceof Error ? error.message : 'Newsletter signup failed.');
