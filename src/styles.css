@@ -5892,32 +5892,32 @@ h3 {
 
   .related-products-grid.best-sellers-carousel .product-canvas-image,
   .related-products-grid.best-sellers-carousel .product-canvas-image.shape-landscape {
-    width: min(78%, 420px) !important;
+    width: min(86%, 460px) !important;
     height: auto !important;
-    max-width: 78%;
-    max-height: 72%;
+    max-width: 86%;
+    max-height: 78%;
   }
 
   .related-products-grid.best-sellers-carousel .product-canvas-image.shape-portrait {
-    width: min(58%, 310px) !important;
+    width: min(64%, 340px) !important;
     height: auto !important;
-    max-width: 58%;
-    max-height: 76%;
+    max-width: 64%;
+    max-height: 80%;
   }
 
   .related-products-grid.best-sellers-carousel .product-canvas-image.shape-square {
-    width: min(68%, 360px) !important;
+    width: min(74%, 390px) !important;
     height: auto !important;
-    max-width: 68%;
-    max-height: 70%;
+    max-width: 74%;
+    max-height: 76%;
   }
 
   .related-products-grid.best-sellers-carousel .artwork-mockup,
   .related-products-grid.best-sellers-carousel .product-art {
-    width: min(74%, 390px) !important;
+    width: min(80%, 420px) !important;
     height: auto !important;
-    max-width: 74%;
-    max-height: 74%;
+    max-width: 80%;
+    max-height: 80%;
   }
 
   .related-products-grid.best-sellers-carousel .product-canvas-shadow {
@@ -6570,24 +6570,24 @@ h3 {
 
   .related-product .product-canvas-image,
   .related-product .product-canvas-image.shape-landscape {
-    width: min(78%, 420px) !important;
+    width: min(86%, 460px) !important;
     height: auto !important;
-    max-width: 78%;
-    max-height: 72%;
+    max-width: 86%;
+    max-height: 78%;
   }
 
   .related-product .product-canvas-image.shape-portrait {
-    width: min(58%, 310px) !important;
+    width: min(64%, 340px) !important;
     height: auto !important;
-    max-width: 58%;
-    max-height: 76%;
+    max-width: 64%;
+    max-height: 80%;
   }
 
   .related-product .product-canvas-image.shape-square {
-    width: min(68%, 360px) !important;
+    width: min(74%, 390px) !important;
     height: auto !important;
-    max-width: 68%;
-    max-height: 70%;
+    max-width: 74%;
+    max-height: 76%;
   }
 
   .related-product .product-canvas-shadow {
@@ -11766,32 +11766,32 @@ h3 {
 
   .product-page .related-products-grid .product-image-link .product-canvas-image,
   .product-page .related-products-grid .product-image-link .product-canvas-image.shape-landscape {
-    width: min(78%, 420px) !important;
+    width: min(86%, 460px) !important;
     height: auto !important;
-    max-width: 78%;
-    max-height: 72%;
+    max-width: 86%;
+    max-height: 78%;
   }
 
   .product-page .related-products-grid .product-image-link .product-canvas-image.shape-portrait {
-    width: min(58%, 310px) !important;
+    width: min(64%, 340px) !important;
     height: auto !important;
-    max-width: 58%;
-    max-height: 76%;
+    max-width: 64%;
+    max-height: 80%;
   }
 
   .product-page .related-products-grid .product-image-link .product-canvas-image.shape-square {
-    width: min(68%, 360px) !important;
+    width: min(74%, 390px) !important;
     height: auto !important;
-    max-width: 68%;
-    max-height: 70%;
+    max-width: 74%;
+    max-height: 76%;
   }
 
   .product-page .related-products-grid .product-image-link .artwork-mockup,
   .product-page .related-products-grid .product-image-link .product-art {
-    width: min(74%, 390px) !important;
+    width: min(80%, 420px) !important;
     height: auto !important;
-    max-width: 74%;
-    max-height: 74%;
+    max-width: 80%;
+    max-height: 80%;
   }
 
   .product-page .related-products-grid .product-image-link .product-canvas-shadow {

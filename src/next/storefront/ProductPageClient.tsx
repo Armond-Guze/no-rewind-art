@@ -299,9 +299,14 @@ function RelatedProductsCarousel({ products }: { products: Product[] }) {
           data-carousel-real-start={realStart ? 'true' : undefined}
           key={key}
         >
-          <div className="related-product-media product-image-link">
+          <Link
+            aria-label={clone ? undefined : `View ${relatedProduct.title}`}
+            className="related-product-media product-image-link"
+            href={`/products/${relatedProduct.slug}`}
+            tabIndex={clone ? -1 : undefined}
+          >
             <ProductImage product={relatedProduct} priority={!clone && index < 3} />
-          </div>
+          </Link>
         </article>
       ))}
     </div>
