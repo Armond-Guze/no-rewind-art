@@ -894,11 +894,17 @@ function CartDrawer({
               <div className="cart-drawer-items">
                 {cartLines.map(({ frameOption, lineKey, product, quantity, sizeOption, unitPrice }) => (
                   <article className="cart-drawer-item" key={lineKey}>
-                    <Link className="cart-drawer-item-media" href={`/products/${product.slug}`} onClick={closeDrawer}>
+                    <Link
+                      className="cart-drawer-item-media"
+                      href={`/products/${product.slug}`}
+                      onClick={closeDrawer}
+                      style={{ aspectRatio: getSizeOptionAspectRatio(sizeOption) }}
+                    >
                       <ProductImage
                         product={product}
                         src={getCartProductImage(product)}
                         aspectRatio={getSizeOptionAspectRatio(sizeOption)}
+                        className="cart-line-product-image"
                         priority
                       />
                     </Link>

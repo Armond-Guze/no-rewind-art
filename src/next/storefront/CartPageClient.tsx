@@ -387,11 +387,16 @@ export default function CartPageClient({
                 <div className="cart-items">
                   {cartProducts.map(({ lineKey, product, quantity, sizeOption, frameOption }) => (
                     <div className="cart-item" key={lineKey}>
-                      <Link className="cart-item-media" href={`/products/${product.slug}`}>
+                      <Link
+                        className="cart-item-media"
+                        href={`/products/${product.slug}`}
+                        style={{ aspectRatio: getSizeOptionAspectRatio(sizeOption) }}
+                      >
                         <ProductImage
                           product={product}
                           src={getCartProductImage(product)}
                           aspectRatio={getSizeOptionAspectRatio(sizeOption)}
+                          className="cart-line-product-image"
                           priority
                         />
                       </Link>

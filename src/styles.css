@@ -3395,7 +3395,7 @@ h3 {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: #f6f6f6;
+  background: transparent;
 }
 
 .cart-item-details {
@@ -3586,7 +3586,7 @@ h3 {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: #f6f6f6;
+  background: transparent;
 }
 
 .cart-drawer-item-media > img,
@@ -3680,6 +3680,18 @@ h3 {
   object-fit: cover !important;
   object-position: center;
   transform: none;
+}
+
+.cart-drawer-item-media .cart-line-product-image,
+.cart-drawer-item-media .cart-line-product-image.shape-portrait,
+.cart-drawer-item-media .cart-line-product-image.shape-square,
+.cart-item-media .cart-line-product-image,
+.cart-item-media .cart-line-product-image.shape-portrait,
+.cart-item-media .cart-line-product-image.shape-square {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none;
+  max-height: none;
 }
 
 .cart-drawer-item-main {

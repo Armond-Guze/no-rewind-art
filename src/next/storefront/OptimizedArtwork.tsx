@@ -231,12 +231,14 @@ export function ProductImage({
   product,
   src,
   aspectRatio,
+  className,
   priority = false,
   loading,
 }: {
   product: Product;
   src?: string;
   aspectRatio?: string;
+  className?: string;
   priority?: boolean;
   loading?: 'eager' | 'lazy';
 }) {
@@ -248,6 +250,7 @@ export function ProductImage({
         product={product}
         src={imageSrc}
         aspectRatio={aspectRatio}
+        className={className}
         loading={loading}
         priority={priority}
         sizes="(max-width: 760px) 90vw, (max-width: 1200px) 48vw, 760px"
