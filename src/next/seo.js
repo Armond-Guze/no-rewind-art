@@ -21,7 +21,7 @@ export const storefrontRevalidateSeconds = 60;
 const storefrontCatalogCacheVersion =
   process.env.STOREFRONT_CATALOG_CACHE_VERSION ||
   process.env.VERCEL_GIT_COMMIT_SHA ||
-  '2026-06-24-size-price-reduction';
+  '2026-07-08-size-price-reduction';
 const searchLogoPath = '/armoze-search-logo.png';
 const siteDescription =
   'Armoze makes made-to-order motivational and money mindset canvas prints for bedrooms, offices, studios, and focused workspaces.';

@@ -455,15 +455,8 @@ Checkout line items, analytics item values, and the Google Merchant feed. When
 price source. The committed `src/data/catalog.json` is the fallback/source
 target.
 
-Current launch price drops by size tier:
-
-```text
-Tier 1: -$5
-Tier 2: -$10
-Tier 3: -$15
-Tier 4: -$20
-Tier 5: -$25
-```
+Current July 8, 2026 size pricing lowers every shared size option by $15.00
+from the previous catalog target across all aspect-ratio presets.
 
 Preview the live Sanity sync:
 
