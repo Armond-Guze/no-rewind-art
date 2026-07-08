@@ -1,0 +1,170 @@
+/* === Floating frame (product gallery) ===============================
+   Modeled on the framed-canvas product mockups: a thin flat mitered
+   frame, a shadowed float gap between frame and canvas, and one soft
+   directional drop shadow (key light upper-left, shadow down-right).
+   The mitered corners come from per-side border colors. ============== */
+
+.listing-gallery > .main-product-image
+  .detail-artwork-surface:has(.product-canvas-image.frame-black),
+.listing-gallery > .main-product-image
+  .detail-artwork-surface:has(.product-canvas-image.frame-white),
+.mobile-gallery-slide
+  .detail-artwork-surface:has(.product-canvas-image.frame-black),
+.mobile-gallery-slide
+  .detail-artwork-surface:has(.product-canvas-image.frame-white) {
+  overflow: visible;
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black,
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white {
+  --canvas-frame-rail: clamp(12px, 1.7vw, 26px);
+  --canvas-frame-gap: clamp(5px, 0.6vw, 9px);
+  --canvas-bezel-opacity: 0.3;
+  box-sizing: border-box;
+  padding: var(--canvas-frame-gap);
+  border: var(--canvas-frame-rail) solid var(--canvas-frame-face);
+  border-top-color: var(--canvas-frame-face-top);
+  border-left-color: var(--canvas-frame-face-left);
+  border-right-color: var(--canvas-frame-face-right);
+  border-bottom-color: var(--canvas-frame-face-bottom);
+  overflow: visible;
+  border-radius: 0;
+  background: var(--canvas-frame-gap-bg);
+  box-shadow:
+    0 0 0 1px var(--canvas-frame-outer-line),
+    12px 28px 38px -20px rgba(31, 26, 18, 0.46),
+    22px 52px 74px -34px rgba(31, 26, 18, 0.32),
+    2px 4px 7px rgba(31, 26, 18, 0.16);
+}
+
+.mobile-gallery-slide .product-canvas-image.frame-black,
+.mobile-gallery-slide .product-canvas-image.frame-white {
+  --canvas-frame-rail: clamp(9px, 2.6vw, 16px);
+  --canvas-frame-gap: clamp(4px, 1.2vw, 8px);
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black {
+  --canvas-frame-face: #141413;
+  --canvas-frame-face-top: #212120;
+  --canvas-frame-face-left: #191918;
+  --canvas-frame-face-right: #121211;
+  --canvas-frame-face-bottom: #0b0b0a;
+  --canvas-frame-outer-line: rgba(0, 0, 0, 0.55);
+  --canvas-frame-wall-line: rgba(0, 0, 0, 0.6);
+  --canvas-frame-gap-bg: #57544e;
+  --canvas-frame-gap-shade-strong: rgba(0, 0, 0, 0.62);
+  --canvas-frame-gap-shade: rgba(0, 0, 0, 0.45);
+  --canvas-frame-gap-shade-soft: rgba(0, 0, 0, 0.34);
+  --canvas-frame-gap-shade-softest: rgba(0, 0, 0, 0.24);
+  --canvas-frame-canvas-shadow: rgba(0, 0, 0, 0.5);
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white {
+  --canvas-frame-face: #f8f7f4;
+  --canvas-frame-face-top: #fefefd;
+  --canvas-frame-face-left: #f8f7f4;
+  --canvas-frame-face-right: #f2f1ec;
+  --canvas-frame-face-bottom: #e9e8e2;
+  --canvas-frame-outer-line: rgba(60, 56, 48, 0.2);
+  --canvas-frame-wall-line: rgba(60, 56, 48, 0.16);
+  --canvas-frame-gap-bg: #eceae4;
+  --canvas-frame-gap-shade-strong: rgba(58, 54, 46, 0.36);
+  --canvas-frame-gap-shade: rgba(58, 54, 46, 0.24);
+  --canvas-frame-gap-shade-soft: rgba(58, 54, 46, 0.17);
+  --canvas-frame-gap-shade-softest: rgba(58, 54, 46, 0.12);
+  --canvas-frame-canvas-shadow: rgba(45, 42, 36, 0.35);
+}
+
+/* the frame casts its own drop shadow — hide the ellipse ground shadow */
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black .product-canvas-shadow,
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white .product-canvas-shadow,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black .product-canvas-shadow,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white .product-canvas-shadow {
+  display: none;
+}
+
+/* float-gap shading: shadows the rails cast into the gap */
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black::before,
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white::before,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black::before,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: auto;
+  height: auto;
+  left: 0;
+  bottom: 0;
+  transform: none;
+  filter: none;
+  border-radius: 0;
+  background: none;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1px var(--canvas-frame-wall-line),
+    inset 0 7px 10px -5px var(--canvas-frame-gap-shade-strong),
+    inset 7px 0 10px -5px var(--canvas-frame-gap-shade),
+    inset -7px 0 10px -5px var(--canvas-frame-gap-shade-soft),
+    inset 0 -7px 10px -5px var(--canvas-frame-gap-shade-softest);
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black::after,
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white::after,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black::after,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white::after {
+  content: none;
+}
+
+/* the floating canvas inside the frame */
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black > div,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black > div,
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white > div,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white > div {
+  border-radius: 0;
+  background: #f7f5ef;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    2px 3px 7px var(--canvas-frame-canvas-shadow);
+}
+
+/* neutralize the portrait 2/3 edge overlay inside frames */
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image[style*="2 / 3"]:is(.frame-black, .frame-white)
+  > div::before,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image[style*="2 / 3"]:is(.frame-black, .frame-white)
+  > div::before {
+  background: none;
+  box-shadow: none;
+}
