@@ -5,7 +5,13 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { findFrameOption, findProduct, findSizeOption, getFramePriceDelta } from './catalog.js';
 import { createNewsletterStore } from './newsletter-store.js';
-import { sendNewsletterDiscountEmail, sendOwnerOrderNotification } from './notifications.js';
+import {
+  sendAbandonedCartEmail,
+  sendCustomerOrderConfirmationEmail,
+  sendCustomerOrderShippedEmail,
+  sendNewsletterDiscountEmail,
+  sendOwnerOrderNotification,
+} from './notifications.js';
 import { createOrderStore } from './order-store.js';
 import { createProductStore } from './product-store.js';
 
@@ -534,9 +540,130 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
         status: 'failed',
       });
     }
+
+    try {
+      const confirmationResult = await sendCustomerOrderConfirmationEmail(order);
+
+      await orderStore.createNotification({
+        type: 'customer_confirmation_email',
+        orderId: order.id,
+        title: confirmationResult.sent ? 'Customer confirmation sent' : 'Customer confirmation skipped',
+        body: confirmationResult.sent
+          ? `Order confirmation emailed to ${order.customerEmail}.`
+          : confirmationResult.reason,
+        channel: 'email',
+        status: confirmationResult.sent ? 'sent' : confirmationResult.skipped ? 'skipped' : 'failed',
+        metadata: confirmationResult,
+      });
+    } catch (error) {
+      console.error(error);
+      await orderStore.createNotification({
+        type: 'customer_confirmation_email',
+        orderId: order.id,
+        title: 'Customer confirmation failed',
+        body: error?.message || 'Unable to send the customer confirmation email.',
+        channel: 'email',
+        status: 'failed',
+      });
+    }
   }
 
   return order;
+}
+
+async function markOrderEmailFlag(order, flagName) {
+  await orderStore.upsertOrder({
+    id: order.id,
+    stripeSessionId: order.stripeSessionId || order.id,
+    raw: {
+      [flagName]: new Date().toISOString(),
+    },
+  });
+}
+
+async function maybeSendAbandonedCartEmail(order) {
+  if (
+    !order ||
+    order.paymentStatus === 'paid' ||
+    !order.customerEmail ||
+    order.raw?.abandonedCartEmailSentAt
+  ) {
+    return;
+  }
+
+  try {
+    const recoveryResult = await sendAbandonedCartEmail(order, {
+      discountCode: newsletterDiscountCode,
+      discountLabel: newsletterDiscountLabel,
+    });
+
+    await orderStore.createNotification({
+      type: 'abandoned_cart_email',
+      orderId: order.id,
+      title: recoveryResult.sent ? 'Abandoned cart email sent' : 'Abandoned cart email skipped',
+      body: recoveryResult.sent
+        ? `Cart recovery email sent to ${order.customerEmail} with code ${newsletterDiscountCode}.`
+        : recoveryResult.reason,
+      channel: 'email',
+      status: recoveryResult.sent ? 'sent' : recoveryResult.skipped ? 'skipped' : 'failed',
+      metadata: recoveryResult,
+    });
+
+    if (recoveryResult.sent) {
+      await markOrderEmailFlag(order, 'abandonedCartEmailSentAt');
+    }
+  } catch (error) {
+    console.error(error);
+    await orderStore.createNotification({
+      type: 'abandoned_cart_email',
+      orderId: order.id,
+      title: 'Abandoned cart email failed',
+      body: error?.message || 'Unable to send the cart recovery email.',
+      channel: 'email',
+      status: 'failed',
+    });
+  }
+}
+
+async function maybeSendCustomerShippedEmail(order) {
+  if (
+    !order ||
+    order.paymentStatus !== 'paid' ||
+    !order.customerEmail ||
+    order.raw?.shippedEmailSentAt
+  ) {
+    return;
+  }
+
+  try {
+    const shippedResult = await sendCustomerOrderShippedEmail(order);
+
+    await orderStore.createNotification({
+      type: 'customer_shipped_email',
+      orderId: order.id,
+      title: shippedResult.sent ? 'Shipping email sent' : 'Shipping email skipped',
+      body: shippedResult.sent
+        ? `Shipping notification emailed to ${order.customerEmail}.`
+        : shippedResult.reason,
+      channel: 'email',
+      status: shippedResult.sent ? 'sent' : shippedResult.skipped ? 'skipped' : 'failed',
+      metadata: shippedResult,
+    });
+
+    if (shippedResult.sent) {
+      await markOrderEmailFlag(order, 'shippedEmailSentAt');
+    }
+  } catch (error) {
+    console.error(error);
+    await orderStore.createNotification({
+      type: 'customer_shipped_email',
+      orderId: order.id,
+      title: 'Shipping email failed',
+      body: error?.message || 'Unable to send the shipping notification email.',
+      channel: 'email',
+      status: 'failed',
+    });
+  }
 }
 
 function getOrderTrackingItems(order) {
@@ -791,7 +918,8 @@ export async function processStripeWebhook(rawBody, stripeSignature) {
   }
 
   if (event.type === 'checkout.session.expired') {
-    await completeOrderFromCheckoutSession(event.data.object, 'expired');
+    const expiredOrder = await completeOrderFromCheckoutSession(event.data.object, 'expired');
+    await maybeSendAbandonedCartEmail(expiredOrder);
   }
 
   return { received: true };
@@ -919,6 +1047,7 @@ export async function updateAdminOrder(orderId, body = {}) {
     throw httpError('Order update is empty.');
   }
 
+  const previousOrder = await orderStore.getOrder(orderId);
   const order =
     typeof orderStore.updateFulfillment === 'function'
       ? await orderStore.updateFulfillment(orderId, update)
@@ -926,6 +1055,13 @@ export async function updateAdminOrder(orderId, body = {}) {
 
   if (!order) {
     throw httpError('Order not found.', 404);
+  }
+
+  const becameShipped =
+    update.fulfillmentStatus === 'shipped' && previousOrder?.fulfillmentStatus !== 'shipped';
+
+  if (becameShipped) {
+    await maybeSendCustomerShippedEmail(order);
   }
 
   return { order };

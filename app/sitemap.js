@@ -1,11 +1,21 @@
 import { getSanitySitemapEntries } from '../server/sanity-sitemap.js';
+import {
+  getSeoPageFactoryCollectionPriority,
+  getSeoPageFactoryCollectionSlugs,
+} from '../server/seo-page-factory.js';
 
 export const dynamic = 'force-dynamic';
 
 const siteUrl = 'https://armoze.com';
 
+function uniqueValues(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
 export default async function sitemap() {
   const { collectionSlugs, products } = await getSanitySitemapEntries();
+  const seoCollectionSlugs = getSeoPageFactoryCollectionSlugs();
+  const allCollectionSlugs = uniqueValues([...collectionSlugs, ...seoCollectionSlugs]);
   const now = new Date();
   const routes = [
     {
@@ -13,10 +23,12 @@ export default async function sitemap() {
       lastModified: now,
       priority: 1,
     },
-    ...collectionSlugs.map((collectionSlug) => ({
+    ...allCollectionSlugs.map((collectionSlug) => ({
       url: `${siteUrl}/collections/${collectionSlug}`,
       lastModified: now,
-      priority: collectionSlug === 'study-creative' ? 0.7 : 0.8,
+      priority: seoCollectionSlugs.includes(collectionSlug)
+        ? getSeoPageFactoryCollectionPriority(collectionSlug)
+        : collectionSlug === 'study-creative' ? 0.7 : 0.8,
     })),
     ...products.map((product) => ({
       url: `${siteUrl}/products/${product.slug}`,

@@ -10,6 +10,11 @@ import {
 } from '../../server/seo-copy.js';
 import { policyPages } from './storefront/policy-content.ts';
 import { supportEmail } from './storefront/product-utils.ts';
+import {
+  getProductsForSeoPageFactoryCollection,
+  getSeoPageFactoryCollection,
+  getSeoPageFactoryCollectionSlugs,
+} from '../../server/seo-page-factory.js';
 
 export const siteUrl = 'https://armoze.com';
 export const storefrontRevalidateSeconds = 60;
@@ -333,7 +338,7 @@ export function getProductsForCollection(catalog, slug) {
   const collection = catalog.collections.find((item) => item.slug === slug);
 
   if (!collection) {
-    return [];
+    return getProductsForSeoPageFactoryCollection(catalog.products, slug);
   }
 
   const publishedProducts = catalog.products.filter((product) => product.published);
@@ -371,6 +376,20 @@ export function getProductsForCollection(catalog, slug) {
     publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug)),
     collection.slug,
   );
+}
+
+export function getCollectionForSlug(catalog, slug) {
+  return (
+    catalog.collections.find((collection) => collection.slug === slug) ||
+    getSeoPageFactoryCollection(slug)
+  );
+}
+
+export function getCollectionRouteSlugs(catalog) {
+  return [
+    ...catalog.collections.map((collection) => collection.slug),
+    ...getSeoPageFactoryCollectionSlugs(),
+  ].filter((slug, index, slugs) => slug && slugs.indexOf(slug) === index);
 }
 
 function getProductsByIds(catalog, productIds = []) {
@@ -505,7 +524,7 @@ export async function getRouteSeo(pathParts = []) {
   }
 
   if (section === 'collections' && slug) {
-    const collection = catalog.collections.find((item) => item.slug === slug);
+    const collection = getCollectionForSlug(catalog, slug);
 
     if (!collection) {
       return { exists: false };

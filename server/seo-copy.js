@@ -171,10 +171,22 @@ export function buildProductSchemaDescription(product) {
 }
 
 export function buildCollectionSeoTitle(collection) {
+  const seoTitle = normalizeText(collection?.seoTitle);
+
+  if (seoTitle) {
+    return seoTitle;
+  }
+
   return collectionProfiles[collection?.slug]?.title || `${normalizeText(collection?.title)} Canvas Prints`;
 }
 
 export function buildCollectionSeoDescription(collection) {
+  const seoDescription = normalizeText(collection?.seoDescription);
+
+  if (seoDescription) {
+    return limitMetaDescription(seoDescription);
+  }
+
   return cleanSentence(
     collectionProfiles[collection?.slug]?.description ||
       normalizeText(collection?.description) ||

@@ -11873,7 +11873,7 @@ h3 {
       2px 4px 6px -3px rgba(0, 0, 0, 0.28);
   }
 
-  .product-canvas-image::before {
+  .product-canvas-image:not(.frame-black):not(.frame-white)::before {
     content: "";
     position: absolute;
     z-index: 0;
@@ -11994,4 +11994,144 @@ h3 {
     --canvas-cast-blur: clamp(4px, 0.65vw, 9px);
     --canvas-cast-opacity: 0.3;
   }
+}
+
+/* === Main product image realism upgrade (front canvas) ===
+   Light story: soft key light from the upper left, shadow falls down-right.
+   All values live in this block for easy tuning. */
+
+/* 2. Directional canvas shadow that hugs the actual cutout via its alpha
+   channel (excludes cropped-square sources, which have no usable alpha). */
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image:not(.frame-black):not(.frame-white):not([class*="crop-square-source"])
+  > div,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image:not(.frame-black):not(.frame-white):not([class*="crop-square-source"])
+  > div {
+  overflow: visible;
+  box-shadow: none;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image:not(.frame-black):not(.frame-white):not([class*="crop-square-source"])
+  img,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image:not(.frame-black):not(.frame-white):not([class*="crop-square-source"])
+  img {
+  filter:
+    drop-shadow(18px 30px 26px rgba(31, 24, 14, 0.3))
+    drop-shadow(7px 13px 12px rgba(31, 24, 14, 0.22))
+    drop-shadow(2px 4px 4px rgba(31, 24, 14, 0.28));
+}
+
+/* 3. Soften the old ground ellipse so it reads as a faint contact accent
+   instead of a competing second shadow. */
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image:not(.frame-black):not(.frame-white):not([class*="crop-square-source"]),
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image:not(.frame-black):not(.frame-white):not([class*="crop-square-source"]) {
+  --canvas-shadow-opacity: 0.14;
+  --canvas-shadow-blur: clamp(14px, 1.8vw, 26px);
+}
+
+/* 4. Portrait 2/3 inset overlay: keep its edge shading, drop its symmetric
+   outer shadow (the img drop-shadow above replaces it). */
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image[style*="2 / 3"]:not(.frame-black):not(.frame-white)
+  > div::before,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell.shape-portrait
+  .product-canvas-image[style*="2 / 3"]:not(.frame-black):not(.frame-white)
+  > div::before {
+  box-shadow:
+    inset 2px 0 3px rgba(255, 255, 255, 0.1),
+    inset -5px 0 8px rgba(0, 0, 0, 0.24),
+    inset 0 1px 2px rgba(255, 255, 255, 0.12),
+    inset 0 -5px 8px rgba(0, 0, 0, 0.18);
+}
+
+/* 5. Framed canvases: collapse the stacked shadow systems (huge frame blur +
+   surface shadow + wide ground ellipse) into one clean directional shadow. */
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black
+  .product-canvas-shadow,
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white
+  .product-canvas-shadow,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black
+  .product-canvas-shadow,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white
+  .product-canvas-shadow {
+  display: none;
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black,
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white {
+  --canvas-surface-shadow:
+    10px 16px 20px -14px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px var(--canvas-frame-inner-highlight),
+    inset 0 3px 5px rgba(255, 255, 255, 0.16),
+    inset 0 -7px 11px rgba(0, 0, 0, 0.2);
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black::before,
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white::before,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black::before,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white::before {
+  box-shadow:
+    16px 26px 30px -20px rgba(0, 0, 0, 0.45),
+    5px 9px 12px -8px rgba(0, 0, 0, 0.32),
+    inset 0 0 0 1px var(--canvas-frame-outer-line),
+    inset 0 2px 3px var(--canvas-frame-top-light),
+    inset 0 -10px 14px var(--canvas-frame-bottom-shade),
+    inset 9px 0 13px var(--canvas-frame-left-light),
+    inset -9px 0 13px var(--canvas-frame-right-shade);
+}
+
+/* 6. Framed canvases: slimmer rails, lighter interior shading, and less
+   padding so the artwork stays large and fully visible inside the frame. */
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black,
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-white,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black,
+.mobile-gallery-slide
+  .product-canvas-image.frame-white {
+  --canvas-frame-rail: clamp(7px, 0.8vw, 13px);
+  --canvas-frame-lip: clamp(3px, 0.4vw, 6px);
+  --canvas-bezel-opacity: 0.3;
+  padding: var(--canvas-frame-rail);
+}
+
+.listing-gallery > .main-product-image
+  .product-canvas-image.frame-black::after,
+.mobile-gallery-slide
+  .product-canvas-image.frame-black::after {
+  box-shadow:
+    inset 0 0 0 calc(var(--canvas-frame-lip) - 1px) #070807,
+    inset 0 0 0 calc(var(--canvas-frame-lip) + 2px) rgba(0, 0, 0, 0.98),
+    inset 6px 6px 10px rgba(0, 0, 0, 0.4),
+    inset -5px -5px 9px rgba(255, 255, 255, 0.07),
+    inset 0 10px 12px -10px rgba(255, 255, 255, 0.12),
+    inset 0 -10px 12px -10px rgba(0, 0, 0, 0.45);
 }

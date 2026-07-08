@@ -374,6 +374,25 @@ For owner email alerts, set `RESEND_API_KEY`, `ORDER_NOTIFICATION_EMAIL`, and
 optionally `ORDER_NOTIFICATION_FROM`. Without those values, orders still save
 and the dashboard still works; email notifications are recorded as skipped.
 
+## Customer Emails
+
+With `RESEND_API_KEY` set, the backend also sends customer-facing emails from
+`CUSTOMER_EMAIL_FROM` (falls back to `NEWSLETTER_DISCOUNT_FROM`, then
+`ORDER_NOTIFICATION_FROM`):
+
+1. Order confirmation: sent once when an order first becomes paid.
+2. Shipping notification: sent once when the admin dashboard marks an order as
+   shipped. It includes the carrier, tracking number, and tracking link, so set
+   those fields before changing the status to shipped.
+3. Abandoned cart recovery: sent once when a Stripe Checkout session expires
+   with a known customer email. It includes `NEWSLETTER_DISCOUNT_CODE`
+   (default `FIRST15`), so make sure that promotion code actually exists in
+   Stripe (test and live mode) or the code will fail at checkout.
+
+Each send is recorded in the admin notification log, and repeat sends are
+guarded per order. Stripe checkout sessions expire 24 hours after creation,
+which is what triggers the recovery email for signed-in customers.
+
 ## Newsletter Signup
 
 The footer newsletter form posts to:

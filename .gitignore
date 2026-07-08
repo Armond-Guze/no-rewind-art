@@ -24,3 +24,6 @@ website-with-artwork-preview.png
 website-shop-preview.png
 website-product-page-preview.png
 .vercel
+
+# Staging area for files pending manual deletion
+_to_delete/

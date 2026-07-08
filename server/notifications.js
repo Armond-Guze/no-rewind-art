@@ -91,6 +91,209 @@ export async function sendOwnerOrderNotification(order) {
   };
 }
 
+function getSiteUrl() {
+  return process.env.PUBLIC_SITE_URL || process.env.CLIENT_URL || 'https://armoze.com';
+}
+
+function getCustomerEmailFrom() {
+  return (
+    process.env.CUSTOMER_EMAIL_FROM ||
+    process.env.NEWSLETTER_DISCOUNT_FROM ||
+    process.env.ORDER_NOTIFICATION_FROM ||
+    'Armoze <orders@resend.dev>'
+  );
+}
+
+function getCustomerFirstName(order) {
+  const firstName = String(order.customerName || '').trim().split(/\s+/)[0] || '';
+  return firstName || 'there';
+}
+
+function orderTotalsLines(order) {
+  const lines = [`Subtotal: ${formatPrice(order.amountSubtotal, order.currency)}`];
+
+  if (Number(order.amountShipping || 0) > 0) {
+    lines.push(`Shipping: ${formatPrice(order.amountShipping, order.currency)}`);
+  } else {
+    lines.push('Shipping: Free');
+  }
+
+  if (Number(order.amountTax || 0) > 0) {
+    lines.push(`Tax: ${formatPrice(order.amountTax, order.currency)}`);
+  }
+
+  lines.push(`Total: ${formatPrice(order.amountTotal, order.currency)}`);
+
+  return lines.join('\n');
+}
+
+async function sendWithResend({ to, subject, text, html }) {
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    return {
+      sent: false,
+      skipped: true,
+      reason: 'Set RESEND_API_KEY to enable customer emails.',
+    };
+  }
+
+  if (!to) {
+    return {
+      sent: false,
+      skipped: true,
+      reason: 'Order has no customer email address.',
+    };
+  }
+
+  const resend = new Resend(apiKey);
+  const result = await resend.emails.send({
+    from: getCustomerEmailFrom(),
+    to,
+    subject,
+    text,
+    html,
+  });
+
+  if (result.error) {
+    return {
+      sent: false,
+      skipped: false,
+      reason: result.error.message || 'Resend could not send the email.',
+      error: result.error,
+    };
+  }
+
+  return {
+    sent: true,
+    skipped: false,
+    id: result.data?.id || null,
+  };
+}
+
+export async function sendCustomerOrderConfirmationEmail(order) {
+  const siteUrl = getSiteUrl();
+  const firstName = getCustomerFirstName(order);
+  const lines = orderLines(order);
+  const totals = orderTotalsLines(order);
+  const subject = 'Your Armoze order is confirmed';
+
+  const text = [
+    `Hi ${firstName},`,
+    '',
+    'Thank you for your Armoze order. We are getting your print ready.',
+    '',
+    'Order summary:',
+    lines,
+    '',
+    totals,
+    '',
+    'Your order usually ships within 2 to 5 business days. We will email you tracking as soon as it is on the way.',
+    '',
+    `Track your orders: ${siteUrl}/account`,
+    'Questions? Reply to this email or write to hello@armoze.com.',
+  ].join('\n');
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #151515; line-height: 1.6; max-width: 560px;">
+      <h1 style="font-size: 24px; margin: 0 0 12px;">Order confirmed</h1>
+      <p style="margin: 0 0 18px;">Hi ${escapeHtml(firstName)}, thank you for your Armoze order. We are getting your print ready.</p>
+      <h2 style="font-size: 15px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em;">Order summary</h2>
+      <pre style="background: #f6f3ec; padding: 14px; white-space: pre-wrap; margin: 0 0 14px;">${escapeHtml(lines)}</pre>
+      <pre style="background: #f6f3ec; padding: 14px; white-space: pre-wrap; margin: 0 0 20px;">${escapeHtml(totals)}</pre>
+      <p style="margin: 0 0 18px;">Your order usually ships within 2 to 5 business days. We will email you tracking as soon as it is on the way.</p>
+      <p style="margin: 0 0 20px;">
+        <a href="${escapeHtml(`${siteUrl}/account`)}" style="display: inline-block; padding: 12px 18px; background: #111; color: #fff; font-weight: 700; text-decoration: none;">View your orders</a>
+      </p>
+      <p style="margin: 0; color: #666; font-size: 13px;">Questions? Reply to this email or write to hello@armoze.com.</p>
+    </div>
+  `;
+
+  return sendWithResend({ to: order.customerEmail, subject, text, html });
+}
+
+export async function sendCustomerOrderShippedEmail(order) {
+  const siteUrl = getSiteUrl();
+  const firstName = getCustomerFirstName(order);
+  const lines = orderLines(order);
+  const subject = 'Your Armoze order is on the way';
+  const trackingParts = [
+    order.carrier ? `Carrier: ${order.carrier}` : '',
+    order.trackingNumber ? `Tracking number: ${order.trackingNumber}` : '',
+    order.trackingUrl ? `Track your package: ${order.trackingUrl}` : '',
+  ].filter(Boolean);
+
+  const text = [
+    `Hi ${firstName},`,
+    '',
+    'Good news: your Armoze order has shipped.',
+    '',
+    ...(trackingParts.length ? [trackingParts.join('\n'), ''] : []),
+    'What is in this shipment:',
+    lines,
+    '',
+    `Track your orders: ${siteUrl}/account`,
+    'Questions? Reply to this email or write to hello@armoze.com.',
+  ].join('\n');
+
+  const trackingHtml = trackingParts.length
+    ? `<pre style="background: #f6f3ec; padding: 14px; white-space: pre-wrap; margin: 0 0 18px;">${escapeHtml(trackingParts.join('\n'))}</pre>`
+    : '';
+  const trackingButton = order.trackingUrl
+    ? `<p style="margin: 0 0 20px;"><a href="${escapeHtml(order.trackingUrl)}" style="display: inline-block; padding: 12px 18px; background: #111; color: #fff; font-weight: 700; text-decoration: none;">Track your package</a></p>`
+    : '';
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #151515; line-height: 1.6; max-width: 560px;">
+      <h1 style="font-size: 24px; margin: 0 0 12px;">Your order is on the way</h1>
+      <p style="margin: 0 0 18px;">Hi ${escapeHtml(firstName)}, good news: your Armoze order has shipped.</p>
+      ${trackingHtml}
+      ${trackingButton}
+      <h2 style="font-size: 15px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em;">In this shipment</h2>
+      <pre style="background: #f6f3ec; padding: 14px; white-space: pre-wrap; margin: 0 0 20px;">${escapeHtml(lines)}</pre>
+      <p style="margin: 0; color: #666; font-size: 13px;">Questions? Reply to this email or write to hello@armoze.com.</p>
+    </div>
+  `;
+
+  return sendWithResend({ to: order.customerEmail, subject, text, html });
+}
+
+export async function sendAbandonedCartEmail(order, { discountCode = 'FIRST15', discountLabel = '15%' } = {}) {
+  const siteUrl = getSiteUrl();
+  const firstName = getCustomerFirstName(order);
+  const lines = orderLines(order);
+  const subject = `Still thinking it over? Take ${discountLabel} off`;
+
+  const text = [
+    `Hi ${firstName},`,
+    '',
+    'You left these Armoze prints in your cart:',
+    lines,
+    '',
+    `Use code ${discountCode} at checkout for ${discountLabel} off.`,
+    '',
+    `Finish your order: ${siteUrl}/cart`,
+    '',
+    'You are receiving this because you started checkout at Armoze.',
+  ].join('\n');
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #151515; line-height: 1.6; max-width: 560px;">
+      <h1 style="font-size: 24px; margin: 0 0 12px;">Your cart is waiting</h1>
+      <p style="margin: 0 0 18px;">Hi ${escapeHtml(firstName)}, you left these Armoze prints in your cart:</p>
+      <pre style="background: #f6f3ec; padding: 14px; white-space: pre-wrap; margin: 0 0 20px;">${escapeHtml(lines)}</pre>
+      <p style="margin: 0 0 10px;">Use this code at checkout for ${escapeHtml(discountLabel)} off:</p>
+      <p style="display: inline-block; margin: 0 0 20px; padding: 14px 18px; background: #111; color: #fff; font-size: 22px; font-weight: 700; letter-spacing: 0.12em;">${escapeHtml(discountCode)}</p>
+      <p style="margin: 0 0 20px;">
+        <a href="${escapeHtml(`${siteUrl}/cart`)}" style="display: inline-block; padding: 12px 18px; background: #111; color: #fff; font-weight: 700; text-decoration: none;">Finish your order</a>
+      </p>
+      <p style="margin: 0; color: #666; font-size: 13px;">You are receiving this because you started checkout at Armoze.</p>
+    </div>
+  `;
+
+  return sendWithResend({ to: order.customerEmail, subject, text, html });
+}
+
 export async function sendNewsletterDiscountEmail({ email, discountCode = 'FIRST15', discountLabel = '15%' }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.NEWSLETTER_DISCOUNT_FROM;

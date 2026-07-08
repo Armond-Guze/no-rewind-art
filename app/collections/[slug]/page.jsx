@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation';
 import {
+  getCollectionForSlug,
+  getCollectionRouteSlugs,
   getCatalog,
   getProductsForCollection,
   getRouteSeo,
@@ -47,9 +49,7 @@ export async function generateMetadata({ params }) {
 export async function generateStaticParams() {
   const catalog = await getCatalog();
 
-  return catalog.collections.map((collection) => ({
-    slug: collection.slug,
-  }));
+  return getCollectionRouteSlugs(catalog).map((slug) => ({ slug }));
 }
 
 export default async function CollectionRoute({ params }) {
@@ -61,7 +61,7 @@ export default async function CollectionRoute({ params }) {
   }
 
   const catalog = await getCatalog();
-  const collection = catalog.collections.find((item) => item.slug === slug);
+  const collection = getCollectionForSlug(catalog, slug);
 
   if (!collection) {
     notFound();
