@@ -46,7 +46,6 @@ export default function CollectionPageClient({
         <section className="collection-heading">
           <p className="eyebrow">Shop Prints</p>
           <h1>{collection.title}</h1>
-          {collection.description ? <p>{collection.description}</p> : null}
         </section>
 
         <section className="listing-grid" aria-label={`${collection.title} products`}>

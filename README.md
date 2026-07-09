@@ -455,8 +455,9 @@ Checkout line items, analytics item values, and the Google Merchant feed. When
 price source. The committed `src/data/catalog.json` is the fallback/source
 target.
 
-Current July 8, 2026 size pricing lowers every shared size option by $15.00
-from the previous catalog target across all aspect-ratio presets.
+Current July 9, 2026 unframed size pricing lowers shared size options by tier:
+$5, $5, $15, $50, and $65 for five-size presets. Square presets use $5, $5,
+$50, and $65 because they have four shared sizes.
 
 Preview the live Sanity sync:
 

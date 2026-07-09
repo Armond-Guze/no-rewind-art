@@ -2828,13 +2828,13 @@ h3 {
 .size-options button span {
   position: absolute;
   left: 50%;
-  top: -21px;
+  top: -19px;
   transform: translateX(-50%);
   min-width: max-content;
-  padding: 4px 8px;
+  padding: 3px 7px;
   background: var(--gold);
   color: #111;
-  font-size: 0.58rem;
+  font-size: 0.52rem;
   text-transform: uppercase;
 }
 
@@ -6419,9 +6419,9 @@ h3 {
   }
 
   .size-options button span {
-    top: -14px;
-    padding: 2px 5px;
-    font-size: 0.45rem;
+    top: -13px;
+    padding: 2px 4px;
+    font-size: 0.4rem;
   }
 
   .installment-note {
@@ -11962,4 +11962,24 @@ h3 {
   .product-canvas-image:not(.frame-black):not(.frame-white)
   .product-canvas-shadow {
   display: none;
+}
+
+/* === Mobile menu header fix ============================================
+   When the mobile menu opens, the header turned its icons dark and
+   inverted the logo, but only the HOME header also turned white — on
+   every other page the bar stayed black, hiding the X and the logo.
+   Give the open-menu header the same white treatment everywhere. */
+@media (max-width: 760px) {
+  .site-header.menu-open {
+    background: #fff;
+    border-bottom-color: rgba(21, 21, 21, 0.12);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    color: #151515;
+    backdrop-filter: blur(16px);
+  }
+
+  .site-header.menu-open .mobile-account-nav-link::before,
+  .site-header.menu-open .mobile-cart-nav-link::before {
+    background: rgba(21, 21, 21, 0.2);
+  }
 }

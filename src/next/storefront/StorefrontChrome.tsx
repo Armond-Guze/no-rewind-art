@@ -377,7 +377,7 @@ function LaunchPromoBar({
   return (
     <section className={className} aria-label="Launch offer">
       <p>
-        Launch offer: {launchOfferDiscount} off your first order with code <strong>{launchOfferCode}</strong>
+        {launchOfferDiscount} off your first order with code <strong>{launchOfferCode}</strong>
       </p>
     </section>
   );
