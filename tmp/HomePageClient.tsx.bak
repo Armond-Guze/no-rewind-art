@@ -168,18 +168,6 @@ function HomeProductCard({
   );
 }
 
-function optimizeSanityImageUrl(url: string, width: number, quality = 78) {
-  if (!/^https:\/\/cdn\.sanity\.io\//i.test(url)) {
-    return url;
-  }
-
-  const optimized = new URL(url);
-  optimized.searchParams.set('auto', 'format');
-  optimized.searchParams.set('w', String(width));
-  optimized.searchParams.set('q', String(quality));
-  return optimized.toString();
-}
-
 function getHomepageImageProductHref(image: HomepageHeroImage) {
   return image.productSlug ? `/products/${image.productSlug}` : undefined;
 }
@@ -210,10 +198,9 @@ function HomeImageCard({
   const imageElement = (
     <img
       alt={image.alt || 'Armoze artwork preview'}
-      decoding="async"
       height={image.height || undefined}
       loading={priority ? 'eager' : 'lazy'}
-      src={optimizeSanityImageUrl(image.url, 1200)}
+      src={image.url}
       width={image.width || undefined}
     />
   );
@@ -250,9 +237,8 @@ function HomeImageCard({
               <img
                 alt=""
                 className="product-card-thumb-image"
-                decoding="async"
                 loading="lazy"
-                src={optimizeSanityImageUrl(overlayProduct.image, 200)}
+                src={overlayProduct.image}
               />
             ) : (
               <ProductImage product={overlayProduct} />
@@ -583,21 +569,14 @@ function StorefrontHeroMedia({
   return (
     <div className={className}>
       <picture className="storefront-hero-media">
-        {mobileImage?.url ? (
-          <source
-            media="(max-width: 760px)"
-            srcSet={`${optimizeSanityImageUrl(mobileImage.url, 828)} 828w, ${optimizeSanityImageUrl(mobileImage.url, 1170)} 1170w`}
-            sizes="100vw"
-          />
-        ) : null}
-        {desktopImage?.url ? <source media="(min-width: 761px)" srcSet={optimizeSanityImageUrl(desktopImage.url, 1920)} /> : null}
+        {mobileImage?.url ? <source media="(max-width: 760px)" srcSet={mobileImage.url} /> : null}
+        {desktopImage?.url ? <source media="(min-width: 761px)" srcSet={desktopImage.url} /> : null}
         <img
-          src={optimizeSanityImageUrl(fallbackImage.url, 1920)}
+          src={fallbackImage.url}
           alt={fallbackAlt}
           width={fallbackImage.width || undefined}
           height={fallbackImage.height || undefined}
           loading="eager"
-          decoding="async"
         />
       </picture>
     </div>
@@ -758,22 +737,12 @@ export default function HomePageClient({
       return;
     }
 
-    // The mobile hero shows a static image: rotating the hidden slideshow
-    // re-renders the page every 5s and makes scrolling stutter.
-    if (
-      hasHomepageHeroMedia &&
-      hasHomepageMobileHeroMedia &&
-      window.matchMedia('(max-width: 760px)').matches
-    ) {
-      return;
-    }
-
     const slideTimer = window.setInterval(() => {
       setActiveHeroIndex((index) => (index + 1) % heroSlides.length);
     }, 5000);
 
     return () => window.clearInterval(slideTimer);
-  }, [heroSlides.length, hasHomepageHeroMedia, hasHomepageMobileHeroMedia]);
+  }, [heroSlides.length]);
 
   return (
     <StorefrontShell products={allProducts}>
@@ -832,10 +801,9 @@ export default function HomePageClient({
                 const imageElement = (
                   <img
                     alt={slide.image.alt || 'Armoze featured artwork'}
-                    decoding="async"
                     height={slide.image.height || undefined}
                     loading={index === 0 ? 'eager' : 'lazy'}
-                    src={optimizeSanityImageUrl(slide.image.url, 1600)}
+                    src={slide.image.url}
                     width={slide.image.width || undefined}
                   />
                 );

@@ -8418,11 +8418,13 @@ h3 {
   .site-header.is-scrolled,
   .site-header.home-header.is-scrolled {
     top: 0;
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(255, 255, 255, 0.97);
     border-bottom-color: rgba(21, 21, 21, 0.12);
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
     color: #151515;
-    backdrop-filter: blur(16px);
+    /* backdrop blur toggling mid-scroll is expensive on mobile GPUs; the
+       header background is near-opaque so the blur is invisible anyway */
+    backdrop-filter: none;
   }
 
   .site-header.is-hidden,
@@ -11896,4 +11898,68 @@ h3 {
   > div::before {
   background: none;
   box-shadow: none;
+}
+
+/* === Framed centering fix (mobile) + unified canvas shadow ============
+   1. The crop-square sizing rules outrank the floating frame's width
+      calc, so the frame's border+gap were added OUTSIDE the width and
+      pushed the framed canvas off-center / off-screen on mobile.
+      Re-assert the wrap-around width at matching specificity.
+   2. The unframed canvas uses the same directional drop shadow as the
+      floating frame, and drops its old cast-blob and ground ellipse. */
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image[class*="crop-square-source"]:is(.frame-black, .frame-white),
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image[class*="crop-square-source"]:is(.frame-black, .frame-white) {
+  width: calc(100% - 2 * (var(--canvas-frame-rail) + var(--canvas-frame-gap)));
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image[class*="crop-square-source"]:not(.frame-black):not(.frame-white)
+  > div,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image[class*="crop-square-source"]:not(.frame-black):not(.frame-white)
+  > div {
+  box-shadow:
+    12px 28px 38px -20px rgba(31, 26, 18, 0.46),
+    22px 52px 74px -34px rgba(31, 26, 18, 0.32),
+    2px 4px 7px rgba(31, 26, 18, 0.16);
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image:not(.frame-black):not(.frame-white):not([class*="crop-square-source"])
+  img,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image:not(.frame-black):not(.frame-white):not([class*="crop-square-source"])
+  img {
+  filter:
+    drop-shadow(12px 28px 20px rgba(31, 26, 18, 0.4))
+    drop-shadow(4px 8px 6px rgba(31, 26, 18, 0.24));
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image:not(.frame-black):not(.frame-white)::before,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image:not(.frame-black):not(.frame-white)::before {
+  display: none;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image:not(.frame-black):not(.frame-white)
+  .product-canvas-shadow,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image:not(.frame-black):not(.frame-white)
+  .product-canvas-shadow {
+  display: none;
 }

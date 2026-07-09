@@ -314,9 +314,7 @@ function useStorefrontTopChromeState(menuOpen: boolean) {
       const nextScrollY = Math.max(0, window.scrollY);
       const scrollDelta = nextScrollY - lastScrollY;
 
-      // Hysteresis: different on/off thresholds so tiny scroll jitter near the
-      // boundary doesn't rapidly toggle the header style mid-scroll.
-      setIsScrolled((current) => (current ? nextScrollY > 8 : nextScrollY > 24));
+      setIsScrolled(nextScrollY > 14);
       setIsHidden((currentHidden) => {
         if (menuOpen || nextScrollY < 92) {
           return false;
