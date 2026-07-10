@@ -8377,6 +8377,11 @@ h3 {
     align-items: center;
     min-height: var(--mobile-header-height);
     padding: 0 14px 0 12px;
+    background: rgba(255, 255, 255, 0.97);
+    border-bottom-color: rgba(21, 21, 21, 0.12);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+    color: #151515;
+    backdrop-filter: none;
     transform: translateY(0);
   }
 
@@ -8399,12 +8404,17 @@ h3 {
     backdrop-filter: none;
   }
 
-  .site-header.home-header .brand,
-  .site-header.home-header .mobile-menu-toggle,
-  .site-header.home-header .mobile-search-nav-button,
-  .site-header.home-header .mobile-account-nav-link,
-  .site-header.home-header .mobile-cart-nav-link {
+  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .brand,
+  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-menu-toggle,
+  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-search-nav-button,
+  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-account-nav-link,
+  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-cart-nav-link {
+    color: #fff;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.72));
+  }
+
+  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .brand-mark {
+    filter: none;
   }
 
   .site-header.home-header.menu-open,
@@ -8501,12 +8511,14 @@ h3 {
     gap: 0;
     width: 34px;
     height: 34px;
+    color: #151515;
     font-size: 0;
   }
 
   .site-header .brand-mark {
     width: 34px;
     height: 34px;
+    filter: invert(1);
   }
 
   .launch-promo-bar {
@@ -8548,6 +8560,7 @@ h3 {
     margin: 0;
     border: 0;
     background: transparent;
+    color: #151515;
   }
 
   .mobile-menu-icon {
@@ -8574,7 +8587,7 @@ h3 {
     justify-self: end;
     border: 0;
     background: transparent;
-    color: var(--paper);
+    color: #151515;
     cursor: pointer;
     transform: translateX(-10px);
   }
@@ -8588,7 +8601,7 @@ h3 {
     display: inline-grid;
     place-items: center;
     justify-self: end;
-    color: var(--paper);
+    color: #151515;
     transform: translateX(-10px);
   }
 
@@ -8603,7 +8616,7 @@ h3 {
     justify-content: center;
     gap: 2px;
     justify-self: end;
-    color: var(--paper);
+    color: #151515;
   }
 
   .mobile-cart-nav-link > svg,
@@ -8619,7 +8632,7 @@ h3 {
     left: -4px;
     width: 1px;
     height: 18px;
-    background: rgba(244, 239, 230, 0.38);
+    background: rgba(21, 21, 21, 0.2);
     transform: translateY(-50%);
   }
 
@@ -8638,6 +8651,11 @@ h3 {
   .site-header.search-open .mobile-account-nav-link::before,
   .site-header.search-open .mobile-cart-nav-link::before {
     background: rgba(21, 21, 21, 0.2);
+  }
+
+  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-account-nav-link::before,
+  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-cart-nav-link::before {
+    background: rgba(244, 239, 230, 0.38);
   }
 
   .mobile-cart-count {
@@ -11981,5 +11999,85 @@ h3 {
   .site-header.menu-open .mobile-account-nav-link::before,
   .site-header.menu-open .mobile-cart-nav-link::before {
     background: rgba(21, 21, 21, 0.2);
+  }
+}
+
+/* === Desktop scrolled header fix =======================================
+   The is-scrolled treatment (solid white bar, dark text, inverted logo)
+   existed only inside the mobile media query, so on desktop the header
+   floated transparent white-on-light over page content once scrolled. */
+@media (min-width: 761px) {
+  .site-header.is-scrolled {
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom: 1px solid rgba(21, 21, 21, 0.12);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    color: #151515;
+    backdrop-filter: blur(16px);
+  }
+
+  .site-header.is-scrolled a,
+  .site-header.is-scrolled button,
+  .site-header.is-scrolled input,
+  .site-header.is-scrolled .nav-links a,
+  .site-header.is-scrolled .desktop-login-nav-link {
+    color: #151515;
+  }
+
+  .site-header.is-scrolled input::placeholder {
+    color: rgba(21, 21, 21, 0.55);
+  }
+
+  .site-header.is-scrolled input[type="search"] {
+    border-color: rgba(21, 21, 21, 0.35);
+  }
+
+  .site-header.is-scrolled .brand-mark,
+  .site-header.is-scrolled .brand-wordmark {
+    filter: invert(1);
+  }
+}
+
+/* === Footer bottom strip ===============================================
+   Copyright left, payment badges center, market selectors right. */
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.footer-bottom .footer-bottom-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.footer-payment-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.footer-payment-badges li {
+  padding: 5px 10px;
+  border: 1px solid rgba(244, 239, 230, 0.22);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .footer-bottom {
+    justify-content: center;
+    text-align: center;
   }
 }

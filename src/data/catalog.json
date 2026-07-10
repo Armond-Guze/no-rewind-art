@@ -93,7 +93,7 @@
       {
         "id": "48x24",
         "label": "48 x 24",
-        "priceInCents": 8499,
+        "priceInCents": 8999,
         "badge": "Best Value",
         "previewScale": 1.16,
         "legacyIds": [
@@ -124,7 +124,7 @@
       {
         "id": "36x24",
         "label": "36 x 24",
-        "priceInCents": 8999,
+        "priceInCents": 8499,
         "badge": "Best Value",
         "previewScale": 1.08
       },

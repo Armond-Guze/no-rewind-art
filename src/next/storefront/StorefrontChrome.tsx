@@ -1020,7 +1020,7 @@ type FooterLinkGroup = {
 function NextSiteFooter() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [newsletterMessage, setNewsletterMessage] = useState('New drops, restocks, and studio updates. No spam.');
+  const [newsletterMessage, setNewsletterMessage] = useState('Get 15% off your first order with code FIRST15. New drops and restocks — no spam.');
   const footerLinkGroups: FooterLinkGroup[] = [
     {
       title: 'Shop',
@@ -1197,11 +1197,19 @@ function NextSiteFooter() {
       </details>
 
       <div className="footer-bottom">
+        <p className="footer-bottom-copy">&copy; 2026 Armoze.</p>
+        <ul className="footer-payment-badges" aria-label="Accepted payment methods">
+          <li>Visa</li>
+          <li>Mastercard</li>
+          <li>Amex</li>
+          <li>Klarna</li>
+          <li>Amazon Pay</li>
+          <li>Cash App</li>
+        </ul>
         <div className="footer-market-selectors" aria-label="Store settings">
           <span className="footer-market-pill">United States (USD $)</span>
           <span className="footer-market-pill">English</span>
         </div>
-        <p className="footer-bottom-copy">&copy; 2026 Armoze.</p>
       </div>
     </footer>
   );
