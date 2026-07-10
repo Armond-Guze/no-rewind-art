@@ -398,6 +398,7 @@ export default function CartPageClient({
                           aspectRatio={getSizeOptionAspectRatio(sizeOption)}
                           className="cart-line-product-image"
                           priority
+                          sizes="180px"
                         />
                       </Link>
                       <div className="cart-item-details">

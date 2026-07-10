@@ -10,12 +10,17 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Clock,
+  Package,
   Play,
+  RotateCcw,
   ShieldCheck,
   Star,
   StarHalf,
+  Truck,
 } from 'lucide-react';
 import { addStoredCartItem } from '../../cart';
+import { etsyReviewHighlights } from '../../data/reviews';
 import type { FrameOption, Product, ProductVideo } from '../../data/products';
 import {
   formatPrice,
@@ -333,6 +338,7 @@ export default function ProductPageClient({
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [shippingOpen, setShippingOpen] = useState(false);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
   const galleryItems = getProductMediaGallery(product);
   const selectedGalleryItem = galleryItems[selectedImage] ?? galleryItems[0];
@@ -415,6 +421,21 @@ export default function ProductPageClient({
       updateMobileGalleryIndex(element);
     });
   }
+
+  useEffect(() => {
+    if (!lightboxOpen) {
+      return;
+    }
+
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setLightboxOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, [lightboxOpen]);
 
   useEffect(() => {
     return () => {
@@ -639,7 +660,8 @@ export default function ProductPageClient({
                 selectedGalleryImage || selectedGalleryVideo ? 'gallery-product-image' : ''
               } ${selectedGalleryVideo ? 'video-product-image' : ''} ${
                 isMockupGalleryImage ? 'mockup-product-image' : ''
-              }`}
+              } ${selectedGalleryImage ? 'has-lightbox' : ''}`}
+              onClick={selectedGalleryImage ? () => setLightboxOpen(true) : undefined}
             >
               <div
                 className="product-gallery-transition"
@@ -731,6 +753,9 @@ export default function ProductPageClient({
                     >
                       {badge ? <span>{badge}</span> : null}
                       {option.label}
+                      <em className="size-option-price">
+                        {formatPrice(getConfiguredUnitPrice(product, option, selectedFrameOption))}
+                      </em>
                     </button>
                   );
                 })}
@@ -799,7 +824,6 @@ export default function ProductPageClient({
                     className="product-details-content product-description-content"
                     id={`${product.id}-description`}
                   >
-                    <h2>Product Description</h2>
                     <p>{product.longDescription}</p>
                   </div>
                 ) : null}
@@ -821,12 +845,11 @@ export default function ProductPageClient({
                 </button>
                 {detailsOpen ? (
                   <div className="product-details-content" id={`${product.id}-details`}>
-                    <h2>Product Details</h2>
-                    <ul>
-                      <li>Ready-to-hang canvas print</li>
-                      <li>Made to order</li>
-                      <li>Premium canvas finish</li>
-                      <li>Securely packed for delivery</li>
+                    <ul className="product-info-list">
+                      <li><Check aria-hidden="true" size={16} strokeWidth={2.6} /> Ready-to-hang canvas print</li>
+                      <li><Check aria-hidden="true" size={16} strokeWidth={2.6} /> Made to order, just for you</li>
+                      <li><Check aria-hidden="true" size={16} strokeWidth={2.6} /> Premium matte canvas finish</li>
+                      <li><Check aria-hidden="true" size={16} strokeWidth={2.6} /> Securely packed for delivery</li>
                     </ul>
                   </div>
                 ) : null}
@@ -848,13 +871,12 @@ export default function ProductPageClient({
                 </button>
                 {shippingOpen ? (
                   <div className="product-details-content" id={`${product.id}-shipping-returns`}>
-                    <h2>Shipping &amp; Returns</h2>
-                    <ul>
-                      <li>Free U.S. shipping</li>
-                      <li>Made in 2-3 business days</li>
-                      <li>Ships in 2-5 business days after production</li>
-                      <li>30-day returns on eligible orders</li>
-                      <li>Support for damaged or incorrect orders</li>
+                    <ul className="product-info-list">
+                      <li><Truck aria-hidden="true" size={16} strokeWidth={2.4} /> Free U.S. shipping</li>
+                      <li><Clock aria-hidden="true" size={16} strokeWidth={2.4} /> Made in 2-3 business days</li>
+                      <li><Package aria-hidden="true" size={16} strokeWidth={2.4} /> Ships in 2-5 business days after production</li>
+                      <li><RotateCcw aria-hidden="true" size={16} strokeWidth={2.4} /> 30-day returns on eligible orders</li>
+                      <li><ShieldCheck aria-hidden="true" size={16} strokeWidth={2.4} /> Support for damaged or incorrect orders</li>
                     </ul>
                   </div>
                 ) : null}
@@ -881,10 +903,13 @@ export default function ProductPageClient({
           <div className="product-section-heading">
             <p className="eyebrow">What arrives</p>
             <h2 id="product-proof-title">Ready to hang</h2>
+            <p className="product-proof-subline">
+              Stretched, packed with care, and ready for the wall in minutes.
+            </p>
           </div>
 
           <div className="product-proof-grid">
-            <article>
+            <article className="product-proof-card">
               <div className="product-proof-image">
                 <OptimizedRawImage
                   src="/product-support/canvas-unboxing-back.jpg"
@@ -895,7 +920,8 @@ export default function ProductPageClient({
                   fill
                 />
               </div>
-              <div>
+              <div className="product-proof-copy">
+                <p className="product-proof-step">01 · Packaging</p>
                 <h3>Protected from box to wall</h3>
                 <p>
                   Each canvas is packed to protect the surface, corners, and back side while it
@@ -904,7 +930,7 @@ export default function ProductPageClient({
               </div>
             </article>
 
-            <article>
+            <article className="product-proof-card">
               <div className="product-proof-image">
                 <OptimizedRawImage
                   src="/product-support/canvas-quality-closeup.jpg"
@@ -914,7 +940,8 @@ export default function ProductPageClient({
                   fill
                 />
               </div>
-              <div>
+              <div className="product-proof-copy">
+                <p className="product-proof-step">02 · Craft</p>
                 <h3>Texture you can actually see</h3>
                 <p>
                   A close-up look at the woven canvas surface, wrapped edge, and sturdy print
@@ -924,6 +951,49 @@ export default function ProductPageClient({
             </article>
           </div>
         </section>
+
+        <section className="storefront-social-proof product-reviews" aria-labelledby="product-reviews-title">
+          <div className="storefront-social-proof-heading">
+            <h2 id="product-reviews-title">Reviews</h2>
+          </div>
+          <div className="storefront-review-carousel" aria-label="Buyer reviews">
+            {etsyReviewHighlights.slice(0, 3).map((review) => (
+              <article className="storefront-review-card" key={`${review.name}-${review.date}`}>
+                <div className="storefront-review-stars" aria-label={`${review.rating} out of 5 stars`}>
+                  {Array.from({ length: review.rating }).map((_, starIndex) => (
+                    <Star aria-hidden="true" fill="currentColor" key={starIndex} size={17} strokeWidth={2.4} />
+                  ))}
+                </div>
+                <div className="storefront-review-meta">
+                  <strong>{review.name}</strong>
+                  <span>{review.date}</span>
+                </div>
+                <p className="storefront-review-detail">{review.detail}</p>
+                <p className="storefront-review-quote">{review.quote}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {lightboxOpen && selectedGalleryImage ? (
+          <div
+            className="product-lightbox"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${product.title} enlarged image`}
+            onClick={() => setLightboxOpen(false)}
+          >
+            <button className="product-lightbox-close" type="button" aria-label="Close image viewer">
+              ×
+            </button>
+            <OptimizedRawImage
+              src={selectedGalleryImage}
+              alt={product.imageAlt}
+              aspectRatio={productAspectRatio}
+              sizes="92vw"
+            />
+          </div>
+        ) : null}
       </main>
     </StorefrontShell>
   );

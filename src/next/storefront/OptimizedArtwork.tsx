@@ -234,6 +234,7 @@ export function ProductImage({
   className,
   priority = false,
   loading,
+  sizes = '(max-width: 760px) 90vw, (max-width: 1200px) 48vw, 760px',
 }: {
   product: Product;
   src?: string;
@@ -241,6 +242,7 @@ export function ProductImage({
   className?: string;
   priority?: boolean;
   loading?: 'eager' | 'lazy';
+  sizes?: string;
 }) {
   const imageSrc = src ?? product.image;
 
@@ -253,7 +255,7 @@ export function ProductImage({
         className={className}
         loading={loading}
         priority={priority}
-        sizes="(max-width: 760px) 90vw, (max-width: 1200px) 48vw, 760px"
+        sizes={sizes}
       />
     );
   }
