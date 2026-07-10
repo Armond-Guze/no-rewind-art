@@ -12762,3 +12762,29 @@ h3 {
     max-width: none;
   }
 }
+
+/* mobile: size buttons in a 3-per-row grid; market pills on one line */
+@media (max-width: 900px) {
+  .size-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .size-options button {
+    min-width: 0;
+    padding: 10px 6px;
+  }
+}
+
+@media (max-width: 760px) {
+  .footer-market-pill {
+    white-space: nowrap;
+    font-size: 0.74rem;
+    padding: 8px 12px;
+  }
+
+  .footer-market-selectors {
+    flex-wrap: nowrap;
+  }
+}
