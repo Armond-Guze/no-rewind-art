@@ -160,7 +160,25 @@ function NewsletterDiscountPopup() {
       setOpen(true);
     }, newsletterPopupDelayMs);
 
-    return () => window.clearTimeout(timer);
+    const handleExitIntent = (event: globalThis.MouseEvent) => {
+      if (event.clientY > 24 || event.relatedTarget) {
+        return;
+      }
+
+      if (getStoredDismissedUntil() > Date.now()) {
+        return;
+      }
+
+      window.clearTimeout(timer);
+      setOpen(true);
+    };
+
+    document.documentElement.addEventListener('mouseout', handleExitIntent);
+
+    return () => {
+      window.clearTimeout(timer);
+      document.documentElement.removeEventListener('mouseout', handleExitIntent);
+    };
   }, []);
 
   useEffect(() => {

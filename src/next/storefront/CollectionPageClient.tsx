@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { Star } from 'lucide-react';
 import type { Collection, Product } from '../../data/products';
 import {
   formatPrice,
@@ -157,6 +158,13 @@ export default function CollectionPageClient({
                   </h2>
                   <div className="listing-card-meta">
                     <p>{formatPrice(product.priceInCents)}</p>
+                    {product.rating && product.reviewCount ? (
+                      <p className="listing-card-rating">
+                        <Star aria-hidden="true" fill="currentColor" size={13} strokeWidth={2.4} />
+                        {product.rating.toFixed(1)}
+                        <span>({product.reviewCount})</span>
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               </article>

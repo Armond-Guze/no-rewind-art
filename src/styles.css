@@ -12592,3 +12592,173 @@ h3 {
   font-size: 0.66rem;
   font-weight: 650;
 }
+
+/* === Conversion: promo hint, cross-sell, delivery note, card ratings === */
+.cart-promo-hint {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px dashed rgba(243, 178, 51, 0.55);
+  border-radius: 8px;
+  background: rgba(243, 178, 51, 0.08);
+  color: var(--paper);
+  font-size: 0.86rem;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.cart-promo-hint strong {
+  color: var(--gold);
+  letter-spacing: 0.08em;
+}
+
+.cart-cross-sell {
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(244, 239, 230, 0.14);
+}
+
+.cart-cross-sell h2 {
+  margin: 0 0 14px;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(244, 239, 230, 0.7);
+}
+
+.cart-cross-sell-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.cart-cross-sell-card {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid rgba(244, 239, 230, 0.14);
+  border-radius: 10px;
+  background: rgba(244, 239, 230, 0.04);
+}
+
+.cart-cross-sell-thumb {
+  display: block;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(244, 239, 230, 0.08);
+}
+
+.cart-cross-sell-card strong {
+  font-size: 0.74rem;
+  font-weight: 850;
+  color: var(--paper);
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.cart-cross-sell-card span {
+  color: rgba(244, 239, 230, 0.6);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.cart-cross-sell-card button {
+  margin-top: 4px;
+  padding: 8px 0;
+  border: 1px solid rgba(244, 239, 230, 0.35);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--paper);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.cart-cross-sell-card button:hover {
+  background: var(--paper);
+  color: #151515;
+}
+
+@media (max-width: 760px) {
+  .cart-cross-sell-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+}
+
+.product-delivery-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: rgba(21, 21, 21, 0.7);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.product-delivery-note svg {
+  color: #b98a1d;
+}
+
+.product-delivery-note strong {
+  color: #151515;
+  font-weight: 900;
+}
+
+.listing-card-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 2px 0 0;
+  color: #b98a1d;
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.listing-card-rating span {
+  color: rgba(21, 21, 21, 0.45);
+  font-weight: 700;
+}
+
+/* === Mobile fixes: product page centering + stacked story section ======
+   1. Product titles had white-space: nowrap, so long names forced the
+      whole page wider than the phone screen — images, buttons, and
+      everything else looked shifted right and cut off.
+   2. The "Built for focus" section kept its two-column desktop grid on
+      mobile; now it stacks: heading + copy + button, then the photo. */
+@media (max-width: 900px) {
+  .listing-panel h1 {
+    white-space: normal;
+  }
+
+  .listing-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .listing-gallery,
+  .listing-panel {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .storefront-story-cta {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 26px;
+  }
+
+  .storefront-story-visual {
+    max-width: 100%;
+    justify-self: stretch;
+    border-radius: 14px;
+  }
+
+  .storefront-story-copy {
+    max-width: none;
+  }
+}

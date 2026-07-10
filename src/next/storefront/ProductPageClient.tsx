@@ -51,6 +51,29 @@ import {
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 import { useUrlSearchParam } from './url-search';
 
+function addBusinessDays(start: Date, businessDays: number) {
+  const next = new Date(start);
+  let added = 0;
+
+  while (added < businessDays) {
+    next.setDate(next.getDate() + 1);
+    const day = next.getDay();
+
+    if (day !== 0 && day !== 6) {
+      added += 1;
+    }
+  }
+
+  return next;
+}
+
+function getDeliveryEstimate() {
+  const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+  const now = new Date();
+
+  return `${formatter.format(addBusinessDays(now, 4))} – ${formatter.format(addBusinessDays(now, 8))}`;
+}
+
 const framePreviewImages: Record<string, string> = {
   canvas: '/product-support/frame-option-canvas.jpg',
   black: '/product-support/frame-option-black.jpg',
@@ -339,6 +362,7 @@ export default function ProductPageClient({
   const [shippingOpen, setShippingOpen] = useState(false);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [deliveryEstimate, setDeliveryEstimate] = useState('');
   const [checkoutError, setCheckoutError] = useState('');
   const galleryItems = getProductMediaGallery(product);
   const selectedGalleryItem = galleryItems[selectedImage] ?? galleryItems[0];
@@ -421,6 +445,10 @@ export default function ProductPageClient({
       updateMobileGalleryIndex(element);
     });
   }
+
+  useEffect(() => {
+    setDeliveryEstimate(getDeliveryEstimate());
+  }, []);
 
   useEffect(() => {
     if (!lightboxOpen) {
@@ -782,6 +810,13 @@ export default function ProductPageClient({
             >
               Add to cart
             </button>
+
+            {deliveryEstimate ? (
+              <p className="product-delivery-note">
+                <Truck aria-hidden="true" size={15} strokeWidth={2.4} />
+                Order today, arrives <strong>{deliveryEstimate}</strong>
+              </p>
+            ) : null}
 
             {checkoutState === 'error' ? (
               <p className="checkout-error">

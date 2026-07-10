@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import {
+  addStoredCartItem,
   cartUpdatedEvent,
   makeCartLineKey,
   notifyStoredCartUpdated,
@@ -21,6 +22,7 @@ import {
   getSizeOption,
   getSizeOptionAspectRatio,
   launchOfferCode,
+  launchOfferDiscount,
   sizeOptionMatches,
 } from './product-utils';
 import { supabaseClient } from '../../lib/supabase';
@@ -151,6 +153,27 @@ export default function CartPageClient({
 
   const cartProducts = useMemo(() => buildCartLines(cart, products), [cart, products]);
   const subtotal = useMemo(() => getCartSubtotal(cartProducts), [cartProducts]);
+  const crossSellProducts = useMemo(() => {
+    const cartProductIds = new Set(cartProducts.map((line) => line.product.id));
+
+    return products
+      .filter((product) => product.published && !cartProductIds.has(product.id))
+      .slice(0, 3);
+  }, [cartProducts, products]);
+
+  function addCrossSellProduct(product: Product) {
+    addStoredCartItem({
+      productId: product.id,
+      sizeId: product.defaultSizeId ?? product.sizeOptions[0]?.id ?? '',
+      frameId: product.frameOptions[0]?.id ?? 'canvas',
+      quantity: 1,
+    });
+    trackStorefrontEvent('add_to_cart', {
+      currency: 'USD',
+      value: product.priceInCents / 100,
+      items: [],
+    });
+  }
 
   useEffect(() => {
     const syncStoredCart = () => {
@@ -452,6 +475,35 @@ export default function CartPageClient({
                   <p className="checkout-error">
                     {checkoutError || 'Checkout could not be started. Check your Stripe settings and try again.'}
                   </p>
+                ) : null}
+
+                <p className="cart-promo-hint">
+                  First order? Code <strong>{launchOfferCode}</strong> takes {launchOfferDiscount} off at
+                  checkout.
+                </p>
+
+                {crossSellProducts.length ? (
+                  <div className="cart-cross-sell" aria-label="Add another print">
+                    <h2>Add another print</h2>
+                    <div className="cart-cross-sell-grid">
+                      {crossSellProducts.map((product) => (
+                        <div className="cart-cross-sell-card" key={product.id}>
+                          <Link
+                            className="cart-cross-sell-thumb"
+                            href={`/products/${product.slug}`}
+                            aria-label={`View ${product.title}`}
+                          >
+                            <ProductImage product={product} sizes="140px" />
+                          </Link>
+                          <strong>{product.title}</strong>
+                          <span>{formatPrice(product.priceInCents)}</span>
+                          <button type="button" onClick={() => addCrossSellProduct(product)}>
+                            Add
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ) : null}
               </>
             ) : (
