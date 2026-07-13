@@ -11,8 +11,8 @@ const sizePresetPreview: Record<
       {label: '20 x 10', price: '$49.99'},
       {label: '30 x 15', price: '$84.99'},
       {label: '40 x 20', price: '$114.99'},
-      {label: '48 x 24', price: '$89.99', badge: 'Best Value'},
-      {label: '60 x 30', price: '$244.99', badge: 'Museum'},
+      {label: '48 x 24', price: '$149.99', badge: 'Best Value'},
+      {label: '60 x 30', price: '$284.99', badge: 'Museum'},
     ],
   },
   portraitTwoThree: {
@@ -45,7 +45,7 @@ const sizePresetPreview: Record<
       {label: '24 x 16', price: '$64.99'},
       {label: '36 x 24', price: '$84.99', badge: 'Best Value'},
       {label: '48 x 32', price: '$169.99', badge: 'Popular'},
-      {label: '60 x 40', price: '$294.99', badge: 'Statement'},
+      {label: '60 x 40', price: '$324.99', badge: 'Statement'},
     ],
   },
   landscapeFourThree: {

@@ -674,12 +674,22 @@ export default function ProductPageClient({
                 );
               })}
             </div>
-            <div className="mobile-gallery-hint" aria-hidden="true">
+            <div
+              className="mobile-gallery-hint"
+              role="group"
+              aria-label={`Choose ${product.title} product media`}
+            >
               {galleryItems.map((item, index) => (
-                <span
+                <button
+                  aria-label={`View ${product.title} ${item.type === 'video' ? 'video' : 'image'} ${index + 1}`}
+                  aria-pressed={index === selectedImage}
                   className={index === selectedImage ? 'is-active' : ''}
                   key={`${product.id}-mobile-hint-${item.key}`}
-                />
+                  type="button"
+                  onClick={() => selectGalleryImage(index)}
+                >
+                  <span aria-hidden="true" />
+                </button>
               ))}
             </div>
 
@@ -937,9 +947,10 @@ export default function ProductPageClient({
         <section className="product-proof-section" aria-labelledby="product-proof-title">
           <div className="product-section-heading">
             <p className="eyebrow">What arrives</p>
-            <h2 id="product-proof-title">Ready to hang</h2>
+            <h2 id="product-proof-title">Made to arrive ready</h2>
             <p className="product-proof-subline">
-              Stretched, packed with care, and ready for the wall in minutes.
+              Stretched, finished, and protected before it ships. All that is left is choosing
+              the wall.
             </p>
           </div>
 
@@ -947,20 +958,24 @@ export default function ProductPageClient({
             <article className="product-proof-card">
               <div className="product-proof-image">
                 <OptimizedRawImage
-                  src="/product-support/canvas-unboxing-back.jpg"
-                  alt="Back of a stretched canvas print being unboxed from protective packaging"
-                  aspectRatio="4 / 3"
-                  sizes="(max-width: 760px) 92vw, 50vw"
-                  loading="eager"
+                  src="/product-support/what-arrives-packaging-v2.jpg"
+                  alt="Stretched canvas print being unpacked from protective wrapping and corner guards"
+                  aspectRatio="3 / 2"
+                  sizes="(max-width: 900px) 92vw, 33vw"
                   fill
                 />
               </div>
               <div className="product-proof-copy">
-                <p className="product-proof-step">01 · Packaging</p>
-                <h3>Protected from box to wall</h3>
+                <div className="product-proof-kicker">
+                  <span className="product-proof-icon" aria-hidden="true">
+                    <Box size={17} strokeWidth={2.2} />
+                  </span>
+                  <p className="product-proof-step">01 / Protected</p>
+                </div>
+                <h3>Packed with intention</h3>
                 <p>
-                  Each canvas is packed to protect the surface, corners, and back side while it
-                  moves through shipping.
+                  Protective wrap, corner guards, and a snug box help keep every surface and edge
+                  protected in transit.
                 </p>
               </div>
             </article>
@@ -968,19 +983,49 @@ export default function ProductPageClient({
             <article className="product-proof-card">
               <div className="product-proof-image">
                 <OptimizedRawImage
-                  src="/product-support/canvas-quality-closeup.jpg"
-                  alt="Close-up of canvas print texture and wrapped canvas edge"
-                  aspectRatio="4 / 3"
-                  sizes="(max-width: 760px) 92vw, 50vw"
+                  src="/product-support/what-arrives-canvas-detail-v2.jpg"
+                  alt="Macro detail of woven canvas texture and a clean gallery-wrapped corner"
+                  aspectRatio="3 / 2"
+                  sizes="(max-width: 900px) 92vw, 33vw"
                   fill
                 />
               </div>
               <div className="product-proof-copy">
-                <p className="product-proof-step">02 · Craft</p>
-                <h3>Texture you can actually see</h3>
+                <div className="product-proof-kicker">
+                  <span className="product-proof-icon" aria-hidden="true">
+                    <BadgeCheck size={17} strokeWidth={2.2} />
+                  </span>
+                  <p className="product-proof-step">02 / Finished</p>
+                </div>
+                <h3>Detail in every edge</h3>
                 <p>
-                  A close-up look at the woven canvas surface, wrapped edge, and sturdy print
-                  construction.
+                  Fine woven texture, clean folds, and crisp matte color give the canvas a premium
+                  finish from every angle.
+                </p>
+              </div>
+            </article>
+
+            <article className="product-proof-card">
+              <div className="product-proof-image">
+                <OptimizedRawImage
+                  src="/product-support/what-arrives-ready-to-hang-v2.jpg"
+                  alt="Finished gallery-wrapped canvas being positioned on a wall"
+                  aspectRatio="3 / 2"
+                  sizes="(max-width: 900px) 92vw, 33vw"
+                  fill
+                />
+              </div>
+              <div className="product-proof-copy">
+                <div className="product-proof-kicker">
+                  <span className="product-proof-icon" aria-hidden="true">
+                    <Clock size={17} strokeWidth={2.2} />
+                  </span>
+                  <p className="product-proof-step">03 / Wall-ready</p>
+                </div>
+                <h3>Up in minutes</h3>
+                <p>
+                  Your canvas arrives stretched and ready to hang, so it can go from the box to
+                  your wall without extra setup.
                 </p>
               </div>
             </article>

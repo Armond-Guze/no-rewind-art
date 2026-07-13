@@ -93,7 +93,7 @@
       {
         "id": "48x24",
         "label": "48 x 24",
-        "priceInCents": 8999,
+        "priceInCents": 14999,
         "badge": "Best Value",
         "previewScale": 1.16,
         "legacyIds": [
@@ -103,7 +103,7 @@
       {
         "id": "60x30",
         "label": "60 x 30",
-        "priceInCents": 24499,
+        "priceInCents": 28499,
         "badge": "Museum",
         "previewScale": 1.22
       }
@@ -141,7 +141,7 @@
       {
         "id": "60x40",
         "label": "60 x 40",
-        "priceInCents": 29499,
+        "priceInCents": 32499,
         "badge": "Statement",
         "previewScale": 1.21
       }
