@@ -9,6 +9,9 @@ type EcommercePayload = {
   value?: number;
   transaction_id?: string;
   coupon?: string;
+  search_term?: string;
+  item_list_id?: string;
+  item_list_name?: string;
   items?: Array<{
     item_id: string;
     item_name: string;
@@ -17,6 +20,7 @@ type EcommercePayload = {
     quantity: number;
     item_variant?: string;
     variant?: string;
+    index?: number;
   }>;
 };
 
@@ -135,6 +139,7 @@ export function trackStorefrontEvent(eventName: string, payload: EcommercePayloa
 
   const metaEventByName: Record<string, string> = {
     view_item: 'ViewContent',
+    search: 'Search',
     add_to_cart: 'AddToCart',
     begin_checkout: 'InitiateCheckout',
     purchase: 'Purchase',

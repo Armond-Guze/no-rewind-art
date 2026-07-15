@@ -52,8 +52,12 @@ export async function generateStaticParams() {
   return getCollectionRouteSlugs(catalog).map((slug) => ({ slug }));
 }
 
-export default async function CollectionRoute({ params }) {
+export default async function CollectionRoute({ params, searchParams }) {
   const slug = await getSlug(params);
+  const resolvedSearchParams = await searchParams;
+  const initialSearchTerm = Array.isArray(resolvedSearchParams?.search)
+    ? resolvedSearchParams.search[0]
+    : resolvedSearchParams?.search || '';
   const routeSeo = await getRouteSeo(['collections', slug]);
 
   if (!routeSeo.exists) {
@@ -74,6 +78,7 @@ export default async function CollectionRoute({ params }) {
         allProducts={catalog.products}
         collection={collection}
         collections={catalog.collections}
+        initialSearchTerm={initialSearchTerm}
         products={getProductsForCollection(catalog, collection.slug)}
       />
     </>

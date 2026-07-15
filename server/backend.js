@@ -98,6 +98,104 @@ function normalizeNewsletterEmail(value) {
   return email;
 }
 
+function sanitizeAttributionValue(value, maxLength = 500) {
+  return String(value || '')
+    .replace(/[\u0000-\u001f\u007f]/g, ' ')
+    .trim()
+    .slice(0, maxLength);
+}
+
+function normalizeAttributionTouch(value) {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const source = sanitizeAttributionValue(value.source, 100);
+  const medium = sanitizeAttributionValue(value.medium, 100);
+  const landingPage = sanitizeAttributionValue(value.landingPage);
+
+  if (!source || !medium || !landingPage) {
+    return null;
+  }
+
+  return {
+    source,
+    medium,
+    campaign: sanitizeAttributionValue(value.campaign, 150),
+    content: sanitizeAttributionValue(value.content, 150),
+    term: sanitizeAttributionValue(value.term, 150),
+    referrer: sanitizeAttributionValue(value.referrer),
+    landingPage,
+    capturedAt: sanitizeAttributionValue(value.capturedAt, 40),
+    gclid: sanitizeAttributionValue(value.gclid, 250),
+    fbclid: sanitizeAttributionValue(value.fbclid, 250),
+  };
+}
+
+function normalizeCheckoutAttribution(value) {
+  const firstTouch = normalizeAttributionTouch(value?.firstTouch);
+  const lastTouch = normalizeAttributionTouch(value?.lastTouch);
+
+  if (!firstTouch && !lastTouch) {
+    return null;
+  }
+
+  return {
+    firstTouch: firstTouch || lastTouch,
+    lastTouch: lastTouch || firstTouch,
+  };
+}
+
+function compactMetadata(entries) {
+  return Object.fromEntries(
+    Object.entries(entries).filter(([, value]) => Boolean(value)),
+  );
+}
+
+function buildStripeAttributionMetadata(attribution) {
+  if (!attribution) {
+    return {};
+  }
+
+  return compactMetadata({
+    attributionSource: attribution.lastTouch.source,
+    attributionMedium: attribution.lastTouch.medium,
+    attributionCampaign: attribution.lastTouch.campaign,
+    attributionLanding: attribution.lastTouch.landingPage,
+    attributionReferrer: attribution.lastTouch.referrer,
+    attributionGclid: attribution.lastTouch.gclid,
+    attributionFbclid: attribution.lastTouch.fbclid,
+    firstTouchSource: attribution.firstTouch.source,
+    firstTouchMedium: attribution.firstTouch.medium,
+    firstTouchCampaign: attribution.firstTouch.campaign,
+    firstTouchLanding: attribution.firstTouch.landingPage,
+  });
+}
+
+function getAttributionFromStripeMetadata(metadata = {}) {
+  if (!metadata.attributionSource && !metadata.firstTouchSource) {
+    return null;
+  }
+
+  const lastTouch = normalizeAttributionTouch({
+    source: metadata.attributionSource || metadata.firstTouchSource,
+    medium: metadata.attributionMedium || metadata.firstTouchMedium || 'unknown',
+    campaign: metadata.attributionCampaign,
+    referrer: metadata.attributionReferrer,
+    landingPage: metadata.attributionLanding || metadata.firstTouchLanding || '/',
+    gclid: metadata.attributionGclid,
+    fbclid: metadata.attributionFbclid,
+  });
+  const firstTouch = normalizeAttributionTouch({
+    source: metadata.firstTouchSource || metadata.attributionSource,
+    medium: metadata.firstTouchMedium || metadata.attributionMedium || 'unknown',
+    campaign: metadata.firstTouchCampaign,
+    landingPage: metadata.firstTouchLanding || metadata.attributionLanding || '/',
+  });
+
+  return normalizeCheckoutAttribution({ firstTouch, lastTouch });
+}
+
 function getPaymentIntentId(session) {
   if (!session.payment_intent) {
     return null;
@@ -406,7 +504,7 @@ function buildLineItems(cartItems) {
   });
 }
 
-function buildCheckoutDraft(session, cartItems, customer = null) {
+function buildCheckoutDraft(session, cartItems, customer = null, attribution = null) {
   const amountSubtotal = cartItems.reduce((total, item) => total + item.lineTotal, 0);
 
   return {
@@ -429,6 +527,7 @@ function buildCheckoutDraft(session, cartItems, customer = null) {
         status: session.status,
         paymentStatus: session.payment_status,
       },
+      ...(attribution ? { attribution } : {}),
     },
   };
 }
@@ -474,6 +573,8 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
     ? existingOrder.items
     : await getLineItemsFromStripe(session.id);
   const paymentStatus = paymentStatusOverride || session.payment_status || 'pending';
+  const attribution =
+    existingOrder?.raw?.attribution || getAttributionFromStripeMetadata(session.metadata);
   const orderUpdate = {
     id: session.id,
     stripeSessionId: session.id,
@@ -496,6 +597,7 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
         paymentStatus: session.payment_status,
         customer: session.customer,
       },
+      ...(attribution ? { attribution } : {}),
     },
   };
 
@@ -744,6 +846,7 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
 
   const cartItems = await normalizeCartItems(body?.items);
   const customer = await getOptionalCustomerFromAuthorizationHeader(authorizationHeader);
+  const attribution = normalizeCheckoutAttribution(body?.attribution);
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     line_items: buildLineItems(cartItems),
@@ -784,10 +887,11 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
     metadata: {
       brand: 'Armoze',
       orderSource: 'next-storefront',
+      ...buildStripeAttributionMetadata(attribution),
     },
   });
 
-  await orderStore.upsertOrder(buildCheckoutDraft(session, cartItems, customer));
+  await orderStore.upsertOrder(buildCheckoutDraft(session, cartItems, customer, attribution));
 
   return { url: session.url };
 }

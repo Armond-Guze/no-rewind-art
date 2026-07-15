@@ -1,15 +1,17 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Star } from 'lucide-react';
 import type { Collection, Product } from '../../data/products';
 import {
   formatPrice,
   getDisplayArtworkShape,
+  hasProductSpecificReviewSummary,
 } from './product-utils';
 import { OptimizedRawImage, ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
+import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
 
 const collectionNavItems = [
   { slug: 'best-sellers', label: 'Best Sellers' },
@@ -27,8 +29,8 @@ const shapeFilters = [
 type ShapeFilter = (typeof shapeFilters)[number]['id'];
 type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'title';
 
-function getCardBadge(product: Product) {
-  if (product.collectionSlugs.includes('best-sellers')) {
+function getCardBadge(product: Product, collectionSlug: string, index: number) {
+  if (collectionSlug === 'best-sellers' && index < 4) {
     return 'Best Seller';
   }
 
@@ -37,6 +39,29 @@ function getCardBadge(product: Product) {
   }
 
   return null;
+}
+
+function normalizeSearchValue(value: string) {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+function productMatchesSearch(product: Product, searchTerm: string) {
+  const tokens = normalizeSearchValue(searchTerm).split(/\s+/).filter(Boolean);
+  const searchableText = normalizeSearchValue([
+    product.title,
+    product.description,
+    product.longDescription,
+    product.label,
+    product.tone,
+    ...product.collectionSlugs,
+    ...product.details,
+  ].join(' '));
+
+  return tokens.every((token) => searchableText.includes(token));
 }
 
 function getHoverImage(product: Product) {
@@ -52,21 +77,27 @@ function getHoverImage(product: Product) {
 export default function CollectionPageClient({
   allProducts,
   collection,
+  initialSearchTerm,
   products,
 }: {
   allProducts: Product[];
   collection: Collection;
   collections: Collection[];
+  initialSearchTerm?: string;
   products: Product[];
 }) {
   const [shapeFilter, setShapeFilter] = useState<ShapeFilter>('all');
   const [sortOption, setSortOption] = useState<SortOption>('featured');
+  const searchTerm = initialSearchTerm?.trim() || '';
 
   const visibleProducts = useMemo(() => {
+    const searchResults = searchTerm
+      ? allProducts.filter((product) => productMatchesSearch(product, searchTerm))
+      : products;
     const filtered =
       shapeFilter === 'all'
-        ? products
-        : products.filter((product) => getDisplayArtworkShape(product) === shapeFilter);
+        ? searchResults
+        : searchResults.filter((product) => getDisplayArtworkShape(product) === shapeFilter);
     const sorted = [...filtered];
 
     if (sortOption === 'price-asc') {
@@ -78,7 +109,32 @@ export default function CollectionPageClient({
     }
 
     return sorted;
-  }, [products, shapeFilter, sortOption]);
+  }, [allProducts, products, searchTerm, shapeFilter, sortOption]);
+
+  useEffect(() => {
+    if (searchTerm) {
+      trackStorefrontEvent('search', { search_term: searchTerm });
+    }
+  }, [searchTerm]);
+
+  useEffect(() => {
+    trackStorefrontEvent('view_item_list', {
+      item_list_id: searchTerm ? 'search-results' : collection.slug,
+      item_list_name: searchTerm ? `Search: ${searchTerm}` : collection.title,
+      items: visibleProducts.slice(0, 50).map((product, index) => ({
+        ...getProductTrackingItem(product),
+        index,
+      })),
+    });
+  }, [collection.slug, collection.title, searchTerm, visibleProducts]);
+
+  function trackProductSelection(product: Product, index: number) {
+    trackStorefrontEvent('select_item', {
+      item_list_id: searchTerm ? 'search-results' : collection.slug,
+      item_list_name: searchTerm ? `Search: ${searchTerm}` : collection.title,
+      items: [{ ...getProductTrackingItem(product), index }],
+    });
+  }
 
   return (
     <StorefrontShell products={allProducts}>
@@ -101,7 +157,15 @@ export default function CollectionPageClient({
 
         <section className="collection-heading">
           <p className="eyebrow">Shop Prints</p>
-          <h1>{collection.title}</h1>
+          <h1>{searchTerm ? `Search results for “${searchTerm}”` : collection.title}</h1>
+          {searchTerm ? (
+            <p className="collection-search-summary">
+              {visibleProducts.length
+                ? `${visibleProducts.length} matching print${visibleProducts.length === 1 ? '' : 's'}`
+                : 'No matching prints'}
+              <Link href={`/collections/${collection.slug}`}>Clear search</Link>
+            </p>
+          ) : null}
         </section>
 
         <section className="collection-filters" aria-label="Filter and sort products">
@@ -112,6 +176,7 @@ export default function CollectionPageClient({
                 key={filter.id}
                 type="button"
                 onClick={() => setShapeFilter(filter.id)}
+                aria-pressed={filter.id === shapeFilter}
               >
                 {filter.label}
               </button>
@@ -133,12 +198,20 @@ export default function CollectionPageClient({
 
         <section className="listing-grid" aria-label={`${collection.title} products`}>
           {visibleProducts.map((product, index) => {
-            const badge = getCardBadge(product);
+            const badge = getCardBadge(
+              product,
+              searchTerm ? 'search-results' : collection.slug,
+              index,
+            );
             const hoverImage = getHoverImage(product);
 
             return (
               <article className="listing-card" key={product.id}>
-                <Link className="listing-card-image" href={`/products/${product.slug}`}>
+                <Link
+                  className="listing-card-image"
+                  href={`/products/${product.slug}`}
+                  onClick={() => trackProductSelection(product, index)}
+                >
                   {badge ? <span className="listing-card-badge">{badge}</span> : null}
                   <ProductImage product={product} priority={index < 2} />
                   {hoverImage ? (
@@ -154,11 +227,16 @@ export default function CollectionPageClient({
                 </Link>
                 <div className="listing-card-copy">
                   <h2>
-                    <Link href={`/products/${product.slug}`}>{product.title}</Link>
+                    <Link
+                      href={`/products/${product.slug}`}
+                      onClick={() => trackProductSelection(product, index)}
+                    >
+                      {product.title}
+                    </Link>
                   </h2>
                   <div className="listing-card-meta">
                     <p>{formatPrice(product.priceInCents)}</p>
-                    {product.rating && product.reviewCount ? (
+                    {hasProductSpecificReviewSummary(product) ? (
                       <p className="listing-card-rating">
                         <Star aria-hidden="true" fill="currentColor" size={13} strokeWidth={2.4} />
                         {product.rating.toFixed(1)}
@@ -172,10 +250,16 @@ export default function CollectionPageClient({
           })}
           {!visibleProducts.length ? (
             <p className="collection-empty">
-              No {shapeFilter} prints in this collection yet.{' '}
-              <button type="button" onClick={() => setShapeFilter('all')}>
-                Show everything
-              </button>
+              {searchTerm
+                ? `Nothing matched “${searchTerm}”${shapeFilter === 'all' ? '.' : ` in ${shapeFilter} prints.`}`
+                : `No ${shapeFilter} prints in this collection yet.`}{' '}
+              {shapeFilter !== 'all' ? (
+                <button type="button" onClick={() => setShapeFilter('all')}>
+                  Show every orientation
+                </button>
+              ) : searchTerm ? (
+                <Link href={`/collections/${collection.slug}`}>Browse all prints</Link>
+              ) : null}
             </p>
           ) : null}
         </section>

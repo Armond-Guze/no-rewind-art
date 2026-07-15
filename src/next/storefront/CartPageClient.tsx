@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { Check, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import {
   addStoredCartItem,
   cartUpdatedEvent,
@@ -27,6 +27,7 @@ import {
 } from './product-utils';
 import { supabaseClient } from '../../lib/supabase';
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
+import { getCheckoutAttribution } from './attribution';
 import { GoogleCustomerReviewsOptIn } from './GoogleCustomerReviewsOptIn';
 import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
@@ -150,6 +151,7 @@ export default function CartPageClient({
   const [cartReady, setCartReady] = useState(false);
   const [checkoutState, setCheckoutState] = useState<CheckoutState>('idle');
   const [checkoutError, setCheckoutError] = useState('');
+  const lastTrackedCartView = useRef('');
 
   const cartProducts = useMemo(() => buildCartLines(cart, products), [cart, products]);
   const subtotal = useMemo(() => getCartSubtotal(cartProducts), [cartProducts]);
@@ -162,16 +164,22 @@ export default function CartPageClient({
   }, [cartProducts, products]);
 
   function addCrossSellProduct(product: Product) {
+    const sizeOption = getSizeOption(
+      product,
+      product.defaultSizeId ?? product.sizeOptions[0]?.id ?? '',
+    );
+    const frameOption = getFrameOption(product, product.frameOptions[0]?.id ?? 'canvas', sizeOption);
+
     addStoredCartItem({
       productId: product.id,
-      sizeId: product.defaultSizeId ?? product.sizeOptions[0]?.id ?? '',
-      frameId: product.frameOptions[0]?.id ?? 'canvas',
+      sizeId: sizeOption.id,
+      frameId: frameOption.id,
       quantity: 1,
     });
     trackStorefrontEvent('add_to_cart', {
       currency: 'USD',
-      value: product.priceInCents / 100,
-      items: [],
+      value: getConfiguredUnitPrice(product, sizeOption, frameOption) / 100,
+      items: [getProductTrackingItem(product, sizeOption, frameOption)],
     });
   }
 
@@ -190,6 +198,29 @@ export default function CartPageClient({
       window.removeEventListener('storage', syncStoredCart);
     };
   }, []);
+
+  useEffect(() => {
+    if (!cartReady || !cartProducts.length || checkoutResult === 'success') {
+      return;
+    }
+
+    const cartViewKey = cartProducts
+      .map((item) => `${item.lineKey}:${item.quantity}`)
+      .join('|');
+
+    if (cartViewKey === lastTrackedCartView.current) {
+      return;
+    }
+
+    lastTrackedCartView.current = cartViewKey;
+    trackStorefrontEvent('view_cart', {
+      currency: 'USD',
+      value: subtotal / 100,
+      items: cartProducts.map((item) =>
+        getProductTrackingItem(item.product, item.sizeOption, item.frameOption, item.quantity),
+      ),
+    });
+  }, [cartProducts, cartReady, checkoutResult, subtotal]);
 
   useEffect(() => {
     if (!cartReady || !merchantItemId) {
@@ -348,6 +379,7 @@ export default function CartPageClient({
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
+          attribution: getCheckoutAttribution(),
           items: cartProducts.map((item) => ({
             id: item.productId,
             sizeId: item.sizeOption.id,
@@ -399,8 +431,8 @@ export default function CartPageClient({
             <p className="eyebrow">Checkout</p>
             <h1>Your Cart</h1>
             <p>
-              Choose your prints here, then complete payment securely through Stripe
-              Checkout. Shipping, tax, and payment details are handled at checkout.
+              Review your prints, then continue to secure checkout. Shipping and payment
+              details are confirmed before you place the order.
             </p>
           </div>
 
@@ -471,9 +503,15 @@ export default function CartPageClient({
                   {checkoutState === 'loading' ? 'Opening Checkout' : 'Secure Checkout'}
                 </button>
 
+                <ul className="cart-confidence" aria-label="Order benefits">
+                  <li><Check aria-hidden="true" size={14} /> Free U.S. shipping</li>
+                  <li><Check aria-hidden="true" size={14} /> 30-day returns</li>
+                  <li><Check aria-hidden="true" size={14} /> Secure payment</li>
+                </ul>
+
                 {checkoutState === 'error' ? (
                   <p className="checkout-error">
-                    {checkoutError || 'Checkout could not be started. Check your Stripe settings and try again.'}
+                    {checkoutError || 'Checkout could not be started. Please try again.'}
                   </p>
                 ) : null}
 

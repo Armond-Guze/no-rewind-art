@@ -12,6 +12,16 @@ export function formatPrice(cents: number, currency = 'USD') {
   }).format(cents / 100);
 }
 
+export function hasProductSpecificReviewSummary(
+  product: Pick<Product, 'rating' | 'reviewCount'>,
+) {
+  const rating = Number(product.rating || 0);
+  const reviewCount = Number(product.reviewCount || 0);
+  const isLegacyCatalogPlaceholder = rating === 4.8 && reviewCount === 61;
+
+  return rating > 0 && reviewCount > 0 && !isLegacyCatalogPlaceholder;
+}
+
 export function getBaseSizeOption(product: Product) {
   return product.sizeOptions[0];
 }

@@ -20,6 +20,7 @@ import {
   Inbox,
   LogOut,
   Mail,
+  MousePointerClick,
   PackageCheck,
   Plus,
   RefreshCw,
@@ -55,6 +56,22 @@ type AdminOrderItem = {
   lineTotal: number;
 };
 
+type AdminAttributionTouch = {
+  source?: string;
+  medium?: string;
+  campaign?: string;
+  referrer?: string;
+  landingPage?: string;
+  capturedAt?: string;
+  gclid?: string;
+  fbclid?: string;
+};
+
+type AdminOrderAttribution = {
+  firstTouch?: AdminAttributionTouch;
+  lastTouch?: AdminAttributionTouch;
+};
+
 type AdminOrder = {
   id: string;
   stripeSessionId: string;
@@ -72,6 +89,9 @@ type AdminOrder = {
   ownerNotificationSentAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  raw?: {
+    attribution?: AdminOrderAttribution;
+  };
 };
 
 type AdminSummary = {
@@ -157,6 +177,41 @@ function shortenIdentifier(value: string) {
 
 function shortenNotificationIdentifiers(value: string) {
   return value.replace(/\b(?:cs|pi|ch|ord|notif)_[A-Za-z0-9_]{24,}\b/g, shortenIdentifier);
+}
+
+function titleCaseAttributionValue(value: string) {
+  return value
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatAttributionSource(touch: AdminAttributionTouch | undefined) {
+  if (!touch?.source) {
+    return 'Not captured';
+  }
+
+  if (touch.source === 'direct') {
+    return 'Direct visit';
+  }
+
+  const source = titleCaseAttributionValue(touch.source.replace(/^www\./, ''));
+  const medium = touch.medium && touch.medium !== 'none'
+    ? titleCaseAttributionValue(touch.medium)
+    : '';
+
+  return medium ? `${source} · ${medium}` : source;
+}
+
+function formatReferrer(value: string | undefined) {
+  if (!value) {
+    return '';
+  }
+
+  try {
+    return new URL(value).hostname.replace(/^www\./, '');
+  } catch {
+    return value;
+  }
 }
 
 function getFulfillmentLabel(value: string) {
@@ -840,6 +895,10 @@ export default function AdminDashboardClient() {
         order.customerEmail,
         order.trackingNumber,
         order.carrier,
+        order.raw?.attribution?.firstTouch?.source,
+        order.raw?.attribution?.firstTouch?.campaign,
+        order.raw?.attribution?.lastTouch?.source,
+        order.raw?.attribution?.lastTouch?.campaign,
         ...order.items.map((item) => item.title),
       ]
         .join(' ')
@@ -1438,6 +1497,9 @@ export default function AdminDashboardClient() {
               const isPaid = order.paymentStatus === 'paid';
               const hasTracking = Boolean(order.trackingNumber || order.trackingUrl);
               const orderIdentifier = order.stripeSessionId || order.id;
+              const attribution = order.raw?.attribution;
+              const lastTouch = attribution?.lastTouch || attribution?.firstTouch;
+              const firstTouch = attribution?.firstTouch;
 
               return (
                 <article className="admin-order" key={order.id}>
@@ -1485,6 +1547,32 @@ export default function AdminDashboardClient() {
                         )}
                       </span>
                     ) : null}
+                  </div>
+
+                  <div className={`admin-order-attribution${lastTouch ? '' : ' is-empty'}`}>
+                    <MousePointerClick aria-hidden="true" size={17} />
+                    <div className="admin-order-attribution-source">
+                      <span>How they found you</span>
+                      <strong>{formatAttributionSource(lastTouch)}</strong>
+                    </div>
+                    {lastTouch ? (
+                      <dl>
+                        {lastTouch.campaign ? (
+                          <div><dt>Campaign</dt><dd>{lastTouch.campaign}</dd></div>
+                        ) : null}
+                        {lastTouch.referrer ? (
+                          <div><dt>Referrer</dt><dd>{formatReferrer(lastTouch.referrer)}</dd></div>
+                        ) : null}
+                        {lastTouch.landingPage ? (
+                          <div><dt>Landing page</dt><dd>{lastTouch.landingPage}</dd></div>
+                        ) : null}
+                        {firstTouch?.source && firstTouch.source !== lastTouch.source ? (
+                          <div><dt>First touch</dt><dd>{formatAttributionSource(firstTouch)}</dd></div>
+                        ) : null}
+                      </dl>
+                    ) : (
+                      <small>Available for orders started after this tracking update.</small>
+                    )}
                   </div>
 
                   {order.items.length ? (

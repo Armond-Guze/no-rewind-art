@@ -9,7 +9,7 @@ import {
   getProductSeoAliases,
 } from '../../server/seo-copy.js';
 import { policyPages } from './storefront/policy-content.ts';
-import { supportEmail } from './storefront/product-utils.ts';
+import { hasProductSpecificReviewSummary, supportEmail } from './storefront/product-utils.ts';
 import {
   getProductsForSeoPageFactoryCollection,
   getSeoPageFactoryCollection,
@@ -201,7 +201,7 @@ export function getProductStructuredData(product) {
     value: alias,
   }));
   const aggregateRating =
-    product.rating && product.reviewCount
+    hasProductSpecificReviewSummary(product)
       ? {
           '@type': 'AggregateRating',
           ratingValue: Number(product.rating).toFixed(1),

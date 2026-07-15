@@ -16,7 +16,7 @@ import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 import { useUrlSearchParam } from './url-search';
 
 const heroWordPool = ['present', 'driven', 'focused', 'steady', 'bold'];
-const newArrivalsMobileReelCount = 8;
+const newArrivalsMobileReelCount = 2;
 
 type HomepageMediaItem =
   | {
@@ -106,9 +106,6 @@ function HomeProductCard({
         <ProductImage product={product} priority={priority} />
       </Link>
       <div className="product-copy">
-        <span className="product-card-thumb" aria-hidden="true">
-          <ProductImage product={product} />
-        </span>
         <div className="product-title-row">
           <h3>
             <Link href={`/products/${product.slug}`} tabIndex={interactive ? undefined : -1}>
@@ -201,19 +198,6 @@ function HomeImageCard({
           href={`/products/${overlayProduct.slug}`}
           tabIndex={interactive ? undefined : -1}
         >
-          <span className="product-card-thumb" aria-hidden="true">
-            {overlayProduct.image ? (
-              <img
-                alt=""
-                className="product-card-thumb-image"
-                decoding="async"
-                loading="lazy"
-                src={optimizeSanityImageUrl(overlayProduct.image, 200)}
-              />
-            ) : (
-              <ProductImage product={overlayProduct} />
-            )}
-          </span>
           <div className="product-title-row">
             <h3>
               {overlayProduct.title}
@@ -401,13 +385,13 @@ function BestSellersCarousel({
       ].filter(Boolean).join(' ')}
       ref={carouselRef}
     >
-      {carouselItems.map(({ clone, item, key, realStart }, index) => (
+      {carouselItems.map(({ clone, item, key, realStart }) => (
         <HomeMediaCard
           className={clone ? 'best-sellers-edge-clone' : undefined}
           interactive={!clone}
           item={item}
           key={key}
-          priority={!clone && index < 3}
+          priority={false}
           realStart={realStart}
           showImageProductOverlay
         />
@@ -475,7 +459,7 @@ function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
                 const className = `new-arrivals-mobile-slide new-arrivals-mobile-slide-${(index % 3) + 1}`;
                 const key = `${reelIndex}-${index}-${item.id}`;
                 const ariaHidden = reelIndex > 0 ? true : undefined;
-                const loading = reelIndex < 2 ? 'eager' : 'lazy';
+                const loading = 'lazy';
 
                 if (item.type === 'image') {
                   const { image } = item;
@@ -484,7 +468,7 @@ function NewArrivalsMobileShowcase({ items }: { items: HomepageMediaItem[] }) {
                       alt={reelIndex > 0 ? '' : image.alt || 'Armoze new arrivals artwork'}
                       height={image.height || undefined}
                       loading={loading}
-                      src={image.url}
+                      src={optimizeSanityImageUrl(image.url, 600)}
                       width={image.width || undefined}
                     />
                   );
@@ -554,6 +538,7 @@ function StorefrontHeroMedia({
           height={fallbackImage.height || undefined}
           loading="eager"
           decoding="async"
+          fetchPriority="high"
         />
       </picture>
     </div>
@@ -708,6 +693,15 @@ export default function HomePageClient({
     hasHomepageHeroMedia && hasHomepageMobileHeroMedia ? 'has-mobile-hero-media' : undefined,
     hasHomepageHeroMedia && hasHomepageDesktopHeroMedia ? 'has-desktop-hero-media' : undefined,
   ].filter(Boolean).join(' ');
+  const nextHeroSlideIndex = heroSlides.length
+    ? (activeHeroSlideIndex + 1) % heroSlides.length
+    : 0;
+  const renderedHeroSlides =
+    hasHomepageMobileHeroMedia && hasHomepageDesktopHeroMedia
+      ? []
+      : heroSlides
+          .map((slide, index) => ({ slide, index }))
+          .filter(({ index }) => index === activeHeroSlideIndex || index === nextHeroSlideIndex);
 
   useEffect(() => {
     if (heroSlides.length <= 1 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -782,7 +776,7 @@ export default function HomePageClient({
                 desktopImage={homepageSettings?.heroDesktopImage}
               />
             ) : null}
-            {heroSlides.map((slide, index) => {
+            {renderedHeroSlides.map(({ slide, index }) => {
               const className = `storefront-hero-art storefront-hero-art-${index + 1}${
                 slide.type === 'image' ? ' storefront-hero-image-slide' : ''
               }${index === activeHeroSlideIndex ? ' is-active' : ''}`;
@@ -794,7 +788,7 @@ export default function HomePageClient({
                     alt={slide.image.alt || 'Armoze featured artwork'}
                     decoding="async"
                     height={slide.image.height || undefined}
-                    loading={index === 0 ? 'eager' : 'lazy'}
+                    loading={!hasHomepageHeroMedia && index === activeHeroSlideIndex ? 'eager' : 'lazy'}
                     src={optimizeSanityImageUrl(slide.image.url, 1600)}
                     width={slide.image.width || undefined}
                   />
@@ -830,7 +824,10 @@ export default function HomePageClient({
                   aria-hidden={index === activeHeroSlideIndex ? undefined : true}
                   tabIndex={index === activeHeroSlideIndex ? undefined : -1}
                 >
-                  <ProductImage product={slide.product} priority={index === 0} />
+                  <ProductImage
+                    product={slide.product}
+                    priority={!hasHomepageHeroMedia && index === activeHeroSlideIndex}
+                  />
                   <span>{slide.product.title}</span>
                 </Link>
               );
@@ -895,7 +892,10 @@ export default function HomePageClient({
 
         <section className="storefront-social-proof" aria-labelledby="storefront-social-proof-title">
           <div className="storefront-social-proof-heading">
+            <p className="eyebrow">Customer feedback</p>
             <h2 id="storefront-social-proof-title">Reviews</h2>
+            <p>Feedback shared by customers who purchased through our Etsy shop.</p>
+            <span className="storefront-social-proof-source">Source: Armoze Etsy shop</span>
           </div>
 
           <div className="storefront-review-carousel" aria-label="Buyer reviews">
@@ -935,14 +935,14 @@ export default function HomePageClient({
                 <HomeImageCard
                   image={image}
                   key={`${image.url}-${index}`}
-                  priority={index < 2}
+                  priority={false}
                 />
               ))
-              : newArrivalProducts.map((product, index) => (
+              : newArrivalProducts.map((product) => (
                 <HomeProductCard
                   key={product.id}
                   product={product}
-                  priority={index < 2}
+                  priority={false}
                 />
               ))}
           </div>

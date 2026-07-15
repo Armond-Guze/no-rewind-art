@@ -32,6 +32,7 @@ import {
   getFramePreviewVariant,
   getProductAspectRatio,
   getProductMediaGallery,
+  hasProductSpecificReviewSummary,
   isProductMockupImage,
   isSideMockupImage,
   launchOfferCode,
@@ -42,6 +43,7 @@ import {
   initStorefrontTracking,
   trackStorefrontEvent,
 } from './analytics';
+import { getCheckoutAttribution } from './attribution';
 import {
   OptimizedCanvasImage,
   OptimizedRawImage,
@@ -124,7 +126,7 @@ function StoreRating({ product }: { product: Product }) {
   const rating = Number(product.rating || 0);
   const reviewCount = Number(product.reviewCount || 0);
 
-  if (!rating || !reviewCount) {
+  if (!hasProductSpecificReviewSummary(product)) {
     return null;
   }
 
@@ -362,8 +364,9 @@ export default function ProductPageClient({
   const [shippingOpen, setShippingOpen] = useState(false);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [deliveryEstimate, setDeliveryEstimate] = useState('');
+  const [deliveryEstimate] = useState(getDeliveryEstimate);
   const [checkoutError, setCheckoutError] = useState('');
+  const [showMobilePurchaseBar, setShowMobilePurchaseBar] = useState(false);
   const galleryItems = getProductMediaGallery(product);
   const selectedGalleryItem = galleryItems[selectedImage] ?? galleryItems[0];
   const selectedGalleryImage =
@@ -373,6 +376,7 @@ export default function ProductPageClient({
   const mobileGalleryRef = useRef<HTMLDivElement | null>(null);
   const mobileScrollFrame = useRef<number | null>(null);
   const mobileSwipeStart = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const purchaseActionsRef = useRef<HTMLDivElement | null>(null);
   const isMockupGalleryImage = isProductMockupImage(product, selectedGalleryImage);
   const isSideGalleryImage = isSideMockupImage(selectedGalleryImage);
   const isFrontMockupGalleryImage = isMockupGalleryImage && !isSideGalleryImage;
@@ -478,7 +482,18 @@ export default function ProductPageClient({
   }
 
   useEffect(() => {
-    setDeliveryEstimate(getDeliveryEstimate());
+    const purchaseActions = purchaseActionsRef.current;
+
+    if (!purchaseActions || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setShowMobilePurchaseBar(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+    });
+
+    observer.observe(purchaseActions);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -560,6 +575,7 @@ export default function ProductPageClient({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          attribution: getCheckoutAttribution(),
           items: [
             {
               id: product.id,
@@ -840,7 +856,10 @@ export default function ProductPageClient({
 
                   return (
                     <button
-                      className={index === selectedSize ? 'selected' : ''}
+                      className={[
+                        index === selectedSize ? 'selected' : '',
+                        badge ? 'has-badge' : '',
+                      ].filter(Boolean).join(' ')}
                       key={option.id}
                       type="button"
                       onClick={() => setSelectedSizeId(option.id)}
@@ -857,25 +876,27 @@ export default function ProductPageClient({
             </div>
 
             <div className="installment-note">
-              Pay in 4 interest-free installments with Stripe-compatible payment methods at checkout.
+              Pay in 4 interest-free installments with eligible payment methods at checkout.
             </div>
 
-            <button
-              className="button button-secondary listing-cart-button listing-buy-now-button"
-              type="button"
-              disabled={checkoutState === 'loading'}
-              onClick={() => void startBuyNow()}
-            >
-              {checkoutState === 'loading' ? 'Opening checkout' : 'Buy it now'}
-            </button>
+            <div className="listing-purchase-actions" ref={purchaseActionsRef}>
+              <button
+                className="button button-secondary listing-cart-button listing-buy-now-button"
+                type="button"
+                disabled={checkoutState === 'loading'}
+                onClick={() => void startBuyNow()}
+              >
+                {checkoutState === 'loading' ? 'Opening checkout' : 'Buy it now'}
+              </button>
 
-            <button
-              className="button button-primary listing-cart-button listing-add-cart-button"
-              type="button"
-              onClick={addSelectionToCart}
-            >
-              Add to cart
-            </button>
+              <button
+                className="button button-primary listing-cart-button listing-add-cart-button"
+                type="button"
+                onClick={addSelectionToCart}
+              >
+                Add to cart
+              </button>
+            </div>
 
             {deliveryEstimate ? (
               <p className="product-delivery-note">
@@ -1090,10 +1111,13 @@ export default function ProductPageClient({
 
         <section className="storefront-social-proof product-reviews" aria-labelledby="product-reviews-title">
           <div className="storefront-social-proof-heading">
+            <p className="eyebrow">Customer feedback</p>
             <h2 id="product-reviews-title">Reviews</h2>
+            <p>Store-wide feedback from customers who purchased through our Etsy shop.</p>
+            <span className="storefront-social-proof-source">Source: Armoze Etsy shop</span>
           </div>
           <div className="storefront-review-carousel" aria-label="Buyer reviews">
-            {etsyReviewHighlights.slice(0, 3).map((review) => (
+            {etsyReviewHighlights.map((review) => (
               <article className="storefront-review-card" key={`${review.name}-${review.date}`}>
                 <div className="storefront-review-stars" aria-label={`${review.rating} out of 5 stars`}>
                   {Array.from({ length: review.rating }).map((_, starIndex) => (
@@ -1110,6 +1134,24 @@ export default function ProductPageClient({
             ))}
           </div>
         </section>
+
+        <div
+          className={`product-mobile-purchase-bar${showMobilePurchaseBar ? ' is-visible' : ''}`}
+          aria-hidden={showMobilePurchaseBar ? undefined : true}
+        >
+          <div>
+            <span>{selectedOption.label} · {selectedFrameName}</span>
+            <strong>{formatPrice(selectedUnitPrice)}</strong>
+          </div>
+          <button
+            className="button button-primary"
+            type="button"
+            tabIndex={showMobilePurchaseBar ? undefined : -1}
+            onClick={addSelectionToCart}
+          >
+            Add to cart
+          </button>
+        </div>
 
         {lightboxOpen && selectedGalleryImage ? (
           <div

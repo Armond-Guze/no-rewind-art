@@ -28,6 +28,7 @@ import {
   supportMailto,
 } from './product-utils';
 import { getProductTrackingItem, initStorefrontTracking, trackStorefrontEvent } from './analytics';
+import { captureStorefrontAttribution, getCheckoutAttribution } from './attribution';
 import { ProductImage } from './OptimizedArtwork';
 
 const newsletterPopupDelayMs = 12000;
@@ -46,6 +47,7 @@ export function StorefrontTracker({
   const pathname = usePathname();
 
   useEffect(() => {
+    captureStorefrontAttribution();
     initStorefrontTracking();
     trackStorefrontEvent('page_view');
   }, [pathname]);
@@ -853,6 +855,7 @@ function CartDrawer({
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
+          attribution: getCheckoutAttribution(),
           items: cartLines.map((item) => ({
             id: item.productId,
             sizeId: item.sizeOption.id,
