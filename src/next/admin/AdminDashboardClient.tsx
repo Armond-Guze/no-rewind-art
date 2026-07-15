@@ -3,22 +3,32 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type FormEvent,
 } from 'react';
 import {
+  Activity,
   Bell,
   Box,
+  Check,
+  Copy,
   DollarSign,
+  ExternalLink,
   Inbox,
   LogOut,
   Mail,
   PackageCheck,
   Plus,
   RefreshCw,
+  Search,
+  ShieldCheck,
   ShoppingBag,
+  Store,
   Trash2,
+  Truck,
   Volume2,
   VolumeX,
 } from 'lucide-react';
@@ -102,6 +112,11 @@ type AdminProductDraft = Product & {
   collectionSlugsText: string;
 };
 
+type AdminView = 'orders' | 'catalog' | 'activity';
+type AdminOrderFilter = 'action' | 'all' | 'unpaid' | 'complete';
+
+const adminSessionEvent = 'armoze-admin-session';
+
 const emptyAdminSummary: AdminSummary = {
   orderCount: 0,
   paidOrderCount: 0,
@@ -109,6 +124,7 @@ const emptyAdminSummary: AdminSummary = {
   totalRevenue: 0,
   averageOrderValue: 0,
 };
+const emptyAdminOrders: AdminOrder[] = [];
 
 const fulfillmentStatusOptions = [
   { value: 'new', label: 'New' },
@@ -129,6 +145,52 @@ function formatDateTime(value: string | null | undefined) {
     hour: 'numeric',
     minute: '2-digit',
   }).format(new Date(value));
+}
+
+function shortenIdentifier(value: string) {
+  if (value.length <= 24) {
+    return value;
+  }
+
+  return `${value.slice(0, 12)}...${value.slice(-7)}`;
+}
+
+function shortenNotificationIdentifiers(value: string) {
+  return value.replace(/\b(?:cs|pi|ch|ord|notif)_[A-Za-z0-9_]{24,}\b/g, shortenIdentifier);
+}
+
+function getFulfillmentLabel(value: string) {
+  return fulfillmentStatusOptions.find((option) => option.value === value)?.label || value;
+}
+
+function subscribeToAdminSession(onStoreChange: () => void) {
+  window.addEventListener('storage', onStoreChange);
+  window.addEventListener(adminSessionEvent, onStoreChange);
+
+  return () => {
+    window.removeEventListener('storage', onStoreChange);
+    window.removeEventListener(adminSessionEvent, onStoreChange);
+  };
+}
+
+function getAdminSessionToken() {
+  return window.sessionStorage.getItem('armoze_admin_token') || '';
+}
+
+function getServerAdminSessionToken() {
+  return '';
+}
+
+function subscribeToHydration() {
+  return () => {};
+}
+
+function getClientHydrationStatus() {
+  return true;
+}
+
+function getServerHydrationStatus() {
+  return false;
 }
 
 async function fetchAdminDashboard(adminToken: string) {
@@ -328,8 +390,15 @@ async function playOrderDing() {
 
 export default function AdminDashboardClient() {
   const [tokenInput, setTokenInput] = useState('');
-  const [adminToken, setAdminToken] = useState(() =>
-    typeof window === 'undefined' ? '' : window.sessionStorage.getItem('armoze_admin_token') || '',
+  const adminToken = useSyncExternalStore(
+    subscribeToAdminSession,
+    getAdminSessionToken,
+    getServerAdminSessionToken,
+  );
+  const hasHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationStatus,
+    getServerHydrationStatus,
   );
   const [dashboard, setDashboard] = useState<AdminDashboardResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -342,6 +411,12 @@ export default function AdminDashboardClient() {
   const [productDraft, setProductDraft] = useState<AdminProductDraft | null>(null);
   const [savingProduct, setSavingProduct] = useState(false);
   const [productNotice, setProductNotice] = useState('');
+  const [activeView, setActiveView] = useState<AdminView>('orders');
+  const [orderFilter, setOrderFilter] = useState<AdminOrderFilter>('action');
+  const [orderSearch, setOrderSearch] = useState('');
+  const [productSearch, setProductSearch] = useState('');
+  const [copiedOrderId, setCopiedOrderId] = useState('');
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const knownNotificationIds = useRef<Set<string>>(new Set());
 
   const commitDashboardData = useCallback(
@@ -355,6 +430,7 @@ export default function AdminDashboardClient() {
         knownNotificationIds.current.add(notification.id);
       });
       setDashboard(data);
+      setLastUpdatedAt(new Date().toISOString());
 
       if (options.allowSound && notificationSoundEnabled && newOrderAlerts.length) {
         void playOrderDing().catch((soundError) => {
@@ -473,7 +549,7 @@ export default function AdminDashboardClient() {
     }
 
     window.sessionStorage.setItem('armoze_admin_token', nextToken);
-    setAdminToken(nextToken);
+    window.dispatchEvent(new Event(adminSessionEvent));
     setTokenInput('');
     window.scrollTo({ top: 0 });
   }
@@ -497,11 +573,27 @@ export default function AdminDashboardClient() {
 
   function handleLogout() {
     window.sessionStorage.removeItem('armoze_admin_token');
-    setAdminToken('');
+    window.dispatchEvent(new Event(adminSessionEvent));
     setDashboard(null);
     setError('');
     setNotificationSoundEnabled(false);
     knownNotificationIds.current.clear();
+  }
+
+  async function copyOrderIdentifier(order: AdminOrder) {
+    const identifier = order.stripeSessionId || order.id;
+
+    setError('');
+
+    try {
+      await navigator.clipboard.writeText(identifier);
+      setCopiedOrderId(order.id);
+      window.setTimeout(() => {
+        setCopiedOrderId((currentOrderId) => (currentOrderId === order.id ? '' : currentOrderId));
+      }, 1800);
+    } catch {
+      setError('Order ID could not be copied.');
+    }
   }
 
   function replaceDashboardOrder(order: AdminOrder) {
@@ -707,15 +799,92 @@ export default function AdminDashboardClient() {
   }
 
   const summary = dashboard?.summary ?? emptyAdminSummary;
-  const orders = dashboard?.orders ?? [];
+  const orders = dashboard?.orders ?? emptyAdminOrders;
   const notifications = dashboard?.notifications ?? [];
+  const actionableOrderCount = orders.filter(
+    (order) =>
+      order.paymentStatus === 'paid' &&
+      order.fulfillmentStatus !== 'delivered' &&
+      order.fulfillmentStatus !== 'cancelled',
+  ).length;
+  const unpaidOrderCount = orders.filter((order) => order.paymentStatus !== 'paid').length;
+  const completedOrderCount = orders.filter(
+    (order) =>
+      order.paymentStatus === 'paid' &&
+      (order.fulfillmentStatus === 'delivered' || order.fulfillmentStatus === 'cancelled'),
+  ).length;
+  const publishedProductCount = adminProducts.filter((product) => product.published).length;
+  const filteredOrders = useMemo(() => {
+    const normalizedSearch = orderSearch.trim().toLowerCase();
+
+    return orders.filter((order) => {
+      const matchesFilter =
+        orderFilter === 'all' ||
+        (orderFilter === 'action' &&
+          order.paymentStatus === 'paid' &&
+          order.fulfillmentStatus !== 'delivered' &&
+          order.fulfillmentStatus !== 'cancelled') ||
+        (orderFilter === 'unpaid' && order.paymentStatus !== 'paid') ||
+        (orderFilter === 'complete' &&
+          order.paymentStatus === 'paid' &&
+          (order.fulfillmentStatus === 'delivered' || order.fulfillmentStatus === 'cancelled'));
+
+      if (!matchesFilter || !normalizedSearch) {
+        return matchesFilter;
+      }
+
+      return [
+        order.id,
+        order.stripeSessionId,
+        order.customerName,
+        order.customerEmail,
+        order.trackingNumber,
+        order.carrier,
+        ...order.items.map((item) => item.title),
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(normalizedSearch);
+    });
+  }, [orderFilter, orderSearch, orders]);
+  const filteredProducts = useMemo(() => {
+    const normalizedSearch = productSearch.trim().toLowerCase();
+
+    if (!normalizedSearch) {
+      return adminProducts;
+    }
+
+    return adminProducts.filter((product) =>
+      [product.title, product.slug, product.id].join(' ').toLowerCase().includes(normalizedSearch),
+    );
+  }, [adminProducts, productSearch]);
+  const selectedProduct = adminProducts.find((product) => product.id === selectedProductId);
+  const productHasChanges = Boolean(
+    productDraft &&
+      selectedProduct &&
+      JSON.stringify(draftToProduct(productDraft)) !== JSON.stringify(selectedProduct),
+  );
+
+  if (!hasHydrated) {
+    return (
+      <main className="admin-page admin-login-page">
+        <section className="admin-login-panel admin-session-loading" aria-label="Loading admin session">
+          <RefreshCw className="is-spinning" aria-hidden="true" size={22} />
+          <span>Loading admin</span>
+        </section>
+      </main>
+    );
+  }
 
   if (!adminToken) {
     return (
       <main className="admin-page admin-login-page">
         <section className="admin-login-panel">
-          <p className="eyebrow">Armoze Admin</p>
-          <h1>Store dashboard</h1>
+          <div className="admin-login-mark" aria-hidden="true">
+            <ShieldCheck size={24} />
+          </div>
+          <p className="eyebrow">Private workspace</p>
+          <h1>Armoze Admin</h1>
           <form onSubmit={handleLogin}>
             <label htmlFor="admin-token">Admin token</label>
             <input
@@ -736,70 +905,133 @@ export default function AdminDashboardClient() {
 
   return (
     <main className="admin-page">
-      <section className="admin-hero">
-        <div>
-          <p className="eyebrow">Armoze Admin</p>
-          <h1>Orders and alerts</h1>
-          <p>Track paid orders, fulfillment status, and owner notifications from one place.</p>
-        </div>
-        <div className="admin-actions">
+      <div className="admin-shell">
+        <header className="admin-topbar">
+          <div className="admin-brand-lockup">
+            <span className="admin-brand-mark" aria-hidden="true">
+              <Store size={20} />
+            </span>
+            <div>
+              <p>Armoze Admin</p>
+              <h1>Store operations</h1>
+            </div>
+          </div>
+
+          <div className="admin-header-meta">
+            <span className="admin-sync-status">
+              <i aria-hidden="true" />
+              {lastUpdatedAt ? `Updated ${formatDateTime(lastUpdatedAt)}` : 'Connecting'}
+            </span>
+            <div className="admin-actions">
+              <button
+                className={`admin-icon-button sound-toggle ${notificationSoundEnabled ? 'enabled' : ''}`}
+                type="button"
+                onClick={handleNotificationSoundToggle}
+                aria-label={notificationSoundEnabled ? 'Disable new order sound' : 'Enable new order sound'}
+                title={notificationSoundEnabled ? 'Disable new order sound' : 'Enable new order sound'}
+              >
+                {notificationSoundEnabled ? (
+                  <Volume2 aria-hidden="true" size={18} />
+                ) : (
+                  <VolumeX aria-hidden="true" size={18} />
+                )}
+              </button>
+              <button
+                className="admin-icon-button"
+                type="button"
+                onClick={refreshDashboard}
+                aria-label="Refresh dashboard"
+                title="Refresh dashboard"
+                disabled={loading}
+              >
+                <RefreshCw aria-hidden="true" className={loading ? 'is-spinning' : ''} size={18} />
+              </button>
+              <button
+                className="admin-icon-button"
+                type="button"
+                onClick={handleLogout}
+                aria-label="Log out"
+                title="Log out"
+              >
+                <LogOut aria-hidden="true" size={18} />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {error ? <div className="admin-alert" role="alert">{error}</div> : null}
+
+        <section className="admin-stat-grid" aria-label="Store summary">
+          <div className="admin-stat">
+            <span className="admin-stat-icon"><DollarSign aria-hidden="true" size={18} /></span>
+            <div><span>Total revenue</span><strong>{formatPrice(summary.totalRevenue)}</strong></div>
+          </div>
+          <div className="admin-stat">
+            <span className="admin-stat-icon"><ShoppingBag aria-hidden="true" size={18} /></span>
+            <div><span>Paid orders</span><strong>{summary.paidOrderCount}</strong></div>
+          </div>
+          <div className="admin-stat">
+            <span className="admin-stat-icon"><Inbox aria-hidden="true" size={18} /></span>
+            <div><span>New to fulfill</span><strong>{summary.newOrderCount}</strong></div>
+          </div>
+          <div className="admin-stat">
+            <span className="admin-stat-icon"><PackageCheck aria-hidden="true" size={18} /></span>
+            <div><span>Average order</span><strong>{formatPrice(summary.averageOrderValue)}</strong></div>
+          </div>
+        </section>
+
+        <nav className="admin-tabs" aria-label="Admin views" role="tablist">
           <button
-            className={`button button-secondary sound-toggle ${
-              notificationSoundEnabled ? 'enabled' : ''
-            }`}
+            className={activeView === 'orders' ? 'active' : ''}
             type="button"
-            onClick={handleNotificationSoundToggle}
+            role="tab"
+            aria-selected={activeView === 'orders'}
+            aria-controls="admin-orders-view"
+            onClick={() => setActiveView('orders')}
           >
-            {notificationSoundEnabled ? (
-              <Volume2 aria-hidden="true" size={17} />
-            ) : (
-              <VolumeX aria-hidden="true" size={17} />
-            )}
-            {notificationSoundEnabled ? 'Ding On' : 'Enable Ding'}
+            <ShoppingBag aria-hidden="true" size={17} />
+            Orders
+            <span>{actionableOrderCount}</span>
           </button>
-          <button className="button button-secondary" type="button" onClick={refreshDashboard}>
-            <RefreshCw aria-hidden="true" size={17} />
-            {loading ? 'Refreshing' : 'Refresh'}
+          <button
+            className={activeView === 'catalog' ? 'active' : ''}
+            type="button"
+            role="tab"
+            aria-selected={activeView === 'catalog'}
+            aria-controls="admin-catalog-view"
+            onClick={() => setActiveView('catalog')}
+          >
+            <Box aria-hidden="true" size={17} />
+            Catalog
+            <span>{adminProducts.length}</span>
           </button>
-          <button className="button button-secondary" type="button" onClick={handleLogout}>
-            <LogOut aria-hidden="true" size={17} />
-            Log Out
+          <button
+            className={activeView === 'activity' ? 'active' : ''}
+            type="button"
+            role="tab"
+            aria-selected={activeView === 'activity'}
+            aria-controls="admin-activity-view"
+            onClick={() => setActiveView('activity')}
+          >
+            <Activity aria-hidden="true" size={17} />
+            Activity
+            <span>{notifications.length}</span>
           </button>
-        </div>
-      </section>
+        </nav>
 
-      {error ? <div className="admin-alert">{error}</div> : null}
-
-      <section className="admin-stat-grid" aria-label="Store summary">
-        <div className="admin-stat">
-          <DollarSign aria-hidden="true" size={24} />
-          <span>Total Revenue</span>
-          <strong>{formatPrice(summary.totalRevenue)}</strong>
-        </div>
-        <div className="admin-stat">
-          <ShoppingBag aria-hidden="true" size={24} />
-          <span>Paid Orders</span>
-          <strong>{summary.paidOrderCount}</strong>
-        </div>
-        <div className="admin-stat">
-          <Inbox aria-hidden="true" size={24} />
-          <span>New Orders</span>
-          <strong>{summary.newOrderCount}</strong>
-        </div>
-        <div className="admin-stat">
-          <PackageCheck aria-hidden="true" size={24} />
-          <span>Average Order</span>
-          <strong>{formatPrice(summary.averageOrderValue)}</strong>
-        </div>
-      </section>
-
-      <section className="admin-product-editor" aria-label="Product editor">
+      {activeView === 'catalog' ? (
+      <section
+        className="admin-product-editor admin-view-panel"
+        id="admin-catalog-view"
+        role="tabpanel"
+        aria-label="Product editor"
+      >
         <div className="admin-section-heading">
           <div>
             <p className="eyebrow">Catalog</p>
-            <h2>Product editor</h2>
+            <h2>Products</h2>
           </div>
-          <span>{adminProducts.length} products</span>
+          <span>{publishedProductCount} published · {adminProducts.length} total</span>
         </div>
 
         <datalist id="admin-asset-paths">
@@ -809,18 +1041,36 @@ export default function AdminDashboardClient() {
         </datalist>
 
         <div className="admin-product-workbench">
-          <aside className="admin-product-list" aria-label="Products">
-            {adminProducts.map((product) => (
-              <button
-                className={product.id === selectedProductId ? 'active' : ''}
-                key={product.id}
-                type="button"
-                onClick={() => selectProductForEditing(product.id)}
-              >
-                <span>{product.title}</span>
-                <small>{product.published ? 'Published' : 'Hidden'}</small>
-              </button>
-            ))}
+          <aside className="admin-product-sidebar" aria-label="Products">
+            <label className="admin-search-field admin-product-search">
+              <Search aria-hidden="true" size={17} />
+              <input
+                type="search"
+                value={productSearch}
+                onChange={(event) => setProductSearch(event.target.value)}
+                placeholder="Search products"
+                aria-label="Search products"
+              />
+            </label>
+            <div className="admin-product-list">
+              {filteredProducts.map((product) => (
+                <button
+                  className={product.id === selectedProductId ? 'active' : ''}
+                  key={product.id}
+                  type="button"
+                  onClick={() => selectProductForEditing(product.id)}
+                >
+                  {product.image ? <img src={product.image} alt="" aria-hidden="true" /> : <Box aria-hidden="true" size={18} />}
+                  <span>
+                    <b>{product.title}</b>
+                    <small>{product.published ? 'Published' : 'Hidden'}</small>
+                  </span>
+                </button>
+              ))}
+              {!filteredProducts.length ? (
+                <p className="admin-product-list-empty">No matching products.</p>
+              ) : null}
+            </div>
           </aside>
 
           {productDraft ? (
@@ -828,16 +1078,28 @@ export default function AdminDashboardClient() {
               <div className="admin-product-form-topline">
                 <div>
                   <h3>{productDraft.title}</h3>
-                  <p>{productDraft.id}</p>
+                  <p>{productDraft.id}{productHasChanges ? ' · Unsaved changes' : ''}</p>
                 </div>
-                <label className="publish-toggle">
-                  <input
-                    type="checkbox"
-                    checked={productDraft.published}
-                    onChange={(event) => updateProductDraftField('published', event.target.checked)}
-                  />
-                  Published
-                </label>
+                <div className="admin-product-top-actions">
+                  <a
+                    className="admin-icon-button"
+                    href={`/products/${productDraft.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open product page"
+                    title="Open product page"
+                  >
+                    <ExternalLink aria-hidden="true" size={17} />
+                  </a>
+                  <label className="publish-toggle">
+                    <input
+                      type="checkbox"
+                      checked={productDraft.published}
+                      onChange={(event) => updateProductDraftField('published', event.target.checked)}
+                    />
+                    Published
+                  </label>
+                </div>
               </div>
 
               <div className="admin-form-grid">
@@ -1087,18 +1349,21 @@ export default function AdminDashboardClient() {
                 <button
                   className="button button-secondary"
                   type="button"
+                  disabled={!productHasChanges || savingProduct}
                   onClick={() => selectProductForEditing(selectedProductId)}
                 >
+                  <RefreshCw aria-hidden="true" size={16} />
                   Reset
                 </button>
                 <button
                   className="button button-primary"
                   type="button"
-                  disabled={savingProduct}
+                  disabled={savingProduct || !productHasChanges}
                   onClick={() => {
                     void saveProductDraft();
                   }}
                 >
+                  <Check aria-hidden="true" size={16} />
                   {savingProduct ? 'Saving' : 'Save Product'}
                 </button>
               </div>
@@ -1114,188 +1379,287 @@ export default function AdminDashboardClient() {
           )}
         </div>
       </section>
+      ) : null}
 
-      <section className="admin-layout">
-        <div className="admin-orders">
-          <div className="admin-section-heading">
-            <div>
-              <p className="eyebrow">Fulfillment</p>
-              <h2>Orders</h2>
-            </div>
-            <span>{orders.length} shown</span>
+      {activeView === 'orders' ? (
+      <section
+        className="admin-orders admin-view-panel"
+        id="admin-orders-view"
+        role="tabpanel"
+        aria-label="Orders"
+      >
+        <div className="admin-section-heading">
+          <div>
+            <p className="eyebrow">Fulfillment</p>
+            <h2>Orders</h2>
           </div>
+          <span>{filteredOrders.length} of {orders.length}</span>
+        </div>
 
-          {orders.length ? (
-            <div className="admin-order-list">
-              {orders.map((order) => (
+        <div className="admin-toolbar">
+          <label className="admin-search-field">
+            <Search aria-hidden="true" size={17} />
+            <input
+              type="search"
+              value={orderSearch}
+              onChange={(event) => setOrderSearch(event.target.value)}
+              placeholder="Search customer, order, or product"
+              aria-label="Search orders"
+            />
+          </label>
+          <div className="admin-filter-group" role="group" aria-label="Filter orders">
+            {([
+              ['action', 'Needs action', actionableOrderCount],
+              ['all', 'All', orders.length],
+              ['unpaid', 'Unpaid', unpaidOrderCount],
+              ['complete', 'Closed', completedOrderCount],
+            ] as const).map(([value, label, count]) => (
+              <button
+                className={orderFilter === value ? 'active' : ''}
+                key={value}
+                type="button"
+                onClick={() => setOrderFilter(value)}
+                aria-pressed={orderFilter === value}
+              >
+                {label}<span>{count}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {loading && !dashboard ? (
+          <div className="admin-empty">
+            <RefreshCw className="is-spinning" aria-hidden="true" size={28} />
+            <h3>Loading orders</h3>
+          </div>
+        ) : filteredOrders.length ? (
+          <div className="admin-order-list">
+            {filteredOrders.map((order) => {
+              const isPaid = order.paymentStatus === 'paid';
+              const hasTracking = Boolean(order.trackingNumber || order.trackingUrl);
+              const orderIdentifier = order.stripeSessionId || order.id;
+
+              return (
                 <article className="admin-order" key={order.id}>
                   <div className="admin-order-topline">
-                    <div>
-                      <h3>{order.customerName || order.customerEmail || 'Customer'}</h3>
-                      <p>{order.customerEmail || 'No email captured'}</p>
+                    <div className="admin-order-customer">
+                      <h3>{order.customerName || order.customerEmail || (isPaid ? 'Customer' : 'Checkout visitor')}</h3>
+                      {order.customerEmail ? (
+                        <a href={`mailto:${order.customerEmail}`}>{order.customerEmail}</a>
+                      ) : (
+                        <p>No email captured</p>
+                      )}
                     </div>
                     <div className="admin-order-money">
                       <strong>{formatPrice(order.amountTotal, order.currency)}</strong>
-                      <span>{formatDateTime(order.updatedAt)}</span>
+                      <span>{formatDateTime(order.createdAt)}</span>
                     </div>
                   </div>
 
                   <div className="admin-order-meta">
-                    <span className={`status-pill ${order.paymentStatus}`}>
-                      {order.paymentStatus}
+                    <span className={`status-pill ${order.paymentStatus}`}>{order.paymentStatus}</span>
+                    <span className={`fulfillment-pill ${order.fulfillmentStatus}`}>
+                      {getFulfillmentLabel(order.fulfillmentStatus)}
                     </span>
-                    <span>{order.id}</span>
-                    <span>
-                      {order.ownerNotificationSentAt ? (
-                        <>
-                          <Mail aria-hidden="true" size={14} />
-                          Alert sent
-                        </>
-                      ) : (
-                        <>
-                          <Bell aria-hidden="true" size={14} />
-                          Alert pending
-                        </>
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="admin-order-items">
-                    {order.items.map((item) => (
-                      <div
-                        className="admin-order-item"
-                        key={`${order.id}-${item.productId}-${item.sizeId}-${item.frameId || 'frame'}`}
+                    <span className="admin-order-id">
+                      <code>{shortenIdentifier(orderIdentifier)}</code>
+                      <button
+                        type="button"
+                        onClick={() => { void copyOrderIdentifier(order); }}
+                        aria-label="Copy order ID"
+                        title="Copy order ID"
                       >
-                        {item.imagePath ? <img src={item.imagePath} alt="" aria-hidden="true" /> : <span />}
-                        <div>
-                          <strong>{item.title}</strong>
-                          <small>
-                            {item.quantity} x {item.sizeLabel || 'Canvas'} ·{' '}
-                            {item.frameLabel || 'Canvas'} ·{' '}
-                            {formatPrice(item.unitAmount, order.currency)}
-                          </small>
-                        </div>
-                        <b>{formatPrice(item.lineTotal, order.currency)}</b>
-                      </div>
-                    ))}
+                        {copiedOrderId === order.id ? (
+                          <Check aria-hidden="true" size={14} />
+                        ) : (
+                          <Copy aria-hidden="true" size={14} />
+                        )}
+                      </button>
+                    </span>
+                    {isPaid ? (
+                      <span>
+                        {order.ownerNotificationSentAt ? (
+                          <><Mail aria-hidden="true" size={14} /> Alert sent</>
+                        ) : (
+                          <><Bell aria-hidden="true" size={14} /> Alert pending</>
+                        )}
+                      </span>
+                    ) : null}
                   </div>
 
-                  <label className="admin-status-select">
-                    <span>Fulfillment</span>
-                    <select
-                      value={order.fulfillmentStatus}
-                      disabled={updatingOrderId === order.id}
-                      onChange={(event) => {
-                        void handleFulfillmentChange(order.id, event.target.value);
-                      }}
-                    >
-                      {fulfillmentStatusOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
+                  {order.items.length ? (
+                    <div className="admin-order-items">
+                      {order.items.map((item) => (
+                        <div
+                          className="admin-order-item"
+                          key={`${order.id}-${item.productId}-${item.sizeId}-${item.frameId || 'frame'}`}
+                        >
+                          {item.imagePath ? <img src={item.imagePath} alt="" aria-hidden="true" /> : <span />}
+                          <div>
+                            <strong>{item.title}</strong>
+                            <small>
+                              {item.quantity} x {item.sizeLabel || 'Canvas'} · {item.frameLabel || 'Canvas'} ·{' '}
+                              {formatPrice(item.unitAmount, order.currency)}
+                            </small>
+                          </div>
+                          <b>{formatPrice(item.lineTotal, order.currency)}</b>
+                        </div>
                       ))}
-                    </select>
-                  </label>
-
-                  <form
-                    className="admin-tracking-form"
-                    key={`${order.id}-${order.updatedAt}-${order.trackingNumber}-${order.trackingUrl}`}
-                    onSubmit={(event) => {
-                      void handleTrackingSubmit(order, event);
-                    }}
-                  >
-                    <label>
-                      <span>Carrier</span>
-                      <input
-                        name="carrier"
-                        defaultValue={order.carrier}
-                        disabled={updatingOrderId === order.id}
-                        placeholder="USPS, UPS, FedEx"
-                      />
-                    </label>
-                    <label>
-                      <span>Tracking #</span>
-                      <input
-                        name="trackingNumber"
-                        defaultValue={order.trackingNumber}
-                        disabled={updatingOrderId === order.id}
-                        placeholder="Tracking number"
-                      />
-                    </label>
-                    <label className="admin-tracking-url">
-                      <span>Tracking URL</span>
-                      <input
-                        name="trackingUrl"
-                        type="url"
-                        defaultValue={order.trackingUrl}
-                        disabled={updatingOrderId === order.id}
-                        placeholder="https://..."
-                      />
-                    </label>
-                    <button
-                      className="button button-secondary"
-                      type="submit"
-                      disabled={updatingOrderId === order.id}
-                    >
-                      {updatingOrderId === order.id ? 'Saving' : 'Save Tracking'}
-                    </button>
-                  </form>
-
-                  {order.trackingNumber || order.trackingUrl || order.shippedAt ? (
-                    <div className="admin-tracking-summary">
-                      <span>{order.carrier || 'Carrier pending'}</span>
-                      {order.trackingNumber ? <strong>{order.trackingNumber}</strong> : null}
-                      {order.trackingUrl ? (
-                        <a href={order.trackingUrl} target="_blank" rel="noreferrer">
-                          Open tracking
-                        </a>
-                      ) : null}
-                      {order.shippedAt ? <small>Shipped {formatDateTime(order.shippedAt)}</small> : null}
                     </div>
                   ) : null}
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="admin-empty">
-              <ShoppingBag aria-hidden="true" size={34} />
-              <h3>No orders yet</h3>
-              <p>Paid Stripe orders will appear here after the webhook receives them.</p>
-            </div>
-          )}
-        </div>
 
-        <aside className="admin-notifications">
+                  {isPaid ? (
+                    <div className="admin-order-workflow">
+                      <label className="admin-status-select">
+                        <span>Fulfillment status</span>
+                        <select
+                          value={order.fulfillmentStatus}
+                          disabled={updatingOrderId === order.id}
+                          onChange={(event) => {
+                            void handleFulfillmentChange(order.id, event.target.value);
+                          }}
+                        >
+                          {fulfillmentStatusOptions.map((option) => (
+                            <option
+                              key={option.value}
+                              value={option.value}
+                              disabled={option.value === 'shipped' && !hasTracking && order.fulfillmentStatus !== 'shipped'}
+                            >
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        {!hasTracking && order.fulfillmentStatus !== 'shipped' ? (
+                          <small>Save tracking before marking shipped.</small>
+                        ) : null}
+                      </label>
+
+                      <details
+                        className="admin-shipping-panel"
+                        key={`${order.id}-${order.updatedAt}-${order.trackingNumber}-${order.trackingUrl}`}
+                      >
+                        <summary>
+                          <span><Truck aria-hidden="true" size={17} /> Shipping & tracking</span>
+                          <small>{hasTracking ? order.carrier || 'Tracking saved' : 'Not added'}</small>
+                        </summary>
+                        <form
+                          className="admin-tracking-form"
+                          onSubmit={(event) => {
+                            void handleTrackingSubmit(order, event);
+                          }}
+                        >
+                          <label>
+                            <span>Carrier</span>
+                            <input
+                              name="carrier"
+                              defaultValue={order.carrier}
+                              disabled={updatingOrderId === order.id}
+                              placeholder="USPS, UPS, FedEx"
+                            />
+                          </label>
+                          <label>
+                            <span>Tracking #</span>
+                            <input
+                              name="trackingNumber"
+                              defaultValue={order.trackingNumber}
+                              disabled={updatingOrderId === order.id}
+                              placeholder="Tracking number"
+                            />
+                          </label>
+                          <label className="admin-tracking-url">
+                            <span>Tracking URL</span>
+                            <input
+                              name="trackingUrl"
+                              type="url"
+                              defaultValue={order.trackingUrl}
+                              disabled={updatingOrderId === order.id}
+                              placeholder="https://..."
+                            />
+                          </label>
+                          <button
+                            className="button button-secondary"
+                            type="submit"
+                            disabled={updatingOrderId === order.id}
+                          >
+                            {updatingOrderId === order.id ? 'Saving' : 'Save tracking'}
+                          </button>
+                        </form>
+                        {hasTracking || order.shippedAt ? (
+                          <div className="admin-tracking-summary">
+                            {order.trackingNumber ? <strong>{order.trackingNumber}</strong> : null}
+                            {order.trackingUrl ? (
+                              <a href={order.trackingUrl} target="_blank" rel="noreferrer">
+                                Open tracking <ExternalLink aria-hidden="true" size={13} />
+                              </a>
+                            ) : null}
+                            {order.shippedAt ? <small>Shipped {formatDateTime(order.shippedAt)}</small> : null}
+                          </div>
+                        ) : null}
+                      </details>
+                    </div>
+                  ) : (
+                    <div className="admin-payment-hold">
+                      <Bell aria-hidden="true" size={17} />
+                      <div><strong>Payment not complete</strong><small>Fulfillment controls are locked.</small></div>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="admin-empty">
+            <ShoppingBag aria-hidden="true" size={30} />
+            <h3>{orders.length ? 'No matching orders' : 'No orders yet'}</h3>
+            <p>{orders.length ? 'Try another search or order filter.' : 'Paid Stripe orders will appear here.'}</p>
+          </div>
+        )}
+      </section>
+      ) : null}
+
+      {activeView === 'activity' ? (
+        <section
+          className="admin-activity admin-view-panel"
+          id="admin-activity-view"
+          role="tabpanel"
+          aria-label="Activity"
+        >
           <div className="admin-section-heading">
             <div>
-              <p className="eyebrow">Signals</p>
-              <h2>Notifications</h2>
+              <p className="eyebrow">History</p>
+              <h2>Activity</h2>
             </div>
+            <span>{notifications.length} recent events</span>
           </div>
 
           {notifications.length ? (
             <div className="notification-list">
               {notifications.map((notification) => (
                 <article className="notification-row" key={notification.id}>
-                  <div>
-                    <strong>{notification.title}</strong>
-                    <p>{notification.body}</p>
-                  </div>
-                  <span>
-                    {notification.channel} · {notification.status}
+                  <span className="notification-icon" aria-hidden="true">
+                    {notification.channel === 'email' ? <Mail size={17} /> : <Bell size={17} />}
                   </span>
+                  <div className="notification-copy">
+                    <strong>{notification.title}</strong>
+                    <p>{shortenNotificationIdentifiers(notification.body)}</p>
+                  </div>
+                  <div className="notification-meta">
+                    <span>{notification.channel} · {notification.status}</span>
+                    <time dateTime={notification.createdAt}>{formatDateTime(notification.createdAt)}</time>
+                  </div>
                 </article>
               ))}
             </div>
           ) : (
             <div className="admin-empty compact">
-              <Bell aria-hidden="true" size={30} />
-              <h3>No alerts yet</h3>
-              <p>Order and email events will collect here.</p>
+              <Bell aria-hidden="true" size={28} />
+              <h3>No activity yet</h3>
+              <p>Order and email events will appear here.</p>
             </div>
           )}
-        </aside>
-      </section>
+        </section>
+      ) : null}
+      </div>
     </main>
   );
 }
