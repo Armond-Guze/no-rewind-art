@@ -3,7 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Check, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import {
+  Check,
+  Clock,
+  Minus,
+  Plus,
+  ShieldCheck,
+  ShoppingBag,
+  Trash2,
+  Truck,
+} from 'lucide-react';
 import {
   addStoredCartItem,
   cartUpdatedEvent,
@@ -155,6 +164,10 @@ export default function CartPageClient({
 
   const cartProducts = useMemo(() => buildCartLines(cart, products), [cart, products]);
   const subtotal = useMemo(() => getCartSubtotal(cartProducts), [cartProducts]);
+  const itemCount = useMemo(
+    () => cartProducts.reduce((count, item) => count + item.quantity, 0),
+    [cartProducts],
+  );
   const crossSellProducts = useMemo(() => {
     const cartProductIds = new Set(cartProducts.map((line) => line.product.id));
 
@@ -434,11 +447,23 @@ export default function CartPageClient({
               Review your prints, then continue to secure checkout. Shipping and payment
               details are confirmed before you place the order.
             </p>
+            <ul className="cart-page-benefits" aria-label="What to expect from your order">
+              <li><Truck aria-hidden="true" size={20} /><span><strong>Free U.S. shipping</strong> on every canvas order</span></li>
+              <li><Clock aria-hidden="true" size={20} /><span><strong>Made to order</strong> in 2-3 business days</span></li>
+              <li><ShieldCheck aria-hidden="true" size={20} /><span><strong>30-day returns</strong> and damage support</span></li>
+            </ul>
+            <Link className="cart-continue-link" href="/collections/best-sellers">
+              Continue shopping
+            </Link>
           </div>
 
           <aside className="cart-panel" aria-label="Shopping cart">
             {cartReady && cartProducts.length ? (
               <>
+                <div className="cart-panel-heading">
+                  <h2>Order summary</h2>
+                  <span>{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
+                </div>
                 <div className="cart-items">
                   {cartProducts.map(({ lineKey, product, quantity, sizeOption, frameOption }) => (
                     <div className="cart-item" key={lineKey}>
@@ -463,34 +488,52 @@ export default function CartPageClient({
                           {formatPrice(getConfiguredUnitPrice(product, sizeOption, frameOption))}
                         </p>
                       </div>
-                      <div className="quantity-controls">
-                        <button
-                          type="button"
-                          aria-label={`Decrease ${product.title} quantity`}
-                          onClick={() => updateQuantity(lineKey, quantity - 1)}
-                        >
-                          {quantity === 1 ? (
-                            <Trash2 aria-hidden="true" size={16} />
-                          ) : (
-                            <Minus aria-hidden="true" size={16} />
+                      <div className="cart-item-actions">
+                        <strong>
+                          {formatPrice(
+                            getConfiguredUnitPrice(product, sizeOption, frameOption) * quantity,
                           )}
-                        </button>
-                        <span>{quantity}</span>
-                        <button
-                          type="button"
-                          aria-label={`Increase ${product.title} quantity`}
-                          onClick={() => updateQuantity(lineKey, quantity + 1)}
-                        >
-                          <Plus aria-hidden="true" size={16} />
-                        </button>
+                        </strong>
+                        <div className="quantity-controls">
+                          <button
+                            type="button"
+                            aria-label={`Decrease ${product.title} quantity`}
+                            onClick={() => updateQuantity(lineKey, quantity - 1)}
+                          >
+                            {quantity === 1 ? (
+                              <Trash2 aria-hidden="true" size={16} />
+                            ) : (
+                              <Minus aria-hidden="true" size={16} />
+                            )}
+                          </button>
+                          <span>{quantity}</span>
+                          <button
+                            type="button"
+                            aria-label={`Increase ${product.title} quantity`}
+                            onClick={() => updateQuantity(lineKey, quantity + 1)}
+                          >
+                            <Plus aria-hidden="true" size={16} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 <div className="cart-total">
-                  <span>Subtotal</span>
-                  <strong>{formatPrice(subtotal)}</strong>
+                  <div>
+                    <span>Subtotal</span>
+                    <strong>{formatPrice(subtotal)}</strong>
+                  </div>
+                  <div>
+                    <span>Shipping</span>
+                    <strong className="cart-free-shipping">Free</strong>
+                  </div>
+                  <div className="cart-estimated-total">
+                    <span>Estimated total</span>
+                    <strong>{formatPrice(subtotal)}</strong>
+                  </div>
+                  <small>Taxes, when required, are calculated at secure checkout.</small>
                 </div>
 
                 <button

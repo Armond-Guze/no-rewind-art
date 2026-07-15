@@ -351,3 +351,79 @@ export async function sendNewsletterDiscountEmail({ email, discountCode = 'FIRST
     id: result.data?.id || null,
   };
 }
+
+export async function sendSupportRequestEmail({
+  name,
+  email,
+  orderNumber,
+  topic,
+  message,
+  photos = [],
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const to = process.env.SUPPORT_NOTIFICATION_EMAIL || process.env.ORDER_NOTIFICATION_EMAIL;
+
+  if (!apiKey || !to) {
+    return {
+      sent: false,
+      skipped: true,
+      reason: 'Support email is not configured. Please email hello@armoze.com.',
+    };
+  }
+
+  const resend = new Resend(apiKey);
+  const from =
+    process.env.SUPPORT_NOTIFICATION_FROM ||
+    process.env.ORDER_NOTIFICATION_FROM ||
+    'Armoze Support <orders@resend.dev>';
+  const orderLine = orderNumber || 'Not provided';
+  const subject = `Armoze support - ${topic}${orderNumber ? ` - ${orderNumber}` : ''}`;
+  const text = [
+    'A new storefront support request came in.',
+    '',
+    `From: ${name} <${email}>`,
+    `Topic: ${topic}`,
+    `Order: ${orderLine}`,
+    `Photos: ${photos.length}`,
+    '',
+    message,
+  ].join('\n');
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #151515; line-height: 1.6; max-width: 620px;">
+      <h1 style="font-size: 24px; margin: 0 0 16px;">New support request</h1>
+      <table style="width: 100%; margin: 0 0 20px; border-collapse: collapse;">
+        <tr><td style="padding: 7px 10px; background: #f6f3ec; font-weight: 700;">Customer</td><td style="padding: 7px 10px; background: #f6f3ec;">${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</td></tr>
+        <tr><td style="padding: 7px 10px; font-weight: 700;">Topic</td><td style="padding: 7px 10px;">${escapeHtml(topic)}</td></tr>
+        <tr><td style="padding: 7px 10px; background: #f6f3ec; font-weight: 700;">Order</td><td style="padding: 7px 10px; background: #f6f3ec;">${escapeHtml(orderLine)}</td></tr>
+        <tr><td style="padding: 7px 10px; font-weight: 700;">Photos</td><td style="padding: 7px 10px;">${photos.length}</td></tr>
+      </table>
+      <h2 style="font-size: 15px; margin: 0 0 8px; text-transform: uppercase;">Message</h2>
+      <div style="padding: 16px; background: #f6f3ec; white-space: pre-wrap;">${escapeHtml(message)}</div>
+      <p style="margin: 18px 0 0; color: #666; font-size: 13px;">Reply to this email to answer the customer.</p>
+    </div>
+  `;
+  const result = await resend.emails.send({
+    from,
+    to,
+    replyTo: email,
+    subject,
+    text,
+    html,
+    attachments: photos,
+  });
+
+  if (result.error) {
+    return {
+      sent: false,
+      skipped: false,
+      reason: result.error.message || 'Resend could not send the support request.',
+      error: result.error,
+    };
+  }
+
+  return {
+    sent: true,
+    skipped: false,
+    id: result.data?.id || null,
+  };
+}

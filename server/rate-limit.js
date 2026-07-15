@@ -12,6 +12,11 @@ export const rateLimits = {
     limit: 8,
     windowMs: 15 * 60 * 1000,
   },
+  support: {
+    key: 'support',
+    limit: 5,
+    windowMs: 30 * 60 * 1000,
+  },
   accountOrders: {
     key: 'account-orders',
     limit: 60,

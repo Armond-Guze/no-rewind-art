@@ -256,6 +256,19 @@ function getHomeStructuredData(featuredProducts) {
   };
 }
 
+function getAboutStructuredData() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    '@id': `${siteUrl}/about#webpage`,
+    name: 'About Armoze',
+    url: absoluteUrl('/about'),
+    description:
+      'Learn why Armoze creates made-to-order motivational canvas artwork for bedrooms, offices, studios, and focused spaces.',
+    mainEntity: getOrganizationStructuredData(),
+  };
+}
+
 function getSupportStructuredData() {
   return {
     '@context': 'https://schema.org',
@@ -570,6 +583,20 @@ export async function getRouteSeo(pathParts = []) {
         image: searchLogoPath,
       }),
       structuredData: getSupportStructuredData(),
+    };
+  }
+
+  if (section === 'about' && pathParts.length === 1) {
+    return {
+      exists: true,
+      metadata: baseMetadata({
+        title: 'Our Story',
+        description:
+          'Learn why Armoze creates made-to-order motivational canvas artwork for bedrooms, offices, studios, and focused spaces.',
+        path: '/about',
+        image: catalog.products.find((product) => product.slug === 'bookshelf')?.image || searchLogoPath,
+      }),
+      structuredData: getAboutStructuredData(),
     };
   }
 

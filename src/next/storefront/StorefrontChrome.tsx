@@ -1056,9 +1056,9 @@ function NextSiteFooter() {
     {
       title: 'Company',
       links: [
+        { href: '/about', label: 'Our Story' },
         { href: '/support', label: 'Support' },
         { href: '/account', label: 'Account' },
-        { href: '/sign-in', label: 'Profile' },
       ],
     },
     {
@@ -1208,12 +1208,12 @@ function NextSiteFooter() {
         <summary>Policies &amp; Support</summary>
         <nav aria-label="Footer policies">
           <Link href="/support">Customer Support</Link>
+          <Link href="/about">Our Story</Link>
           <a href={supportMailto}>Email: {supportEmail}</a>
           <Link href="/account">Order History</Link>
           <Link href="/shipping">Shipping Policy</Link>
           <Link href="/terms">Terms and Conditions</Link>
           <Link href="/privacy">Privacy Policy</Link>
-          <Link href="/terms">Terms of Service</Link>
           <Link href="/returns">Refund Policy</Link>
         </nav>
       </details>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -14,14 +14,16 @@ import {
   Package,
   Play,
   RotateCcw,
+  Ruler,
   ShieldCheck,
   Star,
   StarHalf,
   Truck,
+  X,
 } from 'lucide-react';
 import { addStoredCartItem } from '../../cart';
 import { etsyReviewHighlights } from '../../data/reviews';
-import type { FrameOption, Product, ProductVideo } from '../../data/products';
+import type { FrameOption, Product, ProductVideo, SizeOption } from '../../data/products';
 import {
   formatPrice,
   getAvailableFrameOptions,
@@ -118,6 +120,152 @@ function ProductTrustStrip() {
         <Check aria-hidden="true" size={14} />
         Damage support
       </span>
+    </div>
+  );
+}
+
+function getSizeDimensions(sizeOption: Pick<SizeOption, 'id' | 'label'>) {
+  const match = `${sizeOption.label} ${sizeOption.id}`.match(
+    /(\d+(?:\.\d+)?)\s*(?:x|×)\s*(\d+(?:\.\d+)?)/i,
+  );
+
+  return {
+    width: Number(match?.[1] || 24),
+    height: Number(match?.[2] || 16),
+  };
+}
+
+function getSizeGuideRecommendation(width: number) {
+  if (width <= 24) {
+    return 'Best for shelves, narrow walls, and compact desk setups.';
+  }
+
+  if (width <= 40) {
+    return 'A balanced choice above desks, dressers, and reading areas.';
+  }
+
+  if (width <= 50) {
+    return 'A strong focal point above a sofa, bed, or wide workstation.';
+  }
+
+  return 'Statement scale for large walls, offices, and open rooms.';
+}
+
+function ProductSizeGuide({
+  frameOption,
+  onClose,
+  onSelect,
+  product,
+  selectedOption,
+}: {
+  frameOption: FrameOption;
+  onClose: () => void;
+  onSelect: (sizeId: string) => void;
+  product: Product;
+  selectedOption: SizeOption;
+}) {
+  const { width, height } = getSizeDimensions(selectedOption);
+  const previewWidth = Math.min(78, Math.max(18, (width / 96) * 100));
+  const previewStyle = {
+    '--size-guide-canvas-width': `${previewWidth}%`,
+    aspectRatio: `${width} / ${height}`,
+  } as CSSProperties;
+  const frameVariant =
+    frameOption.id === 'black-frame'
+      ? 'black'
+      : frameOption.id === 'white-frame'
+        ? 'white'
+        : 'canvas';
+
+  return (
+    <div className="size-guide-overlay" role="presentation" onMouseDown={onClose}>
+      <section
+        className="size-guide-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="size-guide-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <header className="size-guide-header">
+          <div>
+            <p className="eyebrow">Wall preview</p>
+            <h2 id="size-guide-title">Choose the right scale.</h2>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close size guide">
+            <X aria-hidden="true" size={20} />
+          </button>
+        </header>
+
+        <div className="size-guide-layout">
+          <div className="size-guide-preview-column">
+            <div className="size-guide-wall-scene" aria-label={`${selectedOption.label} canvas above a 72 inch sofa`}>
+              <div className={`size-guide-canvas-frame ${frameVariant}`} style={previewStyle}>
+                {product.image ? (
+                  <OptimizedRawImage
+                    src={product.image}
+                    alt=""
+                    fill
+                    sizes="(max-width: 760px) 72vw, 620px"
+                  />
+                ) : (
+                  <span>{product.label}</span>
+                )}
+              </div>
+              <div className="size-guide-furniture" aria-hidden="true">
+                <span className="size-guide-floor-lamp" />
+                <span className="size-guide-sofa"><i /><i /><i /></span>
+                <span className="size-guide-side-table" />
+              </div>
+              <div className="size-guide-sofa-measure" aria-hidden="true">
+                <span />72 in sofa<span />
+              </div>
+            </div>
+            <div className="size-guide-current-size">
+              <div>
+                <span>Selected canvas</span>
+                <strong>{selectedOption.label} in</strong>
+              </div>
+              <p>{getSizeGuideRecommendation(width)}</p>
+            </div>
+          </div>
+
+          <div className="size-guide-options-column">
+            <p>Compare sizes</p>
+            <div className="size-guide-option-list" role="list">
+              {product.sizeOptions.map((option) => {
+                const dimensions = getSizeDimensions(option);
+                const isSelected = option.id === selectedOption.id;
+                const optionFrame =
+                  getAvailableFrameOptions(product, option).find(
+                    (candidate) => candidate.id === frameOption.id,
+                  ) ?? getBaseFrameOption(product);
+
+                return (
+                  <button
+                    className={isSelected ? 'selected' : ''}
+                    key={option.id}
+                    type="button"
+                    onClick={() => onSelect(option.id)}
+                    aria-pressed={isSelected}
+                  >
+                    <span
+                      className="size-guide-option-shape"
+                      style={{ aspectRatio: `${dimensions.width} / ${dimensions.height}` }}
+                      aria-hidden="true"
+                    />
+                    <span><strong>{option.label}</strong><small>{getSizeGuideRecommendation(dimensions.width)}</small></span>
+                    <b>{formatPrice(getConfiguredUnitPrice(product, option, optionFrame))}</b>
+                  </button>
+                );
+              })}
+            </div>
+            <button className="button button-primary size-guide-apply" type="button" onClick={onClose}>
+              Use {selectedOption.label}
+            </button>
+            <small className="size-guide-note">Room preview is proportional to a 72-inch sofa. Exact appearance varies by wall and furniture placement.</small>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
@@ -367,6 +515,7 @@ export default function ProductPageClient({
   const [deliveryEstimate] = useState(getDeliveryEstimate);
   const [checkoutError, setCheckoutError] = useState('');
   const [showMobilePurchaseBar, setShowMobilePurchaseBar] = useState(false);
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const galleryItems = getProductMediaGallery(product);
   const selectedGalleryItem = galleryItems[selectedImage] ?? galleryItems[0];
   const selectedGalleryImage =
@@ -510,6 +659,26 @@ export default function ProductPageClient({
     window.addEventListener('keydown', handleKeydown);
     return () => window.removeEventListener('keydown', handleKeydown);
   }, [lightboxOpen]);
+
+  useEffect(() => {
+    if (!sizeGuideOpen) {
+      return;
+    }
+
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSizeGuideOpen(false);
+      }
+    };
+
+    document.body.classList.add('size-guide-lock');
+    window.addEventListener('keydown', handleKeydown);
+
+    return () => {
+      document.body.classList.remove('size-guide-lock');
+      window.removeEventListener('keydown', handleKeydown);
+    };
+  }, [sizeGuideOpen]);
 
   useEffect(() => {
     return () => {
@@ -849,6 +1018,14 @@ export default function ProductPageClient({
               <div className="option-label">
                 <span>Size:</span>
                 <strong>{selectedOption.label}</strong>
+                <button
+                  className="size-guide-trigger"
+                  type="button"
+                  onClick={() => setSizeGuideOpen(true)}
+                >
+                  <Ruler aria-hidden="true" size={15} />
+                  Size guide
+                </button>
               </div>
               <div className="size-options">
                 {product.sizeOptions.map((option, index) => {
@@ -1152,6 +1329,16 @@ export default function ProductPageClient({
             Add to cart
           </button>
         </div>
+
+        {sizeGuideOpen ? (
+          <ProductSizeGuide
+            frameOption={selectedFrameOption}
+            onClose={() => setSizeGuideOpen(false)}
+            onSelect={setSelectedSizeId}
+            product={product}
+            selectedOption={selectedOption}
+          />
+        ) : null}
 
         {lightboxOpen && selectedGalleryImage ? (
           <div
