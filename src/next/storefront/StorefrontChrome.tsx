@@ -4,7 +4,17 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
-import { ArrowRight, CircleUserRound, Menu, Minus, Plus, Search, ShoppingBag, X } from 'lucide-react';
+import {
+  ArrowRight,
+  ChevronRight,
+  CircleUserRound,
+  Menu,
+  Minus,
+  Plus,
+  Search,
+  ShoppingBag,
+  X,
+} from 'lucide-react';
 import {
   cartUpdatedEvent,
   getStoredCartCount,
@@ -36,6 +46,62 @@ const newsletterPopupDismissMs = 7 * 24 * 60 * 60 * 1000;
 const newsletterPopupSubscribedDismissMs = 365 * 24 * 60 * 60 * 1000;
 const newsletterPopupDismissedUntilKey = 'armoze-newsletter-popup-dismissed-until';
 const newsletterPopupSubscribedKey = 'armoze-newsletter-popup-subscribed';
+const storefrontSocialLinks = {
+  instagram: 'https://www.instagram.com/itsarmoze',
+  tiktok: 'https://www.tiktok.com/@itsarmoze',
+  youtube: 'https://www.youtube.com/@itsarmoze',
+} as const;
+
+function InstagramIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.4" cy="6.6" r="0.8" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function TikTokIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.72-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07Z" />
+    </svg>
+  );
+}
+
+function YouTubeIcon({ size = 23 }: { size?: number }) {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.017 3.017 0 0 0 2.121 2.136c1.872.505 9.377.505 9.377.505s7.505 0 9.377-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814ZM9.545 15.568V8.432L15.818 12l-6.273 3.568Z" />
+    </svg>
+  );
+}
 
 export function StorefrontTracker({
   eventName,
@@ -510,7 +576,7 @@ function NextSiteHeader({
     >
       <Link className="brand" href="/" aria-label="Armoze home">
         <img className="brand-mark" src="/armoze-site-logo.png" alt="" aria-hidden="true" />
-        <img className="brand-wordmark" src="/armoze-wordmark.png" alt="" aria-hidden="true" />
+        <img className="brand-wordmark" src="/armoze-wordmark.svg" alt="" aria-hidden="true" />
       </Link>
       <button
         className="mobile-menu-toggle"
@@ -609,10 +675,60 @@ function NextSiteHeader({
         <div className="mobile-menu-brand" aria-hidden="true">
           <img className="brand-mark" src="/armoze-site-logo.png" alt="" />
         </div>
-        <Link href="/collections/best-sellers" onClick={closeMenu}>Best Sellers</Link>
-        <Link href="/collections/money-ambition" onClick={closeMenu}>Money</Link>
-        <Link href="/collections/discipline-focus" onClick={closeMenu}>Focus</Link>
-        <Link href="/collections/new-arrivals" onClick={closeMenu}>New Arrivals</Link>
+        <Link href="/collections/best-sellers" onClick={closeMenu}>
+          <span>Best Sellers</span>
+          <ChevronRight className="mobile-menu-link-chevron" aria-hidden="true" size={18} strokeWidth={2.4} />
+        </Link>
+        <Link href="/collections/money-ambition" onClick={closeMenu}>
+          <span>Money</span>
+          <ChevronRight className="mobile-menu-link-chevron" aria-hidden="true" size={18} strokeWidth={2.4} />
+        </Link>
+        <Link href="/collections/discipline-focus" onClick={closeMenu}>
+          <span>Focus</span>
+          <ChevronRight className="mobile-menu-link-chevron" aria-hidden="true" size={18} strokeWidth={2.4} />
+        </Link>
+        <Link href="/collections/new-arrivals" onClick={closeMenu}>
+          <span>New Arrivals</span>
+          <ChevronRight className="mobile-menu-link-chevron" aria-hidden="true" size={18} strokeWidth={2.4} />
+        </Link>
+        <div className="mobile-menu-footer">
+          <span className="mobile-menu-social-handle">@itsarmoze</span>
+          <div className="mobile-menu-social-links" aria-label="Follow Armoze">
+            <a
+              className="mobile-menu-social-link"
+              href={storefrontSocialLinks.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram @itsarmoze"
+              title="Instagram @itsarmoze"
+              onClick={closeMenu}
+            >
+              <InstagramIcon />
+            </a>
+            <a
+              className="mobile-menu-social-link"
+              href={storefrontSocialLinks.tiktok}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="TikTok @itsarmoze"
+              title="TikTok @itsarmoze"
+              onClick={closeMenu}
+            >
+              <TikTokIcon />
+            </a>
+            <a
+              className="mobile-menu-social-link"
+              href={storefrontSocialLinks.youtube}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="YouTube @itsarmoze"
+              title="YouTube @itsarmoze"
+              onClick={closeMenu}
+            >
+              <YouTubeIcon />
+            </a>
+          </div>
+        </div>
       </nav>
       <div className="desktop-header-actions">
         <form className="desktop-search-form" action="/collections/best-sellers">
@@ -1042,7 +1158,7 @@ type FooterLinkGroup = {
 function NextSiteFooter() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [newsletterMessage, setNewsletterMessage] = useState('Get 15% off your first order with code FIRST15. New drops and restocks — no spam.');
+  const [newsletterMessage, setNewsletterMessage] = useState('');
   const footerLinkGroups: FooterLinkGroup[] = [
     {
       title: 'Shop',
@@ -1073,9 +1189,9 @@ function NextSiteFooter() {
     },
   ];
   const footerSocialLinks: FooterLink[] = [
-    { href: 'https://www.instagram.com/itsarmoze', label: 'Instagram', external: true },
-    { href: 'https://www.tiktok.com/@itsarmoze', label: 'TikTok', external: true },
-    { href: 'https://www.youtube.com/@itsarmoze', label: 'YouTube', external: true },
+    { href: storefrontSocialLinks.instagram, label: 'Instagram', external: true },
+    { href: storefrontSocialLinks.tiktok, label: 'TikTok', external: true },
+    { href: storefrontSocialLinks.youtube, label: 'YouTube', external: true },
   ];
   const mobileFooterGroups: FooterLinkGroup[] = [
     ...footerLinkGroups,
@@ -1159,7 +1275,8 @@ function NextSiteFooter() {
         </nav>
 
         <section className="footer-newsletter" aria-label="Newsletter signup">
-          <h2>Straight to Your Routine</h2>
+          <p className="footer-newsletter-kicker">Newsletter</p>
+          <h2>Sign up to receive 15% off your first order</h2>
           <form onSubmit={handleNewsletterSubmit}>
             <label className="sr-only" htmlFor="next-newsletter-email">
               Email address
@@ -1170,15 +1287,17 @@ function NextSiteFooter() {
                 type="email"
                 value={newsletterEmail}
                 onChange={(event) => setNewsletterEmail(event.target.value)}
-                placeholder="Your E-mail"
+                placeholder="Email address"
                 autoComplete="email"
                 required
               />
               <button type="submit" disabled={newsletterStatus === 'loading'} aria-label="Sign up for the newsletter">
-                <ArrowRight aria-hidden="true" size={18} strokeWidth={2.4} />
+                {newsletterStatus === 'loading' ? 'Subscribing' : 'Subscribe'}
               </button>
             </div>
-            <p className={`newsletter-message ${newsletterStatus}`}>{newsletterMessage}</p>
+            <p className={`newsletter-message ${newsletterStatus}`} aria-live="polite">
+              {newsletterMessage}
+            </p>
           </form>
         </section>
 

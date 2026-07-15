@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 253 48" fill="none">
+  <title>Armoze</title>
+  <g
+    stroke="#fff"
+    stroke-width="5.75"
+    stroke-linecap="square"
+    stroke-linejoin="miter"
+    shape-rendering="geometricPrecision"
+  >
+    <path d="M3.5 39.5 18 8.5l14.5 31" />
+    <path d="M10.5 28h15" />
+    <path d="M46 39.5v-31h15c9.5 0 15 4.4 15 11.75S70.5 32 61 32H46" />
+    <path d="m61 32 15.5 7.5" />
+    <path d="M89.5 39.5v-31L104 26l14.5-17.5v31" />
+    <rect x="131.5" y="8.5" width="33" height="31" rx="15.5" />
+    <path d="M176.5 8.5h30.5l-30.5 31H207" />
+    <path d="M248.5 8.5h-30v31h30" />
+    <path d="M218.5 24h24" />
+  </g>
+</svg>

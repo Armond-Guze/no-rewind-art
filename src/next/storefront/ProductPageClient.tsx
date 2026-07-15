@@ -151,6 +151,89 @@ function getSizeGuideRecommendation(width: number) {
   return 'Statement scale for large walls, offices, and open rooms.';
 }
 
+type SizeGuideImageCrop = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
+function getEmbeddedSizeFromImageUrl(src: string) {
+  const match = src.match(/-(\d+)x(\d+)\.(?:png|jpe?g|webp|avif)(?:[?#]|$)/i);
+
+  if (!match) {
+    return null;
+  }
+
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+
+  return width && height ? { width, height } : null;
+}
+
+function normalizeImageUrlForMatching(src: string) {
+  try {
+    return decodeURIComponent(src);
+  } catch {
+    return src;
+  }
+}
+
+function getSizeGuideSourceRatio(src: string) {
+  const embeddedSize = getEmbeddedSizeFromImageUrl(src);
+
+  if (embeddedSize) {
+    return embeddedSize.width / embeddedSize.height;
+  }
+
+  if (/\/reminder life has no rewind\/reminder life has no rewind main-1\.png/i.test(normalizeImageUrlForMatching(src))) {
+    return 1;
+  }
+
+  return null;
+}
+
+function getSizeGuideImageCrop(src: string | undefined, targetRatio: number): SizeGuideImageCrop | null {
+  if (!src || !targetRatio) {
+    return null;
+  }
+
+  const sourceRatio = getSizeGuideSourceRatio(src);
+
+  if (!sourceRatio) {
+    return null;
+  }
+
+  const isSquareSource = Math.abs(sourceRatio - 1) < 0.04;
+  const ratioDelta = Math.abs(sourceRatio - targetRatio) / targetRatio;
+
+  if (!isSquareSource || ratioDelta < 0.18) {
+    return null;
+  }
+
+  if (targetRatio > sourceRatio) {
+    const width = 0.9;
+    const height = Math.min(0.9, (width * sourceRatio) / targetRatio);
+
+    return {
+      left: (1 - width) / 2,
+      top: (1 - height) / 2,
+      width,
+      height,
+    };
+  }
+
+  const height = 0.9;
+  const width = Math.min(0.9, (targetRatio * height) / sourceRatio);
+
+  return {
+    left: (1 - width) / 2,
+    top: (1 - height) / 2,
+    width,
+    height,
+  };
+}
+
 function ProductSizeGuide({
   frameOption,
   onClose,
@@ -165,9 +248,18 @@ function ProductSizeGuide({
   selectedOption: SizeOption;
 }) {
   const { width, height } = getSizeDimensions(selectedOption);
+  const imageCrop = getSizeGuideImageCrop(product.image, width / height);
   const previewWidth = Math.min(78, Math.max(18, (width / 96) * 100));
   const previewStyle = {
     '--size-guide-canvas-width': `${previewWidth}%`,
+    ...(imageCrop
+      ? {
+          '--size-guide-crop-display-left': `${(-100 * imageCrop.left) / imageCrop.width}%`,
+          '--size-guide-crop-display-top': `${(-100 * imageCrop.top) / imageCrop.height}%`,
+          '--size-guide-crop-display-width': `${100 / imageCrop.width}%`,
+          '--size-guide-crop-display-height': `${100 / imageCrop.height}%`,
+        }
+      : {}),
     aspectRatio: `${width} / ${height}`,
   } as CSSProperties;
   const frameVariant =
@@ -176,6 +268,11 @@ function ProductSizeGuide({
       : frameOption.id === 'white-frame'
         ? 'white'
         : 'canvas';
+  const frameClassName = [
+    'size-guide-canvas-frame',
+    frameVariant,
+    imageCrop ? 'has-image-crop' : undefined,
+  ].filter(Boolean).join(' ');
 
   return (
     <div className="size-guide-overlay" role="presentation" onMouseDown={onClose}>
@@ -199,9 +296,10 @@ function ProductSizeGuide({
         <div className="size-guide-layout">
           <div className="size-guide-preview-column">
             <div className="size-guide-wall-scene" aria-label={`${selectedOption.label} canvas above a 72 inch sofa`}>
-              <div className={`size-guide-canvas-frame ${frameVariant}`} style={previewStyle}>
+              <div className={frameClassName} style={previewStyle}>
                 {product.image ? (
                   <OptimizedRawImage
+                    className="size-guide-canvas-art"
                     src={product.image}
                     alt=""
                     fill
@@ -1290,8 +1388,6 @@ export default function ProductPageClient({
           <div className="storefront-social-proof-heading">
             <p className="eyebrow">Customer feedback</p>
             <h2 id="product-reviews-title">Reviews</h2>
-            <p>Store-wide feedback from customers who purchased through our Etsy shop.</p>
-            <span className="storefront-social-proof-source">Source: Armoze Etsy shop</span>
           </div>
           <div className="storefront-review-carousel" aria-label="Buyer reviews">
             {etsyReviewHighlights.map((review) => (

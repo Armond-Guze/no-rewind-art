@@ -894,8 +894,6 @@ export default function HomePageClient({
           <div className="storefront-social-proof-heading">
             <p className="eyebrow">Customer feedback</p>
             <h2 id="storefront-social-proof-title">Reviews</h2>
-            <p>Feedback shared by customers who purchased through our Etsy shop.</p>
-            <span className="storefront-social-proof-source">Source: Armoze Etsy shop</span>
           </div>
 
           <div className="storefront-review-carousel" aria-label="Buyer reviews">
