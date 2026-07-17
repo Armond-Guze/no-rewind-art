@@ -135,7 +135,27 @@ function getSizeDimensions(sizeOption: Pick<SizeOption, 'id' | 'label'>) {
   };
 }
 
-function getSizeGuideRecommendation(width: number) {
+function getSizeGuideRecommendation(width: number, height: number) {
+  if (height > width) {
+    if (height <= 18) {
+      return 'Compact gallery walls and shelf styling.';
+    }
+
+    if (height <= 24) {
+      return 'Narrow walls, desks, and reading corners.';
+    }
+
+    if (height <= 36) {
+      return 'Entryways, offices, and bedroom walls.';
+    }
+
+    if (height <= 48) {
+      return 'A tall focal point for open wall sections.';
+    }
+
+    return 'Statement scale for tall, open walls.';
+  }
+
   if (width <= 24) {
     return 'Best for shelves, narrow walls, and compact desk setups.';
   }
@@ -248,10 +268,13 @@ function ProductSizeGuide({
   selectedOption: SizeOption;
 }) {
   const { width, height } = getSizeDimensions(selectedOption);
+  const isPortrait = height > width;
   const imageCrop = getSizeGuideImageCrop(product.image, width / height);
   const previewWidth = Math.min(78, Math.max(18, (width / 96) * 100));
+  const portraitPreviewHeight = Math.min(54, Math.max(20, (height / 80) * 72));
   const previewStyle = {
     '--size-guide-canvas-width': `${previewWidth}%`,
+    '--size-guide-canvas-height': `${portraitPreviewHeight}%`,
     ...(imageCrop
       ? {
           '--size-guide-crop-display-left': `${(-100 * imageCrop.left) / imageCrop.width}%`,
@@ -273,6 +296,7 @@ function ProductSizeGuide({
     frameVariant,
     imageCrop ? 'has-image-crop' : undefined,
   ].filter(Boolean).join(' ');
+  const wallSceneClassName = `size-guide-wall-scene${isPortrait ? ' is-portrait' : ''}`;
 
   return (
     <div className="size-guide-overlay" role="presentation" onMouseDown={onClose}>
@@ -295,7 +319,14 @@ function ProductSizeGuide({
 
         <div className="size-guide-layout">
           <div className="size-guide-preview-column">
-            <div className="size-guide-wall-scene" aria-label={`${selectedOption.label} canvas above a 72 inch sofa`}>
+            <div
+              className={wallSceneClassName}
+              aria-label={
+                isPortrait
+                  ? `${selectedOption.label} canvas beside a standard 80 inch doorway`
+                  : `${selectedOption.label} canvas above a 72 inch sofa`
+              }
+            >
               <div className={frameClassName} style={previewStyle}>
                 {product.image ? (
                   <OptimizedRawImage
@@ -309,21 +340,30 @@ function ProductSizeGuide({
                   <span>{product.label}</span>
                 )}
               </div>
-              <div className="size-guide-furniture" aria-hidden="true">
-                <span className="size-guide-floor-lamp" />
-                <span className="size-guide-sofa"><i /><i /><i /></span>
-                <span className="size-guide-side-table" />
-              </div>
-              <div className="size-guide-sofa-measure" aria-hidden="true">
-                <span />72 in sofa<span />
-              </div>
+              {isPortrait ? (
+                <div className="size-guide-door-reference" aria-hidden="true">
+                  <span className="size-guide-door"><i /></span>
+                  <span className="size-guide-door-measure"><i>80 in</i></span>
+                </div>
+              ) : (
+                <>
+                  <div className="size-guide-furniture" aria-hidden="true">
+                    <span className="size-guide-floor-lamp" />
+                    <span className="size-guide-sofa"><i /><i /><i /></span>
+                    <span className="size-guide-side-table" />
+                  </div>
+                  <div className="size-guide-sofa-measure" aria-hidden="true">
+                    <span />72 in sofa<span />
+                  </div>
+                </>
+              )}
             </div>
             <div className="size-guide-current-size">
               <div>
                 <span>Selected canvas</span>
                 <strong>{selectedOption.label} in</strong>
               </div>
-              <p>{getSizeGuideRecommendation(width)}</p>
+              <p>{getSizeGuideRecommendation(width, height)}</p>
             </div>
           </div>
 
@@ -351,7 +391,7 @@ function ProductSizeGuide({
                       style={{ aspectRatio: `${dimensions.width} / ${dimensions.height}` }}
                       aria-hidden="true"
                     />
-                    <span><strong>{option.label}</strong><small>{getSizeGuideRecommendation(dimensions.width)}</small></span>
+                    <span><strong>{option.label}</strong><small>{getSizeGuideRecommendation(dimensions.width, dimensions.height)}</small></span>
                     <b>{formatPrice(getConfiguredUnitPrice(product, option, optionFrame))}</b>
                   </button>
                 );
@@ -360,7 +400,11 @@ function ProductSizeGuide({
             <button className="button button-primary size-guide-apply" type="button" onClick={onClose}>
               Use {selectedOption.label}
             </button>
-            <small className="size-guide-note">Room preview is proportional to a 72-inch sofa. Exact appearance varies by wall and furniture placement.</small>
+            <small className="size-guide-note">
+              {isPortrait
+                ? 'Portrait preview is proportional to a standard 80-inch doorway. Exact appearance varies by wall placement.'
+                : 'Room preview is proportional to a 72-inch sofa. Exact appearance varies by wall and furniture placement.'}
+            </small>
           </div>
         </div>
       </section>
