@@ -312,6 +312,8 @@ function normalizeSanityProduct(
       longDescription: document.longDescription,
       label: document.label || document.title,
       image: mainImageUrl,
+      framedBlackImage: document.framedBlackImageUrl || undefined,
+      framedWhiteImage: document.framedWhiteImageUrl || undefined,
       imageAlt: document.imageAlt || document.mainImageAlt || document.title,
       artworkShape: getArtworkShapeFromSizePreset(document.sizePreset),
       aspectRatio: getProductAspectRatio(document),
@@ -433,6 +435,8 @@ const SANITY_PRODUCTS_QUERY = `*[
   aspectRatio,
   "mainImageUrl": mainImage.asset->url,
   "mainImageAlt": mainImage.alt,
+  "framedBlackImageUrl": mockupFramedBlack.asset->url,
+  "framedWhiteImageUrl": mockupFramedWhite.asset->url,
   "galleryImages": galleryImages[]{
     "url": asset->url,
     alt

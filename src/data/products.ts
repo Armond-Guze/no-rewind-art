@@ -73,6 +73,8 @@ export type CatalogProduct = {
   label: string;
   imageFolder?: string;
   image?: string;
+  framedBlackImage?: string;
+  framedWhiteImage?: string;
   imageAlt: string;
   artworkShape: ArtworkShape;
   aspectRatio?: string;

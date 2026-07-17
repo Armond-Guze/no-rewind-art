@@ -109,6 +109,20 @@ export const artworkProductType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: 'mockupFramedBlack',
+      title: 'Framed Mockup (Black)',
+      type: 'image',
+      description:
+        'Pre-rendered black float frame mockup. Shown on the product page when the customer selects the Black Frame option.',
+    }),
+    defineField({
+      name: 'mockupFramedWhite',
+      title: 'Framed Mockup (White)',
+      type: 'image',
+      description:
+        'Pre-rendered white float frame mockup. Shown on the product page when the customer selects the White Frame option.',
+    }),
+    defineField({
       name: 'galleryImages',
       title: 'Gallery Images',
       type: 'array',

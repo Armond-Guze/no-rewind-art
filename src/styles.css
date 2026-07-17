@@ -16166,3 +16166,64 @@ a.admin-icon-button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ---------------------------------------------------------------------------
+   v2 baked-mockup canvas rendering.
+   Product mockup images now contain the real canvas presentation baked into
+   the file (soft layered shadow, lit fold edges, side bezel, framed
+   variants), so the legacy CSS shadows / edge-to-edge crops / frame fakes
+   must not apply to them. The v2 component never emits crop-square-source-*,
+   ratio-*, frame-*, or has-canvas-shadow classes, which keeps nearly all
+   legacy rules inert; the resets below neutralize the generic fallbacks that
+   would still match .product-canvas-image.
+--------------------------------------------------------------------------- */
+
+.product-canvas-image.v2-canvas {
+  position: relative;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 100% !important;
+  overflow: visible !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.product-canvas-image.v2-canvas::before,
+.product-canvas-image.v2-canvas::after {
+  content: none !important;
+}
+
+.product-canvas-image.v2-canvas img {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* The PDP main-gallery surface previously got per-ratio widths via
+   :has(.crop-square-source-*) rules that no longer match. The square v2
+   mockup carries its own proportions, so one width works for every ratio. */
+.detail-artwork-surface:has(.product-canvas-image.v2-canvas) {
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
+}
+
+@media (min-width: 761px) {
+  .listing-gallery
+    > .main-product-image
+    .detail-artwork-shell
+    .detail-artwork-surface:has(.product-canvas-image.v2-canvas) {
+    width: min(740px, 92%);
+    overflow: visible;
+  }
+}

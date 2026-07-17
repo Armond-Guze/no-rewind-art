@@ -650,12 +650,15 @@ export default function ProductPageClient({
         : selectedFrameName === 'White Frame'
           ? 'frame-white'
           : 'frame-none';
-  const selectedFrameClass =
+  // v2 baked mockups: the frame option swaps the actual rendered image
+  // instead of drawing a CSS frame around the flat art.
+  const framedMockupSrc =
     selectedFrameName === 'Black Frame'
-      ? 'frame-black'
+      ? product.framedBlackImage
       : selectedFrameName === 'White Frame'
-        ? 'frame-white'
-        : 'frame-none';
+        ? product.framedWhiteImage
+        : undefined;
+  const mainCanvasSrc = framedMockupSrc || product.image;
   const selectedOptionId = selectedOption.id;
   const selectedFrameOptionId = selectedFrameOption.id;
 
@@ -960,8 +963,6 @@ export default function ProductPageClient({
                 const mobileIsMockupImage = isProductMockupImage(product, mobileGalleryImage);
                 const mobileIsSideImage = isSideMockupImage(mobileGalleryImage);
                 const mobileIsFrontMockupImage = mobileIsMockupImage && !mobileIsSideImage;
-                const mobileFrameClass =
-                  item.type === 'image' && item.isPrimary ? selectedFrameClass : 'frame-none';
 
                 return (
                   <div
@@ -987,9 +988,9 @@ export default function ProductPageClient({
                             <ProductVideoPlayer title={product.title} video={mobileGalleryVideo} />
                           ) : mobileGalleryImage === product.image ? (
                             <OptimizedCanvasImage
-                              className={`detail-artwork-image front-product-canvas ${mobileFrameClass}`}
+                              className="detail-artwork-image front-product-canvas"
                               product={product}
-                              src={mobileGalleryImage}
+                              src={mainCanvasSrc}
                               alt={product.imageAlt}
                               aspectRatio={productAspectRatio}
                               shape={productDisplayShape}
@@ -1056,9 +1057,9 @@ export default function ProductPageClient({
                       <ProductVideoPlayer title={product.title} video={selectedGalleryVideo} />
                     ) : selectedGalleryImage === product.image ? (
                       <OptimizedCanvasImage
-                        className={`detail-artwork-image front-product-canvas ${frameClass}`}
+                        className="detail-artwork-image front-product-canvas"
                         product={product}
-                        src={selectedGalleryImage}
+                        src={mainCanvasSrc}
                         alt={product.imageAlt}
                         aspectRatio={productAspectRatio}
                         shape={productDisplayShape}
