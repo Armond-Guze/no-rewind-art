@@ -666,7 +666,6 @@ export default function ProductPageClient({
     selectedGalleryItem.type === 'video' ? selectedGalleryItem.video : null;
   const mobileGalleryRef = useRef<HTMLDivElement | null>(null);
   const mobileScrollFrame = useRef<number | null>(null);
-  const mobileSwipeStart = useRef<{ pointerId: number; x: number; y: number } | null>(null);
   const purchaseActionsRef = useRef<HTMLDivElement | null>(null);
   const isMockupGalleryImage = isProductMockupImage(product, selectedGalleryImage);
   const isSideGalleryImage = isSideMockupImage(selectedGalleryImage);
@@ -744,36 +743,6 @@ export default function ProductPageClient({
       mobileScrollFrame.current = null;
       updateMobileGalleryIndex(element);
     });
-  }
-
-  function finishMobileGallerySwipe(pointerId: number, x: number, y: number) {
-    const swipeStart = mobileSwipeStart.current;
-    mobileSwipeStart.current = null;
-
-    if (!swipeStart || swipeStart.pointerId !== pointerId || galleryItems.length < 2) {
-      return;
-    }
-
-    const horizontalDistance = x - swipeStart.x;
-    const verticalDistance = y - swipeStart.y;
-    const galleryWidth = mobileGalleryRef.current?.clientWidth || 320;
-    const swipeThreshold = Math.max(42, Math.min(64, galleryWidth * 0.14));
-
-    if (
-      Math.abs(horizontalDistance) < swipeThreshold ||
-      Math.abs(horizontalDistance) <= Math.abs(verticalDistance) * 1.2
-    ) {
-      return;
-    }
-
-    const nextIndex = Math.max(
-      0,
-      Math.min(galleryItems.length - 1, selectedImage + (horizontalDistance < 0 ? 1 : -1)),
-    );
-
-    if (nextIndex !== selectedImage) {
-      selectGalleryImage(nextIndex);
-    }
   }
 
   useEffect(() => {
@@ -975,28 +944,6 @@ export default function ProductPageClient({
               className="mobile-gallery-carousel"
               ref={mobileGalleryRef}
               onScroll={(event) => queueMobileGalleryIndexUpdate(event.currentTarget)}
-              onPointerDown={(event) => {
-                if ((event.target as HTMLElement).closest('button, a, input, select, textarea, video')) {
-                  return;
-                }
-
-                mobileSwipeStart.current = {
-                  pointerId: event.pointerId,
-                  x: event.clientX,
-                  y: event.clientY,
-                };
-                event.currentTarget.setPointerCapture(event.pointerId);
-              }}
-              onPointerUp={(event) => {
-                finishMobileGallerySwipe(event.pointerId, event.clientX, event.clientY);
-
-                if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-                  event.currentTarget.releasePointerCapture(event.pointerId);
-                }
-              }}
-              onPointerCancel={() => {
-                mobileSwipeStart.current = null;
-              }}
               onDragStart={(event) => event.preventDefault()}
               aria-label={`${product.title} product media`}
               aria-roledescription="carousel"

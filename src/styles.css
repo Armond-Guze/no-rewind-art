@@ -7520,7 +7520,8 @@ a.admin-icon-button {
     scroll-padding-inline: var(--best-sellers-edge-peek) 16px;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
   }
 
   .related-products-grid.best-sellers-carousel::-webkit-scrollbar {
@@ -7839,14 +7840,15 @@ a.admin-icon-button {
     grid-auto-columns: 100%;
     width: calc(100vw - 32px);
     margin-inline: auto;
-    overflow-x: hidden;
-    overscroll-behavior-x: none;
-    scroll-snap-type: none;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
     scrollbar-width: none;
-    touch-action: pan-y pinch-zoom;
+    touch-action: pan-x pan-y pinch-zoom;
     user-select: none;
     -webkit-user-select: none;
+    -webkit-overflow-scrolling: touch;
   }
 
   .mobile-gallery-carousel::-webkit-scrollbar {
@@ -7856,6 +7858,7 @@ a.admin-icon-button {
   .mobile-gallery-slide {
     min-width: 0;
     scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .mobile-gallery-slide .main-product-image {
@@ -8215,7 +8218,8 @@ a.admin-icon-button {
     scroll-padding-inline: clamp(34px, 10vw, 44px) 16px;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
   }
 
   .related-products-scroll-cue {
@@ -10362,7 +10366,7 @@ a.admin-icon-button {
     backdrop-filter: none;
   }
 
-  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) {
+  .site-header:not(.is-scrolled):not(.menu-open):not(.search-open) {
     background: transparent;
     border-bottom-color: transparent;
     box-shadow: none;
@@ -10370,16 +10374,16 @@ a.admin-icon-button {
     backdrop-filter: none;
   }
 
-  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .brand,
-  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-menu-toggle,
-  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-search-nav-button,
-  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-account-nav-link,
-  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-cart-nav-link {
+  .site-header:not(.is-scrolled):not(.menu-open):not(.search-open) .brand,
+  .site-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-menu-toggle,
+  .site-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-search-nav-button,
+  .site-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-account-nav-link,
+  .site-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-cart-nav-link {
     color: #fff;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.72));
   }
 
-  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .brand-mark {
+  .site-header:not(.is-scrolled):not(.menu-open):not(.search-open) .brand-mark {
     filter: none;
   }
 
@@ -10403,9 +10407,19 @@ a.admin-icon-button {
     backdrop-filter: none;
   }
 
+  .site-header.is-scrolled:not(.home-header) {
+    position: fixed;
+    right: 0;
+    left: 0;
+  }
+
+  .site-header.is-scrolled:not(.home-header) + main {
+    margin-top: var(--mobile-header-height);
+  }
+
   .site-header.is-hidden,
   .site-header.home-header.is-hidden {
-    transform: translateY(-100%);
+    transform: translateY(0);
   }
 
   .site-header.is-scrolled .brand,
@@ -10619,8 +10633,8 @@ a.admin-icon-button {
     background: rgba(21, 21, 21, 0.2);
   }
 
-  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-account-nav-link::before,
-  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-cart-nav-link::before {
+  .site-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-account-nav-link::before,
+  .site-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-cart-nav-link::before {
     background: rgba(244, 239, 230, 0.38);
   }
 
@@ -10638,7 +10652,7 @@ a.admin-icon-button {
     line-height: 1;
   }
 
-  .site-header.home-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-cart-count {
+  .site-header:not(.is-scrolled):not(.menu-open):not(.search-open) .mobile-cart-count {
     border: 1px solid rgba(255, 255, 255, 0.54);
     background: rgba(0, 0, 0, 0.72);
   }
@@ -11347,7 +11361,8 @@ a.admin-icon-button {
     scroll-behavior: smooth;
     scroll-padding-inline: 0 16px;
     scroll-snap-type: x mandatory;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
   }
 
   .storefront-home #shop .best-sellers-carousel .product {
@@ -13042,6 +13057,8 @@ a.admin-icon-button {
     scroll-padding-inline: 0;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
+    touch-action: pan-x pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
   }
 
   .storefront-home .new-arrivals-preview .new-arrivals-grid::-webkit-scrollbar {
@@ -13177,7 +13194,8 @@ a.admin-icon-button {
     scroll-padding-inline: var(--best-sellers-edge-peek) 16px;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
   }
 
   .storefront-home #shop .best-sellers-carousel::-webkit-scrollbar {
@@ -13420,6 +13438,7 @@ a.admin-icon-button {
     width: 100vw;
     margin: 0 calc(50% - 50vw);
     overflow: hidden;
+    touch-action: pan-y pinch-zoom;
   }
 
   .storefront-home .storefront-bottom-slideshow .new-arrivals-mobile-showcase.has-edge-peek {
@@ -13431,6 +13450,7 @@ a.admin-icon-button {
   .storefront-home .storefront-bottom-slideshow .new-arrivals-mobile-viewport {
     width: 100%;
     overflow: hidden;
+    touch-action: pan-y pinch-zoom;
   }
 
   .storefront-home .storefront-bottom-slideshow .new-arrivals-mobile-track {
@@ -13562,7 +13582,8 @@ a.admin-icon-button {
     scroll-padding-inline: var(--best-sellers-edge-peek) 16px;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
   }
 
   .product-page .related-products-grid::-webkit-scrollbar {
