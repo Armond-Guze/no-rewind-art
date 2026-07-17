@@ -659,6 +659,7 @@ export default function ProductPageClient({
         ? product.framedWhiteImage
         : undefined;
   const mainCanvasSrc = framedMockupSrc || product.image;
+  const mainCanvasFrameClass = framedMockupSrc ? 'frame-none' : frameClass;
   const selectedOptionId = selectedOption.id;
   const selectedFrameOptionId = selectedFrameOption.id;
 
@@ -963,6 +964,8 @@ export default function ProductPageClient({
                 const mobileIsMockupImage = isProductMockupImage(product, mobileGalleryImage);
                 const mobileIsSideImage = isSideMockupImage(mobileGalleryImage);
                 const mobileIsFrontMockupImage = mobileIsMockupImage && !mobileIsSideImage;
+                const mobileFrameClass =
+                  item.type === 'image' && item.isPrimary ? mainCanvasFrameClass : 'frame-none';
 
                 return (
                   <div
@@ -988,7 +991,7 @@ export default function ProductPageClient({
                             <ProductVideoPlayer title={product.title} video={mobileGalleryVideo} />
                           ) : mobileGalleryImage === product.image ? (
                             <OptimizedCanvasImage
-                              className="detail-artwork-image front-product-canvas"
+                              className={`detail-artwork-image front-product-canvas ${mobileFrameClass}`}
                               product={product}
                               src={mainCanvasSrc}
                               alt={product.imageAlt}
@@ -1057,7 +1060,7 @@ export default function ProductPageClient({
                       <ProductVideoPlayer title={product.title} video={selectedGalleryVideo} />
                     ) : selectedGalleryImage === product.image ? (
                       <OptimizedCanvasImage
-                        className="detail-artwork-image front-product-canvas"
+                        className={`detail-artwork-image front-product-canvas ${mainCanvasFrameClass}`}
                         product={product}
                         src={mainCanvasSrc}
                         alt={product.imageAlt}

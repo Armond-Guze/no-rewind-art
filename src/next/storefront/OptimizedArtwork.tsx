@@ -107,6 +107,53 @@ export function OptimizedRawImage({
   );
 }
 
+function getEmbeddedImageSize(src: string) {
+  const embeddedSize = src.match(/-(\d+)x(\d+)\.(?:png|jpe?g|webp|avif)(?:\?|$)/i);
+
+  if (!embeddedSize) {
+    return null;
+  }
+
+  const width = Number(embeddedSize[1]);
+  const height = Number(embeddedSize[2]);
+
+  if (!width || !height) {
+    return null;
+  }
+
+  return { width, height };
+}
+
+function getRatioValue(aspectRatio: string) {
+  const ratioParts = aspectRatio.split('/').map((part) => Number(part.trim()));
+  return ratioParts.length === 2 && ratioParts[0] && ratioParts[1]
+    ? ratioParts[0] / ratioParts[1]
+    : null;
+}
+
+function isSquareSourceImage(src: string) {
+  const embeddedSize = getEmbeddedImageSize(src);
+
+  if (!embeddedSize) {
+    return false;
+  }
+
+  const { width, height } = embeddedSize;
+  return Math.abs(width - height) / Math.max(width, height) < 0.04;
+}
+
+function isSourceRatioMismatch(src: string, aspectRatio: string) {
+  const embeddedSize = getEmbeddedImageSize(src);
+  const targetRatio = getRatioValue(aspectRatio);
+
+  if (!embeddedSize || !targetRatio || isSquareSourceImage(src)) {
+    return false;
+  }
+
+  const sourceRatio = embeddedSize.width / embeddedSize.height;
+  return Math.abs(sourceRatio - targetRatio) / targetRatio > 0.04;
+}
+
 export function OptimizedCanvasImage({
   product,
   src = product.image,
@@ -123,39 +170,59 @@ export function OptimizedCanvasImage({
     return <ProductVisual product={product} />;
   }
 
-  // v2 baked-mockup rendering: the image files now contain the real canvas
-  // presentation (soft shadow, lit fold edges, side bezel, framed variants).
-  // Render the full square uncropped and let the file do the work — no CSS
-  // shadows, no edge-to-edge crops, no frame fakes. Legacy rules stay inert
-  // because none of the crop-square-source-* / ratio-* / has-canvas-shadow /
-  // frame-* classes are emitted anymore.
-  void aspectRatio;
-  void shadow;
-  const displayShape = shape;
-  const dimensions = getImageDimensions(src, '1 / 1');
-  const squareSide = Math.min(dimensions.width, dimensions.height);
-  const imageLoader = getImageLoader(src);
-  const imageLoading = loading ?? (priority ? 'eager' : undefined);
+  const normalizedAspectRatio = aspectRatio.replace(/\s/g, '');
+  const ratioClassName = `ratio-${normalizedAspectRatio.replace('/', 'x')}`;
+  const displayShape =
+    normalizedAspectRatio === '2/3' || normalizedAspectRatio === '3/4' || normalizedAspectRatio === '4/5'
+      ? 'portrait'
+      : normalizedAspectRatio === '1/1'
+        ? 'square'
+        : shape;
+  const hasSquareSource = isSquareSourceImage(src);
+  const usesSquareSourceWideCrop = hasSquareSource && displayShape === 'landscape' && normalizedAspectRatio === '2/1';
+  const usesSquareSourceFourThreeCrop = hasSquareSource && displayShape === 'landscape' && normalizedAspectRatio === '4/3';
+  const usesSquareSourcePortraitCrop = hasSquareSource && displayShape === 'portrait' && normalizedAspectRatio === '2/3';
+  const usesSquareSourceThreeFourCrop = hasSquareSource && displayShape === 'portrait' && normalizedAspectRatio === '3/4';
+  const usesSquareSourceLandscapeCrop = hasSquareSource && displayShape === 'landscape' && normalizedAspectRatio === '3/2';
+  const usesSourceRatioMismatch = isSourceRatioMismatch(src, aspectRatio);
+  const imageFitClassName = usesSourceRatioMismatch ? 'object-contain' : 'object-cover';
   const classNames = [
     'product-canvas-image',
-    'v2-canvas',
     `shape-${displayShape}`,
+    ratioClassName,
+    usesSquareSourceWideCrop ? 'crop-square-source-2x1' : undefined,
+    usesSquareSourceFourThreeCrop ? 'crop-square-source-4x3' : undefined,
+    usesSquareSourcePortraitCrop ? 'crop-square-source-2x3' : undefined,
+    usesSquareSourceThreeFourCrop ? 'crop-square-source-3x4' : undefined,
+    usesSquareSourceLandscapeCrop ? 'crop-square-source-3x2' : undefined,
+    usesSourceRatioMismatch ? 'source-ratio-mismatch' : undefined,
+    shadow ? 'has-canvas-shadow' : 'no-canvas-shadow',
     className,
   ].filter(Boolean).join(' ');
+  const surfaceClassName = [
+    'relative h-full w-full overflow-hidden rounded-sm bg-neutral-100',
+    shadow ? 'shadow-[0_28px_45px_rgba(0,0,0,0.42)]' : 'shadow-none',
+  ].join(' ');
+  const dimensions = getImageDimensions(src, aspectRatio);
+  const imageLoader = getImageLoader(src);
+  const imageLoading = loading ?? (priority ? 'eager' : undefined);
 
   return (
-    <div className={classNames} style={{ aspectRatio: '1 / 1' }}>
-      <Image
-        className="h-full w-full select-none object-contain object-center"
-        loader={imageLoader}
-        src={src}
-        alt={alt}
-        width={squareSide}
-        height={squareSide}
-        preload={priority}
-        loading={imageLoading}
-        sizes={sizes}
-      />
+    <div className={classNames} style={{ aspectRatio }}>
+      {shadow ? <span className="product-canvas-shadow" aria-hidden="true" /> : null}
+      <div className={surfaceClassName}>
+        <Image
+          className={`h-full w-full select-none ${imageFitClassName} object-center`}
+          loader={imageLoader}
+          src={src}
+          alt={alt}
+          width={dimensions.width}
+          height={dimensions.height}
+          preload={priority}
+          loading={imageLoading}
+          sizes={sizes}
+        />
+      </div>
     </div>
   );
 }
