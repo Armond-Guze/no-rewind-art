@@ -295,17 +295,29 @@ export function getFramePreviewVariant(option: FrameOption) {
 }
 
 export function getRelatedProducts(products: Product[], product: Product) {
+  const collectionRelationshipWeights: Record<string, number> = {
+    'best-sellers': 1,
+    'new-arrivals': 1,
+    'money-ambition': 4,
+    'study-creative': 4,
+    'discipline-focus': 4,
+    music: 6,
+  };
+
   return products
     .filter((candidate) => candidate.id !== product.id && candidate.published)
     .map((candidate) => {
-      const sharedCollections = candidate.collectionSlugs.filter((slug) =>
-        product.collectionSlugs.includes(slug),
-      ).length;
+      const sharedCollectionScore = candidate.collectionSlugs
+        .filter((slug) => product.collectionSlugs.includes(slug))
+        .reduce(
+          (score, slug) => score + (collectionRelationshipWeights[slug] ?? 3),
+          0,
+        );
       const toneMatch = candidate.tone === product.tone ? 1 : 0;
 
       return {
         product: candidate,
-        score: sharedCollections * 2 + toneMatch,
+        score: sharedCollectionScore + toneMatch,
       };
     })
     .filter((item) => item.score > 0)
