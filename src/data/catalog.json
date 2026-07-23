@@ -234,14 +234,10 @@
       ]
     },
     {
-      "slug": "discipline-focus",
-      "title": "Discipline & Focus",
-      "navLabel": "Focus",
-      "description": "Clean motivational canvas prints for discipline, focus, offices, bedrooms, studios, study rooms, and gym spaces.",
-      "tones": [
-        "focus",
-        "cassette"
-      ]
+      "slug": "music",
+      "title": "Music & Cassette Art",
+      "navLabel": "Music",
+      "description": "Music-inspired canvas prints, retro cassette artwork, and statement pieces for studios, music rooms, bedrooms, and creative spaces."
     },
     {
       "slug": "study-creative",
@@ -329,7 +325,7 @@
       "tone": "cassette",
       "collectionSlugs": [
         "best-sellers",
-        "discipline-focus"
+        "music"
       ],
       "size": "Canvas print",
       "defaultSizeId": "36x18",
@@ -443,7 +439,7 @@
       ],
       "tone": "cassette",
       "collectionSlugs": [
-        "discipline-focus",
+        "music",
         "new-arrivals"
       ],
       "size": "Canvas print",
@@ -1990,7 +1986,7 @@
       "tone": "cassette",
       "collectionSlugs": [
         "new-arrivals",
-        "discipline-focus"
+        "music"
       ],
       "size": "Canvas print",
       "defaultSizeId": "30x15",
@@ -3528,7 +3524,7 @@
       "tone": "cassette",
       "collectionSlugs": [
         "new-arrivals",
-        "discipline-focus"
+        "music"
       ],
       "size": "Canvas print",
       "defaultSizeId": "30x15",

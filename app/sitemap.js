@@ -3,10 +3,12 @@ import {
   getSeoPageFactoryCollectionPriority,
   getSeoPageFactoryCollectionSlugs,
 } from '../server/seo-page-factory.js';
+import { seedCatalog } from '../server/catalog.js';
 
 export const dynamic = 'force-dynamic';
 
 const siteUrl = 'https://armoze.com';
+const retiredCollectionSlugs = new Set(['discipline-focus']);
 
 function uniqueValues(values) {
   return [...new Set(values.filter(Boolean))];
@@ -15,7 +17,12 @@ function uniqueValues(values) {
 export default async function sitemap() {
   const { collectionSlugs, products } = await getSanitySitemapEntries();
   const seoCollectionSlugs = getSeoPageFactoryCollectionSlugs();
-  const allCollectionSlugs = uniqueValues([...collectionSlugs, ...seoCollectionSlugs]);
+  const catalogCollectionSlugs = seedCatalog.collections.map((collection) => collection.slug);
+  const allCollectionSlugs = uniqueValues([
+    ...catalogCollectionSlugs,
+    ...collectionSlugs,
+    ...seoCollectionSlugs,
+  ]).filter((collectionSlug) => !retiredCollectionSlugs.has(collectionSlug));
   const now = new Date();
   const routes = [
     {

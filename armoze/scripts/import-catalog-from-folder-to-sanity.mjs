@@ -301,7 +301,7 @@ function inferTone(value) {
     return 'minimal'
   }
 
-  if (/(rewind|reminder|clock)/.test(name)) {
+  if (/(cassette|music|play again|record|song|rewind|reminder|clock)/.test(name)) {
     return 'cassette'
   }
 
@@ -319,6 +319,8 @@ function inferCollectionSlugs(tone) {
     collectionSlugs.push('money-ambition')
   } else if (tone === 'minimal') {
     collectionSlugs.push('study-creative')
+  } else if (tone === 'cassette') {
+    collectionSlugs.push('music')
   } else {
     collectionSlugs.push('discipline-focus')
   }

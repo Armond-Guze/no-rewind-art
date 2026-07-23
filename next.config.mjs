@@ -50,7 +50,12 @@ const nextConfig = {
       },
       {
         source: '/products/97-percent',
-        destination: '/collections/discipline-focus',
+        destination: '/collections/best-sellers',
+        permanent: true,
+      },
+      {
+        source: '/collections/discipline-focus',
+        destination: '/collections/music',
         permanent: true,
       },
     ];

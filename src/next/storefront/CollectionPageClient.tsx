@@ -15,7 +15,7 @@ import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
 
 const collectionNavItems = [
   { slug: 'best-sellers', label: 'Best Sellers' },
-  { slug: 'discipline-focus', label: 'Motivational' },
+  { slug: 'music', label: 'Music' },
   { slug: 'new-arrivals', label: 'New Arrivals' },
 ];
 
@@ -165,7 +165,18 @@ export default function CollectionPageClient({
                 : 'No matching prints'}
               <Link href={`/collections/${collection.slug}`}>Clear search</Link>
             </p>
-          ) : null}
+          ) : (
+            <>
+              <p>{collection.description}</p>
+              {collection.slug === 'music' ? (
+                <div className="collection-feature-list" aria-label="Music collection features">
+                  <span>Retro cassette originals</span>
+                  <span>Made for studios and music rooms</span>
+                  <span>Ready to hang</span>
+                </div>
+              ) : null}
+            </>
+          )}
         </section>
 
         <section className="collection-filters" aria-label="Filter and sort products">

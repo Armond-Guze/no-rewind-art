@@ -244,12 +244,12 @@ Shop/category pages live at:
 ```text
 /collections/best-sellers
 /collections/money-ambition
-/collections/discipline-focus
+/collections/music
 /collections/study-creative
 /collections/new-arrivals
 ```
 
-Collection definitions live in `src/data/products.ts` under `collections`.
+Collection definitions live in `src/data/catalog.json` under `collections`.
 Products are assigned with `collectionSlugs`, `productIds`, or `tones`.
 
 ## Stripe Checkout

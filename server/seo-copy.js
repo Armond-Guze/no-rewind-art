@@ -50,10 +50,10 @@ const collectionProfiles = {
     description:
       'Shop money wall art and ambition canvas prints for entrepreneurs, offices, studios, workspaces, and income-focused rooms.',
   },
-  'discipline-focus': {
-    title: 'Motivational Wall Art for Discipline and Focus',
+  music: {
+    title: 'Music Wall Art and Retro Cassette Canvas Prints',
     description:
-      'Shop motivational wall art and focus canvas prints for offices, bedrooms, gyms, study rooms, studios, and daily routines.',
+      'Shop music wall art and retro cassette canvas prints for studios, music rooms, bedrooms, rec rooms, and creative spaces.',
   },
   'study-creative': {
     title: 'Study Room and Creative Workspace Canvas Prints',

@@ -4,7 +4,7 @@ import {SizePresetInput} from './SizePresetInput'
 const collectionSlugOptions = [
   {title: 'Best Sellers', value: 'best-sellers'},
   {title: 'Money & Ambition', value: 'money-ambition'},
-  {title: 'Discipline & Focus', value: 'discipline-focus'},
+  {title: 'Music', value: 'music'},
   {title: 'Study & Creative', value: 'study-creative'},
   {title: 'New Arrivals', value: 'new-arrivals'},
 ]

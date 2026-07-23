@@ -1331,6 +1331,25 @@ h3 {
   line-height: 1.6;
 }
 
+.collection-feature-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.collection-feature-list span {
+  padding: 8px 11px;
+  border: 1px solid rgba(21, 21, 21, 0.16);
+  border-radius: 999px;
+  color: #45413d;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
 .listing-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -9967,6 +9986,53 @@ a.admin-icon-button {
 
 .new-arrivals-preview {
   padding-top: 0;
+}
+
+.storefront-shop-section.music-preview {
+  padding-top: clamp(58px, 6vw, 92px);
+  padding-bottom: clamp(54px, 6vw, 92px);
+  background:
+    radial-gradient(circle at 86% 8%, rgba(176, 49, 39, 0.24), transparent 28%),
+    #11110f;
+  color: #f7f5f0;
+}
+
+.storefront-home .music-preview .section-heading h2,
+.storefront-home .music-preview .product-title-row h3,
+.storefront-home .music-preview .product-card-meta strong {
+  color: #f7f5f0;
+}
+
+.storefront-home .music-preview .storefront-section-subcopy {
+  color: rgba(247, 245, 240, 0.62);
+}
+
+.storefront-home .music-preview .section-link,
+.storefront-home .music-preview .eyebrow {
+  color: #f06a5f;
+}
+
+.storefront-home .music-preview .product-image-link {
+  background: #282724;
+}
+
+.music-feature-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -4px 0 24px;
+}
+
+.music-feature-list span {
+  padding: 8px 11px;
+  border: 1px solid rgba(247, 245, 240, 0.2);
+  border-radius: 999px;
+  color: rgba(247, 245, 240, 0.76);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .new-arrivals-mobile-showcase {

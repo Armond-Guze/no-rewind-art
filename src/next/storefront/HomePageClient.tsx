@@ -11,7 +11,7 @@ import {
   supportMailto,
 } from './product-utils';
 import { GoogleCustomerReviewsOptIn } from './GoogleCustomerReviewsOptIn';
-import { OptimizedRawImage, ProductImage } from './OptimizedArtwork';
+import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 import { useUrlSearchParam } from './url-search';
 
@@ -551,6 +551,7 @@ export default function HomePageClient({
   featuredProducts,
   newArrivalProducts,
   heroProducts,
+  musicProducts,
   homepageSettings,
 }: {
   allProducts: Product[];
@@ -558,6 +559,7 @@ export default function HomePageClient({
   featuredProducts: Product[];
   newArrivalProducts: Product[];
   heroProducts: Product[];
+  musicProducts: Product[];
   homepageSettings?: HomepageSettings;
 }) {
   const queryCheckoutResult = useUrlSearchParam('checkout');
@@ -725,10 +727,6 @@ export default function HomePageClient({
     return () => window.clearInterval(slideTimer);
   }, [heroSlides.length, hasHomepageHeroMedia, hasHomepageMobileHeroMedia]);
 
-  const storyRoomProduct = allProducts.find((product) => product.slug === 'bookshelf');
-  const storyRoomImage =
-    storyRoomProduct?.gallery?.[3] ?? storyRoomProduct?.gallery?.[2] ?? storyRoomProduct?.image ?? '';
-
   return (
     <StorefrontShell products={allProducts}>
       <StorefrontTracker />
@@ -757,7 +755,7 @@ export default function HomePageClient({
                 </em>
               </span>
             </h1>
-            <p>Ready to hang. Built for focus.</p>
+            <p>Ready to hang. Made to move you.</p>
             <div className="hero-actions">
               <Link className="button button-primary" href="/collections/best-sellers">
                 Shop Best Sellers
@@ -860,33 +858,36 @@ export default function HomePageClient({
           ) : null}
         </section>
 
-        <section className="storefront-story-cta" aria-labelledby="storefront-story-title">
-          <div className="storefront-story-copy">
-            <p className="eyebrow">Why Armoze</p>
-            <h2 id="storefront-story-title">
-              <span>Built for <em>focus.</em></span>
-            </h2>
-            <p>
-              Ready-to-hang canvas prints for bedrooms, offices, studios, and focused spaces.
-            </p>
-            <Link className="button button-primary" href="/collections/best-sellers">
-              Shop the Collection
+        <section
+          className="section shop-section storefront-shop-section music-preview"
+          aria-labelledby="music-preview-title"
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Turn up the walls</p>
+              <h2 id="music-preview-title">Music & cassette art.</h2>
+              <p className="storefront-section-subcopy">Retro sound, lasting statements.</p>
+            </div>
+            <Link className="section-link" href="/collections/music">
+              Shop Music
               <ArrowUpRight aria-hidden="true" size={16} />
             </Link>
           </div>
-          <div className="storefront-story-visual">
-            {storyRoomImage ? (
-              <OptimizedRawImage
-                src={storyRoomImage}
-                alt="Armoze canvas print hanging above a desk in a focused workspace"
-                aspectRatio="1 / 1"
-                sizes="(max-width: 900px) 92vw, 560px"
+
+          <div className="music-feature-list" aria-label="Music artwork features">
+            <span>Music-room ready</span>
+            <span>Retro cassette originals</span>
+            <span>Made to order</span>
+          </div>
+
+          <div className="product-grid music-products-grid">
+            {musicProducts.map((product) => (
+              <HomeProductCard
+                key={product.id}
+                product={product}
+                priority={false}
               />
-            ) : null}
-            <div className="storefront-story-visual-caption" aria-label="Armoze canvas details">
-              <span>Made to order</span>
-              <span>Ready to hang</span>
-            </div>
+            ))}
           </div>
         </section>
 

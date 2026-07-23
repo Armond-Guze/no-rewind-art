@@ -663,7 +663,7 @@ function NextSiteHeader({
         <div className="mobile-search-suggestions" aria-label="Search suggestions">
           <strong>Suggestions:</strong>
           <Link href="/collections/best-sellers" onClick={closeSearch}>Best Sellers</Link>
-          <Link href="/collections/discipline-focus" onClick={closeSearch}>Focus</Link>
+          <Link href="/collections/music" onClick={closeSearch}>Music</Link>
           <Link href="/collections/money-ambition" onClick={closeSearch}>Money</Link>
         </div>
       </section>
@@ -683,8 +683,8 @@ function NextSiteHeader({
           <span>Money</span>
           <ChevronRight className="mobile-menu-link-chevron" aria-hidden="true" size={18} strokeWidth={2.4} />
         </Link>
-        <Link href="/collections/discipline-focus" onClick={closeMenu}>
-          <span>Focus</span>
+        <Link href="/collections/music" onClick={closeMenu}>
+          <span>Music</span>
           <ChevronRight className="mobile-menu-link-chevron" aria-hidden="true" size={18} strokeWidth={2.4} />
         </Link>
         <Link href="/collections/new-arrivals" onClick={closeMenu}>
@@ -1166,7 +1166,7 @@ function NextSiteFooter() {
         { href: '/collections/best-sellers', label: 'Best Sellers' },
         { href: '/collections/new-arrivals', label: 'New Arrivals' },
         { href: '/collections/money-ambition', label: 'Money' },
-        { href: '/collections/discipline-focus', label: 'Focus' },
+        { href: '/collections/music', label: 'Music' },
       ],
     },
     {
