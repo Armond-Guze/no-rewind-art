@@ -14245,29 +14245,79 @@ a.admin-icon-button {
 .footer-payment-badges {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .footer-payment-badges li {
-  padding: 5px 10px;
-  border: 1px solid rgba(244, 239, 230, 0.22);
+  width: 50px;
+  height: 34px;
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  flex: 0 1 50px;
+  overflow: hidden;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  white-space: nowrap;
+  background: #fff;
+  color: #050506;
+}
+
+.footer-payment-icon {
+  display: block;
+  width: 22px;
+  max-width: 100%;
+  height: 22px;
+  flex: none;
+}
+
+.footer-payment-icon-visa {
+  width: 38px;
+  height: 38px;
+}
+
+.footer-payment-icon-mastercard {
+  width: 24px;
+  height: 24px;
+}
+
+.footer-payment-icon-american-express,
+.footer-payment-icon-klarna {
+  width: 22px;
+  height: 22px;
+}
+
+.footer-payment-icon-amazon-pay {
+  width: 24px;
+  height: 24px;
+}
+
+.footer-payment-icon-cash-app {
+  width: 21px;
+  height: 21px;
 }
 
 @media (max-width: 760px) {
   .footer-bottom {
     justify-content: center;
     text-align: center;
+  }
+
+  .footer-payment-badges {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .footer-payment-badges li {
+    width: auto;
+    height: 32px;
+    padding: 4px 3px;
   }
 }
 

@@ -16,6 +16,14 @@ import {
   X,
 } from 'lucide-react';
 import {
+  SiAmazonpay,
+  SiAmericanexpress,
+  SiCashapp,
+  SiKlarna,
+  SiMastercard,
+  SiVisa,
+} from 'react-icons/si';
+import {
   cartUpdatedEvent,
   getStoredCartCount,
   notifyStoredCartUpdated,
@@ -51,6 +59,14 @@ const storefrontSocialLinks = {
   tiktok: 'https://www.tiktok.com/@itsarmoze',
   youtube: 'https://www.youtube.com/@itsarmoze',
 } as const;
+const footerPaymentMethods = [
+  { id: 'visa', label: 'Visa', Icon: SiVisa },
+  { id: 'mastercard', label: 'Mastercard', Icon: SiMastercard },
+  { id: 'american-express', label: 'American Express', Icon: SiAmericanexpress },
+  { id: 'klarna', label: 'Klarna', Icon: SiKlarna },
+  { id: 'amazon-pay', label: 'Amazon Pay', Icon: SiAmazonpay },
+  { id: 'cash-app', label: 'Cash App', Icon: SiCashapp },
+] as const;
 
 function InstagramIcon({ size = 22 }: { size?: number }) {
   return (
@@ -1340,12 +1356,16 @@ function NextSiteFooter() {
       <div className="footer-bottom">
         <p className="footer-bottom-copy">&copy; 2026 Armoze.</p>
         <ul className="footer-payment-badges" aria-label="Accepted payment methods">
-          <li>Visa</li>
-          <li>Mastercard</li>
-          <li>Amex</li>
-          <li>Klarna</li>
-          <li>Amazon Pay</li>
-          <li>Cash App</li>
+          {footerPaymentMethods.map(({ id, label, Icon }) => (
+            <li key={id}>
+              <Icon
+                className={`footer-payment-icon footer-payment-icon-${id}`}
+                aria-hidden="true"
+                focusable="false"
+              />
+              <span className="sr-only">{label}</span>
+            </li>
+          ))}
         </ul>
         <div className="footer-market-selectors" aria-label="Store settings">
           <span className="footer-market-pill">United States (USD $)</span>
