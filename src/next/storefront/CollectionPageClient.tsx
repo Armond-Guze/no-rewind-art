@@ -1,14 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Star } from 'lucide-react';
 import type { Collection, Product } from '../../data/products';
-import {
-  formatPrice,
-  getDisplayArtworkShape,
-  hasProductSpecificReviewSummary,
-} from './product-utils';
+import { formatPrice, hasProductSpecificReviewSummary } from './product-utils';
 import { OptimizedRawImage, ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
@@ -18,16 +14,6 @@ const collectionNavItems = [
   { slug: 'music', label: 'Music' },
   { slug: 'new-arrivals', label: 'New Arrivals' },
 ];
-
-const shapeFilters = [
-  { id: 'all', label: 'All' },
-  { id: 'landscape', label: 'Landscape' },
-  { id: 'portrait', label: 'Portrait' },
-  { id: 'square', label: 'Square' },
-] as const;
-
-type ShapeFilter = (typeof shapeFilters)[number]['id'];
-type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'title';
 
 function getCardBadge(product: Product, collectionSlug: string, index: number) {
   if (collectionSlug === 'best-sellers' && index < 4) {
@@ -86,30 +72,15 @@ export default function CollectionPageClient({
   initialSearchTerm?: string;
   products: Product[];
 }) {
-  const [shapeFilter, setShapeFilter] = useState<ShapeFilter>('all');
-  const [sortOption, setSortOption] = useState<SortOption>('featured');
   const searchTerm = initialSearchTerm?.trim() || '';
 
-  const visibleProducts = useMemo(() => {
-    const searchResults = searchTerm
-      ? allProducts.filter((product) => productMatchesSearch(product, searchTerm))
-      : products;
-    const filtered =
-      shapeFilter === 'all'
-        ? searchResults
-        : searchResults.filter((product) => getDisplayArtworkShape(product) === shapeFilter);
-    const sorted = [...filtered];
-
-    if (sortOption === 'price-asc') {
-      sorted.sort((a, b) => a.priceInCents - b.priceInCents);
-    } else if (sortOption === 'price-desc') {
-      sorted.sort((a, b) => b.priceInCents - a.priceInCents);
-    } else if (sortOption === 'title') {
-      sorted.sort((a, b) => a.title.localeCompare(b.title));
-    }
-
-    return sorted;
-  }, [allProducts, products, searchTerm, shapeFilter, sortOption]);
+  const visibleProducts = useMemo(
+    () =>
+      searchTerm
+        ? allProducts.filter((product) => productMatchesSearch(product, searchTerm))
+        : products,
+    [allProducts, products, searchTerm],
+  );
 
   useEffect(() => {
     if (searchTerm) {
@@ -165,46 +136,7 @@ export default function CollectionPageClient({
                 : 'No matching prints'}
               <Link href={`/collections/${collection.slug}`}>Clear search</Link>
             </p>
-          ) : (
-            <>
-              <p>{collection.description}</p>
-              {collection.slug === 'music' ? (
-                <div className="collection-feature-list" aria-label="Music collection features">
-                  <span>Retro cassette originals</span>
-                  <span>Made for studios and music rooms</span>
-                  <span>Ready to hang</span>
-                </div>
-              ) : null}
-            </>
-          )}
-        </section>
-
-        <section className="collection-filters" aria-label="Filter and sort products">
-          <div className="collection-shape-filters" role="group" aria-label="Filter by orientation">
-            {shapeFilters.map((filter) => (
-              <button
-                className={filter.id === shapeFilter ? 'active' : ''}
-                key={filter.id}
-                type="button"
-                onClick={() => setShapeFilter(filter.id)}
-                aria-pressed={filter.id === shapeFilter}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-          <label className="collection-sort">
-            <span className="sr-only">Sort products</span>
-            <select
-              value={sortOption}
-              onChange={(event) => setSortOption(event.target.value as SortOption)}
-            >
-              <option value="featured">Featured</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="title">A to Z</option>
-            </select>
-          </label>
+          ) : null}
         </section>
 
         <section className="listing-grid" aria-label={`${collection.title} products`}>
@@ -262,13 +194,9 @@ export default function CollectionPageClient({
           {!visibleProducts.length ? (
             <p className="collection-empty">
               {searchTerm
-                ? `Nothing matched “${searchTerm}”${shapeFilter === 'all' ? '.' : ` in ${shapeFilter} prints.`}`
-                : `No ${shapeFilter} prints in this collection yet.`}{' '}
-              {shapeFilter !== 'all' ? (
-                <button type="button" onClick={() => setShapeFilter('all')}>
-                  Show every orientation
-                </button>
-              ) : searchTerm ? (
+                ? `Nothing matched “${searchTerm}”.`
+                : 'No prints in this collection yet.'}{' '}
+              {searchTerm ? (
                 <Link href={`/collections/${collection.slug}`}>Browse all prints</Link>
               ) : null}
             </p>

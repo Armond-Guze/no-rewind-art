@@ -1331,25 +1331,6 @@ h3 {
   line-height: 1.6;
 }
 
-.collection-feature-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 18px;
-}
-
-.collection-feature-list span {
-  padding: 8px 11px;
-  border: 1px solid rgba(21, 21, 21, 0.16);
-  border-radius: 999px;
-  color: #45413d;
-  font-size: 0.7rem;
-  font-weight: 850;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
 .listing-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -14622,56 +14603,7 @@ a.admin-icon-button {
   color: rgba(21, 21, 21, 0.55);
 }
 
-/* === Collection page: filters, badges, hover shots, from-pricing ======= */
-.collection-filters {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding: 0 clamp(22px, 2.2vw, 40px) 18px;
-}
-
-.collection-shape-filters {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.collection-shape-filters button {
-  padding: 9px 16px;
-  border: 1px solid rgba(21, 21, 21, 0.18);
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(21, 21, 21, 0.72);
-  font-size: 0.78rem;
-  font-weight: 850;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
-}
-
-.collection-shape-filters button:hover {
-  border-color: rgba(21, 21, 21, 0.45);
-}
-
-.collection-shape-filters button.active {
-  background: #151515;
-  border-color: #151515;
-  color: #fff;
-}
-
-.collection-sort select {
-  padding: 10px 14px;
-  border: 1px solid rgba(21, 21, 21, 0.18);
-  border-radius: 8px;
-  background: #fff;
-  color: #151515;
-  font-size: 0.82rem;
-  font-weight: 750;
-  cursor: pointer;
-}
+/* === Collection page: badges, hover shots, from-pricing =============== */
 
 .listing-card-image {
   position: relative;
