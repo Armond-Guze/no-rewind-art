@@ -145,6 +145,7 @@ function getProductByCartItemId(products: Product[], itemId: string | undefined)
 export default function CartPageClient({
   checkoutSessionId,
   checkoutResult,
+  googleCustomerReviewsServerRendered,
   initialMerchantCartItem,
   merchantItemId,
   products,
@@ -152,6 +153,7 @@ export default function CartPageClient({
 }: {
   checkoutSessionId?: string;
   checkoutResult?: string;
+  googleCustomerReviewsServerRendered?: boolean;
   initialMerchantCartItem?: StoredCartItem;
   merchantItemId?: string;
   products: Product[];
@@ -440,7 +442,9 @@ export default function CartPageClient({
   return (
     <StorefrontShell products={products}>
       <StorefrontTracker />
-      <GoogleCustomerReviewsOptIn checkoutResult={checkoutResult} />
+      {googleCustomerReviewsServerRendered ? null : (
+        <GoogleCustomerReviewsOptIn checkoutResult={checkoutResult} />
+      )}
       <main className="standalone-cart-page">
         {checkoutResult === 'success' ? (
           <div className="checkout-banner success">

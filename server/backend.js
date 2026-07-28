@@ -903,8 +903,6 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
 }
 
 export async function getGoogleCustomerReviewOptIn(sessionId) {
-  await ensureReady();
-
   if (!stripe) {
     throw httpError('Stripe is not configured.', 500);
   }
@@ -920,11 +918,9 @@ export async function getGoogleCustomerReviewOptIn(sessionId) {
     return { optIn: null };
   }
 
-  const order = await completeOrderFromCheckoutSession(session, 'paid');
   const customerEmail =
     session.customer_details?.email ||
     session.customer_email ||
-    order.customerEmail ||
     '';
   const deliveryCountry =
     session.shipping_details?.address?.country ||
@@ -937,12 +933,12 @@ export async function getGoogleCustomerReviewOptIn(sessionId) {
 
   const orderDate = session.created
     ? new Date(session.created * 1000)
-    : new Date(order.createdAt || Date.now());
+    : new Date();
 
   return {
     optIn: {
       merchantId: googleCustomerReviewsMerchantId,
-      orderId: order.id || session.id,
+      orderId: session.id,
       email: customerEmail,
       deliveryCountry,
       estimatedDeliveryDate: formatDateOnly(addBusinessDays(orderDate, 8)),
