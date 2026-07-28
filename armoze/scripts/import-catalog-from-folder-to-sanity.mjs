@@ -317,12 +317,8 @@ function inferCollectionSlugs(tone) {
 
   if (tone === 'money') {
     collectionSlugs.push('money-ambition')
-  } else if (tone === 'minimal') {
-    collectionSlugs.push('study-creative')
   } else if (tone === 'cassette') {
     collectionSlugs.push('music')
-  } else {
-    collectionSlugs.push('discipline-focus')
   }
 
   return collectionSlugs
