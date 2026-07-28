@@ -74,10 +74,6 @@ function xmlTag(name, value) {
 function buildFeedItem(product, sizeOption, siteUrl) {
   const itemId = `${product.id}-${sizeOption.id}`;
   const productUrl = absoluteUrl(`/products/${product.slug}?size=${encodeURIComponent(sizeOption.id)}`, siteUrl);
-  const checkoutUrl = absoluteUrl(
-    `/cart?item=${encodeURIComponent(itemId)}&frame=canvas`,
-    siteUrl,
-  );
   const imageUrl = absoluteUrl(product.image, siteUrl);
   const description = stripHtml(buildMerchantFeedDescription(product));
   const seoAliases = getProductSeoAliases(product, 4);
@@ -97,7 +93,6 @@ function buildFeedItem(product, sizeOption, siteUrl) {
     xmlTag('g:title', buildMerchantFeedTitle(product, sizeOption)),
     xmlTag('g:description', description),
     xmlTag('g:link', productUrl),
-    xmlTag('g:checkout_link_template', checkoutUrl),
     xmlTag('g:image_link', imageUrl),
     ...additionalImages.map((image) => xmlTag('g:additional_image_link', image)),
     ...videoLinks.map((video) => xmlTag('g:video_link', video)),
