@@ -3061,7 +3061,7 @@ h3 {
 @media (min-width: 1900px) {
   .product-page-header,
   .listing-layout {
-    width: min(1520px, calc(100vw - 112px));
+    width: min(1780px, calc(100vw - 96px));
     margin-inline: auto;
   }
 
@@ -3071,8 +3071,8 @@ h3 {
   }
 
   .listing-layout {
-    grid-template-columns: minmax(780px, 920px) minmax(440px, 500px);
-    gap: 36px;
+    grid-template-columns: minmax(940px, 1120px) minmax(440px, 500px);
+    gap: clamp(36px, 2.4vw, 48px);
     justify-content: center;
     padding-right: 0;
     padding-left: 0;
@@ -3088,17 +3088,17 @@ h3 {
   }
 
   .listing-layout .detail-artwork-shell {
-    width: min(900px, 100%);
+    width: min(1040px, 100%);
   }
 
   .listing-layout .detail-artwork-shell.shape-landscape,
   .listing-layout .detail-artwork-shell.mockup-product-shell.shape-landscape {
-    width: min(940px, 100%);
+    width: min(1100px, 100%);
   }
 
   .listing-layout .detail-artwork-shell.shape-portrait,
   .listing-layout .detail-artwork-shell.mockup-product-shell.shape-portrait {
-    width: min(700px, 100%);
+    width: min(780px, 100%);
   }
 
   .listing-panel {
