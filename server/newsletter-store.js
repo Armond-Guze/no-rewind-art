@@ -108,6 +108,20 @@ class LocalNewsletterStore {
 
     return existingIndex >= 0 ? database.subscribers[existingIndex] : nextSubscriber;
   }
+
+  async listSubscribers({ limit = 1000, status = 'active' } = {}) {
+    const database = await readLocalDatabase();
+    const safeLimit = Math.min(Math.max(Number(limit || 1000), 1), 5000);
+    const subscribers = database.subscribers
+      .filter((subscriber) => !status || subscriber.status === status)
+      .slice(0, safeLimit);
+
+    return {
+      subscribers,
+      total: database.subscribers.length,
+      active: database.subscribers.filter((subscriber) => subscriber.status === 'active').length,
+    };
+  }
 }
 
 class PostgresNewsletterStore {
@@ -176,6 +190,36 @@ class PostgresNewsletterStore {
     );
 
     return this.rowToSubscriber(result.rows[0]);
+  }
+
+  async listSubscribers({ limit = 1000, status = 'active' } = {}) {
+    const safeLimit = Math.min(Math.max(Number(limit || 1000), 1), 5000);
+    const statusFilter = status ? 'where status = $2' : '';
+    const queryValues = status ? [safeLimit, status] : [safeLimit];
+    const [subscribersResult, summaryResult] = await Promise.all([
+      this.pool.query(
+        `
+          select *
+          from newsletter_subscribers
+          ${statusFilter}
+          order by updated_at desc
+          limit $1
+        `,
+        queryValues,
+      ),
+      this.pool.query(`
+        select
+          count(*)::integer as total,
+          count(*) filter (where status = 'active')::integer as active
+        from newsletter_subscribers
+      `),
+    ]);
+
+    return {
+      subscribers: subscribersResult.rows.map((row) => this.rowToSubscriber(row)),
+      total: summaryResult.rows[0]?.total || 0,
+      active: summaryResult.rows[0]?.active || 0,
+    };
   }
 }
 

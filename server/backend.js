@@ -6,6 +6,12 @@ import { createClient } from '@supabase/supabase-js';
 import { findFrameOption, findProduct, findSizeOption, getFramePriceDelta } from './catalog.js';
 import { createNewsletterStore } from './newsletter-store.js';
 import {
+  createNewsletterBroadcastDraft,
+  getNewsletterMarketingStatus,
+  listNewsletterBroadcasts,
+  syncNewsletterContact,
+} from './newsletter-marketing.js';
+import {
   sendAbandonedCartEmail,
   sendCustomerOrderConfirmationEmail,
   sendCustomerOrderShippedEmail,
@@ -964,6 +970,7 @@ export async function subscribeToNewsletter(body) {
       discountLabel: newsletterDiscountLabel,
     });
   }
+  const marketing = await syncNewsletterContact(subscriber.email);
 
   return {
     ok: true,
@@ -972,6 +979,7 @@ export async function subscribeToNewsletter(body) {
       label: newsletterDiscountLabel,
     },
     email: discountEmail,
+    marketing,
     subscriber: {
       email: subscriber.email,
       status: subscriber.status,
@@ -1060,6 +1068,137 @@ export async function listAdminProducts() {
   await ensureReady();
 
   return productStore.listCatalog({ includeUnpublished: true });
+}
+
+function requireNewsletterDraftText(value, label, maxLength) {
+  const text = String(value || '').trim();
+
+  if (!text) {
+    throw httpError(`${label} is required.`);
+  }
+
+  if (text.length > maxLength) {
+    throw httpError(`${label} must be ${maxLength} characters or fewer.`);
+  }
+
+  return text;
+}
+
+function normalizeNewsletterUrl(value, label, { optional = false } = {}) {
+  const raw = String(value || '').trim();
+
+  if (!raw && optional) {
+    return '';
+  }
+
+  try {
+    const url = new URL(raw);
+
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      throw new Error('Unsupported URL protocol.');
+    }
+
+    return url.toString();
+  } catch {
+    throw httpError(`${label} must be a complete http or https URL.`);
+  }
+}
+
+export async function listAdminNewsletter() {
+  await newsletterStoreReady;
+
+  const result = await newsletterStore.listSubscribers({ limit: 25, status: '' });
+  const marketing = getNewsletterMarketingStatus();
+  let broadcasts = [];
+  let marketingError = '';
+
+  if (marketing.resendConfigured) {
+    try {
+      broadcasts = await listNewsletterBroadcasts();
+    } catch (error) {
+      marketingError = error?.message || 'Resend broadcasts could not be loaded.';
+    }
+  }
+
+  return {
+    subscribers: {
+      total: result.total,
+      active: result.active,
+      recent: result.subscribers.map((subscriber) => ({
+        email: subscriber.email,
+        source: subscriber.source,
+        status: subscriber.status,
+        updatedAt: subscriber.updatedAt,
+      })),
+    },
+    marketing: {
+      ...marketing,
+      error: marketingError,
+    },
+    broadcasts,
+  };
+}
+
+export async function syncAdminNewsletterSubscribers() {
+  await newsletterStoreReady;
+
+  const marketing = getNewsletterMarketingStatus();
+
+  if (!marketing.configured) {
+    throw httpError('Set RESEND_API_KEY and RESEND_SEGMENT_ID before syncing subscribers.', 503);
+  }
+
+  const result = await newsletterStore.listSubscribers({ limit: 5000, status: 'active' });
+  let synced = 0;
+  let failed = 0;
+  const errors = [];
+
+  for (let index = 0; index < result.subscribers.length; index += 10) {
+    const batch = result.subscribers.slice(index, index + 10);
+    const syncResults = await Promise.all(
+      batch.map((subscriber) => syncNewsletterContact(subscriber.email)),
+    );
+
+    syncResults.forEach((syncResult, resultIndex) => {
+      if (syncResult.synced) {
+        synced += 1;
+      } else {
+        failed += 1;
+
+        if (errors.length < 5) {
+          errors.push({
+            email: batch[resultIndex].email,
+            reason: syncResult.reason || 'Contact could not be synced.',
+          });
+        }
+      }
+    });
+  }
+
+  return {
+    ok: failed === 0,
+    total: result.subscribers.length,
+    synced,
+    failed,
+    errors,
+  };
+}
+
+export async function createAdminNewsletterDraft(body) {
+  const siteUrl = process.env.PUBLIC_SITE_URL || process.env.CLIENT_URL || 'https://armoze.com';
+  const draft = {
+    subject: requireNewsletterDraftText(body?.subject, 'Subject', 150),
+    previewText: requireNewsletterDraftText(body?.previewText, 'Preview text', 200),
+    headline: requireNewsletterDraftText(body?.headline, 'Headline', 160),
+    body: requireNewsletterDraftText(body?.body, 'Body', 4000),
+    ctaLabel: requireNewsletterDraftText(body?.ctaLabel, 'Button label', 60),
+    ctaUrl: normalizeNewsletterUrl(body?.ctaUrl || siteUrl, 'Button link'),
+    imageUrl: normalizeNewsletterUrl(body?.imageUrl, 'Hero image link', { optional: true }),
+  };
+
+  return {
+    draft: await createNewsletterBroadcastDraft(draft),
+  };
 }
 
 export async function updateAdminProduct(productId, productUpdate) {

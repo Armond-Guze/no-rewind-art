@@ -414,10 +414,21 @@ properly:
 1. Make sure Vercel has `DATABASE_URL` and `DATABASE_SSL=true`.
 2. Redeploy so the API can create the `newsletter_subscribers` table.
 3. Submit your own email in the footer and confirm the row appears in Supabase.
-4. When you are ready to send campaigns, export that table to Resend, Mailchimp,
-   Klaviyo, or another email platform.
-5. For a more advanced setup later, add double opt-in emails and an unsubscribe
-   link before sending regular marketing campaigns.
+4. In Resend, create a segment named `Newsletter Subscribers`, then add its ID
+   to Vercel as `RESEND_SEGMENT_ID`. Also set
+   `NEWSLETTER_CAMPAIGN_FROM=Armoze <hello@armoze.com>` and
+   `NEWSLETTER_REPLY_TO=hello@armoze.com`.
+5. Redeploy again. New signups now sync into the Resend segment automatically.
+6. Open `/admin`, choose **Newsletter**, and use **Sync subscribers** once to
+   copy older active signups into Resend.
+7. Compose a campaign in the same screen and choose **Create Resend draft**.
+   The site deliberately creates a draft instead of sending immediately. Review
+   it, send yourself a test, and schedule or send it from the Resend dashboard.
+
+Resend Broadcasts supplies delivery/engagement reporting and handles the
+unsubscribe link included in the Armoze campaign template. The storefront
+signup copy also states that subscribers are opting into occasional marketing
+emails.
 
 ## Vercel Production Checkout
 

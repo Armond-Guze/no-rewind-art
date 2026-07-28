@@ -20,6 +20,7 @@ import {
   Inbox,
   LogOut,
   Mail,
+  Megaphone,
   MousePointerClick,
   PackageCheck,
   Plus,
@@ -30,6 +31,7 @@ import {
   Store,
   Trash2,
   Truck,
+  Users,
   Volume2,
   VolumeX,
 } from 'lucide-react';
@@ -119,6 +121,45 @@ type AdminDashboardResponse = {
   notifications: AdminNotification[];
 };
 
+type AdminNewsletterResponse = {
+  subscribers: {
+    total: number;
+    active: number;
+    recent: Array<{
+      email: string;
+      source: string;
+      status: string;
+      updatedAt: string;
+    }>;
+  };
+  marketing: {
+    configured: boolean;
+    resendConfigured: boolean;
+    segmentConfigured: boolean;
+    from: string;
+    replyTo: string;
+    error?: string;
+  };
+  broadcasts: Array<{
+    id: string;
+    name: string;
+    status: string;
+    createdAt: string;
+    scheduledAt?: string | null;
+    sentAt?: string | null;
+  }>;
+};
+
+type NewsletterDraft = {
+  subject: string;
+  previewText: string;
+  headline: string;
+  body: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  imageUrl: string;
+};
+
 type AdminOrderUpdatePayload = {
   fulfillmentStatus?: string;
   carrier?: string;
@@ -132,7 +173,7 @@ type AdminProductDraft = Product & {
   collectionSlugsText: string;
 };
 
-type AdminView = 'orders' | 'catalog' | 'activity';
+type AdminView = 'orders' | 'catalog' | 'newsletter' | 'activity';
 type AdminOrderFilter = 'action' | 'all' | 'unpaid' | 'complete';
 
 const adminSessionEvent = 'armoze-admin-session';
@@ -153,6 +194,17 @@ const fulfillmentStatusOptions = [
   { value: 'delivered', label: 'Delivered' },
   { value: 'cancelled', label: 'Cancelled' },
 ];
+
+const initialNewsletterDraft: NewsletterDraft = {
+  subject: 'A fresh Armoze drop for your walls',
+  previewText: 'New work from the Armoze studio is ready to explore.',
+  headline: 'The next piece your room was waiting for.',
+  body:
+    'A new set of statement canvases just landed at Armoze.\n\nBuilt for focus, ambition, and the spaces where your next chapter takes shape.',
+  ctaLabel: 'Explore the new drop',
+  ctaUrl: 'https://armoze.com',
+  imageUrl: '',
+};
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) {
@@ -277,6 +329,42 @@ async function fetchAdminProducts(adminToken: string) {
   }
 
   return normalizeCatalogData((await response.json()) as CatalogData).products;
+}
+
+async function fetchAdminNewsletter(adminToken: string) {
+  const response = await fetch('/api/admin/newsletter', {
+    headers: {
+      Authorization: `Bearer ${adminToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error || 'Newsletter data could not be loaded.');
+  }
+
+  return (await response.json()) as AdminNewsletterResponse;
+}
+
+async function runAdminNewsletterAction(
+  adminToken: string,
+  payload: Record<string, unknown>,
+) {
+  const response = await fetch('/api/admin/newsletter', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${adminToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error || 'Newsletter action could not be completed.');
+  }
+
+  return (await response.json()) as Record<string, unknown>;
 }
 
 async function fetchAdminAssets(adminToken: string) {
@@ -466,6 +554,10 @@ export default function AdminDashboardClient() {
   const [productDraft, setProductDraft] = useState<AdminProductDraft | null>(null);
   const [savingProduct, setSavingProduct] = useState(false);
   const [productNotice, setProductNotice] = useState('');
+  const [newsletter, setNewsletter] = useState<AdminNewsletterResponse | null>(null);
+  const [newsletterDraft, setNewsletterDraft] = useState<NewsletterDraft>(initialNewsletterDraft);
+  const [newsletterBusy, setNewsletterBusy] = useState<'draft' | 'sync' | ''>('');
+  const [newsletterNotice, setNewsletterNotice] = useState('');
   const [activeView, setActiveView] = useState<AdminView>('orders');
   const [orderFilter, setOrderFilter] = useState<AdminOrderFilter>('action');
   const [orderSearch, setOrderSearch] = useState('');
@@ -513,16 +605,18 @@ export default function AdminDashboardClient() {
       setError('');
 
       try {
-        const [data, productData, assets] = await Promise.all([
+        const [data, productData, assets, newsletterData] = await Promise.all([
           fetchAdminDashboard(adminToken),
           fetchAdminProducts(adminToken),
           fetchAdminAssets(adminToken),
+          fetchAdminNewsletter(adminToken),
         ]);
 
         if (active) {
           commitDashboardData(data, { allowSound: false });
           setAdminProducts(productData);
           setAssetPaths(assets);
+          setNewsletter(newsletterData);
           setSelectedProductId((currentSelectedProductId) => {
             const nextProductId = currentSelectedProductId || productData[0]?.id || '';
             const nextProduct = productData.find((product) => product.id === nextProductId) || productData[0];
@@ -587,7 +681,12 @@ export default function AdminDashboardClient() {
     setError('');
 
     try {
-      commitDashboardData(await fetchAdminDashboard(adminToken), { allowSound: true });
+      const [dashboardData, newsletterData] = await Promise.all([
+        fetchAdminDashboard(adminToken),
+        fetchAdminNewsletter(adminToken),
+      ]);
+      commitDashboardData(dashboardData, { allowSound: true });
+      setNewsletter(newsletterData);
     } catch (refreshError) {
       setError(refreshError instanceof Error ? refreshError.message : 'Dashboard could not be loaded.');
     } finally {
@@ -853,6 +952,63 @@ export default function AdminDashboardClient() {
     }
   }
 
+  function updateNewsletterDraftField<Field extends keyof NewsletterDraft>(
+    field: Field,
+    value: NewsletterDraft[Field],
+  ) {
+    setNewsletterDraft((currentDraft) => ({
+      ...currentDraft,
+      [field]: value,
+    }));
+  }
+
+  async function handleCreateNewsletterDraft(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!adminToken) {
+      return;
+    }
+
+    setNewsletterBusy('draft');
+    setNewsletterNotice('');
+    setError('');
+
+    try {
+      await runAdminNewsletterAction(adminToken, {
+        action: 'create-draft',
+        ...newsletterDraft,
+      });
+      setNewsletter(await fetchAdminNewsletter(adminToken));
+      setNewsletterNotice('Draft created in Resend. Review it, send yourself a test, then schedule or send it from Resend.');
+    } catch (draftError) {
+      setError(draftError instanceof Error ? draftError.message : 'Newsletter draft could not be created.');
+    } finally {
+      setNewsletterBusy('');
+    }
+  }
+
+  async function handleSyncNewsletterSubscribers() {
+    if (!adminToken) {
+      return;
+    }
+
+    setNewsletterBusy('sync');
+    setNewsletterNotice('');
+    setError('');
+
+    try {
+      const result = await runAdminNewsletterAction(adminToken, { action: 'sync' });
+      setNewsletter(await fetchAdminNewsletter(adminToken));
+      setNewsletterNotice(
+        `${Number(result.synced || 0)} of ${Number(result.total || 0)} active subscribers synced to Resend.`,
+      );
+    } catch (syncError) {
+      setError(syncError instanceof Error ? syncError.message : 'Subscribers could not be synced.');
+    } finally {
+      setNewsletterBusy('');
+    }
+  }
+
   const summary = dashboard?.summary ?? emptyAdminSummary;
   const orders = dashboard?.orders ?? emptyAdminOrders;
   const notifications = dashboard?.notifications ?? [];
@@ -1063,6 +1219,18 @@ export default function AdminDashboardClient() {
             <Box aria-hidden="true" size={17} />
             Catalog
             <span>{adminProducts.length}</span>
+          </button>
+          <button
+            className={activeView === 'newsletter' ? 'active' : ''}
+            type="button"
+            role="tab"
+            aria-selected={activeView === 'newsletter'}
+            aria-controls="admin-newsletter-view"
+            onClick={() => setActiveView('newsletter')}
+          >
+            <Megaphone aria-hidden="true" size={17} />
+            Newsletter
+            <span>{newsletter?.subscribers.active || 0}</span>
           </button>
           <button
             className={activeView === 'activity' ? 'active' : ''}
@@ -1438,6 +1606,196 @@ export default function AdminDashboardClient() {
           )}
         </div>
       </section>
+      ) : null}
+
+      {activeView === 'newsletter' ? (
+        <section
+          className="admin-newsletter admin-view-panel"
+          id="admin-newsletter-view"
+          role="tabpanel"
+          aria-label="Newsletter"
+        >
+          <div className="admin-section-heading">
+            <div>
+              <p className="eyebrow">Bring people back</p>
+              <h2>Newsletter</h2>
+            </div>
+            <span>{newsletter?.subscribers.active || 0} active subscribers</span>
+          </div>
+
+          {!newsletter?.marketing.configured ? (
+            <div className="admin-newsletter-setup" role="status">
+              <Megaphone aria-hidden="true" size={22} />
+              <div>
+                <strong>Connect your Resend subscriber segment</strong>
+                <p>
+                  Add <code>RESEND_SEGMENT_ID</code> in Vercel. New signups will then sync automatically,
+                  and this screen can create reviewable newsletter drafts.
+                </p>
+              </div>
+              <a className="button button-secondary" href="https://resend.com/segments" target="_blank" rel="noreferrer">
+                Open Resend
+                <ExternalLink aria-hidden="true" size={14} />
+              </a>
+            </div>
+          ) : null}
+
+          {newsletter?.marketing.error ? (
+            <div className="admin-newsletter-warning">{newsletter.marketing.error}</div>
+          ) : null}
+
+          <div className="admin-newsletter-layout">
+            <form className="admin-newsletter-composer" onSubmit={handleCreateNewsletterDraft}>
+              <div className="admin-newsletter-card-heading">
+                <div>
+                  <span>Campaign draft</span>
+                  <h3>Write the next Armoze send</h3>
+                </div>
+                <Megaphone aria-hidden="true" size={21} />
+              </div>
+
+              <label>
+                Subject line
+                <input
+                  required
+                  maxLength={150}
+                  value={newsletterDraft.subject}
+                  onChange={(event) => updateNewsletterDraftField('subject', event.target.value)}
+                />
+              </label>
+              <label>
+                Inbox preview text
+                <input
+                  required
+                  maxLength={200}
+                  value={newsletterDraft.previewText}
+                  onChange={(event) => updateNewsletterDraftField('previewText', event.target.value)}
+                />
+              </label>
+              <label>
+                Main headline
+                <input
+                  required
+                  maxLength={160}
+                  value={newsletterDraft.headline}
+                  onChange={(event) => updateNewsletterDraftField('headline', event.target.value)}
+                />
+              </label>
+              <label>
+                Message
+                <textarea
+                  required
+                  rows={7}
+                  maxLength={4000}
+                  value={newsletterDraft.body}
+                  onChange={(event) => updateNewsletterDraftField('body', event.target.value)}
+                />
+              </label>
+              <div className="admin-newsletter-fields">
+                <label>
+                  Button label
+                  <input
+                    required
+                    maxLength={60}
+                    value={newsletterDraft.ctaLabel}
+                    onChange={(event) => updateNewsletterDraftField('ctaLabel', event.target.value)}
+                  />
+                </label>
+                <label>
+                  Button link
+                  <input
+                    required
+                    type="url"
+                    value={newsletterDraft.ctaUrl}
+                    onChange={(event) => updateNewsletterDraftField('ctaUrl', event.target.value)}
+                  />
+                </label>
+              </div>
+              <label>
+                Hero image link <span>Optional — use a full image URL</span>
+                <input
+                  type="url"
+                  placeholder="https://armoze.com/artwork/..."
+                  value={newsletterDraft.imageUrl}
+                  onChange={(event) => updateNewsletterDraftField('imageUrl', event.target.value)}
+                />
+              </label>
+
+              <div className="admin-newsletter-actions">
+                <p>
+                  This creates a draft only. Review it and send yourself a test in Resend before it goes to subscribers.
+                </p>
+                <button
+                  className="button button-primary"
+                  type="submit"
+                  disabled={!newsletter?.marketing.configured || Boolean(newsletterBusy)}
+                >
+                  <Megaphone aria-hidden="true" size={15} />
+                  {newsletterBusy === 'draft' ? 'Creating draft' : 'Create Resend draft'}
+                </button>
+              </div>
+
+              {newsletterNotice ? <p className="admin-product-notice">{newsletterNotice}</p> : null}
+            </form>
+
+            <aside className="admin-newsletter-sidebar">
+              <section>
+                <div className="admin-newsletter-card-heading">
+                  <div>
+                    <span>Audience</span>
+                    <h3>{newsletter?.subscribers.active || 0} ready to reach</h3>
+                  </div>
+                  <Users aria-hidden="true" size={21} />
+                </div>
+                <dl className="admin-newsletter-stats">
+                  <div><dt>Active</dt><dd>{newsletter?.subscribers.active || 0}</dd></div>
+                  <div><dt>All signups</dt><dd>{newsletter?.subscribers.total || 0}</dd></div>
+                </dl>
+                <button
+                  className="button button-secondary"
+                  type="button"
+                  disabled={!newsletter?.marketing.configured || Boolean(newsletterBusy)}
+                  onClick={() => {
+                    void handleSyncNewsletterSubscribers();
+                  }}
+                >
+                  <RefreshCw
+                    aria-hidden="true"
+                    className={newsletterBusy === 'sync' ? 'is-spinning' : ''}
+                    size={15}
+                  />
+                  {newsletterBusy === 'sync' ? 'Syncing' : 'Sync subscribers'}
+                </button>
+              </section>
+
+              <section>
+                <div className="admin-newsletter-card-heading">
+                  <div>
+                    <span>Recent</span>
+                    <h3>Resend campaigns</h3>
+                  </div>
+                  <Mail aria-hidden="true" size={21} />
+                </div>
+                {newsletter?.broadcasts.length ? (
+                  <div className="admin-broadcast-list">
+                    {newsletter.broadcasts.map((broadcast) => (
+                      <div key={broadcast.id}>
+                        <strong>{broadcast.name}</strong>
+                        <span>{broadcast.status} · {formatDateTime(broadcast.sentAt || broadcast.createdAt)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="admin-newsletter-empty">Your first campaign draft will appear here.</p>
+                )}
+                <a className="admin-newsletter-link" href="https://resend.com/broadcasts" target="_blank" rel="noreferrer">
+                  Review drafts in Resend
+                  <ExternalLink aria-hidden="true" size={13} />
+                </a>
+              </section>
+            </aside>
+          </div>
+        </section>
       ) : null}
 
       {activeView === 'orders' ? (

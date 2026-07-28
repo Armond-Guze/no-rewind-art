@@ -393,6 +393,7 @@ function NewsletterDiscountPopup() {
             <button type="submit" disabled={status === 'loading'}>
               {status === 'loading' ? 'Sending' : 'Send my code'}
             </button>
+            <small>By subscribing, you agree to occasional Armoze marketing emails. Unsubscribe anytime.</small>
           </form>
         )}
 
@@ -1311,6 +1312,9 @@ function NextSiteFooter() {
                 {newsletterStatus === 'loading' ? 'Subscribing' : 'Subscribe'}
               </button>
             </div>
+            <small className="newsletter-consent">
+              Occasional studio updates and new drops. Unsubscribe anytime.
+            </small>
             <p className={`newsletter-message ${newsletterStatus}`} aria-live="polite">
               {newsletterMessage}
             </p>
