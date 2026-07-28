@@ -9,7 +9,11 @@ import {
   getProductSeoAliases,
 } from '../../server/seo-copy.js';
 import { policyPages } from './storefront/policy-content.ts';
-import { hasProductSpecificReviewSummary, supportEmail } from './storefront/product-utils.ts';
+import {
+  hasProductSpecificReviewSummary,
+  sizeOptionMatches,
+  supportEmail,
+} from './storefront/product-utils.ts';
 import {
   getProductsForSeoPageFactoryCollection,
   getSeoPageFactoryCollection,
@@ -91,12 +95,51 @@ function getFeaturedSizeOption(product) {
   );
 }
 
-function getDefaultProductOffer(product) {
-  const option = getFeaturedSizeOption(product);
+function getRequestedSizeOption(product, sizeId) {
+  return product.sizeOptions.find((option) => sizeOptionMatches(option, sizeId));
+}
+
+function getProductVariantPath(product, sizeOption, includeSize) {
+  const basePath = `/products/${product.slug}`;
+
+  return includeSize
+    ? `${basePath}?size=${encodeURIComponent(sizeOption.id)}`
+    : basePath;
+}
+
+function getSizeDimensions(sizeOption) {
+  const match = `${sizeOption?.label || ''} ${sizeOption?.id || ''}`.match(
+    /(\d+(?:\.\d+)?)\s*(?:x|\u00d7)\s*(\d+(?:\.\d+)?)/i,
+  );
+
+  if (!match) {
+    return {};
+  }
+
+  return {
+    width: Number(match[1]),
+    height: Number(match[2]),
+  };
+}
+
+function getDimensionValue(value) {
+  return value
+    ? {
+        '@type': 'QuantitativeValue',
+        value,
+        unitCode: 'INH',
+        unitText: 'inches',
+      }
+    : undefined;
+}
+
+function getDefaultProductOffer(product, option, productPath) {
+  const itemId = `${product.id}-${option.id}`;
 
   return {
     '@type': 'Offer',
-    url: absoluteUrl(`/products/${product.slug}`),
+    url: absoluteUrl(productPath),
+    sku: itemId,
     priceCurrency: 'USD',
     price: (option.priceInCents / 100).toFixed(2),
     availability: 'https://schema.org/InStock',
@@ -190,7 +233,12 @@ function getOrganizationStructuredData() {
   };
 }
 
-export function getProductStructuredData(product) {
+export function getProductStructuredData(product, sizeId) {
+  const requestedSizeOption = getRequestedSizeOption(product, sizeId);
+  const sizeOption = requestedSizeOption ?? getFeaturedSizeOption(product);
+  const productPath = getProductVariantPath(product, sizeOption, Boolean(requestedSizeOption));
+  const itemId = `${product.id}-${sizeOption.id}`;
+  const dimensions = getSizeDimensions(sizeOption);
   const productImages = [product.image, ...(product.gallery || [])]
     .filter(Boolean)
     .map((image) => absoluteUrl(image));
@@ -219,10 +267,14 @@ export function getProductStructuredData(product) {
       '@type': 'Brand',
       name: 'Armoze',
     },
-    sku: product.id,
+    url: absoluteUrl(productPath),
+    sku: itemId,
+    size: sizeOption.label,
+    width: getDimensionValue(dimensions.width),
+    height: getDimensionValue(dimensions.height),
     aggregateRating,
     additionalProperty: additionalProperty.length ? additionalProperty : undefined,
-    offers: getDefaultProductOffer(product),
+    offers: getDefaultProductOffer(product, sizeOption, productPath),
   };
 }
 
@@ -496,7 +548,7 @@ export function getProductByGoogleItemId(catalog, itemId) {
   return null;
 }
 
-export async function getRouteSeo(pathParts = []) {
+export async function getRouteSeo(pathParts = [], { sizeId } = {}) {
   const catalog = await getCatalog();
   const [section, slug] = pathParts;
 
@@ -523,16 +575,23 @@ export async function getRouteSeo(pathParts = []) {
       return { exists: false };
     }
 
+    const requestedSizeOption = getRequestedSizeOption(product, sizeId);
+    const productPath = getProductVariantPath(
+      product,
+      requestedSizeOption ?? getFeaturedSizeOption(product),
+      Boolean(requestedSizeOption),
+    );
+
     return {
       exists: true,
-      redirectTo: product.slug !== slug ? `/products/${product.slug}` : undefined,
+      redirectTo: product.slug !== slug ? productPath : undefined,
       metadata: baseMetadata({
         title: buildProductSeoTitle(product),
         description: buildProductSeoDescription(product),
-        path: `/products/${product.slug}`,
+        path: productPath,
         image: product.image || searchLogoPath,
       }),
-      structuredData: getProductStructuredData(product),
+      structuredData: getProductStructuredData(product, requestedSizeOption?.id),
     };
   }
 
@@ -641,11 +700,14 @@ export async function getRouteSeo(pathParts = []) {
 
   if (section === 'google-checkout' && slug) {
     const selection = getProductByGoogleItemId(catalog, slug);
+    const canonicalItemId = selection
+      ? `${selection.product.id}-${selection.sizeOption.id}`
+      : '';
 
     return {
       exists: Boolean(selection),
       redirectTo: selection
-        ? `/products/${selection.product.slug}?size=${encodeURIComponent(selection.sizeOption.id)}`
+        ? `/cart?item=${encodeURIComponent(canonicalItemId)}&frame=canvas`
         : '/',
     };
   }

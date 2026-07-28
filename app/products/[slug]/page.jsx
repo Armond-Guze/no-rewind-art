@@ -4,7 +4,10 @@ import {
   getProductBySlug,
   getRouteSeo,
 } from '../../../src/next/seo.js';
-import { getRelatedProducts } from '../../../src/next/storefront/product-utils';
+import {
+  getRelatedProducts,
+  sizeOptionMatches,
+} from '../../../src/next/storefront/product-utils';
 import ProductPageClient from '../../../src/next/storefront/ProductPageClient';
 
 export const dynamicParams = true;
@@ -29,8 +32,19 @@ async function getSlug(params) {
   return resolvedParams?.slug || '';
 }
 
-export async function generateMetadata({ params }) {
-  const routeSeo = await getRouteSeo(['products', await getSlug(params)]);
+async function getSizeId(searchParams) {
+  const resolvedSearchParams = await searchParams;
+  const sizeId = resolvedSearchParams?.size;
+
+  return Array.isArray(sizeId) ? sizeId[0] || '' : sizeId || '';
+}
+
+export async function generateMetadata({ params, searchParams }) {
+  const [slug, sizeId] = await Promise.all([
+    getSlug(params),
+    getSizeId(searchParams),
+  ]);
+  const routeSeo = await getRouteSeo(['products', slug], { sizeId });
 
   if (!routeSeo.exists) {
     return {
@@ -55,9 +69,12 @@ export async function generateStaticParams() {
     }));
 }
 
-export default async function ProductRoute({ params }) {
-  const slug = await getSlug(params);
-  const routeSeo = await getRouteSeo(['products', slug]);
+export default async function ProductRoute({ params, searchParams }) {
+  const [slug, sizeId] = await Promise.all([
+    getSlug(params),
+    getSizeId(searchParams),
+  ]);
+  const routeSeo = await getRouteSeo(['products', slug], { sizeId });
 
   if (!routeSeo.exists) {
     notFound();
@@ -74,6 +91,10 @@ export default async function ProductRoute({ params }) {
     notFound();
   }
 
+  const requestedSizeOption = product.sizeOptions.find((option) =>
+    sizeOptionMatches(option, sizeId),
+  );
+
   return (
     <>
       <JsonLd data={routeSeo.structuredData} />
@@ -81,6 +102,7 @@ export default async function ProductRoute({ params }) {
         catalogProducts={catalog.products}
         product={product}
         relatedProducts={getRelatedProducts(catalog.products, product)}
+        searchSizeId={requestedSizeOption?.id}
       />
     </>
   );

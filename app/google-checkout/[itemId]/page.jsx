@@ -8,6 +8,34 @@ async function getItemId(params) {
   return resolvedParams?.itemId || '';
 }
 
+const googleAttributionParameters = new Set([
+  '_gl',
+  'dclid',
+  'gad_campaignid',
+  'gad_source',
+  'gbraid',
+  'gclid',
+  'gclsrc',
+  'srsltid',
+  'wbraid',
+]);
+
+function appendAttributionParameters(target, searchParams) {
+  for (const [name, rawValue] of Object.entries(searchParams || {})) {
+    if (!googleAttributionParameters.has(name) && !name.startsWith('utm_')) {
+      continue;
+    }
+
+    const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+
+    for (const value of values) {
+      if (typeof value === 'string' && value.length <= 2048) {
+        target.append(name, value);
+      }
+    }
+  }
+}
+
 export async function generateMetadata() {
   return {
     title: 'Checkout Redirect | Armoze',
@@ -18,7 +46,7 @@ export async function generateMetadata() {
   };
 }
 
-export default async function GoogleCheckoutRoute({ params }) {
+export default async function GoogleCheckoutRoute({ params, searchParams }) {
   const catalog = await getCatalog();
   const selection = getProductByGoogleItemId(catalog, await getItemId(params));
 
@@ -26,5 +54,13 @@ export default async function GoogleCheckoutRoute({ params }) {
     redirect('/collections/best-sellers');
   }
 
-  redirect(`/products/${selection.product.slug}?size=${encodeURIComponent(selection.sizeOption.id)}`);
+  const canonicalItemId = `${selection.product.id}-${selection.sizeOption.id}`;
+  const cartSearchParams = new URLSearchParams({
+    item: canonicalItemId,
+    frame: 'canvas',
+  });
+
+  appendAttributionParameters(cartSearchParams, await searchParams);
+
+  redirect(`/cart?${cartSearchParams.toString()}`);
 }

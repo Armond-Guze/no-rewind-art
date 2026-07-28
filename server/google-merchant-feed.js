@@ -6,6 +6,7 @@ import {
   buildMerchantProductType,
   getProductSeoAliases,
 } from './seo-copy.js';
+import { withMerchantFeedResilience } from './merchant-feed-resilience.js';
 
 const defaultSiteUrl = 'https://armoze.com';
 const merchantCategory = 'Home & Garden > Decor > Artwork > Posters, Prints, & Visual Artwork';
@@ -58,13 +59,6 @@ function absoluteUrl(value, siteUrl) {
   }
 }
 
-function absoluteTemplateUrl(value, siteUrl) {
-  return absoluteUrl(value.replace('{id}', '__GOOGLE_ITEM_ID__'), siteUrl).replace(
-    '__GOOGLE_ITEM_ID__',
-    '{id}',
-  );
-}
-
 function formatFeedPrice(cents) {
   return `${(Number(cents || 0) / 100).toFixed(2)} USD`;
 }
@@ -80,7 +74,10 @@ function xmlTag(name, value) {
 function buildFeedItem(product, sizeOption, siteUrl) {
   const itemId = `${product.id}-${sizeOption.id}`;
   const productUrl = absoluteUrl(`/products/${product.slug}?size=${encodeURIComponent(sizeOption.id)}`, siteUrl);
-  const checkoutUrl = absoluteTemplateUrl('/google-checkout/{id}', siteUrl);
+  const checkoutUrl = absoluteUrl(
+    `/cart?item=${encodeURIComponent(itemId)}&frame=canvas`,
+    siteUrl,
+  );
   const imageUrl = absoluteUrl(product.image, siteUrl);
   const description = stripHtml(buildMerchantFeedDescription(product));
   const seoAliases = getProductSeoAliases(product, 4);
@@ -133,10 +130,26 @@ function buildFeedItem(product, sizeOption, siteUrl) {
     .join('');
 }
 
-export async function buildGoogleMerchantFeedXml() {
+async function buildCurrentGoogleMerchantFeedXml() {
   const siteUrl = getPublicSiteUrl();
   await productStoreReady;
-  const catalog = await productStore.listCatalog();
+
+  if (
+    process.env.NODE_ENV === 'production' &&
+    productStore.type !== 'sanity' &&
+    process.env.MERCHANT_FEED_ALLOW_NON_SANITY_CATALOG !== 'true'
+  ) {
+    const error = new Error(
+      'The production Merchant feed requires the configured Sanity catalog.',
+    );
+    error.code = 'MERCHANT_FEED_PRIMARY_CATALOG_UNAVAILABLE';
+    throw error;
+  }
+
+  // A Merchant fetch must never see the storefront's divergent seed catalog when
+  // Sanity is unavailable. The resilience wrapper below will serve a verified
+  // last-known-good XML snapshot or let the route return 503 instead.
+  const catalog = await productStore.listCatalog({ allowFallback: false });
   const products = catalog.products.filter((product) => product.published && product.image);
   const items = products.flatMap((product) =>
     product.sizeOptions.map((sizeOption) => buildFeedItem(product, sizeOption, siteUrl)),
@@ -153,4 +166,12 @@ export async function buildGoogleMerchantFeedXml() {
     '</channel>',
     '</rss>',
   ].join('');
+}
+
+export async function buildGoogleMerchantFeedXml() {
+  if (productStore.type !== 'sanity' && process.env.NODE_ENV !== 'production') {
+    return buildCurrentGoogleMerchantFeedXml();
+  }
+
+  return withMerchantFeedResilience(buildCurrentGoogleMerchantFeedXml);
 }

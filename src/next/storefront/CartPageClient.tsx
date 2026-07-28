@@ -145,19 +145,23 @@ function getProductByCartItemId(products: Product[], itemId: string | undefined)
 export default function CartPageClient({
   checkoutSessionId,
   checkoutResult,
+  initialMerchantCartItem,
   merchantItemId,
   products,
   requestedFrameId,
 }: {
   checkoutSessionId?: string;
   checkoutResult?: string;
+  initialMerchantCartItem?: StoredCartItem;
   merchantItemId?: string;
   products: Product[];
   requestedFrameId?: string;
 }) {
   const router = useRouter();
-  const [cart, setCart] = useState<StoredCartItem[]>([]);
-  const [cartReady, setCartReady] = useState(false);
+  const [cart, setCart] = useState<StoredCartItem[]>(() =>
+    initialMerchantCartItem ? [initialMerchantCartItem] : [],
+  );
+  const [cartReady, setCartReady] = useState(Boolean(initialMerchantCartItem));
   const [checkoutState, setCheckoutState] = useState<CheckoutState>('idle');
   const [checkoutError, setCheckoutError] = useState('');
   const lastTrackedCartView = useRef('');
@@ -198,7 +202,19 @@ export default function CartPageClient({
 
   useEffect(() => {
     const syncStoredCart = () => {
-      setCart(readStoredCart());
+      const storedCart = readStoredCart();
+      const nextCart =
+        initialMerchantCartItem &&
+        !storedCart.some((item) => item.lineKey === initialMerchantCartItem.lineKey)
+          ? [...storedCart, initialMerchantCartItem]
+          : storedCart;
+
+      if (nextCart !== storedCart) {
+        writeStoredCart(nextCart);
+        notifyStoredCartUpdated(nextCart);
+      }
+
+      setCart(nextCart);
       setCartReady(true);
     };
 
@@ -210,7 +226,7 @@ export default function CartPageClient({
       window.removeEventListener(cartUpdatedEvent, syncStoredCart);
       window.removeEventListener('storage', syncStoredCart);
     };
-  }, []);
+  }, [initialMerchantCartItem]);
 
   useEffect(() => {
     if (!cartReady || !cartProducts.length || checkoutResult === 'success') {

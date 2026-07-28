@@ -761,6 +761,8 @@ class SanityProductStore {
   }
 
   async listCatalog(options = {}) {
+    const allowFallback = options.allowFallback !== false;
+
     try {
       const [settings, homepageSettingsDocument, documents] = await Promise.all([
         this.client.fetch(SANITY_CATALOG_SETTINGS_QUERY),
@@ -775,6 +777,12 @@ class SanityProductStore {
       );
 
       if (!products.length) {
+        if (!allowFallback) {
+          const error = new Error('Sanity returned an empty product catalog.');
+          error.code = 'SANITY_CATALOG_EMPTY';
+          throw error;
+        }
+
         return this.getFallbackCatalog(options);
       }
 
@@ -788,6 +796,10 @@ class SanityProductStore {
         products: options.includeUnpublished ? products : products.filter((product) => product.published),
       };
     } catch (error) {
+      if (!allowFallback) {
+        throw error;
+      }
+
       console.warn('Sanity catalog unavailable; using local catalog fallback.', error?.message || error);
       return this.getFallbackCatalog(options);
     }

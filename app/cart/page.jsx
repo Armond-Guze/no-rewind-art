@@ -1,5 +1,7 @@
 import CartPageClient from '../../src/next/storefront/CartPageClient.tsx';
-import { getCatalog, getRouteSeo } from '../../src/next/seo.js';
+import { makeCartLineKey } from '../../src/cart.ts';
+import { getCatalog, getProductByGoogleItemId, getRouteSeo } from '../../src/next/seo.js';
+import { getFrameOption } from '../../src/next/storefront/product-utils.ts';
 
 async function getSearchParams(searchParams) {
   return typeof searchParams?.then === 'function' ? searchParams : searchParams || {};
@@ -26,12 +28,35 @@ export default async function CartRoute({ searchParams }) {
   const requestedFrameId = Array.isArray(resolvedSearchParams.frame)
     ? resolvedSearchParams.frame[0]
     : resolvedSearchParams.frame;
+  const merchantSelection = getProductByGoogleItemId(catalog, merchantItemId);
+  const merchantFrameOption = merchantSelection
+    ? getFrameOption(
+        merchantSelection.product,
+        requestedFrameId || 'canvas',
+        merchantSelection.sizeOption,
+      )
+    : null;
+  const initialMerchantCartItem =
+    merchantSelection && merchantFrameOption
+      ? {
+          lineKey: makeCartLineKey(
+            merchantSelection.product.id,
+            merchantSelection.sizeOption.id,
+            merchantFrameOption.id,
+          ),
+          productId: merchantSelection.product.id,
+          sizeId: merchantSelection.sizeOption.id,
+          frameId: merchantFrameOption.id,
+          quantity: 1,
+        }
+      : undefined;
 
   return (
     <CartPageClient
       products={catalog.products}
       checkoutSessionId={checkoutSessionId}
       checkoutResult={checkoutResult}
+      initialMerchantCartItem={initialMerchantCartItem}
       merchantItemId={merchantItemId}
       requestedFrameId={requestedFrameId}
     />
