@@ -7,6 +7,7 @@ import {
   getProductSeoAliases,
 } from './seo-copy.js';
 import { withMerchantFeedResilience } from './merchant-feed-resilience.js';
+import { buildMerchantImagePath } from './merchant-image-url.js';
 
 const defaultSiteUrl = 'https://armoze.com';
 const merchantCategory = 'Home & Garden > Decor > Artwork > Posters, Prints, & Visual Artwork';
@@ -71,10 +72,10 @@ function xmlTag(name, value) {
   return `<${name}>${escapeXml(value)}</${name}>`;
 }
 
-function buildFeedItem(product, sizeOption, siteUrl) {
+export function buildFeedItem(product, sizeOption, siteUrl) {
   const itemId = `${product.id}-${sizeOption.id}`;
   const productUrl = absoluteUrl(`/products/${product.slug}?size=${encodeURIComponent(sizeOption.id)}`, siteUrl);
-  const imageUrl = absoluteUrl(product.image, siteUrl);
+  const imageUrl = absoluteUrl(buildMerchantImagePath(product) || product.image, siteUrl);
   const description = stripHtml(buildMerchantFeedDescription(product));
   const seoAliases = getProductSeoAliases(product, 4);
   const additionalImages = (product.gallery || [])

@@ -191,6 +191,13 @@ style applies to every product image. This works best when the image has real
 transparent pixels around the artwork. If an image has a solid background baked
 in, the shadow will follow that full rectangle.
 
+Google Shopping cannot see the storefront CSS. The Merchant feed therefore uses
+`/merchant-images/<product-id>/image.webp`, which renders the same two-layer
+shadow into a 1600 x 1600 white-background image. The clean `mainImage` remains
+unchanged, and its original URL still powers the storefront. Merchant image URLs
+include a version derived from the source asset so Google receives a new URL when
+the Sanity main image changes.
+
 ## Generating Canvas Cutouts
 
 Use this kind of prompt when generating the main product image:

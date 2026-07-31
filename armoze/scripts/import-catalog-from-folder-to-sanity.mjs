@@ -213,7 +213,8 @@ function imagesForProduct(product) {
 
 function selectMainImage(images) {
   return (
-    images.find((image) => /(?:^|[-_\s])(?:main|file|mockup)(?:[-_\s.]|$)/i.test(image.relativePath) && !/(side|slide|detail|room|scale)/i.test(image.relativePath)) ||
+    images.find((image) => /(?:^|[-_\s\\/])main(?:[-_\s.]|$)/i.test(image.relativePath) && !/(side|slide|detail|room|scale)/i.test(image.relativePath)) ||
+    images.find((image) => /(?:^|[-_\s\\/])(?:file|mockup)(?:[-_\s.]|$)/i.test(image.relativePath) && !/(side|slide|detail|room|scale)/i.test(image.relativePath)) ||
     images.find((image) => !/(side|slide|detail|room|scale)/i.test(image.relativePath)) ||
     images[0] ||
     null
