@@ -4,7 +4,7 @@ import { errorJson, json, methodNotAllowed } from '../_utils.js';
 
 export async function GET(request) {
   try {
-    assertAdminRequest(request);
+    await assertAdminRequest(request);
 
     return json(await getSanityCatalogDiagnostics());
   } catch (error) {

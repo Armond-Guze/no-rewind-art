@@ -263,6 +263,10 @@ function auditFeed(feedXml, products) {
     localhostLinks,
     hasCheckoutTemplate: /<g:checkout_link_template>/.test(feedXml),
     hasFreeShipping: /<g:shipping>[\s\S]*?<g:price>0\.00 USD<\/g:price>[\s\S]*?<\/g:shipping>/.test(feedXml),
+    hasShippingTiming:
+      /<g:shipping>[\s\S]*?<g:min_handling_time>\d+<\/g:min_handling_time>[\s\S]*?<g:max_handling_time>\d+<\/g:max_handling_time>[\s\S]*?<g:min_transit_time>\d+<\/g:min_transit_time>[\s\S]*?<g:max_transit_time>\d+<\/g:max_transit_time>[\s\S]*?<\/g:shipping>/.test(
+        feedXml,
+      ),
   };
 }
 
@@ -281,7 +285,7 @@ function buildReport({
   const warningProducts = productAudits.filter((audit) => audit.warnings.length);
   const envRows = [
     ['Sanity catalog', envStatus('SANITY_CATALOG_ENABLED'), process.env.SANITY_CATALOG_ENABLED === 'true' ? 'enabled' : 'not enabled locally'],
-    ['Sanity read token', envStatus('SANITY_READ_TOKEN') === 'set' || envStatus('SANITY_API_READ_TOKEN') === 'set' ? 'set' : 'missing', 'needed for private dataset reads'],
+    ['Sanity read token', envStatus('SANITY_READ_TOKEN'), 'needed for private dataset reads'],
     ['Stripe secret', envStatus('STRIPE_SECRET_KEY'), 'needed for real checkout'],
     ['Stripe webhook secret', envStatus('STRIPE_WEBHOOK_SECRET'), 'needed to mark paid orders'],
     ['Persistent orders DB', envStatus('DATABASE_URL') === 'set' || envStatus('POSTGRES_URL') === 'set' ? 'set' : 'missing', 'needed on Vercel so orders persist'],
@@ -369,6 +373,7 @@ function buildReport({
   markdown += line(`- Merchant feed actual item count: ${feedAudit.itemCount}`);
   markdown += line(`- Checkout link template present: ${feedAudit.hasCheckoutTemplate ? 'yes' : 'no'}`);
   markdown += line(`- Free shipping field present: ${feedAudit.hasFreeShipping ? 'yes' : 'no'}`);
+  markdown += line(`- Shipping handling/transit times present: ${feedAudit.hasShippingTiming ? 'yes' : 'no'}`);
   if (feedAudit.missingRequired.length) {
     markdown += line(`- Missing feed fields: ${feedAudit.missingRequired.slice(0, 10).join('; ')}`);
   }

@@ -4,9 +4,18 @@ server/data/
 .env.*
 !.env.example
 
-# Source design files should stay local/private, not in production deploys.
-public/artwork/**/*.psd
-public/artwork/**/*.psb
-public/artwork/**/*.ai
-public/artwork/**/MOCKUP DIMENSIONS*/
-public/artwork/**/MOCKUP DIMENSIONS - Copy*/
+# Local dependencies, caches, build output, and development artifacts.
+node_modules/
+.next/
+.vercel/
+dist/
+tmp/
+armoze/
+apps/
+*.log
+*.tsbuildinfo
+website-*-preview.png
+
+# The deployed catalog and imagery come from Sanity. Keep the local artwork
+# library as a development-only fallback instead of bundling it into functions.
+public/artwork/

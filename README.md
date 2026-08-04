@@ -277,13 +277,13 @@ STRIPE_SECRET_KEY=sk_test_your_secret_key_here
 STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 STRIPE_WEBHOOK_ALLOW_UNSIGNED=false
 STRIPE_AUTOMATIC_TAX=false
-STRIPE_ALLOW_INSECURE_LOCAL_TLS=false
 CLIENT_URL=http://127.0.0.1:3000
 PORT=4242
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
 VITE_SUPABASE_ANON_KEY=your_supabase_publishable_or_anon_key
-ADMIN_API_TOKEN=replace_with_a_long_private_admin_token
+ADMIN_EMAILS=owner@example.com
+ADMIN_API_TOKEN=replace_with_a_long_private_emergency_admin_token
 DATABASE_URL=
 RESEND_API_KEY=
 ORDER_NOTIFICATION_EMAIL=
@@ -297,15 +297,9 @@ fulfillment process are ready.
 your Stripe tax settings and head office address are configured in the Stripe
 Dashboard.
 
-If local checkout fails with `UNABLE_TO_VERIFY_LEAF_SIGNATURE`, your local Node
-certificate chain is not trusting Stripe's certificate. For local Stripe test
-mode only, set:
-
-```text
-STRIPE_ALLOW_INSECURE_LOCAL_TLS=true
-```
-
-Do not use that setting in production.
+If local checkout fails with `UNABLE_TO_VERIFY_LEAF_SIGNATURE`, fix or update the
+local Node certificate trust chain. The application never disables TLS
+verification globally.
 
 ## Orders, Notifications, and Admin
 
@@ -318,12 +312,22 @@ outside the server filesystem.
 Admin dashboard:
 
 ```text
-http://127.0.0.1:5173/admin
+http://127.0.0.1:3000/admin
 ```
 
-Use the `ADMIN_API_TOKEN` from `.env` to sign in locally. The dashboard shows
-paid orders, fulfillment status, notification history, revenue totals, and
-average order value.
+Sign in through the existing Supabase account flow with an email listed in the
+comma-separated `ADMIN_EMAILS` variable. If `ADMIN_EMAILS` is completely unset,
+the server temporarily treats `ORDER_NOTIFICATION_EMAIL` as the allowlisted
+address for a backwards-compatible migration. Setting `ADMIN_EMAILS` to an
+empty value intentionally disables that fallback.
+
+`ADMIN_API_TOKEN` remains available only as emergency/legacy access. It is a
+separate app credential, not a Sanity token or Stripe webhook secret. The
+variable must stay server-only: never prefix it with `NEXT_PUBLIC_` or `VITE_`,
+embed it in client code, or put it in a URL. The browser keeps an entered
+emergency token in tab-scoped `sessionStorage`, so use Supabase sign-in for
+normal access across devices. The dashboard shows paid orders, fulfillment
+status, notification history, revenue totals, and average order value.
 
 Customer accounts:
 
@@ -447,7 +451,6 @@ for Production before deploying checkout live:
 STRIPE_SECRET_KEY=sk_live_or_test_key
 STRIPE_WEBHOOK_SECRET=whsec_from_the_armoze_com_webhook_endpoint
 STRIPE_AUTOMATIC_TAX=false
-STRIPE_ALLOW_INSECURE_LOCAL_TLS=false
 STRIPE_WEBHOOK_ALLOW_UNSIGNED=false
 CLIENT_URL=https://armoze.com
 VITE_SUPABASE_URL=https://your-project.supabase.co
@@ -455,7 +458,8 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
 VITE_SUPABASE_ANON_KEY=your_supabase_publishable_or_anon_key
 DATABASE_URL=postgresql://...
 DATABASE_SSL=true
-ADMIN_API_TOKEN=long_private_admin_token
+ADMIN_EMAILS=owner@example.com
+ADMIN_API_TOKEN=long_private_emergency_admin_token
 RESEND_API_KEY=re_...
 ORDER_NOTIFICATION_EMAIL=owner@example.com
 ORDER_NOTIFICATION_FROM=Armoze Orders <orders@resend.dev>

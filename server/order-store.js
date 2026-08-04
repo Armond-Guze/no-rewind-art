@@ -1,7 +1,7 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import pg from 'pg';
+import { readJsonFile, writeJsonFileAtomic } from './local-json-file.js';
 
 const { Pool } = pg;
 
@@ -10,10 +10,12 @@ const dataDir =
   (process.env.VERCEL ? path.join(os.tmpdir(), 'armoze-orders') : path.join(os.homedir(), '.armoze', 'orders'));
 const ordersFile = path.join(dataDir, 'orders.json');
 
-const emptyDatabase = {
-  orders: [],
-  notifications: [],
-};
+function createEmptyDatabase() {
+  return {
+    orders: [],
+    notifications: [],
+  };
+}
 
 function getDatabaseUrl() {
   return process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || '';
@@ -109,28 +111,18 @@ function isCustomerVisibleOrder(order) {
 }
 
 async function readLocalDatabase() {
-  try {
-    const raw = await readFile(ordersFile, 'utf8');
-    const parsed = JSON.parse(raw);
+  const parsed = await readJsonFile(ordersFile, createEmptyDatabase);
 
-    return {
-      ...emptyDatabase,
-      ...parsed,
-      orders: Array.isArray(parsed.orders) ? parsed.orders : [],
-      notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
-    };
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      return { ...emptyDatabase };
-    }
-
-    throw error;
-  }
+  return {
+    ...createEmptyDatabase(),
+    ...parsed,
+    orders: Array.isArray(parsed?.orders) ? parsed.orders : [],
+    notifications: Array.isArray(parsed?.notifications) ? parsed.notifications : [],
+  };
 }
 
 async function writeLocalDatabase(database) {
-  await mkdir(dataDir, { recursive: true });
-  await writeFile(ordersFile, `${JSON.stringify(database, null, 2)}\n`);
+  await writeJsonFileAtomic(ordersFile, database);
 }
 
 class LocalOrderStore {

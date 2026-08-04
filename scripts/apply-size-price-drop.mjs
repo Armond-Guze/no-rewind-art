@@ -45,15 +45,12 @@ function getSanityClient() {
   const projectId = process.env.SANITY_PROJECT_ID;
   const dataset = process.env.SANITY_DATASET || 'production';
   const apiVersion = process.env.SANITY_API_VERSION || '2025-05-21';
-  const token =
-    process.env.SANITY_WRITE_TOKEN_PRICE ||
-    process.env.SANITY_WRITE_TOKEN ||
-    process.env.SANITY_API_WRITE_TOKEN ||
-    process.env.SANITY_READ_TOKEN ||
-    process.env.SANITY_API_READ_TOKEN;
+  const token = process.env.SANITY_WRITE_TOKEN;
 
   if (!projectId || !dataset || !token) {
-    throw new Error('Set SANITY_PROJECT_ID, SANITY_DATASET, and a Sanity token before syncing prices.');
+    throw new Error(
+      'Set SANITY_PROJECT_ID, SANITY_DATASET, and SANITY_WRITE_TOKEN before syncing prices.',
+    );
   }
 
   return createClient({

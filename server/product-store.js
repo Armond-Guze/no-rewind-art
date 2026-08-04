@@ -1,8 +1,8 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createClient } from '@sanity/client';
 import pg from 'pg';
+import { readJsonFile, writeJsonFileAtomic } from './local-json-file.js';
 import {
   getArtworkShapeFromSizePreset,
   getProductAspectRatio,
@@ -29,7 +29,7 @@ function getSanityConfig() {
     projectId: process.env.SANITY_PROJECT_ID || '',
     dataset: process.env.SANITY_DATASET || 'production',
     apiVersion: process.env.SANITY_API_VERSION || '2025-05-21',
-    token: process.env.SANITY_READ_TOKEN || process.env.SANITY_API_READ_TOKEN || '',
+    token: process.env.SANITY_READ_TOKEN || '',
   };
 }
 
@@ -558,25 +558,15 @@ export function sanitizeProductUpdate(existingProduct, update) {
 }
 
 async function readLocalDatabase() {
-  try {
-    const raw = await readFile(productsFile, 'utf8');
-    const parsed = JSON.parse(raw);
+  const parsed = await readJsonFile(productsFile, () => ({ products: [] }));
 
-    return {
-      products: Array.isArray(parsed.products) ? parsed.products : [],
-    };
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      return { products: [] };
-    }
-
-    throw error;
-  }
+  return {
+    products: Array.isArray(parsed?.products) ? parsed.products : [],
+  };
 }
 
 async function writeLocalDatabase(database) {
-  await mkdir(dataDir, { recursive: true });
-  await writeFile(productsFile, `${JSON.stringify(database, null, 2)}\n`);
+  await writeJsonFileAtomic(productsFile, database);
 }
 
 class LocalProductStore {
@@ -809,8 +799,12 @@ class SanityProductStore {
     return (await this.listCatalog(options)).products;
   }
 
-  async updateProduct(productId, update) {
-    return this.fallbackStore.updateProduct(productId, update);
+  async updateProduct() {
+    const error = new Error(
+      'The live catalog is managed in Sanity Studio. Open /sanity to edit this product.',
+    );
+    error.status = 409;
+    throw error;
   }
 }
 

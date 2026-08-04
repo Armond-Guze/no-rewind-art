@@ -3,6 +3,7 @@ import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { isAdminAuthConfigured } from './admin-auth.js';
 import { findFrameOption, findProduct, findSizeOption, getFramePriceDelta } from './catalog.js';
 import { createNewsletterStore } from './newsletter-store.js';
 import {
@@ -21,17 +22,11 @@ import {
 import { createOrderStore } from './order-store.js';
 import { createProductStore } from './product-store.js';
 
-if (process.env.STRIPE_ALLOW_INSECURE_LOCAL_TLS === 'true') {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-  console.warn('Stripe local TLS verification is disabled. Use this only for local test mode.');
-}
-
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const clientUrl = process.env.CLIENT_URL || 'http://127.0.0.1:3000';
 const automaticTaxEnabled = process.env.STRIPE_AUTOMATIC_TAX === 'true';
 const stripeProductTaxCode = process.env.STRIPE_PRODUCT_TAX_CODE || '';
-const adminApiToken = process.env.ADMIN_API_TOKEN;
 const googleCustomerReviewsMerchantId = Number(process.env.GOOGLE_CUSTOMER_REVIEWS_MERCHANT_ID || 5793512839);
 const allowUnsignedWebhooks = process.env.STRIPE_WEBHOOK_ALLOW_UNSIGNED === 'true';
 const supabaseUrl = normalizeSupabaseUrl(process.env.SUPABASE_URL || '');
@@ -833,7 +828,7 @@ export async function getHealth() {
     catalogStorage: productStore.type,
     newsletterStorage: newsletterStore.type,
     notificationsConfigured: Boolean(process.env.RESEND_API_KEY && process.env.ORDER_NOTIFICATION_EMAIL),
-    adminConfigured: Boolean(adminApiToken),
+    adminConfigured: isAdminAuthConfigured(),
   };
 }
 
@@ -874,11 +869,11 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
           delivery_estimate: {
             minimum: {
               unit: 'business_day',
-              value: 2,
+              value: 4,
             },
             maximum: {
               unit: 'business_day',
-              value: 5,
+              value: 8,
             },
           },
         },
@@ -923,6 +918,7 @@ export async function getGoogleCustomerReviewOptIn(sessionId) {
     session.customer_email ||
     '';
   const deliveryCountry =
+    session.collected_information?.shipping_details?.address?.country ||
     session.shipping_details?.address?.country ||
     session.customer_details?.address?.country ||
     'US';
@@ -1031,20 +1027,6 @@ export async function processStripeWebhook(rawBody, stripeSignature) {
   }
 
   return { received: true };
-}
-
-export function assertAdmin(authorizationHeader = '') {
-  if (!adminApiToken) {
-    throw httpError('Admin dashboard is not configured. Set ADMIN_API_TOKEN in .env.', 503);
-  }
-
-  const token = authorizationHeader.startsWith('Bearer ')
-    ? authorizationHeader.slice('Bearer '.length)
-    : '';
-
-  if (token !== adminApiToken) {
-    throw httpError('Invalid admin token.', 401);
-  }
 }
 
 export async function listAdminOrders({ limit = 50 } = {}) {

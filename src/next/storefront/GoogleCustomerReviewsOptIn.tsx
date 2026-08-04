@@ -23,6 +23,7 @@ type GoogleApi = {
       email: string;
       delivery_country: string;
       estimated_delivery_date: string;
+      opt_in_style: 'CENTER_DIALOG';
     }) => void;
   };
 };
@@ -36,6 +37,7 @@ declare global {
 }
 
 const googleCustomerReviewsScriptId = 'google-customer-reviews-platform';
+const optInRetryDelaysMs = [0, 1_500, 3_000, 5_000];
 
 function getCheckoutSessionId() {
   const currentUrl = new URL(window.location.href);
@@ -61,6 +63,7 @@ function renderGoogleCustomerReviewsOptIn(
       email: optIn.email,
       delivery_country: optIn.deliveryCountry,
       estimated_delivery_date: optIn.estimatedDeliveryDate,
+      opt_in_style: 'CENTER_DIALOG',
     });
     renderedSessions.add(sessionId);
   });
@@ -109,22 +112,43 @@ export function GoogleCustomerReviewsOptIn({
     let cancelled = false;
 
     async function loadOptInData() {
-      const response = await fetch(
-        `/api/google-customer-reviews/opt-in?session_id=${encodeURIComponent(sessionId)}`,
-      );
+      for (const retryDelayMs of optInRetryDelaysMs) {
+        if (retryDelayMs) {
+          await new Promise((resolve) => window.setTimeout(resolve, retryDelayMs));
+        }
 
-      if (!response.ok) {
-        return;
+        if (cancelled) {
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `/api/google-customer-reviews/opt-in?session_id=${encodeURIComponent(sessionId)}`,
+            { cache: 'no-store' },
+          );
+
+          if (!response.ok) {
+            continue;
+          }
+
+          const data = (await response.json()) as GoogleCustomerReviewsOptInResponse;
+          const optIn = data.optIn;
+
+          if (!optIn) {
+            continue;
+          }
+
+          if (!cancelled) {
+            loadGoogleCustomerReviewsScript(() =>
+              renderGoogleCustomerReviewsOptIn(sessionId, optIn),
+            );
+          }
+
+          return;
+        } catch {
+          // Retry briefly because some payment methods settle just after the redirect.
+        }
       }
-
-      const data = (await response.json()) as GoogleCustomerReviewsOptInResponse;
-      const optIn = data.optIn;
-
-      if (cancelled || !optIn) {
-        return;
-      }
-
-      loadGoogleCustomerReviewsScript(() => renderGoogleCustomerReviewsOptIn(sessionId, optIn));
     }
 
     void loadOptInData();

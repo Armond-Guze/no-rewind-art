@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import type { Session } from '@supabase/supabase-js';
 import {
   useCallback,
   useEffect,
@@ -43,6 +45,7 @@ import {
   type Product,
   type SizeOption,
 } from '../../data/products';
+import { isSupabaseAuthConfigured, supabaseClient } from '../../lib/supabase';
 import { formatPrice } from '../storefront/product-utils';
 
 type AdminOrderItem = {
@@ -270,7 +273,7 @@ function getFulfillmentLabel(value: string) {
   return fulfillmentStatusOptions.find((option) => option.value === value)?.label || value;
 }
 
-function subscribeToAdminSession(onStoreChange: () => void) {
+function subscribeToEmergencyAdminToken(onStoreChange: () => void) {
   window.addEventListener('storage', onStoreChange);
   window.addEventListener(adminSessionEvent, onStoreChange);
 
@@ -280,12 +283,21 @@ function subscribeToAdminSession(onStoreChange: () => void) {
   };
 }
 
-function getAdminSessionToken() {
+function getEmergencyAdminToken() {
   return window.sessionStorage.getItem('armoze_admin_token') || '';
 }
 
-function getServerAdminSessionToken() {
+function getServerEmergencyAdminToken() {
   return '';
+}
+
+function clearEmergencyAdminToken() {
+  if (window.sessionStorage.getItem('armoze_admin_token') === null) {
+    return;
+  }
+
+  window.sessionStorage.removeItem('armoze_admin_token');
+  window.dispatchEvent(new Event(adminSessionEvent));
 }
 
 function subscribeToHydration() {
@@ -300,6 +312,22 @@ function getServerHydrationStatus() {
   return false;
 }
 
+async function requireAdminResponse(response: Response, fallbackMessage: string) {
+  if (response.ok) {
+    return response;
+  }
+
+  const data = (await response.json().catch(() => null)) as { error?: string } | null;
+
+  if (response.status === 401) {
+    clearEmergencyAdminToken();
+  }
+
+  const error = new Error(data?.error || fallbackMessage) as Error & { status?: number };
+  error.status = response.status;
+  throw error;
+}
+
 async function fetchAdminDashboard(adminToken: string) {
   const response = await fetch('/api/admin/orders', {
     headers: {
@@ -307,10 +335,7 @@ async function fetchAdminDashboard(adminToken: string) {
     },
   });
 
-  if (!response.ok) {
-    const data = (await response.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(data?.error || 'Dashboard could not be loaded.');
-  }
+  await requireAdminResponse(response, 'Dashboard could not be loaded.');
 
   return (await response.json()) as AdminDashboardResponse;
 }
@@ -323,10 +348,7 @@ async function fetchAdminProducts(adminToken: string) {
     },
   });
 
-  if (!response.ok) {
-    const data = (await response.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(data?.error || 'Products could not be loaded.');
-  }
+  await requireAdminResponse(response, 'Products could not be loaded.');
 
   return normalizeCatalogData((await response.json()) as CatalogData).products;
 }
@@ -338,10 +360,7 @@ async function fetchAdminNewsletter(adminToken: string) {
     },
   });
 
-  if (!response.ok) {
-    const data = (await response.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(data?.error || 'Newsletter data could not be loaded.');
-  }
+  await requireAdminResponse(response, 'Newsletter data could not be loaded.');
 
   return (await response.json()) as AdminNewsletterResponse;
 }
@@ -359,10 +378,7 @@ async function runAdminNewsletterAction(
     body: JSON.stringify(payload),
   });
 
-  if (!response.ok) {
-    const data = (await response.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(data?.error || 'Newsletter action could not be completed.');
-  }
+  await requireAdminResponse(response, 'Newsletter action could not be completed.');
 
   return (await response.json()) as Record<string, unknown>;
 }
@@ -374,10 +390,7 @@ async function fetchAdminAssets(adminToken: string) {
     },
   });
 
-  if (!response.ok) {
-    const data = (await response.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(data?.error || 'Assets could not be loaded.');
-  }
+  await requireAdminResponse(response, 'Assets could not be loaded.');
 
   return ((await response.json()) as { assets: string[] }).assets;
 }
@@ -392,10 +405,7 @@ async function updateAdminProduct(adminToken: string, productId: string, product
     body: JSON.stringify(product),
   });
 
-  if (!response.ok) {
-    const data = (await response.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(data?.error || 'Product could not be saved.');
-  }
+  await requireAdminResponse(response, 'Product could not be saved.');
 
   return ((await response.json()) as { product: Product }).product;
 }
@@ -468,10 +478,7 @@ async function updateAdminOrder(
     body: JSON.stringify(update),
   });
 
-  if (!response.ok) {
-    const data = (await response.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(data?.error || 'Order could not be updated.');
-  }
+  await requireAdminResponse(response, 'Order could not be updated.');
 
   return (await response.json()) as { order: AdminOrder };
 }
@@ -533,11 +540,13 @@ async function playOrderDing() {
 
 export default function AdminDashboardClient() {
   const [tokenInput, setTokenInput] = useState('');
-  const adminToken = useSyncExternalStore(
-    subscribeToAdminSession,
-    getAdminSessionToken,
-    getServerAdminSessionToken,
+  const emergencyAdminToken = useSyncExternalStore(
+    subscribeToEmergencyAdminToken,
+    getEmergencyAdminToken,
+    getServerEmergencyAdminToken,
   );
+  const [supabaseSession, setSupabaseSession] = useState<Session | null>(null);
+  const [supabaseSessionReady, setSupabaseSessionReady] = useState(!supabaseClient);
   const hasHydrated = useSyncExternalStore(
     subscribeToHydration,
     getClientHydrationStatus,
@@ -565,6 +574,52 @@ export default function AdminDashboardClient() {
   const [copiedOrderId, setCopiedOrderId] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const knownNotificationIds = useRef<Set<string>>(new Set());
+  const adminToken = supabaseSession?.access_token || emergencyAdminToken;
+
+  useEffect(() => {
+    if (!supabaseClient) {
+      return undefined;
+    }
+
+    let active = true;
+
+    void supabaseClient.auth.getSession().then(({ data, error: sessionError }) => {
+      if (!active) {
+        return;
+      }
+
+      if (data.session) {
+        clearEmergencyAdminToken();
+      }
+
+      setSupabaseSession(data.session);
+      setSupabaseSessionReady(true);
+
+      if (sessionError) {
+        setError('Your sign-in session could not be loaded. Sign in again or use emergency access.');
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabaseClient.auth.onAuthStateChange((_event, nextSession) => {
+      if (!active) {
+        return;
+      }
+
+      if (nextSession) {
+        clearEmergencyAdminToken();
+      }
+
+      setSupabaseSession(nextSession);
+      setSupabaseSessionReady(true);
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const commitDashboardData = useCallback(
     (data: AdminDashboardResponse, options: { allowSound?: boolean } = {}) => {
@@ -694,7 +749,7 @@ export default function AdminDashboardClient() {
     }
   }
 
-  function handleLogin(event: FormEvent<HTMLFormElement>) {
+  function handleEmergencyLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextToken = tokenInput.trim();
 
@@ -704,6 +759,7 @@ export default function AdminDashboardClient() {
 
     window.sessionStorage.setItem('armoze_admin_token', nextToken);
     window.dispatchEvent(new Event(adminSessionEvent));
+    setError('');
     setTokenInput('');
     window.scrollTo({ top: 0 });
   }
@@ -725,13 +781,21 @@ export default function AdminDashboardClient() {
     }
   }
 
-  function handleLogout() {
-    window.sessionStorage.removeItem('armoze_admin_token');
-    window.dispatchEvent(new Event(adminSessionEvent));
+  async function handleLogout() {
+    clearEmergencyAdminToken();
+    setSupabaseSession(null);
     setDashboard(null);
     setError('');
     setNotificationSoundEnabled(false);
     knownNotificationIds.current.clear();
+
+    if (supabaseClient && supabaseSession) {
+      const { error: signOutError } = await supabaseClient.auth.signOut({ scope: 'local' });
+
+      if (signOutError) {
+        setError('This device could not finish signing out. Refresh and try again.');
+      }
+    }
   }
 
   async function copyOrderIdentifier(order: AdminOrder) {
@@ -1080,7 +1144,7 @@ export default function AdminDashboardClient() {
       JSON.stringify(draftToProduct(productDraft)) !== JSON.stringify(selectedProduct),
   );
 
-  if (!hasHydrated) {
+  if (!hasHydrated || !supabaseSessionReady) {
     return (
       <main className="admin-page admin-login-page">
         <section className="admin-login-panel admin-session-loading" aria-label="Loading admin session">
@@ -1100,17 +1164,34 @@ export default function AdminDashboardClient() {
           </div>
           <p className="eyebrow">Private workspace</p>
           <h1>Armoze Admin</h1>
-          <form onSubmit={handleLogin}>
-            <label htmlFor="admin-token">Admin token</label>
+          <p style={{ color: 'var(--admin-muted)', lineHeight: 1.6 }}>
+            Sign in with an authorized Armoze account for access that works across your devices.
+          </p>
+          {error ? <div className="admin-alert" role="alert">{error}</div> : null}
+          <Link
+            className="button button-primary"
+            href="/sign-in?next=%2Fadmin"
+            style={{ marginTop: 24, width: '100%' }}
+          >
+            Sign in with admin email
+          </Link>
+          {!isSupabaseAuthConfigured ? (
+            <p style={{ color: 'var(--admin-muted)', lineHeight: 1.6 }}>
+              Account sign-in still needs Supabase configuration. Emergency access remains available below.
+            </p>
+          ) : null}
+          <p className="eyebrow" style={{ marginTop: 30 }}>Emergency access</p>
+          <form onSubmit={handleEmergencyLogin}>
+            <label htmlFor="admin-token">Emergency admin token</label>
             <input
               id="admin-token"
               type="password"
               value={tokenInput}
               onChange={(event) => setTokenInput(event.target.value)}
-              autoComplete="current-password"
+              autoComplete="off"
             />
             <button className="button button-primary" type="submit">
-              Open Dashboard
+              Use emergency token
             </button>
           </form>
         </section>
@@ -1138,6 +1219,11 @@ export default function AdminDashboardClient() {
               {lastUpdatedAt ? `Updated ${formatDateTime(lastUpdatedAt)}` : 'Connecting'}
             </span>
             <div className="admin-actions">
+              {!supabaseSession ? (
+                <Link className="button" href="/sign-in?next=%2Fadmin">
+                  Sign in
+                </Link>
+              ) : null}
               <button
                 className={`admin-icon-button sound-toggle ${notificationSoundEnabled ? 'enabled' : ''}`}
                 type="button"
@@ -1260,6 +1346,12 @@ export default function AdminDashboardClient() {
           </div>
           <span>{publishedProductCount} published · {adminProducts.length} total</span>
         </div>
+
+        <p className="admin-product-notice">
+          Products served from Sanity must be edited in{' '}
+          <a href="/sanity" target="_blank" rel="noreferrer">Sanity Studio</a>.
+          {' '}This editor is available only when the fallback catalog is active.
+        </p>
 
         <datalist id="admin-asset-paths">
           {assetPaths.map((assetPath) => (

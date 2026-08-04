@@ -105,11 +105,14 @@ SANITY_PROJECT_ID=os8xckqo
 SANITY_DATASET=production
 SANITY_API_VERSION=2025-05-21
 SANITY_READ_TOKEN=your_read_token
+SANITY_WRITE_TOKEN=your_editor_token
 ```
 
 The site reads Sanity through `/api/products`. If Sanity is not configured, has no products, or is temporarily unavailable, it falls back to the existing local catalog.
 
 If your dataset is private, create a read token in Sanity Manage under API settings and use it for `SANITY_READ_TOKEN`. Do not prefix this variable with `VITE_`; it should stay server-only.
+
+Keep one separate Editor token in `SANITY_WRITE_TOKEN` for maintenance scripts that mutate content. Runtime storefront reads and write scripts intentionally use different least-privilege credentials; do not use a read token as a write fallback or put either token in a public `VITE_`/`NEXT_PUBLIC_` variable.
 
 ## 5. Migration rhythm
 

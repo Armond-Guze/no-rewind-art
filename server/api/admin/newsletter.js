@@ -8,7 +8,7 @@ import { errorJson, json, methodNotAllowed, readJsonBody } from '../_utils.js';
 
 export async function GET(request) {
   try {
-    assertAdminRequest(request);
+    await assertAdminRequest(request);
 
     return json(await listAdminNewsletter());
   } catch (error) {
@@ -18,7 +18,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    assertAdminRequest(request);
+    await assertAdminRequest(request);
 
     const body = await readJsonBody(request, { maxBytes: 12 * 1024 });
 

@@ -1,7 +1,7 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import pg from 'pg';
+import { readJsonFile, writeJsonFileAtomic } from './local-json-file.js';
 
 const { Pool } = pg;
 
@@ -12,9 +12,11 @@ const dataDir =
     : path.join(os.homedir(), '.armoze', 'newsletter'));
 const subscribersFile = path.join(dataDir, 'subscribers.json');
 
-const emptyDatabase = {
-  subscribers: [],
-};
+function createEmptyDatabase() {
+  return {
+    subscribers: [],
+  };
+}
 
 function getDatabaseUrl() {
   return process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || '';
@@ -56,27 +58,17 @@ function normalizeSubscriber(subscriber) {
 }
 
 async function readLocalDatabase() {
-  try {
-    const raw = await readFile(subscribersFile, 'utf8');
-    const parsed = JSON.parse(raw);
+  const parsed = await readJsonFile(subscribersFile, createEmptyDatabase);
 
-    return {
-      ...emptyDatabase,
-      ...parsed,
-      subscribers: Array.isArray(parsed.subscribers) ? parsed.subscribers : [],
-    };
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      return { ...emptyDatabase };
-    }
-
-    throw error;
-  }
+  return {
+    ...createEmptyDatabase(),
+    ...parsed,
+    subscribers: Array.isArray(parsed?.subscribers) ? parsed.subscribers : [],
+  };
 }
 
 async function writeLocalDatabase(database) {
-  await mkdir(dataDir, { recursive: true });
-  await writeFile(subscribersFile, `${JSON.stringify(database, null, 2)}\n`);
+  await writeJsonFileAtomic(subscribersFile, database);
 }
 
 class LocalNewsletterStore {

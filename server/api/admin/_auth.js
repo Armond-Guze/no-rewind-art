@@ -1,14 +1,17 @@
-import { assertAdmin } from '../../backend.js';
+import { assertAdminAuthorization } from '../../admin-auth.js';
 import { assertRateLimit, rateLimits } from '../../rate-limit.js';
 import { getBearerHeader } from '../_utils.js';
 
-export function assertAdminRequest(request) {
+export async function assertAdminRequest(request) {
+  let identity;
+
   try {
-    assertAdmin(getBearerHeader(request));
+    identity = await assertAdminAuthorization(getBearerHeader(request));
   } catch (error) {
     assertRateLimit(request, rateLimits.adminAuthFailed);
     throw error;
   }
 
   assertRateLimit(request, rateLimits.admin);
+  return identity;
 }

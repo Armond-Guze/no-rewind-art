@@ -4,7 +4,7 @@ import { errorJson, json, methodNotAllowed } from '../_utils.js';
 
 export async function GET(request) {
   try {
-    assertAdminRequest(request);
+    await assertAdminRequest(request);
 
     const url = new URL(request.url);
     return json(await listAdminOrders({ limit: url.searchParams.get('limit') }));

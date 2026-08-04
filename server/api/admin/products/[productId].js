@@ -4,7 +4,7 @@ import { errorJson, json, methodNotAllowed, readJsonBody } from '../../_utils.js
 
 export async function PATCH(request) {
   try {
-    assertAdminRequest(request);
+    await assertAdminRequest(request);
 
     const url = new URL(request.url);
     const productId = decodeURIComponent(url.pathname.split('/').filter(Boolean).pop() || '');

@@ -5,6 +5,11 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabase';
+import {
+  getAuthCallbackUrl,
+  getSafeAuthRedirectPath,
+  getSignInStepUrl,
+} from './auth-redirect';
 
 type AuthStep = 'email' | 'password' | 'verify';
 
@@ -48,10 +53,6 @@ function AppleIcon() {
       <path d="M16.16 12.64c-.02-2.24 1.83-3.32 1.91-3.37-1.04-1.52-2.66-1.73-3.23-1.75-1.38-.14-2.69.81-3.39.81-.7 0-1.78-.79-2.93-.77-1.51.02-2.91.88-3.69 2.23-1.57 2.73-.4 6.77 1.13 8.98.75 1.08 1.64 2.3 2.81 2.25 1.13-.04 1.56-.73 2.92-.73 1.37 0 1.75.73 2.94.71 1.22-.02 1.99-1.1 2.73-2.18.86-1.26 1.22-2.48 1.24-2.54-.03-.01-2.38-.91-2.44-3.64ZM13.94 6.06c.62-.75 1.04-1.8.92-2.84-.9.04-1.99.6-2.64 1.35-.58.67-1.09 1.73-.95 2.75 1 .08 2.04-.51 2.67-1.26Z" />
     </svg>
   );
-}
-
-function getRedirectUrl() {
-  return `${window.location.origin}/account`;
 }
 
 function AuthShell({ children }: { children: ReactNode }) {
@@ -104,6 +105,7 @@ export default function AuthPageClient() {
   const [info, setInfo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
+  const redirectPath = getSafeAuthRedirectPath(searchParams.get('next'));
 
   useEffect(() => {
     if (!supabaseClient) {
@@ -114,7 +116,7 @@ export default function AuthPageClient() {
 
     void supabaseClient.auth.getSession().then(({ data }) => {
       if (active && data.session) {
-        router.replace('/account');
+        router.replace(redirectPath);
       }
     });
 
@@ -122,7 +124,7 @@ export default function AuthPageClient() {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((_event, nextSession) => {
       if (active && nextSession) {
-        router.replace('/account');
+        router.replace(redirectPath);
       }
     });
 
@@ -130,24 +132,24 @@ export default function AuthPageClient() {
       active = false;
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, [redirectPath, router]);
 
   function goToEmailStep() {
     setError('');
     setInfo('');
-    router.replace(normalizedEmail ? `/sign-in?email=${encodeURIComponent(normalizedEmail)}` : '/sign-in');
+    router.replace(getSignInStepUrl({ email: normalizedEmail, next: redirectPath }));
   }
 
   function goToPasswordStep(nextEmail = normalizedEmail) {
     setError('');
     setInfo('');
-    router.replace(`/sign-in?password=1&email=${encodeURIComponent(nextEmail)}`);
+    router.replace(getSignInStepUrl({ email: nextEmail, next: redirectPath, step: 'password' }));
   }
 
   function goToVerifyStep(nextEmail = normalizedEmail) {
     setError('');
     setInfo('');
-    router.replace(`/sign-in?verify=1&email=${encodeURIComponent(nextEmail)}`);
+    router.replace(getSignInStepUrl({ email: nextEmail, next: redirectPath, step: 'verify' }));
   }
 
   async function handleEmailSubmit(event: FormEvent<HTMLFormElement>) {
@@ -180,8 +182,8 @@ export default function AuthPageClient() {
       });
 
       if (!signInError) {
-        setInfo('Redirecting to your account.');
-        router.replace('/account');
+        setInfo('Redirecting securely.');
+        router.replace(redirectPath);
         return;
       }
 
@@ -189,7 +191,7 @@ export default function AuthPageClient() {
         email: normalizedEmail,
         password,
         options: {
-          emailRedirectTo: getRedirectUrl(),
+          emailRedirectTo: getAuthCallbackUrl(window.location.origin, redirectPath),
         },
       });
 
@@ -203,8 +205,8 @@ export default function AuthPageClient() {
       }
 
       if (data.session) {
-        setInfo('Redirecting to your account.');
-        router.replace('/account');
+        setInfo('Redirecting securely.');
+        router.replace(redirectPath);
         return;
       }
 
@@ -235,7 +237,7 @@ export default function AuthPageClient() {
       const { error: linkError } = await supabaseClient.auth.signInWithOtp({
         email: normalizedEmail,
         options: {
-          emailRedirectTo: getRedirectUrl(),
+          emailRedirectTo: getAuthCallbackUrl(window.location.origin, redirectPath),
           shouldCreateUser: true,
         },
       });
@@ -273,7 +275,7 @@ export default function AuthPageClient() {
         type: 'signup',
         email: normalizedEmail,
         options: {
-          emailRedirectTo: getRedirectUrl(),
+          emailRedirectTo: getAuthCallbackUrl(window.location.origin, redirectPath),
         },
       });
 
@@ -301,7 +303,7 @@ export default function AuthPageClient() {
     const { error: oauthError } = await supabaseClient.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: getRedirectUrl(),
+        redirectTo: getAuthCallbackUrl(window.location.origin, redirectPath),
       },
     });
 
@@ -399,7 +401,7 @@ export default function AuthPageClient() {
             <div className="mt-4 sm:mt-5">
               <h2 className="text-[0.88rem] font-semibold tracking-tight text-white">Verify your email</h2>
               <p className="mt-1 text-[0.76rem] leading-5 text-white/64 sm:mt-1.5 sm:text-[0.78rem]">
-                We sent a confirmation link to {normalizedEmail}. Open it to finish and go to your account.
+                We sent a confirmation link to {normalizedEmail}. Open it to finish signing in.
               </p>
               <p className="mt-2 text-[0.76rem] leading-5 text-white/72 sm:mt-3">
                 You can close this tab after confirming your email.

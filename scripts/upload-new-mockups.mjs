@@ -39,7 +39,7 @@ const onlySlugs = (getArg('--only', '') || '')
   .map((value) => value.trim())
   .filter(Boolean);
 
-const token = process.env.SANITY_WRITE_TOKEN || process.env.SANITY_AUTH_TOKEN;
+const token = process.env.SANITY_WRITE_TOKEN;
 
 if (!token && !dryRun) {
   console.error('Missing SANITY_WRITE_TOKEN (Editor permissions). Aborting.');
