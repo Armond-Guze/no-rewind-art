@@ -29,6 +29,29 @@ export type ProductVideo = {
   thumbnail?: string;
 };
 
+export type ProductImageCrop = {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
+export type ProductImageHotspot = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type ProductGalleryImage = {
+  url: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+  crop?: ProductImageCrop;
+  hotspot?: ProductImageHotspot;
+};
+
 export type HomepageHeroImage = {
   url: string;
   alt?: string;
@@ -73,12 +96,14 @@ export type CatalogProduct = {
   label: string;
   imageFolder?: string;
   image?: string;
+  mainImage?: ProductGalleryImage;
   framedBlackImage?: string;
   framedWhiteImage?: string;
   imageAlt: string;
   artworkShape: ArtworkShape;
   aspectRatio?: string;
   gallery?: string[];
+  galleryImages?: ProductGalleryImage[];
   videos?: ProductVideo[];
   tone: ProductTone;
   collectionSlugs: string[];

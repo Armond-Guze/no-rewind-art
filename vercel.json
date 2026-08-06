@@ -14,12 +14,12 @@
     },
     {
       "source": "/sanity",
-      "destination": "https://sanity.io/@o8e9CGiAz/studio/vydy99zsxkte1uvjidscpvc2/default/structure/artworkProduct",
+      "destination": "https://sanity.io/@o8e9CGiAz/studio/h2urr4gr3gi7hkputjts782p/default/structure/artworkProduct",
       "permanent": false
     },
     {
       "source": "/sanity/:path*",
-      "destination": "https://sanity.io/@o8e9CGiAz/studio/vydy99zsxkte1uvjidscpvc2/default/structure/artworkProduct",
+      "destination": "https://sanity.io/@o8e9CGiAz/studio/h2urr4gr3gi7hkputjts782p/default/:path*",
       "permanent": false
     }
   ]

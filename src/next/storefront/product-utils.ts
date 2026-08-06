@@ -1,4 +1,11 @@
-import type { Collection, FrameOption, Product, ProductVideo, SizeOption } from '../../data/products';
+import type {
+  Collection,
+  FrameOption,
+  Product,
+  ProductGalleryImage,
+  ProductVideo,
+  SizeOption,
+} from '../../data/products';
 
 export const supportEmail = 'hello@armoze.com';
 export const supportMailto = `mailto:${supportEmail}`;
@@ -239,14 +246,40 @@ export function getCartProductImage(product: Pick<Product, 'gallery' | 'image'>)
 }
 
 export function getProductGallery(product: Product) {
-  return [product.image, ...(product.gallery ?? [])].filter(
-    (image, index, gallery): image is string => Boolean(image) && gallery.indexOf(image) === index,
-  );
+  const mainImage = product.image
+    ? {
+        ...(product.mainImage?.url === product.image ? product.mainImage : {}),
+        url: product.image,
+        alt: product.mainImage?.alt || product.imageAlt,
+      }
+    : undefined;
+  const galleryImages: ProductGalleryImage[] = [
+    ...(product.galleryImages ?? []),
+    ...(product.gallery ?? []).map((url) => ({ url })),
+  ];
+  const seenUrls = new Set<string>();
+
+  return [mainImage, ...galleryImages].flatMap((image) => {
+    const url = image?.url?.trim();
+
+    if (!image || !url || seenUrls.has(url)) {
+      return [];
+    }
+
+    seenUrls.add(url);
+    return [{ ...image, url }];
+  });
 }
 
 export type ProductGalleryItem =
   | { type: 'placeholder'; key: 'placeholder' }
-  | { type: 'image'; key: string; src: string; isPrimary: boolean }
+  | {
+      type: 'image';
+      key: string;
+      src: string;
+      image: ProductGalleryImage;
+      isPrimary: boolean;
+    }
   | { type: 'video'; key: string; video: ProductVideo };
 
 export function getProductVideos(product: Pick<Product, 'videos'>) {
@@ -277,11 +310,12 @@ export function getProductVideos(product: Pick<Product, 'videos'>) {
 }
 
 export function getProductMediaGallery(product: Product): ProductGalleryItem[] {
-  const images = getProductGallery(product).map((src, index) => ({
+  const images = getProductGallery(product).map((image, index) => ({
     type: 'image' as const,
-    key: `image-${index}-${src}`,
-    src,
-    isPrimary: src === product.image,
+    key: `image-${index}-${image.url}`,
+    src: image.url,
+    image,
+    isPrimary: image.url === product.image,
   }));
   const videos = getProductVideos(product).map((video, index) => ({
     type: 'video' as const,

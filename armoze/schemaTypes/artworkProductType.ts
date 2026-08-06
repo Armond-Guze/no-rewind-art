@@ -1,5 +1,195 @@
-import {defineArrayMember, defineField, defineType} from 'sanity'
+import {
+  defineArrayMember,
+  defineField,
+  defineType,
+  getPublishedId,
+  type Slug,
+  type SlugValidationContext,
+  type ValidationContext,
+} from 'sanity'
+import {ProductIdInput} from './ProductIdInput'
 import {SizePresetInput} from './SizePresetInput'
+
+const validationApiVersion = '2025-05-21'
+
+type ProductIdentity = {
+  _id: string
+  title?: string
+  productId?: string
+  currentSlug?: string
+  previousSlugs?: string[]
+}
+
+const productIdentitiesQuery = `*[_type == "artworkProduct"]{
+  _id,
+  title,
+  productId,
+  "currentSlug": slug.current,
+  previousSlugs
+}`
+
+function normalizeIdentityValue(value: string) {
+  return value.trim().toLowerCase()
+}
+
+function getSlugValue(value: unknown) {
+  if (!value || typeof value !== 'object') return ''
+
+  const current = (value as Partial<Slug>).current
+  return typeof current === 'string' ? current.trim() : ''
+}
+
+function getStringArray(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    : []
+}
+
+function getCurrentDocumentId(context: ValidationContext | SlugValidationContext) {
+  return typeof context.document?._id === 'string' ? getPublishedId(context.document._id) : ''
+}
+
+function isOtherProduct(identity: ProductIdentity, currentDocumentId: string) {
+  return !currentDocumentId || getPublishedId(identity._id) !== currentDocumentId
+}
+
+function describeProduct(identity: ProductIdentity) {
+  return identity.title ? `"${identity.title}"` : identity._id
+}
+
+async function getProductIdentities(context: ValidationContext | SlugValidationContext) {
+  return context
+    .getClient({apiVersion: validationApiVersion})
+    .fetch<ProductIdentity[]>(productIdentitiesQuery, {}, {perspective: 'raw'})
+}
+
+function findSlugCollision(slug: string, identities: ProductIdentity[], currentDocumentId: string) {
+  const normalizedSlug = normalizeIdentityValue(slug)
+
+  for (const identity of identities) {
+    if (!isOtherProduct(identity, currentDocumentId)) continue
+
+    if (
+      typeof identity.currentSlug === 'string' &&
+      normalizeIdentityValue(identity.currentSlug) === normalizedSlug
+    ) {
+      return {identity, location: 'current slug' as const}
+    }
+
+    if (
+      getStringArray(identity.previousSlugs).some(
+        (previousSlug) => normalizeIdentityValue(previousSlug) === normalizedSlug,
+      )
+    ) {
+      return {identity, location: 'Previous Slugs' as const}
+    }
+  }
+
+  return null
+}
+
+async function validateProductId(value: unknown, context: ValidationContext) {
+  if (typeof value !== 'string' || !value.trim()) return true
+
+  try {
+    const identities = await getProductIdentities(context)
+    const currentDocumentId = getCurrentDocumentId(context)
+    const publishedIdentity = identities.find((identity) => identity._id === currentDocumentId)
+
+    if (publishedIdentity?.productId && value !== publishedIdentity.productId) {
+      return `Product ID is immutable after the product is first published. Restore "${publishedIdentity.productId}".`
+    }
+
+    const normalizedProductId = normalizeIdentityValue(value)
+    const collision = identities.find(
+      (identity) =>
+        isOtherProduct(identity, currentDocumentId) &&
+        typeof identity.productId === 'string' &&
+        normalizeIdentityValue(identity.productId) === normalizedProductId,
+    )
+
+    return collision ? `Product ID is already used by ${describeProduct(collision)}.` : true
+  } catch {
+    return 'Could not verify Product ID uniqueness. Check your connection and try again.'
+  }
+}
+
+async function isSlugUnique(slug: string, context: SlugValidationContext) {
+  const localPreviousSlugs = getStringArray(context.document?.previousSlugs)
+  if (
+    localPreviousSlugs.some(
+      (previousSlug) => normalizeIdentityValue(previousSlug) === normalizeIdentityValue(slug),
+    )
+  ) {
+    return false
+  }
+
+  try {
+    const identities = await getProductIdentities(context)
+    return !findSlugCollision(slug, identities, getCurrentDocumentId(context))
+  } catch {
+    return false
+  }
+}
+
+async function validateCurrentSlug(value: unknown, context: ValidationContext) {
+  const slug = getSlugValue(value)
+  if (!slug) return true
+
+  const localPreviousSlugs = getStringArray(context.document?.previousSlugs)
+  if (
+    localPreviousSlugs.some(
+      (previousSlug) => normalizeIdentityValue(previousSlug) === normalizeIdentityValue(slug),
+    )
+  ) {
+    return 'The current slug cannot also appear in Previous Slugs.'
+  }
+
+  try {
+    const identities = await getProductIdentities(context)
+    const collision = findSlugCollision(slug, identities, getCurrentDocumentId(context))
+
+    return collision
+      ? `Slug "${slug}" is already used as the ${collision.location} for ${describeProduct(collision.identity)}.`
+      : true
+  } catch {
+    return 'Could not verify slug uniqueness. Check your connection and try again.'
+  }
+}
+
+async function validatePreviousSlugs(value: unknown, context: ValidationContext) {
+  const previousSlugs = getStringArray(value)
+  if (!previousSlugs.length) return true
+
+  const normalizedSlugs = previousSlugs.map(normalizeIdentityValue)
+  const duplicateIndex = normalizedSlugs.findIndex(
+    (slug, index) => normalizedSlugs.indexOf(slug) !== index,
+  )
+  if (duplicateIndex >= 0) {
+    return `Previous slug "${previousSlugs[duplicateIndex]}" is listed more than once.`
+  }
+
+  const currentSlug = getSlugValue(context.document?.slug)
+  if (currentSlug && normalizedSlugs.includes(normalizeIdentityValue(currentSlug))) {
+    return 'Previous Slugs cannot include the current slug.'
+  }
+
+  try {
+    const identities = await getProductIdentities(context)
+    const currentDocumentId = getCurrentDocumentId(context)
+
+    for (const previousSlug of previousSlugs) {
+      const collision = findSlugCollision(previousSlug, identities, currentDocumentId)
+      if (collision) {
+        return `Previous slug "${previousSlug}" is already used as the ${collision.location} for ${describeProduct(collision.identity)}.`
+      }
+    }
+
+    return true
+  } catch {
+    return 'Could not verify previous slug uniqueness. Check your connection and try again.'
+  }
+}
 
 const collectionSlugOptions = [
   {title: 'Best Sellers', value: 'best-sellers'},
@@ -10,7 +200,12 @@ const collectionSlugOptions = [
 
 const sizeOptionFields = [
   defineField({name: 'id', title: 'ID', type: 'string', validation: (rule) => rule.required()}),
-  defineField({name: 'label', title: 'Label', type: 'string', validation: (rule) => rule.required()}),
+  defineField({
+    name: 'label',
+    title: 'Label',
+    type: 'string',
+    validation: (rule) => rule.required(),
+  }),
   defineField({
     name: 'priceInCents',
     title: 'Price In Cents',
@@ -36,8 +231,10 @@ export const artworkProductType = defineType({
       name: 'productId',
       title: 'Product ID',
       type: 'string',
-      description: 'Stable storefront/cart ID, like life-has-no-rewind-canvas.',
-      validation: (rule) => rule.required(),
+      description:
+        'Stable storefront/cart ID, like life-has-no-rewind-canvas. Set this before the first publish; it is locked afterward.',
+      components: {input: ProductIdInput},
+      validation: (rule) => rule.required().custom(validateProductId),
     }),
     defineField({
       name: 'slug',
@@ -45,8 +242,8 @@ export const artworkProductType = defineType({
       type: 'slug',
       description:
         'Changing the title will not automatically change this after the product exists. Click Generate or edit this when you want the storefront URL to change.',
-      options: {source: 'title'},
-      validation: (rule) => rule.required(),
+      options: {source: 'title', isUnique: isSlugUnique},
+      validation: (rule) => rule.required().custom(validateCurrentSlug),
     }),
     defineField({
       name: 'previousSlugs',
@@ -55,6 +252,7 @@ export const artworkProductType = defineType({
       description:
         'Add old slug values here when changing a product URL. Example: old-artwork-name. The storefront will redirect old URLs to the current slug.',
       of: [defineArrayMember({type: 'string'})],
+      validation: (rule) => rule.unique().custom(validatePreviousSlugs),
     }),
     defineField({
       name: 'published',
@@ -210,7 +408,12 @@ export const artworkProductType = defineType({
         }),
     }),
     defineField({name: 'priceInCents', title: 'Base Price In Cents', type: 'number'}),
-    defineField({name: 'size', title: 'Product Type Label', type: 'string', initialValue: 'Canvas print'}),
+    defineField({
+      name: 'size',
+      title: 'Product Type Label',
+      type: 'string',
+      initialValue: 'Canvas print',
+    }),
     defineField({
       name: 'sizePreset',
       title: 'Size Preset',

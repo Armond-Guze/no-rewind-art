@@ -66,7 +66,7 @@ async function main() {
   const client = getSanityClient();
   const settings = await client.fetch(`*[
     _type == "catalogSettings"
-    && !(_id in path("drafts.**"))
+    && _id == "catalogSettings.default"
   ][0]{_id, sizePresets}`);
 
   if (!settings?._id || !settings.sizePresets) {

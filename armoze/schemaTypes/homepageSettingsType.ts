@@ -12,18 +12,7 @@ const productReferenceList = (name: string, title: string, description: string, 
         to: [{type: 'artworkProduct'}],
       }),
     ],
-    validation: (rule) =>
-      rule
-        .unique()
-        .max(maxItems)
-        .custom((items) => {
-          if (!Array.isArray(items)) {
-            return true
-          }
-
-          const refs = items.map((item) => item?._ref).filter(Boolean)
-          return refs.length === new Set(refs).size ? true : 'Each product can only be selected once.'
-        }),
+    validation: (rule) => rule.unique().max(maxItems),
   })
 
 const heroImageField = (

@@ -160,15 +160,33 @@ function normalizeSanityImage(image) {
   const height = sanitizeNumber(image?.height);
   const productSlug = sanitizeText(image?.productSlug);
   const productTitle = sanitizeText(image?.productTitle);
+  const crop = normalizeSanityImageRegion(image?.crop, ['top', 'bottom', 'left', 'right']);
+  const hotspot = normalizeSanityImageRegion(image?.hotspot, ['x', 'y', 'width', 'height']);
 
   return {
     url,
     ...(sanitizeText(image?.alt) ? { alt: sanitizeText(image.alt) } : {}),
     ...(width ? { width } : {}),
     ...(height ? { height } : {}),
+    ...(crop ? { crop } : {}),
+    ...(hotspot ? { hotspot } : {}),
     ...(productSlug ? { productSlug } : {}),
     ...(productTitle ? { productTitle } : {}),
   };
+}
+
+function normalizeSanityImageRegion(value, fields) {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const entries = fields.map((field) => [field, Number(value[field])]);
+
+  if (entries.some(([, fieldValue]) => !Number.isFinite(fieldValue) || fieldValue < 0 || fieldValue > 1)) {
+    return undefined;
+  }
+
+  return Object.fromEntries(entries);
 }
 
 function normalizeSanityImageList(images, maxItems) {
@@ -291,12 +309,20 @@ function normalizeSanityProduct(
   sizePresets = seedCatalog.sizePresets,
   defaultProductVideos = [],
 ) {
-  const mainImageUrl = document.mainImageUrl || '';
-  const gallery = Array.isArray(document.galleryImages)
-    ? document.galleryImages
-        .map((image) => image?.url || '')
-        .filter(Boolean)
+  const mainImage =
+    normalizeSanityImage(document.mainImage) ||
+    normalizeSanityImage({
+      url: document.mainImageUrl,
+      alt: document.mainImageAlt,
+      width: document.mainImageWidth,
+      height: document.mainImageHeight,
+      crop: document.mainImageCrop,
+      hotspot: document.mainImageHotspot,
+    });
+  const galleryImages = Array.isArray(document.galleryImages)
+    ? document.galleryImages.map(normalizeSanityImage).filter(Boolean)
     : [];
+  const gallery = galleryImages.map((image) => image.url);
   const productVideos = Array.isArray(document.productVideos) ? document.productVideos : [];
   const videos = sanitizeVideoEntries([...productVideos, ...defaultProductVideos]);
 
@@ -312,13 +338,15 @@ function normalizeSanityProduct(
       description: document.description,
       longDescription: document.longDescription,
       label: document.label || document.title,
-      image: mainImageUrl,
+      image: mainImage?.url || '',
+      ...(mainImage ? { mainImage } : {}),
       framedBlackImage: document.framedBlackImageUrl || undefined,
       framedWhiteImage: document.framedWhiteImageUrl || undefined,
-      imageAlt: document.imageAlt || document.mainImageAlt || document.title,
+      imageAlt: mainImage?.alt || document.imageAlt || document.title,
       artworkShape: getArtworkShapeFromSizePreset(document.sizePreset),
       aspectRatio: getProductAspectRatio(document),
       gallery,
+      ...(galleryImages.length ? { galleryImages } : {}),
       videos,
       tone: document.tone || 'minimal',
       collectionSlugs: Array.isArray(document.collectionSlugs) ? document.collectionSlugs : [],
@@ -338,7 +366,7 @@ function normalizeSanityProduct(
 
 const SANITY_CATALOG_SETTINGS_QUERY = `*[
   _type == "catalogSettings"
-  && !(_id in path("drafts.**"))
+  && _id == "catalogSettings.default"
 ][0]{
   sizePresets{
     portraitTwoThree[]{id, label, priceInCents, badge, previewScale},
@@ -357,7 +385,7 @@ const SANITY_CATALOG_SETTINGS_QUERY = `*[
 
 const SANITY_HOMEPAGE_SETTINGS_QUERY = `*[
   _type == "homepageSettings"
-  && !(_id in path("drafts.**"))
+  && _id == "homepageSettings.default"
 ][0]{
   "heroProductIds": heroProducts[]->productId,
   "heroSlideshowImages": heroSlideshowImages[]{
@@ -434,13 +462,23 @@ const SANITY_PRODUCTS_QUERY = `*[
   label,
   imageAlt,
   aspectRatio,
-  "mainImageUrl": mainImage.asset->url,
-  "mainImageAlt": mainImage.alt,
+  "mainImage": mainImage{
+    "url": asset->url,
+    alt,
+    crop,
+    hotspot,
+    "width": asset->metadata.dimensions.width,
+    "height": asset->metadata.dimensions.height
+  },
   "framedBlackImageUrl": mockupFramedBlack.asset->url,
   "framedWhiteImageUrl": mockupFramedWhite.asset->url,
   "galleryImages": galleryImages[]{
     "url": asset->url,
-    alt
+    alt,
+    crop,
+    hotspot,
+    "width": asset->metadata.dimensions.width,
+    "height": asset->metadata.dimensions.height
   },
   "productVideos": productVideos[]{
     title,

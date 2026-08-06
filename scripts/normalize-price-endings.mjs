@@ -132,7 +132,7 @@ async function main() {
     ]{_id, title, priceInCents, sizeOptions}`),
     client.fetch(`*[
       _type == "catalogSettings"
-      && !(_id in path("drafts.**"))
+      && _id == "catalogSettings.default"
     ][0]{_id, sizePresets}`),
   ]);
   const productChanges = products.map(collectProductChange).filter(Boolean);

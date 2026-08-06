@@ -795,8 +795,10 @@ export default function ProductPageClient({
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const galleryItems = getProductMediaGallery(product);
   const selectedGalleryItem = galleryItems[selectedImage] ?? galleryItems[0];
+  const selectedGalleryImageMetadata =
+    selectedGalleryItem.type === 'image' ? selectedGalleryItem.image : undefined;
   const selectedGalleryImage =
-    selectedGalleryItem.type === 'image' ? selectedGalleryItem.src : undefined;
+    selectedGalleryImageMetadata?.url;
   const selectedGalleryVideo =
     selectedGalleryItem.type === 'video' ? selectedGalleryItem.video : null;
   const mobileGalleryRef = useRef<HTMLDivElement | null>(null);
@@ -1089,6 +1091,7 @@ export default function ProductPageClient({
                       src={item.src}
                       alt=""
                       aspectRatio={productAspectRatio}
+                      sanityImage={item.image}
                       shape={productDisplayShape}
                       shadow={false}
                       sizes="82px"
@@ -1098,6 +1101,7 @@ export default function ProductPageClient({
                       src={item.src}
                       alt=""
                       aspectRatio={productAspectRatio}
+                      sanityImage={item.image}
                       sizes="82px"
                     />
                   )}
@@ -1115,7 +1119,8 @@ export default function ProductPageClient({
               role="region"
             >
               {galleryItems.map((item, index) => {
-                const mobileGalleryImage = item.type === 'image' ? item.src : undefined;
+                const mobileGalleryImageMetadata = item.type === 'image' ? item.image : undefined;
+                const mobileGalleryImage = mobileGalleryImageMetadata?.url;
                 const mobileGalleryVideo = item.type === 'video' ? item.video : null;
                 const mobileIsMockupImage = isProductMockupImage(product, mobileGalleryImage);
                 const mobileIsSideImage = isSideMockupImage(mobileGalleryImage);
@@ -1156,8 +1161,9 @@ export default function ProductPageClient({
                               className={`detail-artwork-image front-product-canvas ${mobileFrameClass}`}
                               product={product}
                               src={mainCanvasSrc}
-                              alt={product.imageAlt}
+                              alt={mobileGalleryImageMetadata?.alt || product.imageAlt}
                               aspectRatio={productAspectRatio}
+                              sanityImage={framedMockupSrc ? undefined : mobileGalleryImageMetadata}
                               shape={productDisplayShape}
                               priority={index === 0}
                             />
@@ -1165,8 +1171,9 @@ export default function ProductPageClient({
                             <OptimizedRawImage
                               className="detail-gallery-image"
                               src={mobileGalleryImage}
-                              alt={product.imageAlt}
+                              alt={mobileGalleryImageMetadata?.alt || product.imageAlt}
                               aspectRatio={productAspectRatio}
+                              sanityImage={mobileGalleryImageMetadata}
                               priority={index === 0}
                             />
                           ) : (
@@ -1225,8 +1232,9 @@ export default function ProductPageClient({
                         className={`detail-artwork-image front-product-canvas ${mainCanvasFrameClass}`}
                         product={product}
                         src={mainCanvasSrc}
-                        alt={product.imageAlt}
+                        alt={selectedGalleryImageMetadata?.alt || product.imageAlt}
                         aspectRatio={productAspectRatio}
+                        sanityImage={framedMockupSrc ? undefined : selectedGalleryImageMetadata}
                         shape={productDisplayShape}
                         priority
                       />
@@ -1234,8 +1242,9 @@ export default function ProductPageClient({
                       <OptimizedRawImage
                         className="detail-gallery-image"
                         src={selectedGalleryImage}
-                        alt={product.imageAlt}
+                        alt={selectedGalleryImageMetadata?.alt || product.imageAlt}
                         aspectRatio={productAspectRatio}
+                        sanityImage={selectedGalleryImageMetadata}
                         priority
                       />
                     ) : (
@@ -1619,8 +1628,9 @@ export default function ProductPageClient({
             </button>
             <OptimizedRawImage
               src={selectedGalleryImage}
-              alt={product.imageAlt}
+              alt={selectedGalleryImageMetadata?.alt || product.imageAlt}
               aspectRatio={productAspectRatio}
+              sanityImage={selectedGalleryImageMetadata}
               sizes="92vw"
             />
           </div>
