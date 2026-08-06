@@ -14972,6 +14972,33 @@ a.admin-icon-button {
   color: #b98a1d;
 }
 
+.product-info-flag {
+  position: relative;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 12px;
+  margin-top: 4px;
+  overflow: hidden;
+  border-radius: 1px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #b22234 0 7.69%,
+    #fff 7.69% 15.38%
+  );
+  box-shadow: 0 0 0 1px rgba(21, 21, 21, 0.16);
+}
+
+.product-info-flag::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 42%;
+  height: 54%;
+  background-color: #3c3b6e;
+  background-image: radial-gradient(circle, #fff 0 0.55px, transparent 0.7px);
+  background-size: 3px 3px;
+}
+
 /* === Product page: size prices, sticky bar, lightbox, pairs, reviews === */
 .size-options button .size-option-price {
   display: block;
@@ -15456,71 +15483,40 @@ a.admin-icon-button {
 }
 
 .product-delivery-note {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 14px 0 0;
-  padding: 13px 15px;
-  border: 1px solid rgba(21, 21, 21, 0.1);
-  border-radius: 12px;
-  background: #f7f3e9;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  gap: 7px;
+  margin: 12px 0 0;
 }
 
 .product-delivery-icon {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid rgba(185, 138, 29, 0.2);
-  border-radius: 999px;
-  background: #fff;
-  color: #9a6d08;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  color: rgba(21, 21, 21, 0.58);
 }
 
 .product-delivery-copy {
-  display: grid;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
   min-width: 0;
-  gap: 1px;
-  line-height: 1.25;
+  gap: 2px 7px;
+  line-height: 1.35;
 }
 
 .product-delivery-label {
-  color: rgba(21, 21, 21, 0.58);
-  font-size: 0.66rem;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: rgba(21, 21, 21, 0.68);
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .product-delivery-note strong {
   color: #151515;
-  font-size: 0.96rem;
+  font-size: 0.82rem;
   font-weight: 900;
-}
-
-.product-delivery-note small {
-  margin-top: 2px;
-  color: rgba(21, 21, 21, 0.58);
-  font-size: 0.7rem;
-  font-weight: 650;
-}
-
-@media (max-width: 760px) {
-  .product-delivery-note {
-    margin-top: 11px;
-    padding: 11px 12px;
-  }
-
-  .product-delivery-icon {
-    width: 34px;
-    height: 34px;
-  }
-
-  .product-delivery-note strong {
-    font-size: 0.88rem;
-  }
 }
 
 .listing-card-rating {

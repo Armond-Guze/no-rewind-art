@@ -518,7 +518,7 @@ export default function CartPageClient({
             </p>
             <ul className="cart-page-benefits" aria-label="What to expect from your order">
               <li><Truck aria-hidden="true" size={20} /><span><strong>Free U.S. shipping</strong> on every canvas order</span></li>
-              <li><Clock aria-hidden="true" size={20} /><span><strong>Expected arrival</strong> in 5–8 business days, including production and transit</span></li>
+              <li><Clock aria-hidden="true" size={20} /><span><strong>Expected arrival</strong> in 5–8 business days</span></li>
               <li><ShieldCheck aria-hidden="true" size={20} /><span><strong>30-day returns</strong> and damage support</span></li>
             </ul>
             <Link className="cart-continue-link" href="/collections/best-sellers">

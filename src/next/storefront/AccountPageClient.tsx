@@ -243,7 +243,7 @@ export default function AccountPageClient() {
             <article>
               <Box aria-hidden="true" size={24} />
               <h2>Made to order</h2>
-              <p>Most orders are expected to arrive in 5–8 business days. This estimate includes production and carrier transit.</p>
+              <p>Most orders are expected to arrive in 5–8 business days.</p>
             </article>
             <article>
               <Truck aria-hidden="true" size={24} />
@@ -356,7 +356,7 @@ export default function AccountPageClient() {
                           </ul>
 
                           <div className="account-order-footer">
-                            <span>Expected arrival is 5–8 business days after checkout, including production and transit.</span>
+                            <span>Expected arrival is 5–8 business days after checkout.</span>
                             <a href={getSupportHref(order.id)}>Get help</a>
                           </div>
                         </article>

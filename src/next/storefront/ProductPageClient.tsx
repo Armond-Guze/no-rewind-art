@@ -11,7 +11,6 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
-  Package,
   Play,
   RotateCcw,
   Ruler,
@@ -1348,7 +1347,6 @@ export default function ProductPageClient({
                 <span className="product-delivery-copy">
                   <span className="product-delivery-label">Estimated arrival</span>
                   <strong>{deliveryEstimate}</strong>
-                  <small>Includes production and transit</small>
                 </span>
               </div>
             ) : null}
@@ -1416,10 +1414,10 @@ export default function ProductPageClient({
                 {detailsOpen ? (
                   <div className="product-details-content" id={`${product.id}-details`}>
                     <ul className="product-info-list">
+                      <li><span className="product-info-flag" aria-hidden="true" /> Made in USA</li>
                       <li><Check aria-hidden="true" size={16} strokeWidth={2.6} /> Ready-to-hang canvas print</li>
                       <li><Check aria-hidden="true" size={16} strokeWidth={2.6} /> Made to order, just for you</li>
                       <li><Check aria-hidden="true" size={16} strokeWidth={2.6} /> Premium matte canvas finish</li>
-                      <li><Check aria-hidden="true" size={16} strokeWidth={2.6} /> Securely packed for delivery</li>
                     </ul>
                   </div>
                 ) : null}
@@ -1444,7 +1442,6 @@ export default function ProductPageClient({
                     <ul className="product-info-list">
                       <li><Truck aria-hidden="true" size={16} strokeWidth={2.4} /> Free U.S. shipping</li>
                       <li><Clock aria-hidden="true" size={16} strokeWidth={2.4} /> Expected arrival in 5–8 business days</li>
-                      <li><Package aria-hidden="true" size={16} strokeWidth={2.4} /> Estimate includes production and transit; timing may vary</li>
                       <li><RotateCcw aria-hidden="true" size={16} strokeWidth={2.4} /> 30-day returns on eligible orders</li>
                       <li><ShieldCheck aria-hidden="true" size={16} strokeWidth={2.4} /> Support for damaged or incorrect orders</li>
                     </ul>

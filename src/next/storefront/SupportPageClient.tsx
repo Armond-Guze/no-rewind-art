@@ -55,7 +55,7 @@ const supportCards = [
 const helpTopics = [
   {
     title: 'Shipping and tracking',
-    body: 'Most orders are expected to arrive in 5–8 business days. This estimate includes production and carrier transit.',
+    body: 'Most orders are expected to arrive in 5–8 business days.',
     href: '/shipping',
     icon: Truck,
   },

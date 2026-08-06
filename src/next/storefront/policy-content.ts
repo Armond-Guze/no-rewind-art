@@ -23,7 +23,7 @@ export const policyPages: Record<PolicyPageKey, PolicyPageContent> = {
         title: 'Made-to-order processing',
         body: [
           'Armoze prints are made to order. Production usually begins shortly after checkout is completed and payment is confirmed.',
-          'Most orders are expected to arrive within 5–8 business days after checkout. This estimate includes production and carrier transit.',
+          'Most orders are expected to arrive within 5–8 business days after checkout.',
         ],
       },
       {
