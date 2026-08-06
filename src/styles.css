@@ -14973,66 +14973,52 @@ a.admin-icon-button {
 
 .product-info-icon {
   --product-info-icon-color: #334155;
-  --product-info-icon-bg: #f1f5f9;
-  --product-info-icon-line: #cbd5e1;
+  fill: currentColor;
 }
 
 .product-info-list li svg.product-info-icon {
-  width: 28px;
-  height: 28px;
-  margin-top: -2px;
-  padding: 5px;
-  border-radius: 8px;
-  background: var(--product-info-icon-bg);
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--product-info-icon-color);
-  box-shadow:
-    inset 0 0 0 1px var(--product-info-icon-line),
-    0 1px 2px rgba(21, 21, 21, 0.06);
-  stroke-width: 2.25;
+  box-shadow: none;
 }
 
 .product-info-icon-blue {
-  --product-info-icon-color: #2f6584;
-  --product-info-icon-bg: #eaf2f6;
-  --product-info-icon-line: #cbdde6;
+  --product-info-icon-color: #24698f;
 }
 
 .product-info-icon-terracotta {
-  --product-info-icon-color: #9a563e;
-  --product-info-icon-bg: #f7ebe6;
-  --product-info-icon-line: #e7cfc5;
+  --product-info-icon-color: #a64f35;
 }
 
 .product-info-icon-plum {
-  --product-info-icon-color: #77577f;
-  --product-info-icon-bg: #f1eaf2;
-  --product-info-icon-line: #dfd1e2;
+  --product-info-icon-color: #7a4b85;
 }
 
 .product-info-icon-violet {
-  --product-info-icon-color: #6d5792;
-  --product-info-icon-bg: #f0ecf6;
-  --product-info-icon-line: #dcd3e9;
+  --product-info-icon-color: #6b4da0;
 }
 
 .product-info-icon-green {
-  --product-info-icon-color: #3e7255;
-  --product-info-icon-bg: #eaf3ed;
-  --product-info-icon-line: #cbe0d2;
+  --product-info-icon-color: #2f7a4c;
 }
 
 .product-info-flag-badge {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  margin-top: -2px;
-  border-radius: 8px;
-  background: #f8fafc;
-  box-shadow:
-    inset 0 0 0 1px #dbe2e8,
-    0 1px 2px rgba(21, 21, 21, 0.06);
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .product-info-flag {

@@ -4,19 +4,23 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
+  FaArrowRotateLeft,
+  FaCalendarDays,
+  FaHammer,
+  FaImage,
+  FaPaintbrush,
+  FaShield,
+  FaTruckFast,
+} from 'react-icons/fa6';
+import {
   ArrowLeft,
   BadgeCheck,
   Box,
-  CalendarClock,
   Check,
   ChevronDown,
   ChevronUp,
   Clock,
-  Frame,
-  Hammer,
-  Paintbrush,
   Play,
-  RotateCcw,
   Ruler,
   ShieldCheck,
   Star,
@@ -1428,9 +1432,9 @@ export default function ProductPageClient({
                   <div className="product-details-content" id={`${product.id}-details`}>
                     <ul className="product-info-list">
                       <li><span className="product-info-flag-badge" aria-hidden="true"><span className="product-info-flag" /></span> Made in USA</li>
-                      <li><Frame className="product-info-icon product-info-icon-blue" aria-hidden="true" /> Ready-to-hang canvas print</li>
-                      <li><Hammer className="product-info-icon product-info-icon-terracotta" aria-hidden="true" /> Made to order, just for you</li>
-                      <li><Paintbrush className="product-info-icon product-info-icon-plum" aria-hidden="true" /> Premium matte canvas finish</li>
+                      <li><FaImage className="product-info-icon product-info-icon-blue" aria-hidden="true" /> Ready-to-hang canvas print</li>
+                      <li><FaHammer className="product-info-icon product-info-icon-terracotta" aria-hidden="true" /> Made to order, just for you</li>
+                      <li><FaPaintbrush className="product-info-icon product-info-icon-plum" aria-hidden="true" /> Premium matte canvas finish</li>
                     </ul>
                   </div>
                 ) : null}
@@ -1453,10 +1457,10 @@ export default function ProductPageClient({
                 {shippingOpen ? (
                   <div className="product-details-content" id={`${product.id}-shipping-returns`}>
                     <ul className="product-info-list">
-                      <li><Truck className="product-info-icon product-info-icon-blue" aria-hidden="true" /> Free U.S. shipping</li>
-                      <li><CalendarClock className="product-info-icon product-info-icon-violet" aria-hidden="true" /> Expected arrival in 5–8 business days</li>
-                      <li><RotateCcw className="product-info-icon product-info-icon-terracotta" aria-hidden="true" /> 30-day returns on eligible orders</li>
-                      <li><ShieldCheck className="product-info-icon product-info-icon-green" aria-hidden="true" /> Support for damaged or incorrect orders</li>
+                      <li><FaTruckFast className="product-info-icon product-info-icon-blue" aria-hidden="true" /> Free U.S. shipping</li>
+                      <li><FaCalendarDays className="product-info-icon product-info-icon-violet" aria-hidden="true" /> Expected arrival in 5–8 business days</li>
+                      <li><FaArrowRotateLeft className="product-info-icon product-info-icon-terracotta" aria-hidden="true" /> 30-day returns on eligible orders</li>
+                      <li><FaShield className="product-info-icon product-info-icon-green" aria-hidden="true" /> Support for damaged or incorrect orders</li>
                     </ul>
                   </div>
                 ) : null}
