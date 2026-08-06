@@ -2,6 +2,7 @@ import os from 'node:os';
 import path from 'node:path';
 import pg from 'pg';
 import { readJsonFile, writeJsonFileAtomic } from './local-json-file.js';
+import { compareAdminOrders } from './order-lifecycle.js';
 
 const { Pool } = pg;
 
@@ -53,6 +54,7 @@ function normalizeOrder(order) {
     checkoutStatus: order.checkoutStatus || 'open',
     paymentStatus: order.paymentStatus || 'checkout_started',
     fulfillmentStatus: order.fulfillmentStatus || 'new',
+    fulfillmentReference: order.fulfillmentReference || '',
     customerName: order.customerName || '',
     customerEmail: order.customerEmail || '',
     currency: order.currency || 'usd',
@@ -116,7 +118,12 @@ async function readLocalDatabase() {
   return {
     ...createEmptyDatabase(),
     ...parsed,
-    orders: Array.isArray(parsed?.orders) ? parsed.orders : [],
+    orders: Array.isArray(parsed?.orders)
+      ? parsed.orders.map((order) => ({
+          ...order,
+          fulfillmentReference: order.fulfillmentReference || '',
+        }))
+      : [],
     notifications: Array.isArray(parsed?.notifications) ? parsed.notifications : [],
   };
 }
@@ -163,7 +170,7 @@ class LocalOrderStore {
   async listOrders({ limit = 50 } = {}) {
     const database = await readLocalDatabase();
     const orders = [...database.orders]
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .sort(compareAdminOrders)
       .slice(0, limit);
 
     return {
@@ -293,6 +300,7 @@ class PostgresOrderStore {
           checkout_status text not null default 'open',
           payment_status text not null default 'checkout_started',
           fulfillment_status text not null default 'new',
+          fulfillment_reference text,
           customer_name text,
           customer_email text,
           currency text not null default 'usd',
@@ -317,7 +325,8 @@ class PostgresOrderStore {
           add column if not exists carrier text,
           add column if not exists tracking_number text,
           add column if not exists tracking_url text,
-          add column if not exists shipped_at timestamptz;
+          add column if not exists shipped_at timestamptz,
+          add column if not exists fulfillment_reference text;
       `);
 
       await client.query(`
@@ -362,6 +371,7 @@ class PostgresOrderStore {
       checkoutStatus: row.checkout_status,
       paymentStatus: row.payment_status,
       fulfillmentStatus: row.fulfillment_status,
+      fulfillmentReference: row.fulfillment_reference || '',
       customerName: row.customer_name || '',
       customerEmail: row.customer_email || '',
       currency: row.currency,
@@ -418,6 +428,7 @@ class PostgresOrderStore {
           checkout_status,
           payment_status,
           fulfillment_status,
+          fulfillment_reference,
           customer_name,
           customer_email,
           currency,
@@ -437,7 +448,7 @@ class PostgresOrderStore {
         )
         values (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-          $13, $14::jsonb, $15, $16, $17, $18, $19::jsonb, $20, $21, $22
+          $13, $14, $15::jsonb, $16, $17, $18, $19, $20::jsonb, $21, $22, $23
         )
         on conflict (id) do update set
           stripe_session_id = excluded.stripe_session_id,
@@ -445,6 +456,7 @@ class PostgresOrderStore {
           checkout_status = excluded.checkout_status,
           payment_status = excluded.payment_status,
           fulfillment_status = excluded.fulfillment_status,
+          fulfillment_reference = excluded.fulfillment_reference,
           customer_name = excluded.customer_name,
           customer_email = excluded.customer_email,
           currency = excluded.currency,
@@ -469,6 +481,7 @@ class PostgresOrderStore {
         merged.checkoutStatus,
         merged.paymentStatus,
         merged.fulfillmentStatus,
+        merged.fulfillmentReference,
         merged.customerName,
         merged.customerEmail,
         merged.currency,
@@ -493,7 +506,7 @@ class PostgresOrderStore {
 
   async listOrders({ limit = 50 } = {}) {
     const ordersResult = await this.pool.query(
-      'select * from orders order by updated_at desc limit $1',
+      "select * from orders order by (payment_status = 'paid') desc, updated_at desc limit $1",
       [limit],
     );
     const summaryResult = await this.pool.query(`
@@ -557,10 +570,11 @@ class PostgresOrderStore {
         update orders
         set
           fulfillment_status = $2,
-          carrier = $3,
-          tracking_number = $4,
-          tracking_url = $5,
-          shipped_at = $6,
+          fulfillment_reference = $3,
+          carrier = $4,
+          tracking_number = $5,
+          tracking_url = $6,
+          shipped_at = $7,
           updated_at = now()
         where id = $1 or stripe_session_id = $1
         returning *
@@ -568,6 +582,7 @@ class PostgresOrderStore {
       [
         orderId,
         nextFulfillmentStatus,
+        update.fulfillmentReference ?? existing.fulfillmentReference ?? '',
         update.carrier ?? existing.carrier ?? '',
         update.trackingNumber ?? existing.trackingNumber ?? '',
         update.trackingUrl ?? existing.trackingUrl ?? '',

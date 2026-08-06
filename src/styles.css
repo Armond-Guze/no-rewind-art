@@ -16637,3 +16637,435 @@ a.admin-icon-button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Admin fulfillment desk */
+.admin-fulfillment-guide {
+  margin: 0 0 18px;
+  padding: 20px;
+  border: 1px solid rgba(242, 173, 40, 0.3);
+  border-radius: 7px;
+  background:
+    linear-gradient(135deg, rgba(242, 173, 40, 0.08), transparent 48%),
+    var(--admin-panel);
+}
+
+.admin-fulfillment-guide-heading,
+.admin-fulfillment-details header,
+.admin-next-step,
+.admin-shipping-panel-header,
+.admin-marketing-details summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-fulfillment-guide-heading h3 {
+  max-width: 720px;
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.admin-fulfillment-guide-heading .button,
+.admin-next-step .button,
+.admin-fulfillment-details header .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.admin-fulfillment-guide ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 20px 0 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--admin-line);
+  border-radius: 5px;
+  background: var(--admin-line);
+  list-style: none;
+}
+
+.admin-fulfillment-guide li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 11px;
+  padding: 14px;
+  background: #101113;
+}
+
+.admin-fulfillment-guide li > span {
+  width: 25px;
+  height: 25px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(242, 173, 40, 0.13);
+  color: var(--admin-accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.admin-fulfillment-guide li div {
+  display: grid;
+  gap: 5px;
+}
+
+.admin-fulfillment-guide li strong {
+  font-size: 0.82rem;
+}
+
+.admin-fulfillment-guide li small {
+  color: var(--admin-muted);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.admin-email-readiness {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  color: var(--admin-muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.admin-email-readiness.is-ready {
+  border: 1px solid rgba(117, 213, 156, 0.3);
+  background: rgba(117, 213, 156, 0.07);
+  color: #bdf0d0;
+}
+
+.admin-email-readiness.needs-setup {
+  border: 1px solid rgba(242, 173, 40, 0.34);
+  background: rgba(242, 173, 40, 0.07);
+  color: #ffd88e;
+}
+
+.admin-next-step {
+  align-items: flex-start;
+  margin: 2px 0 14px;
+  padding: 14px;
+  border: 1px solid var(--admin-line);
+  border-left: 3px solid var(--admin-accent);
+  border-radius: 4px;
+  background: rgba(242, 173, 40, 0.045);
+}
+
+.admin-next-step > span {
+  flex: 0 0 auto;
+  padding-top: 2px;
+  color: var(--admin-accent);
+  font-size: 0.67rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-next-step > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-next-step strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.88rem;
+}
+
+.admin-next-step p {
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.admin-next-step.printing,
+.admin-next-step.shipped {
+  border-left-color: #7eaeff;
+  background: rgba(126, 174, 255, 0.045);
+}
+
+.admin-next-step.delivered {
+  border-left-color: var(--admin-positive);
+  background: rgba(117, 213, 156, 0.045);
+}
+
+.admin-fulfillment-details {
+  margin-bottom: 14px;
+  overflow: hidden;
+  border: 1px solid var(--admin-line);
+  border-radius: 5px;
+  background: #0f1012;
+}
+
+.admin-fulfillment-details header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--admin-line);
+}
+
+.admin-fulfillment-details header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.admin-fulfillment-details header span,
+.admin-fulfillment-details-grid > div > span,
+.admin-sensaria-form label > span {
+  color: var(--admin-muted);
+  font-size: 0.67rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.admin-fulfillment-details header strong {
+  font-size: 0.86rem;
+}
+
+.admin-fulfillment-details-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(180px, 0.9fr) minmax(180px, 0.9fr);
+  gap: 0;
+}
+
+.admin-fulfillment-details-grid > div {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  padding: 14px;
+  border-right: 1px solid var(--admin-line);
+}
+
+.admin-fulfillment-details-grid > div:last-child {
+  border-right: 0;
+}
+
+.admin-fulfillment-details-grid address,
+.admin-fulfillment-details-grid > div {
+  font-style: normal;
+}
+
+.admin-fulfillment-details-grid address {
+  display: grid;
+  gap: 3px;
+}
+
+.admin-fulfillment-details-grid strong {
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.admin-fulfillment-details-grid small {
+  color: var(--admin-muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.admin-fulfillment-details-grid .is-missing,
+.admin-fulfillment-warning {
+  color: #ffd88e;
+}
+
+.admin-fulfillment-warning {
+  margin: 0;
+  padding: 10px 14px;
+  border-top: 1px solid rgba(242, 173, 40, 0.24);
+  background: rgba(242, 173, 40, 0.055);
+  font-size: 0.73rem;
+  line-height: 1.5;
+}
+
+.admin-sensaria-form {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 0.8fr) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid rgba(242, 173, 40, 0.3);
+  border-radius: 4px;
+  background: rgba(242, 173, 40, 0.045);
+}
+
+.admin-sensaria-form > div,
+.admin-sensaria-form label {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.admin-sensaria-form > div strong {
+  font-size: 0.8rem;
+}
+
+.admin-sensaria-form > div small {
+  color: var(--admin-muted);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.admin-sensaria-form input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--admin-line-strong);
+  border-radius: 3px;
+  outline: 0;
+  background: #090a0b;
+  color: var(--admin-text);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.admin-shipping-panel-header {
+  min-height: 44px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--admin-line);
+}
+
+.admin-shipping-panel-header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.79rem;
+  font-weight: 800;
+}
+
+.admin-shipping-panel-header > small {
+  min-width: 0;
+  color: var(--admin-muted);
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+
+.admin-shipping-action-note {
+  margin: -3px 12px 11px;
+  color: #ffd88e;
+  font-size: 0.71rem;
+  line-height: 1.45;
+}
+
+.admin-marketing-details {
+  margin-top: 14px;
+  border-top: 1px solid var(--admin-line);
+}
+
+.admin-marketing-details summary {
+  min-height: 42px;
+  cursor: pointer;
+  color: var(--admin-muted);
+  list-style: none;
+}
+
+.admin-marketing-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-marketing-details summary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.admin-marketing-details summary > small {
+  min-width: 0;
+  font-size: 0.7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-marketing-details .admin-order-attribution {
+  grid-template-columns: minmax(150px, 0.45fr) minmax(0, 1fr);
+  margin: 0 0 12px;
+  border: 0;
+  border-top: 1px solid var(--admin-line);
+  border-radius: 0;
+}
+
+@media (max-width: 980px) {
+  .admin-fulfillment-guide ol,
+  .admin-fulfillment-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-fulfillment-details-grid > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--admin-line);
+  }
+
+  .admin-fulfillment-details-grid > div:last-child {
+    border-bottom: 0;
+  }
+
+  .admin-order-workflow,
+  .admin-sensaria-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-tracking-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-tracking-url {
+    grid-column: 1 / -1;
+  }
+
+  .admin-tracking-form button {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-fulfillment-guide,
+  .admin-order {
+    padding: 14px;
+  }
+
+  .admin-fulfillment-guide-heading,
+  .admin-next-step,
+  .admin-fulfillment-details header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-fulfillment-guide-heading .button,
+  .admin-next-step .button,
+  .admin-fulfillment-details header .button {
+    width: 100%;
+  }
+
+  .admin-fulfillment-guide ol {
+    display: none;
+  }
+
+  .admin-toolbar {
+    align-items: stretch;
+  }
+
+  .admin-filter-group {
+    overflow-x: auto;
+  }
+
+  .admin-tracking-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-tracking-url,
+  .admin-tracking-form button {
+    grid-column: auto;
+  }
+}

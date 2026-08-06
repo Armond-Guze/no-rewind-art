@@ -24,7 +24,6 @@ import {
   Mail,
   Megaphone,
   MousePointerClick,
-  PackageCheck,
   Plus,
   RefreshCw,
   Search,
@@ -77,6 +76,22 @@ type AdminOrderAttribution = {
   lastTouch?: AdminAttributionTouch;
 };
 
+type AdminShippingAddress = {
+  line1?: string;
+  line2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+};
+
+type AdminShippingContact = {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: AdminShippingAddress;
+};
+
 type AdminOrder = {
   id: string;
   stripeSessionId: string;
@@ -87,6 +102,7 @@ type AdminOrder = {
   currency: string;
   amountTotal: number;
   items: AdminOrderItem[];
+  fulfillmentReference: string;
   carrier: string;
   trackingNumber: string;
   trackingUrl: string;
@@ -96,6 +112,10 @@ type AdminOrder = {
   updatedAt: string;
   raw?: {
     attribution?: AdminOrderAttribution;
+    shippedEmailSentAt?: string;
+    checkoutSession?: {
+      shippingContact?: AdminShippingContact | null;
+    };
   };
 };
 
@@ -122,6 +142,10 @@ type AdminDashboardResponse = {
   orders: AdminOrder[];
   summary: AdminSummary;
   notifications: AdminNotification[];
+  emailStatus?: {
+    customerEmailsConfigured: boolean;
+    ownerAlertsConfigured: boolean;
+  };
 };
 
 type AdminNewsletterResponse = {
@@ -165,6 +189,7 @@ type NewsletterDraft = {
 
 type AdminOrderUpdatePayload = {
   fulfillmentStatus?: string;
+  fulfillmentReference?: string;
   carrier?: string;
   trackingNumber?: string;
   trackingUrl?: string;
@@ -177,7 +202,7 @@ type AdminProductDraft = Product & {
 };
 
 type AdminView = 'orders' | 'catalog' | 'newsletter' | 'activity';
-type AdminOrderFilter = 'action' | 'all' | 'unpaid' | 'complete';
+type AdminOrderFilter = 'to-order' | 'production' | 'shipped' | 'closed' | 'incomplete';
 
 const adminSessionEvent = 'armoze-admin-session';
 
@@ -191,12 +216,14 @@ const emptyAdminSummary: AdminSummary = {
 const emptyAdminOrders: AdminOrder[] = [];
 
 const fulfillmentStatusOptions = [
-  { value: 'new', label: 'New' },
-  { value: 'printing', label: 'Printing' },
+  { value: 'new', label: 'Needs Sensaria order' },
+  { value: 'printing', label: 'At Sensaria' },
   { value: 'shipped', label: 'Shipped' },
   { value: 'delivered', label: 'Delivered' },
   { value: 'cancelled', label: 'Cancelled' },
 ];
+
+const sensariaGoUrl = 'https://go.sensaria.com';
 
 const initialNewsletterDraft: NewsletterDraft = {
   subject: 'A fresh Armoze drop for your walls',
@@ -271,6 +298,92 @@ function formatReferrer(value: string | undefined) {
 
 function getFulfillmentLabel(value: string) {
   return fulfillmentStatusOptions.find((option) => option.value === value)?.label || value;
+}
+
+function getShippingContact(order: AdminOrder) {
+  return order.raw?.checkoutSession?.shippingContact || null;
+}
+
+function getShippingAddressLines(address: AdminShippingAddress | undefined) {
+  if (!address) {
+    return [];
+  }
+
+  const cityLine = [
+    address.city,
+    [address.state, address.postalCode].filter(Boolean).join(' '),
+  ]
+    .filter(Boolean)
+    .join(', ');
+
+  return [address.line1, address.line2, cityLine, address.country].filter(Boolean) as string[];
+}
+
+function getOrderNextStep(order: AdminOrder, customerEmailsConfigured: boolean) {
+  if (order.fulfillmentStatus === 'new') {
+    return {
+      step: 'Step 1 of 3',
+      title: 'Place this order in Sensaria GO',
+      body: 'Copy the fulfillment details below into Quick Order, use the Armoze order ID as the PO number, then change the stage to At Sensaria.',
+    };
+  }
+
+  if (order.fulfillmentStatus === 'printing') {
+    return {
+      step: 'Step 2 of 3',
+      title: 'Waiting on Sensaria tracking',
+      body: customerEmailsConfigured
+        ? 'When Sensaria sends tracking, paste it below. Saving it as shipped automatically emails the customer from Armoze.'
+        : 'When Sensaria sends tracking, paste it below. Customer email is not configured yet, so you will need to send the shipping update manually.',
+    };
+  }
+
+  if (order.fulfillmentStatus === 'shipped') {
+    return {
+      step: 'Step 3 of 3',
+      title: 'Shipment is on the way',
+      body: order.raw?.shippedEmailSentAt
+        ? 'The Armoze shipping email was sent. Mark delivered when you are ready to close the order.'
+        : 'Check Activity to confirm the customer shipping email. Mark delivered when you are ready to close the order.',
+    };
+  }
+
+  if (order.fulfillmentStatus === 'delivered') {
+    return {
+      step: 'Complete',
+      title: 'Order delivered',
+      body: 'No fulfillment action is needed.',
+    };
+  }
+
+  return {
+    step: 'Closed',
+    title: 'Order cancelled',
+    body: 'No fulfillment action is needed.',
+  };
+}
+
+function buildFulfillmentCopy(order: AdminOrder) {
+  const contact = getShippingContact(order);
+  const addressLines = getShippingAddressLines(contact?.address);
+  const identifier = order.stripeSessionId || order.id;
+  const itemLines = order.items.map((item) => {
+    const variant = [item.sizeLabel || 'Canvas', item.frameLabel || 'Canvas'].join(' / ');
+    return `${item.quantity} x ${item.title} — ${variant}`;
+  });
+
+  return [
+    `PO number: ${identifier}`,
+    `Name: ${contact?.name || order.customerName || 'Not captured'}`,
+    `Email: ${contact?.email || order.customerEmail || 'Not captured'}`,
+    `Phone: ${contact?.phone || '[not collected — enter your business phone]'}`,
+    '',
+    'Ship to:',
+    ...(addressLines.length ? addressLines : ['[shipping address not available — check Stripe]']),
+    '',
+    'Products:',
+    ...(itemLines.length ? itemLines : ['[no items captured]']),
+  ].join('\n');
 }
 
 function subscribeToEmergencyAdminToken(onStoreChange: () => void) {
@@ -568,10 +681,11 @@ export default function AdminDashboardClient() {
   const [newsletterBusy, setNewsletterBusy] = useState<'draft' | 'sync' | ''>('');
   const [newsletterNotice, setNewsletterNotice] = useState('');
   const [activeView, setActiveView] = useState<AdminView>('orders');
-  const [orderFilter, setOrderFilter] = useState<AdminOrderFilter>('action');
+  const [orderFilter, setOrderFilter] = useState<AdminOrderFilter>('to-order');
   const [orderSearch, setOrderSearch] = useState('');
   const [productSearch, setProductSearch] = useState('');
   const [copiedOrderId, setCopiedOrderId] = useState('');
+  const [copiedFulfillmentOrderId, setCopiedFulfillmentOrderId] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const knownNotificationIds = useRef<Set<string>>(new Set());
   const adminToken = supabaseSession?.access_token || emergencyAdminToken;
@@ -814,6 +928,22 @@ export default function AdminDashboardClient() {
     }
   }
 
+  async function copyFulfillmentDetails(order: AdminOrder) {
+    setError('');
+
+    try {
+      await navigator.clipboard.writeText(buildFulfillmentCopy(order));
+      setCopiedFulfillmentOrderId(order.id);
+      window.setTimeout(() => {
+        setCopiedFulfillmentOrderId((currentOrderId) =>
+          currentOrderId === order.id ? '' : currentOrderId,
+        );
+      }, 1800);
+    } catch {
+      setError('Fulfillment details could not be copied.');
+    }
+  }
+
   function replaceDashboardOrder(order: AdminOrder) {
     setDashboard((currentDashboard) => {
       if (!currentDashboard) {
@@ -848,6 +978,38 @@ export default function AdminDashboardClient() {
     }
   }
 
+  async function handleSensariaSubmit(order: AdminOrder, event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!adminToken) {
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const fulfillmentReference = String(formData.get('fulfillmentReference') || '').trim();
+
+    if (!fulfillmentReference) {
+      setError('Enter the Sensaria GO order number before marking the order At Sensaria.');
+      return;
+    }
+
+    setUpdatingOrderId(order.id);
+    setError('');
+
+    try {
+      const { order: updatedOrder } = await updateAdminOrder(adminToken, order.id, {
+        fulfillmentReference,
+        fulfillmentStatus: 'printing',
+      });
+
+      replaceDashboardOrder(updatedOrder);
+    } catch (sensariaError) {
+      setError(sensariaError instanceof Error ? sensariaError.message : 'Sensaria order number could not be saved.');
+    } finally {
+      setUpdatingOrderId('');
+    }
+  }
+
   async function handleTrackingSubmit(order: AdminOrder, event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -857,14 +1019,25 @@ export default function AdminDashboardClient() {
 
     const formData = new FormData(event.currentTarget);
 
+    const carrier = String(formData.get('carrier') || '').trim();
+    const trackingNumber = String(formData.get('trackingNumber') || '').trim();
+    const trackingUrl = String(formData.get('trackingUrl') || '').trim();
+    const shouldMarkShipped = order.fulfillmentStatus === 'printing';
+
+    if (shouldMarkShipped && !trackingNumber && !trackingUrl) {
+      setError('Add a tracking number or tracking URL before marking the order shipped.');
+      return;
+    }
+
     setUpdatingOrderId(order.id);
     setError('');
 
     try {
       const { order: updatedOrder } = await updateAdminOrder(adminToken, order.id, {
-        carrier: String(formData.get('carrier') || ''),
-        trackingNumber: String(formData.get('trackingNumber') || ''),
-        trackingUrl: String(formData.get('trackingUrl') || ''),
+        carrier,
+        trackingNumber,
+        trackingUrl,
+        ...(shouldMarkShipped ? { fulfillmentStatus: 'shipped' } : {}),
       });
 
       replaceDashboardOrder(updatedOrder);
@@ -1076,33 +1249,42 @@ export default function AdminDashboardClient() {
   const summary = dashboard?.summary ?? emptyAdminSummary;
   const orders = dashboard?.orders ?? emptyAdminOrders;
   const notifications = dashboard?.notifications ?? [];
-  const actionableOrderCount = orders.filter(
-    (order) =>
-      order.paymentStatus === 'paid' &&
-      order.fulfillmentStatus !== 'delivered' &&
-      order.fulfillmentStatus !== 'cancelled',
+  const customerEmailsConfigured = Boolean(dashboard?.emailStatus?.customerEmailsConfigured);
+  const ordersToPlaceCount = orders.filter(
+    (order) => order.paymentStatus === 'paid' && order.fulfillmentStatus === 'new',
   ).length;
-  const unpaidOrderCount = orders.filter((order) => order.paymentStatus !== 'paid').length;
-  const completedOrderCount = orders.filter(
+  const inProductionCount = orders.filter(
+    (order) => order.paymentStatus === 'paid' && order.fulfillmentStatus === 'printing',
+  ).length;
+  const shippedOrderCount = orders.filter(
+    (order) => order.paymentStatus === 'paid' && order.fulfillmentStatus === 'shipped',
+  ).length;
+  const incompleteCheckoutCount = orders.filter((order) => order.paymentStatus !== 'paid').length;
+  const closedOrderCount = orders.filter(
     (order) =>
       order.paymentStatus === 'paid' &&
       (order.fulfillmentStatus === 'delivered' || order.fulfillmentStatus === 'cancelled'),
   ).length;
+  const actionableOrderCount = ordersToPlaceCount + inProductionCount;
   const publishedProductCount = adminProducts.filter((product) => product.published).length;
   const filteredOrders = useMemo(() => {
     const normalizedSearch = orderSearch.trim().toLowerCase();
 
     return orders.filter((order) => {
       const matchesFilter =
-        orderFilter === 'all' ||
-        (orderFilter === 'action' &&
+        (orderFilter === 'to-order' &&
           order.paymentStatus === 'paid' &&
-          order.fulfillmentStatus !== 'delivered' &&
-          order.fulfillmentStatus !== 'cancelled') ||
-        (orderFilter === 'unpaid' && order.paymentStatus !== 'paid') ||
-        (orderFilter === 'complete' &&
+          order.fulfillmentStatus === 'new') ||
+        (orderFilter === 'production' &&
           order.paymentStatus === 'paid' &&
-          (order.fulfillmentStatus === 'delivered' || order.fulfillmentStatus === 'cancelled'));
+          order.fulfillmentStatus === 'printing') ||
+        (orderFilter === 'shipped' &&
+          order.paymentStatus === 'paid' &&
+          order.fulfillmentStatus === 'shipped') ||
+        (orderFilter === 'closed' &&
+          order.paymentStatus === 'paid' &&
+          (order.fulfillmentStatus === 'delivered' || order.fulfillmentStatus === 'cancelled')) ||
+        (orderFilter === 'incomplete' && order.paymentStatus !== 'paid');
 
       if (!matchesFilter || !normalizedSearch) {
         return matchesFilter;
@@ -1113,6 +1295,9 @@ export default function AdminDashboardClient() {
         order.stripeSessionId,
         order.customerName,
         order.customerEmail,
+        order.fulfillmentReference,
+        getShippingContact(order)?.phone,
+        ...getShippingAddressLines(getShippingContact(order)?.address),
         order.trackingNumber,
         order.carrier,
         order.raw?.attribution?.firstTouch?.source,
@@ -1209,7 +1394,7 @@ export default function AdminDashboardClient() {
             </span>
             <div>
               <p>Armoze Admin</p>
-              <h1>Store operations</h1>
+              <h1>Order desk</h1>
             </div>
           </div>
 
@@ -1264,20 +1449,20 @@ export default function AdminDashboardClient() {
 
         <section className="admin-stat-grid" aria-label="Store summary">
           <div className="admin-stat">
-            <span className="admin-stat-icon"><DollarSign aria-hidden="true" size={18} /></span>
-            <div><span>Total revenue</span><strong>{formatPrice(summary.totalRevenue)}</strong></div>
-          </div>
-          <div className="admin-stat">
-            <span className="admin-stat-icon"><ShoppingBag aria-hidden="true" size={18} /></span>
-            <div><span>Paid orders</span><strong>{summary.paidOrderCount}</strong></div>
-          </div>
-          <div className="admin-stat">
             <span className="admin-stat-icon"><Inbox aria-hidden="true" size={18} /></span>
-            <div><span>New to fulfill</span><strong>{summary.newOrderCount}</strong></div>
+            <div><span>Place in Sensaria</span><strong>{ordersToPlaceCount}</strong></div>
           </div>
           <div className="admin-stat">
-            <span className="admin-stat-icon"><PackageCheck aria-hidden="true" size={18} /></span>
-            <div><span>Average order</span><strong>{formatPrice(summary.averageOrderValue)}</strong></div>
+            <span className="admin-stat-icon"><Box aria-hidden="true" size={18} /></span>
+            <div><span>At Sensaria</span><strong>{inProductionCount}</strong></div>
+          </div>
+          <div className="admin-stat">
+            <span className="admin-stat-icon"><Truck aria-hidden="true" size={18} /></span>
+            <div><span>Shipped</span><strong>{shippedOrderCount}</strong></div>
+          </div>
+          <div className="admin-stat">
+            <span className="admin-stat-icon"><DollarSign aria-hidden="true" size={18} /></span>
+            <div><span>Gross sales · all time</span><strong>{formatPrice(summary.totalRevenue)}</strong></div>
           </div>
         </section>
 
@@ -1899,11 +2084,36 @@ export default function AdminDashboardClient() {
       >
         <div className="admin-section-heading">
           <div>
-            <p className="eyebrow">Fulfillment</p>
-            <h2>Orders</h2>
+            <p className="eyebrow">Daily fulfillment</p>
+            <h2>What needs your attention</h2>
           </div>
           <span>{filteredOrders.length} of {orders.length}</span>
         </div>
+
+        <section className="admin-fulfillment-guide" aria-labelledby="admin-fulfillment-guide-title">
+          <div className="admin-fulfillment-guide-heading">
+            <div>
+              <span className="eyebrow">Your three-step process</span>
+              <h3 id="admin-fulfillment-guide-title">Armoze owns the customer; Sensaria makes and ships the art.</h3>
+            </div>
+            <a className="button button-primary" href={sensariaGoUrl} target="_blank" rel="noreferrer">
+              Open Sensaria GO <ExternalLink aria-hidden="true" size={14} />
+            </a>
+          </div>
+          <ol>
+            <li><span>1</span><div><strong>Place the GO order</strong><small>Copy the recipient and product details from Armoze, upload the print-ready master, then pay in Sensaria.</small></div></li>
+            <li><span>2</span><div><strong>Wait for production</strong><small>Save the Sensaria order number here and monitor GO until tracking appears under Orders.</small></div></li>
+            <li><span>3</span><div><strong>Add tracking</strong><small>{customerEmailsConfigured ? 'Save tracking as shipped and Armoze emails the customer automatically.' : 'Customer email is not configured; send the shipping update yourself after saving tracking.'}</small></div></li>
+          </ol>
+          <div className={`admin-email-readiness ${customerEmailsConfigured ? 'is-ready' : 'needs-setup'}`}>
+            <Mail aria-hidden="true" size={16} />
+            <span>
+              {customerEmailsConfigured
+                ? 'Customer emails are on: paid orders get a confirmation, and marking shipped sends tracking.'
+                : 'Customer emails are off: connect Resend before relying on automatic confirmations or tracking emails.'}
+            </span>
+          </div>
+        </section>
 
         <div className="admin-toolbar">
           <label className="admin-search-field">
@@ -1912,16 +2122,17 @@ export default function AdminDashboardClient() {
               type="search"
               value={orderSearch}
               onChange={(event) => setOrderSearch(event.target.value)}
-              placeholder="Search customer, order, or product"
+              placeholder="Search customer, GO order, tracking, or product"
               aria-label="Search orders"
             />
           </label>
           <div className="admin-filter-group" role="group" aria-label="Filter orders">
             {([
-              ['action', 'Needs action', actionableOrderCount],
-              ['all', 'All', orders.length],
-              ['unpaid', 'Unpaid', unpaidOrderCount],
-              ['complete', 'Closed', completedOrderCount],
+              ['to-order', 'Place in GO', ordersToPlaceCount],
+              ['production', 'At Sensaria', inProductionCount],
+              ['shipped', 'Shipped', shippedOrderCount],
+              ['closed', 'Closed', closedOrderCount],
+              ['incomplete', 'Incomplete checkout', incompleteCheckoutCount],
             ] as const).map(([value, label, count]) => (
               <button
                 className={orderFilter === value ? 'active' : ''}
@@ -1950,6 +2161,9 @@ export default function AdminDashboardClient() {
               const attribution = order.raw?.attribution;
               const lastTouch = attribution?.lastTouch || attribution?.firstTouch;
               const firstTouch = attribution?.firstTouch;
+              const shippingContact = getShippingContact(order);
+              const shippingAddressLines = getShippingAddressLines(shippingContact?.address);
+              const nextStep = getOrderNextStep(order, customerEmailsConfigured);
 
               return (
                 <article className="admin-order" key={order.id}>
@@ -1991,39 +2205,86 @@ export default function AdminDashboardClient() {
                     {isPaid ? (
                       <span>
                         {order.ownerNotificationSentAt ? (
-                          <><Mail aria-hidden="true" size={14} /> Alert sent</>
+                          <><Mail aria-hidden="true" size={14} /> Owner alert sent</>
                         ) : (
-                          <><Bell aria-hidden="true" size={14} /> Alert pending</>
+                          <><Bell aria-hidden="true" size={14} /> Owner alert pending</>
                         )}
                       </span>
                     ) : null}
                   </div>
 
-                  <div className={`admin-order-attribution${lastTouch ? '' : ' is-empty'}`}>
-                    <MousePointerClick aria-hidden="true" size={17} />
-                    <div className="admin-order-attribution-source">
-                      <span>How they found you</span>
-                      <strong>{formatAttributionSource(lastTouch)}</strong>
+                  {isPaid ? (
+                    <div className={`admin-next-step ${order.fulfillmentStatus}`}>
+                      <span>{nextStep.step}</span>
+                      <div>
+                        <strong>{nextStep.title}</strong>
+                        <p>{nextStep.body}</p>
+                      </div>
+                      {order.fulfillmentStatus === 'new' ? (
+                        <a className="button button-primary" href={sensariaGoUrl} target="_blank" rel="noreferrer">
+                          Open GO <ExternalLink aria-hidden="true" size={13} />
+                        </a>
+                      ) : null}
+                      {order.fulfillmentStatus === 'shipped' ? (
+                        <button
+                          className="button button-secondary"
+                          type="button"
+                          disabled={updatingOrderId === order.id}
+                          onClick={() => { void handleFulfillmentChange(order.id, 'delivered'); }}
+                        >
+                          Mark delivered
+                        </button>
+                      ) : null}
                     </div>
-                    {lastTouch ? (
-                      <dl>
-                        {lastTouch.campaign ? (
-                          <div><dt>Campaign</dt><dd>{lastTouch.campaign}</dd></div>
-                        ) : null}
-                        {lastTouch.referrer ? (
-                          <div><dt>Referrer</dt><dd>{formatReferrer(lastTouch.referrer)}</dd></div>
-                        ) : null}
-                        {lastTouch.landingPage ? (
-                          <div><dt>Landing page</dt><dd>{lastTouch.landingPage}</dd></div>
-                        ) : null}
-                        {firstTouch?.source && firstTouch.source !== lastTouch.source ? (
-                          <div><dt>First touch</dt><dd>{formatAttributionSource(firstTouch)}</dd></div>
-                        ) : null}
-                      </dl>
-                    ) : (
-                      <small>Available for orders started after this tracking update.</small>
-                    )}
-                  </div>
+                  ) : null}
+
+                  {isPaid ? (
+                    <section className="admin-fulfillment-details" aria-label="Sensaria fulfillment details">
+                      <header>
+                        <div>
+                          <span>Copy into Sensaria GO</span>
+                          <strong>Recipient & order details</strong>
+                        </div>
+                        <button
+                          className="button button-secondary"
+                          type="button"
+                          onClick={() => { void copyFulfillmentDetails(order); }}
+                        >
+                          {copiedFulfillmentOrderId === order.id ? (
+                            <><Check aria-hidden="true" size={14} /> Copied</>
+                          ) : (
+                            <><Copy aria-hidden="true" size={14} /> Copy all details</>
+                          )}
+                        </button>
+                      </header>
+                      <div className="admin-fulfillment-details-grid">
+                        <div>
+                          <span>Ship to</span>
+                          <address>
+                            <strong>{shippingContact?.name || order.customerName || 'Name not captured'}</strong>
+                            {shippingAddressLines.length
+                              ? shippingAddressLines.map((line) => <small key={line}>{line}</small>)
+                              : <small className="is-missing">Address unavailable — check this payment in Stripe.</small>}
+                          </address>
+                        </div>
+                        <div>
+                          <span>Contact</span>
+                          <strong>{shippingContact?.phone || 'Phone not collected'}</strong>
+                          <small>{shippingContact?.email || order.customerEmail || 'Email not captured'}</small>
+                        </div>
+                        <div>
+                          <span>Use as PO number</span>
+                          <strong>{shortenIdentifier(orderIdentifier)}</strong>
+                          <small>This ties the GO order back to Armoze.</small>
+                        </div>
+                      </div>
+                      {!shippingContact?.phone ? (
+                        <p className="admin-fulfillment-warning">
+                          This older checkout has no phone. Sensaria requires one, so enter your business phone for this order. New Armoze checkouts now collect the recipient phone.
+                        </p>
+                      ) : null}
+                    </section>
+                  ) : null}
 
                   {order.items.length ? (
                     <div className="admin-order-items">
@@ -2049,7 +2310,7 @@ export default function AdminDashboardClient() {
                   {isPaid ? (
                     <div className="admin-order-workflow">
                       <label className="admin-status-select">
-                        <span>Fulfillment status</span>
+                        <span>Order stage</span>
                         <select
                           value={order.fulfillmentStatus}
                           disabled={updatingOrderId === order.id}
@@ -2061,79 +2322,131 @@ export default function AdminDashboardClient() {
                             <option
                               key={option.value}
                               value={option.value}
-                              disabled={option.value === 'shipped' && !hasTracking && order.fulfillmentStatus !== 'shipped'}
+                              disabled={
+                                (option.value === 'printing' && order.fulfillmentStatus === 'new') ||
+                                (option.value === 'shipped' && order.fulfillmentStatus !== 'shipped' && order.fulfillmentStatus !== 'delivered') ||
+                                (option.value === 'delivered' && order.fulfillmentStatus !== 'shipped' && order.fulfillmentStatus !== 'delivered')
+                              }
                             >
                               {option.label}
                             </option>
                           ))}
                         </select>
-                        {!hasTracking && order.fulfillmentStatus !== 'shipped' ? (
-                          <small>Save tracking before marking shipped.</small>
-                        ) : null}
+                        <small>Cancelled only closes Armoze; it does not cancel GO or refund Stripe.</small>
                       </label>
 
-                      <details
-                        className="admin-shipping-panel"
-                        key={`${order.id}-${order.updatedAt}-${order.trackingNumber}-${order.trackingUrl}`}
-                      >
-                        <summary>
-                          <span><Truck aria-hidden="true" size={17} /> Shipping & tracking</span>
-                          <small>{hasTracking ? order.carrier || 'Tracking saved' : 'Not added'}</small>
-                        </summary>
+                      {order.fulfillmentStatus === 'new' ? (
                         <form
-                          className="admin-tracking-form"
-                          onSubmit={(event) => {
-                            void handleTrackingSubmit(order, event);
-                          }}
+                          className="admin-sensaria-form"
+                          onSubmit={(event) => { void handleSensariaSubmit(order, event); }}
                         >
+                          <div>
+                            <strong>After you pay in Sensaria</strong>
+                            <small>Paste the GO order number so tracking can be matched later.</small>
+                          </div>
                           <label>
-                            <span>Carrier</span>
+                            <span>Sensaria GO order #</span>
                             <input
-                              name="carrier"
-                              defaultValue={order.carrier}
+                              name="fulfillmentReference"
+                              defaultValue={order.fulfillmentReference}
                               disabled={updatingOrderId === order.id}
-                              placeholder="USPS, UPS, FedEx"
-                            />
-                          </label>
-                          <label>
-                            <span>Tracking #</span>
-                            <input
-                              name="trackingNumber"
-                              defaultValue={order.trackingNumber}
-                              disabled={updatingOrderId === order.id}
-                              placeholder="Tracking number"
-                            />
-                          </label>
-                          <label className="admin-tracking-url">
-                            <span>Tracking URL</span>
-                            <input
-                              name="trackingUrl"
-                              type="url"
-                              defaultValue={order.trackingUrl}
-                              disabled={updatingOrderId === order.id}
-                              placeholder="https://..."
+                              placeholder="GO order number"
+                              required
                             />
                           </label>
                           <button
-                            className="button button-secondary"
+                            className="button button-primary"
                             type="submit"
                             disabled={updatingOrderId === order.id}
                           >
-                            {updatingOrderId === order.id ? 'Saving' : 'Save tracking'}
+                            {updatingOrderId === order.id ? 'Saving' : 'Save & mark At Sensaria'}
                           </button>
                         </form>
-                        {hasTracking || order.shippedAt ? (
-                          <div className="admin-tracking-summary">
-                            {order.trackingNumber ? <strong>{order.trackingNumber}</strong> : null}
-                            {order.trackingUrl ? (
-                              <a href={order.trackingUrl} target="_blank" rel="noreferrer">
-                                Open tracking <ExternalLink aria-hidden="true" size={13} />
-                              </a>
-                            ) : null}
-                            {order.shippedAt ? <small>Shipped {formatDateTime(order.shippedAt)}</small> : null}
+                      ) : order.fulfillmentStatus !== 'cancelled' ? (
+                        <section
+                          className="admin-shipping-panel"
+                          key={`${order.id}-${order.updatedAt}-${order.trackingNumber}-${order.trackingUrl}`}
+                        >
+                          <div className="admin-shipping-panel-header">
+                            <span><Truck aria-hidden="true" size={17} /> Shipping & tracking</span>
+                            <small>
+                              {order.fulfillmentReference ? `GO # ${order.fulfillmentReference}` : 'GO order # not saved'}
+                            </small>
                           </div>
-                        ) : null}
-                      </details>
+                          <form
+                            className="admin-tracking-form"
+                            onSubmit={(event) => {
+                              void handleTrackingSubmit(order, event);
+                            }}
+                          >
+                            <label>
+                              <span>Carrier</span>
+                              <input
+                                name="carrier"
+                                defaultValue={order.carrier}
+                                disabled={updatingOrderId === order.id}
+                                placeholder="USPS, UPS, FedEx"
+                              />
+                            </label>
+                            <label>
+                              <span>Tracking #</span>
+                              <input
+                                name="trackingNumber"
+                                defaultValue={order.trackingNumber}
+                                disabled={updatingOrderId === order.id}
+                                placeholder="Tracking number"
+                              />
+                            </label>
+                            <label className="admin-tracking-url">
+                              <span>Tracking URL (optional)</span>
+                              <input
+                                name="trackingUrl"
+                                type="url"
+                                defaultValue={order.trackingUrl}
+                                disabled={updatingOrderId === order.id}
+                                placeholder="https://..."
+                              />
+                            </label>
+                            <button
+                              className={order.fulfillmentStatus === 'printing' ? 'button button-primary' : 'button button-secondary'}
+                              type="submit"
+                              disabled={updatingOrderId === order.id}
+                            >
+                              {updatingOrderId === order.id
+                                ? 'Saving'
+                                : order.fulfillmentStatus === 'printing'
+                                  ? customerEmailsConfigured
+                                    ? 'Save, mark shipped & email customer'
+                                    : 'Save & mark shipped'
+                                  : 'Update tracking'}
+                            </button>
+                          </form>
+                          {order.fulfillmentStatus === 'printing' ? (
+                            <p className="admin-shipping-action-note">
+                              {customerEmailsConfigured
+                                ? 'This button sends the Armoze shipping email. It does not ask Sensaria to send one.'
+                                : 'Automatic email is off. Send the customer their tracking after saving.'}
+                            </p>
+                          ) : null}
+                          {hasTracking || order.shippedAt ? (
+                            <div className="admin-tracking-summary">
+                              {order.trackingNumber ? <strong>{order.trackingNumber}</strong> : null}
+                              {order.trackingUrl ? (
+                                <a href={order.trackingUrl} target="_blank" rel="noreferrer">
+                                  Open tracking <ExternalLink aria-hidden="true" size={13} />
+                                </a>
+                              ) : null}
+                              {order.shippedAt ? <small>Shipped {formatDateTime(order.shippedAt)}</small> : null}
+                              {order.raw?.shippedEmailSentAt ? <small>Customer emailed {formatDateTime(order.raw.shippedEmailSentAt)}</small> : null}
+                            </div>
+                          ) : null}
+                        </section>
+                      ) : (
+                        <div className="admin-payment-hold">
+                          <Bell aria-hidden="true" size={17} />
+                          <div><strong>Closed in Armoze</strong><small>Confirm the GO cancellation and Stripe refund separately.</small></div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="admin-payment-hold">
@@ -2141,6 +2454,37 @@ export default function AdminDashboardClient() {
                       <div><strong>Payment not complete</strong><small>Fulfillment controls are locked.</small></div>
                     </div>
                   )}
+
+                  <details className="admin-marketing-details">
+                    <summary>
+                      <span><MousePointerClick aria-hidden="true" size={15} /> Marketing source</span>
+                      <small>{formatAttributionSource(lastTouch)}</small>
+                    </summary>
+                    <div className={`admin-order-attribution${lastTouch ? '' : ' is-empty'}`}>
+                      <div className="admin-order-attribution-source">
+                        <span>How they found you</span>
+                        <strong>{formatAttributionSource(lastTouch)}</strong>
+                      </div>
+                      {lastTouch ? (
+                        <dl>
+                          {lastTouch.campaign ? (
+                            <div><dt>Campaign</dt><dd>{lastTouch.campaign}</dd></div>
+                          ) : null}
+                          {lastTouch.referrer ? (
+                            <div><dt>Referrer</dt><dd>{formatReferrer(lastTouch.referrer)}</dd></div>
+                          ) : null}
+                          {lastTouch.landingPage ? (
+                            <div><dt>Landing page</dt><dd>{lastTouch.landingPage}</dd></div>
+                          ) : null}
+                          {firstTouch?.source && firstTouch.source !== lastTouch.source ? (
+                            <div><dt>First touch</dt><dd>{formatAttributionSource(firstTouch)}</dd></div>
+                          ) : null}
+                        </dl>
+                      ) : (
+                        <small>No attribution was captured for this checkout.</small>
+                      )}
+                    </div>
+                  </details>
                 </article>
               );
             })}

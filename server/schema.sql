@@ -5,6 +5,7 @@ create table if not exists orders (
   checkout_status text not null default 'open',
   payment_status text not null default 'checkout_started',
   fulfillment_status text not null default 'new',
+  fulfillment_reference text,
   customer_name text,
   customer_email text,
   currency text not null default 'usd',
@@ -22,6 +23,9 @@ create table if not exists orders (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table orders
+  add column if not exists fulfillment_reference text;
 
 create table if not exists notifications (
   id text primary key,

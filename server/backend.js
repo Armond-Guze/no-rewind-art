@@ -19,6 +19,11 @@ import {
   sendNewsletterDiscountEmail,
   sendOwnerOrderNotification,
 } from './notifications.js';
+import {
+  extractStripeShippingContact,
+  mergeStripeShippingContacts,
+  shouldBackfillStripeShippingContact,
+} from './order-lifecycle.js';
 import { createOrderStore } from './order-store.js';
 import { createProductStore } from './product-store.js';
 
@@ -60,6 +65,7 @@ const productStoreReady = productStore.init();
 const newsletterStoreReady = newsletterStore.init();
 const artworkDir = path.resolve(process.cwd(), 'public', 'artwork');
 let supabaseAuthClient = null;
+const shippingContactBackfillsInFlight = new Map();
 
 function normalizeSupabaseUrl(value) {
   return String(value || '')
@@ -507,6 +513,7 @@ function buildLineItems(cartItems) {
 
 function buildCheckoutDraft(session, cartItems, customer = null, attribution = null) {
   const amountSubtotal = cartItems.reduce((total, item) => total + item.lineTotal, 0);
+  const shippingContact = extractStripeShippingContact(session);
 
   return {
     id: session.id,
@@ -527,6 +534,7 @@ function buildCheckoutDraft(session, cartItems, customer = null, attribution = n
         id: session.id,
         status: session.status,
         paymentStatus: session.payment_status,
+        ...(shippingContact ? { shippingContact } : {}),
       },
       ...(attribution ? { attribution } : {}),
     },
@@ -576,6 +584,11 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
   const paymentStatus = paymentStatusOverride || session.payment_status || 'pending';
   const attribution =
     existingOrder?.raw?.attribution || getAttributionFromStripeMetadata(session.metadata);
+  const existingCheckoutSession = existingOrder?.raw?.checkoutSession || {};
+  const shippingContact = mergeStripeShippingContacts(
+    existingCheckoutSession.shippingContact,
+    extractStripeShippingContact(session),
+  );
   const orderUpdate = {
     id: session.id,
     stripeSessionId: session.id,
@@ -593,10 +606,12 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
     items,
     raw: {
       checkoutSession: {
+        ...existingCheckoutSession,
         id: session.id,
         status: session.status,
         paymentStatus: session.payment_status,
         customer: session.customer,
+        ...(shippingContact ? { shippingContact } : {}),
       },
       ...(attribution ? { attribution } : {}),
     },
@@ -672,6 +687,59 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
   }
 
   return order;
+}
+
+async function backfillStripeShippingContact(order) {
+  if (!stripe || !shouldBackfillStripeShippingContact(order)) {
+    return order;
+  }
+
+  const orderId = order.stripeSessionId || order.id;
+  const existingBackfill = shippingContactBackfillsInFlight.get(orderId);
+
+  if (existingBackfill) {
+    return existingBackfill;
+  }
+
+  const backfill = (async () => {
+    try {
+      const session = await stripe.checkout.sessions.retrieve(orderId);
+      const existingCheckoutSession = order.raw?.checkoutSession || {};
+      const shippingContact = mergeStripeShippingContacts(
+        existingCheckoutSession.shippingContact,
+        extractStripeShippingContact(session),
+      );
+      const { order: updatedOrder } = await orderStore.upsertOrder({
+        id: order.id,
+        stripeSessionId: order.stripeSessionId || order.id,
+        raw: {
+          checkoutSession: {
+            ...existingCheckoutSession,
+            id: session.id,
+            status: session.status,
+            paymentStatus: session.payment_status,
+            customer: session.customer,
+            ...(shippingContact ? { shippingContact } : {}),
+            shippingContactBackfillAttemptedAt: new Date().toISOString(),
+          },
+        },
+      });
+
+      return updatedOrder;
+    } catch (error) {
+      console.error(`Unable to backfill Stripe shipping contact for order ${orderId}.`, error);
+      return order;
+    } finally {
+      shippingContactBackfillsInFlight.delete(orderId);
+    }
+  })();
+
+  shippingContactBackfillsInFlight.set(orderId, backfill);
+  return backfill;
+}
+
+async function backfillStripeShippingContacts(orders) {
+  return Promise.all(orders.map((order) => backfillStripeShippingContact(order)));
 }
 
 async function markOrderEmailFlag(order, flagName) {
@@ -854,6 +922,9 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
     payment_method_types: ['card', 'amazon_pay', 'klarna', 'cashapp'],
     ...(customer?.email ? { customer_email: customer.email } : {}),
     billing_address_collection: 'auto',
+    phone_number_collection: {
+      enabled: true,
+    },
     shipping_address_collection: {
       allowed_countries: ['US'],
     },
@@ -1034,11 +1105,17 @@ export async function listAdminOrders({ limit = 50 } = {}) {
 
   const safeLimit = Math.min(Math.max(Number(limit || 50), 1), 100);
   const result = await orderStore.listOrders({ limit: safeLimit });
+  const orders = await backfillStripeShippingContacts(result.orders);
   const notifications = await orderStore.listNotifications({ limit: 12 });
 
   return {
     ...result,
+    orders,
     notifications,
+    emailStatus: {
+      customerEmailsConfigured: Boolean(process.env.RESEND_API_KEY),
+      ownerAlertsConfigured: Boolean(process.env.RESEND_API_KEY && process.env.ORDER_NOTIFICATION_EMAIL),
+    },
   };
 }
 
@@ -1250,6 +1327,10 @@ export async function updateAdminOrder(orderId, body = {}) {
     }
 
     update.fulfillmentStatus = updateBody.fulfillmentStatus;
+  }
+
+  if (Object.hasOwn(updateBody, 'fulfillmentReference')) {
+    update.fulfillmentReference = normalizeOptionalText(updateBody.fulfillmentReference, 120);
   }
 
   if (Object.hasOwn(updateBody, 'carrier')) {
