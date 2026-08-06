@@ -55,7 +55,7 @@ const supportCards = [
 const helpTopics = [
   {
     title: 'Shipping and tracking',
-    body: 'Production takes about 5–8 business days before shipment. Carrier transit begins afterward, and delivery dates are estimates, not guarantees.',
+    body: 'Most orders are expected to arrive in 5–8 business days. This estimate includes production and carrier transit.',
     href: '/shipping',
     icon: Truck,
   },

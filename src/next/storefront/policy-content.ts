@@ -17,20 +17,20 @@ export const policyPages: Record<PolicyPageKey, PolicyPageContent> = {
     title: 'Shipping Policy',
     description:
       'Learn how Armoze ships made-to-order canvas prints, including processing times, delivery estimates, tracking, and address changes.',
-    updated: 'May 2026',
+    updated: 'August 2026',
     sections: [
       {
         title: 'Made-to-order processing',
         body: [
           'Armoze prints are made to order. Production usually begins shortly after checkout is completed and payment is confirmed.',
-          'Production takes about 5–8 business days before shipment. During busy periods or supplier delays, production may take longer.',
+          'Most orders are expected to arrive within 5–8 business days after checkout. This estimate includes production and carrier transit.',
         ],
       },
       {
         title: 'Shipping estimates',
         body: [
-          'Standard shipping is currently offered for U.S. orders through Stripe Checkout. Carrier transit begins after production is complete and the order ships.',
-          'Delivery dates are estimates, not guarantees. Carrier delays, weather, holidays, incorrect addresses, or production issues may affect timing.',
+          'Free standard shipping is currently offered for U.S. orders through Stripe Checkout.',
+          'The 5–8 business day arrival window is an estimate, not a guarantee. Carrier delays, weather, holidays, incorrect addresses, busy periods, or production issues may affect timing.',
         ],
       },
       {

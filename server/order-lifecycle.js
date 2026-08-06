@@ -1,6 +1,6 @@
 export const FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS = Object.freeze({
-  minimum: 8,
-  maximum: 14,
+  minimum: 5,
+  maximum: 8,
 });
 
 function normalizeStripeText(value, maxLength = 500) {

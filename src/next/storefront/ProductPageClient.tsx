@@ -72,7 +72,7 @@ function addBusinessDays(start: Date, businessDays: number) {
   return next;
 }
 
-function getProductionEstimate() {
+function getDeliveryEstimate() {
   const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
   const now = new Date();
 
@@ -789,7 +789,7 @@ export default function ProductPageClient({
   const [shippingOpen, setShippingOpen] = useState(false);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [productionEstimate] = useState(getProductionEstimate);
+  const [deliveryEstimate] = useState(getDeliveryEstimate);
   const [checkoutError, setCheckoutError] = useState('');
   const [addedToCart, setAddedToCart] = useState(false);
   const [showMobilePurchaseBar, setShowMobilePurchaseBar] = useState(false);
@@ -1340,12 +1340,17 @@ export default function ProductPageClient({
               </button>
             </div>
 
-            {productionEstimate ? (
-              <p className="product-delivery-note">
-                <Truck aria-hidden="true" size={15} strokeWidth={2.4} />
-                Estimated to ship <strong>{productionEstimate}</strong>. Carrier transit begins afterward;
-                delivery dates are not guaranteed.
-              </p>
+            {deliveryEstimate ? (
+              <div className="product-delivery-note">
+                <span className="product-delivery-icon" aria-hidden="true">
+                  <Truck size={18} strokeWidth={2.3} />
+                </span>
+                <span className="product-delivery-copy">
+                  <span className="product-delivery-label">Estimated arrival</span>
+                  <strong>{deliveryEstimate}</strong>
+                  <small>Includes production and transit</small>
+                </span>
+              </div>
             ) : null}
 
             {checkoutState === 'error' ? (
@@ -1438,8 +1443,8 @@ export default function ProductPageClient({
                   <div className="product-details-content" id={`${product.id}-shipping-returns`}>
                     <ul className="product-info-list">
                       <li><Truck aria-hidden="true" size={16} strokeWidth={2.4} /> Free U.S. shipping</li>
-                      <li><Clock aria-hidden="true" size={16} strokeWidth={2.4} /> Production takes about 5–8 business days</li>
-                      <li><Package aria-hidden="true" size={16} strokeWidth={2.4} /> Transit begins after shipment; delivery dates are not guaranteed</li>
+                      <li><Clock aria-hidden="true" size={16} strokeWidth={2.4} /> Expected arrival in 5–8 business days</li>
+                      <li><Package aria-hidden="true" size={16} strokeWidth={2.4} /> Estimate includes production and transit; timing may vary</li>
                       <li><RotateCcw aria-hidden="true" size={16} strokeWidth={2.4} /> 30-day returns on eligible orders</li>
                       <li><ShieldCheck aria-hidden="true" size={16} strokeWidth={2.4} /> Support for damaged or incorrect orders</li>
                     </ul>

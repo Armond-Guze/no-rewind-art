@@ -9,10 +9,10 @@ import {
   shouldBackfillStripeShippingContact,
 } from './order-lifecycle.js';
 
-test('free standard checkout delivery reflects production plus transit time', () => {
+test('free standard checkout delivery matches the customer-facing arrival estimate', () => {
   assert.deepEqual(FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS, {
-    minimum: 8,
-    maximum: 14,
+    minimum: 5,
+    maximum: 8,
   });
 });
 

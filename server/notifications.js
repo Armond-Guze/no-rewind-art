@@ -188,7 +188,7 @@ export async function sendCustomerOrderConfirmationEmail(order) {
     '',
     totals,
     '',
-    'Production takes about 5–8 business days before shipment. Carrier transit begins afterward, and delivery dates are estimates, not guarantees.',
+    'Expected arrival is typically 5–8 business days after checkout. This estimate includes production and carrier transit.',
     'Tracking details are provided when your order ships.',
     '',
     `Track your orders: ${siteUrl}/account`,
@@ -202,7 +202,7 @@ export async function sendCustomerOrderConfirmationEmail(order) {
       <h2 style="font-size: 15px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em;">Order summary</h2>
       <pre style="background: #f6f3ec; padding: 14px; white-space: pre-wrap; margin: 0 0 14px;">${escapeHtml(lines)}</pre>
       <pre style="background: #f6f3ec; padding: 14px; white-space: pre-wrap; margin: 0 0 20px;">${escapeHtml(totals)}</pre>
-      <p style="margin: 0 0 8px;">Production takes about 5–8 business days before shipment. Carrier transit begins afterward, and delivery dates are estimates, not guarantees.</p>
+      <p style="margin: 0 0 8px;">Expected arrival is typically 5–8 business days after checkout. This estimate includes production and carrier transit.</p>
       <p style="margin: 0 0 18px;">Tracking details are provided when your order ships.</p>
       <p style="margin: 0 0 20px;">
         <a href="${escapeHtml(`${siteUrl}/account`)}" style="display: inline-block; padding: 12px 18px; background: #111; color: #fff; font-weight: 700; text-decoration: none;">View your orders</a>
