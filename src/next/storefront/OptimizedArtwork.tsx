@@ -75,7 +75,7 @@ export function OptimizedRawImage({
 }) {
   const dimensions = getImageDimensions(src, aspectRatio);
   const imageLoader = getImageLoader(src);
-  const imageLoading = loading ?? (priority ? 'eager' : undefined);
+  const imageLoading = priority ? undefined : loading;
 
   if (fill) {
     return (
@@ -205,7 +205,7 @@ export function OptimizedCanvasImage({
   ].join(' ');
   const dimensions = getImageDimensions(src, aspectRatio);
   const imageLoader = getImageLoader(src);
-  const imageLoading = loading ?? (priority ? 'eager' : undefined);
+  const imageLoading = priority ? undefined : loading;
 
   return (
     <div className={classNames} style={{ aspectRatio }}>

@@ -454,7 +454,7 @@ function ProductVideoThumbnail({ video }: { video: ProductVideo }) {
   return (
     <span className="gallery-video-thumbnail">
       {video.thumbnail ? (
-        <Image src={video.thumbnail} alt="" fill sizes="82px" />
+        <OptimizedRawImage src={video.thumbnail} alt="" fill sizes="82px" />
       ) : null}
       <span className="gallery-video-play">
         <Play aria-hidden="true" fill="currentColor" size={18} strokeWidth={2.4} />
@@ -463,18 +463,149 @@ function ProductVideoThumbnail({ video }: { video: ProductVideo }) {
   );
 }
 
-function ProductVideoPlayer({ title, video }: { title: string; video: ProductVideo }) {
+function ProductVideoPosterImage({ video }: { video: ProductVideo }) {
+  return video.thumbnail ? (
+    <OptimizedRawImage
+      src={video.thumbnail}
+      alt=""
+      fill
+      sizes="(max-width: 760px) 100vw, 760px"
+    />
+  ) : null;
+}
+
+function ProductVideoPlayer({
+  active = true,
+  title,
+  video,
+}: {
+  active?: boolean;
+  title: string;
+  video: ProductVideo;
+}) {
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
+  const [videoLoadFailed, setVideoLoadFailed] = useState(false);
+  const shellRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const playButtonRef = useRef<HTMLButtonElement>(null);
+  const shouldFocusVideoRef = useRef(false);
+  const videoLabel = video.title || `${title} product video`;
+
+  useEffect(() => {
+    if (!active) {
+      videoRef.current?.pause();
+    }
+  }, [active]);
+
+  useEffect(() => {
+    if (!shouldLoadVideo || videoLoadFailed) {
+      return;
+    }
+
+    if (shouldFocusVideoRef.current && videoRef.current) {
+      videoRef.current.focus({ preventScroll: true });
+      shouldFocusVideoRef.current = false;
+    }
+
+    const shell = shellRef.current;
+
+    if (!shell) {
+      return;
+    }
+
+    const pauseVideo = () => videoRef.current?.pause();
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        pauseVideo();
+      }
+    };
+    const observer = 'IntersectionObserver' in window
+      ? new IntersectionObserver(([entry]) => {
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.25) {
+            pauseVideo();
+          }
+        }, { threshold: [0, 0.25] })
+      : null;
+
+    observer?.observe(shell);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [shouldLoadVideo, videoLoadFailed]);
+
+  useEffect(() => {
+    if (videoLoadFailed && active) {
+      playButtonRef.current?.focus({ preventScroll: true });
+    }
+  }, [active, videoLoadFailed]);
+
+  function loadVideo() {
+    shouldFocusVideoRef.current = true;
+    setIsVideoReady(false);
+    setVideoLoadFailed(false);
+    setShouldLoadVideo(true);
+  }
+
   return (
-    <div className="product-video-shell">
-      <video
-        className="product-video"
-        src={video.url}
-        poster={video.thumbnail}
-        controls
-        playsInline
-        preload="metadata"
-        aria-label={video.title || `${title} product video`}
-      />
+    <div
+      className="product-video-shell"
+      ref={shellRef}
+      aria-busy={shouldLoadVideo && !isVideoReady && !videoLoadFailed}
+    >
+      {!shouldLoadVideo || videoLoadFailed ? (
+        <button
+          className="product-video-poster"
+          ref={playButtonRef}
+          type="button"
+          tabIndex={active ? 0 : -1}
+          aria-label={`${videoLoadFailed ? 'Retry' : 'Play'} ${videoLabel}`}
+          onClick={loadVideo}
+        >
+          <ProductVideoPosterImage video={video} />
+          <span className="product-video-poster-play" aria-hidden="true">
+            <Play fill="currentColor" size={34} strokeWidth={2.2} />
+          </span>
+          {videoLoadFailed ? (
+            <span className="product-video-poster-error" role="status">
+              Video unavailable
+            </span>
+          ) : null}
+          <span className="product-video-poster-label">
+            {videoLoadFailed ? 'Try video again' : 'Play video'}
+          </span>
+        </button>
+      ) : (
+        <>
+          <video
+            autoPlay={active}
+            className={`product-video${isVideoReady ? '' : ' is-loading'}`}
+            ref={videoRef}
+            src={video.url}
+            controls
+            playsInline
+            preload="metadata"
+            tabIndex={active ? 0 : -1}
+            aria-label={videoLabel}
+            onCanPlay={() => setIsVideoReady(true)}
+            onPlaying={() => setIsVideoReady(true)}
+            onError={() => {
+              setIsVideoReady(false);
+              setVideoLoadFailed(true);
+            }}
+          />
+          {!isVideoReady ? (
+            <div className="product-video-loading" role="status">
+              <ProductVideoPosterImage video={video} />
+              <span className="product-video-loading-spinner" aria-hidden="true" />
+              <span className="sr-only">Loading video</span>
+            </div>
+          ) : null}
+        </>
+      )}
     </div>
   );
 }
@@ -612,7 +743,7 @@ function RelatedProductsCarousel({ products }: { products: Product[] }) {
       ].filter(Boolean).join(' ')}
       ref={carouselRef}
     >
-      {carouselItems.map(({ clone, key, product: relatedProduct, realStart }, index) => (
+      {carouselItems.map(({ clone, key, product: relatedProduct, realStart }) => (
         <article
           aria-hidden={clone ? true : undefined}
           aria-label={clone ? undefined : relatedProduct.title}
@@ -626,7 +757,10 @@ function RelatedProductsCarousel({ products }: { products: Product[] }) {
             href={`/products/${relatedProduct.slug}`}
             tabIndex={clone ? -1 : undefined}
           >
-            <ProductImage product={relatedProduct} priority={!clone && index < 3} />
+            <ProductImage
+              product={relatedProduct}
+              sizes="(max-width: 900px) calc(100vw - 64px), 25vw"
+            />
           </Link>
         </article>
       ))}
@@ -938,6 +1072,7 @@ export default function ProductPageClient({
             <div className="gallery-rail" aria-label="Product media">
               {galleryItems.map((item, index) => (
                 <button
+                  aria-pressed={index === selectedImage}
                   className={index === selectedImage ? 'active' : ''}
                   key={`${product.id}-${item.key}`}
                   type="button"
@@ -958,7 +1093,6 @@ export default function ProductPageClient({
                       shape={productDisplayShape}
                       shadow={false}
                       sizes="82px"
-                      priority={index === 0}
                     />
                   ) : (
                     <OptimizedRawImage
@@ -966,7 +1100,6 @@ export default function ProductPageClient({
                       alt=""
                       aspectRatio={productAspectRatio}
                       sizes="82px"
-                      priority={index === 0}
                     />
                   )}
                 </button>
@@ -993,7 +1126,9 @@ export default function ProductPageClient({
 
                 return (
                   <div
+                    aria-hidden={index !== selectedImage}
                     className={`mobile-gallery-slide${index === selectedImage ? ' is-active' : ''}`}
+                    inert={index !== selectedImage}
                     key={`${product.id}-mobile-${item.key}`}
                   >
                     <div
@@ -1012,7 +1147,11 @@ export default function ProductPageClient({
                       >
                         <div className="detail-artwork-surface">
                           {mobileGalleryVideo ? (
-                            <ProductVideoPlayer title={product.title} video={mobileGalleryVideo} />
+                            <ProductVideoPlayer
+                              active={index === selectedImage}
+                              title={product.title}
+                              video={mobileGalleryVideo}
+                            />
                           ) : mobileGalleryImage === product.image ? (
                             <OptimizedCanvasImage
                               className={`detail-artwork-image front-product-canvas ${mobileFrameClass}`}
