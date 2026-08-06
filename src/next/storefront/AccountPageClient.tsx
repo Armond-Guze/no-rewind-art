@@ -243,7 +243,7 @@ export default function AccountPageClient() {
             <article>
               <Box aria-hidden="true" size={24} />
               <h2>Made to order</h2>
-              <p>Your prints are produced in 2-3 business days, then shipped in 2-5 business days.</p>
+              <p>Production takes about 5–8 business days before shipment. Carrier transit begins afterward, and delivery dates are estimates, not guarantees.</p>
             </article>
             <article>
               <Truck aria-hidden="true" size={24} />
@@ -356,7 +356,7 @@ export default function AccountPageClient() {
                           </ul>
 
                           <div className="account-order-footer">
-                            <span>Processing 2-3 business days. Shipping 2-5 business days.</span>
+                            <span>Production takes about 5–8 business days before shipment. Transit begins afterward; delivery dates are not guaranteed.</span>
                             <a href={getSupportHref(order.id)}>Get help</a>
                           </div>
                         </article>

@@ -34,6 +34,7 @@ import {
 import { products as catalogProducts, type FrameOption, type Product, type SizeOption } from '../../data/products';
 import { supabaseClient } from '../../lib/supabase';
 import {
+  createCheckoutRequestId,
   formatPrice,
   getCartProductImage,
   getConfiguredUnitPrice,
@@ -131,7 +132,11 @@ export function StorefrontTracker({
   useEffect(() => {
     captureStorefrontAttribution();
     initStorefrontTracking();
-    trackStorefrontEvent('page_view');
+    trackStorefrontEvent('page_view', {
+      page_location: window.location.href,
+      page_path: `${window.location.pathname}${window.location.search}`,
+      page_title: document.title,
+    });
   }, [pathname]);
 
   useEffect(() => {
@@ -314,7 +319,7 @@ function NewsletterDiscountPopup() {
           : `Your code is ${nextDiscountCode}. Use it at checkout.`,
       );
       setEmail('');
-      trackStorefrontEvent('sign_up');
+      trackStorefrontEvent('generate_lead');
 
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(newsletterPopupSubscribedKey, 'true');
@@ -842,6 +847,9 @@ function CartDrawer({
   const catalogFetchState = useRef<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [checkoutError, setCheckoutError] = useState('');
+  const [orderNote, setOrderNote] = useState('');
+  const checkoutRequest = useRef<{ id: string; signature: string } | null>(null);
+  const trackedDrawerView = useRef(false);
   const drawerProducts = shouldFetchCatalog ? fetchedProducts ?? products : products;
   const cartLines = useMemo(() => buildCartDrawerLines(cart, drawerProducts), [cart, drawerProducts]);
   const subtotal = useMemo(() => getCartDrawerSubtotal(cartLines), [cartLines]);
@@ -918,6 +926,7 @@ function CartDrawer({
 
   useEffect(() => {
     if (!isOpen) {
+      trackedDrawerView.current = false;
       return;
     }
 
@@ -937,11 +946,47 @@ function CartDrawer({
     };
   }, [isOpen, closeDrawer]);
 
+  useEffect(() => {
+    if (!isOpen || !cartReady || !cartLines.length || trackedDrawerView.current) {
+      return;
+    }
+
+    trackedDrawerView.current = true;
+    trackStorefrontEvent('view_cart', {
+      currency: 'USD',
+      value: subtotal / 100,
+      items: cartLines.map((item) =>
+        getProductTrackingItem(item.product, item.sizeOption, item.frameOption, item.quantity),
+      ),
+    });
+  }, [cartLines, cartReady, isOpen, subtotal]);
+
   function updateQuantity(lineKey: string, nextQuantity: number) {
+    const line = cartLines.find((item) => item.lineKey === lineKey);
+    const boundedQuantity = Math.max(0, Math.min(nextQuantity, 10));
+
+    if (line && boundedQuantity !== line.quantity) {
+      const quantityDelta = boundedQuantity - line.quantity;
+      const changedQuantity = Math.abs(quantityDelta);
+
+      trackStorefrontEvent(quantityDelta > 0 ? 'add_to_cart' : 'remove_from_cart', {
+        currency: 'USD',
+        value: (line.unitPrice * changedQuantity) / 100,
+        items: [
+          getProductTrackingItem(
+            line.product,
+            line.sizeOption,
+            line.frameOption,
+            changedQuantity,
+          ),
+        ],
+      });
+    }
+
     const nextCart = cart
       .map((item) =>
         item.lineKey === lineKey
-          ? { ...item, quantity: Math.max(0, Math.min(nextQuantity, 10)) }
+          ? { ...item, quantity: boundedQuantity }
           : item,
       )
       .filter((item) => item.quantity > 0);
@@ -951,6 +996,23 @@ function CartDrawer({
   }
 
   function removeItem(lineKey: string) {
+    const line = cartLines.find((item) => item.lineKey === lineKey);
+
+    if (line) {
+      trackStorefrontEvent('remove_from_cart', {
+        currency: 'USD',
+        value: (line.unitPrice * line.quantity) / 100,
+        items: [
+          getProductTrackingItem(
+            line.product,
+            line.sizeOption,
+            line.frameOption,
+            line.quantity,
+          ),
+        ],
+      });
+    }
+
     const nextCart = cart.filter((item) => item.lineKey !== lineKey);
 
     writeStoredCart(nextCart);
@@ -968,11 +1030,24 @@ function CartDrawer({
     const trackingItems = cartLines.map((item) =>
       getProductTrackingItem(item.product, item.sizeOption, item.frameOption, item.quantity),
     );
+    const checkoutItems = cartLines.map((item) => ({
+      id: item.productId,
+      sizeId: item.sizeOption.id,
+      frameId: item.frameOption.id,
+      quantity: item.quantity,
+    }));
+    const checkoutSignature = JSON.stringify({ items: checkoutItems, orderNote: orderNote.trim() });
+
+    if (!checkoutRequest.current || checkoutRequest.current.signature !== checkoutSignature) {
+      checkoutRequest.current = {
+        id: createCheckoutRequestId(),
+        signature: checkoutSignature,
+      };
+    }
 
     trackStorefrontEvent('begin_checkout', {
       currency: 'USD',
       value: subtotal / 100,
-      coupon: launchOfferCode,
       items: trackingItems,
     });
 
@@ -989,12 +1064,9 @@ function CartDrawer({
         },
         body: JSON.stringify({
           attribution: getCheckoutAttribution(),
-          items: cartLines.map((item) => ({
-            id: item.productId,
-            sizeId: item.sizeOption.id,
-            frameId: item.frameOption.id,
-            quantity: item.quantity,
-          })),
+          checkoutRequestId: checkoutRequest.current.id,
+          items: checkoutItems,
+          orderNote: orderNote.trim(),
         }),
       });
 
@@ -1109,7 +1181,13 @@ function CartDrawer({
             <footer className="cart-drawer-footer">
               <details className="cart-drawer-note">
                 <summary>Add order note +</summary>
-                <textarea aria-label="Order note" rows={3} />
+                <textarea
+                  aria-label="Order note"
+                  maxLength={500}
+                  rows={3}
+                  value={orderNote}
+                  onChange={(event) => setOrderNote(event.target.value)}
+                />
               </details>
               <div className="cart-drawer-summary-row">
                 <span>Subtotal</span>
@@ -1128,10 +1206,10 @@ function CartDrawer({
                 >
                   {checkoutState === 'loading' ? 'Opening checkout' : 'Checkout'}
                 </button>
-                <button className="cart-drawer-secondary-action" type="button" onClick={closeDrawer}>
+                <Link className="cart-drawer-secondary-action" href="/cart" onClick={closeDrawer}>
                   Shopping bag
                   <ArrowRight aria-hidden="true" size={14} />
-                </button>
+                </Link>
               </div>
               {checkoutState === 'error' ? (
                 <p className="cart-drawer-error">
@@ -1245,7 +1323,7 @@ function NextSiteFooter() {
           ? `You are on the list. Your ${discountCode} code is in your inbox.`
           : `You are on the list. Your code is ${discountCode}.`,
       );
-      trackStorefrontEvent('sign_up');
+      trackStorefrontEvent('generate_lead');
       setNewsletterEmail('');
 
       if (typeof window !== 'undefined') {

@@ -45,6 +45,8 @@ create index if not exists orders_customer_email_paid_idx
   on orders (lower(customer_email), created_at desc)
   where payment_status = 'paid';
 create index if not exists notifications_created_at_idx on notifications (created_at desc);
+create index if not exists notifications_order_type_status_idx
+  on notifications (order_id, type, status);
 
 create table if not exists products (
   id text primary key,

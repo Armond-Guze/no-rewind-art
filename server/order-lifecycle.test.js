@@ -1,12 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS,
   compareAdminOrders,
   extractStripeShippingContact,
   hasUsableShippingAddress,
   mergeStripeShippingContacts,
   shouldBackfillStripeShippingContact,
 } from './order-lifecycle.js';
+
+test('free standard checkout delivery reflects production plus transit time', () => {
+  assert.deepEqual(FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS, {
+    minimum: 8,
+    maximum: 14,
+  });
+});
 
 test('normalizes shipping contact across current, legacy, and customer Stripe fields', () => {
   const contact = extractStripeShippingContact({

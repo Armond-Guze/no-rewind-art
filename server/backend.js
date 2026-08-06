@@ -4,7 +4,7 @@ import path from 'node:path';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { isAdminAuthConfigured } from './admin-auth.js';
-import { findFrameOption, findProduct, findSizeOption, getFramePriceDelta } from './catalog.js';
+import { findProduct, getFramePriceDelta, isFrameOptionAvailableForSize } from './catalog.js';
 import { createNewsletterStore } from './newsletter-store.js';
 import {
   createNewsletterBroadcastDraft,
@@ -20,10 +20,17 @@ import {
   sendOwnerOrderNotification,
 } from './notifications.js';
 import {
+  FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS,
   extractStripeShippingContact,
   mergeStripeShippingContacts,
   shouldBackfillStripeShippingContact,
 } from './order-lifecycle.js';
+import {
+  assertManualOrderEmailAllowed,
+  getCustomerEmailStatus,
+  getCustomerOrderEmailDefinition,
+  parseManualOrderEmailRequest,
+} from './order-email-policy.js';
 import { createOrderStore } from './order-store.js';
 import { createProductStore } from './product-store.js';
 
@@ -66,6 +73,7 @@ const newsletterStoreReady = newsletterStore.init();
 const artworkDir = path.resolve(process.cwd(), 'public', 'artwork');
 let supabaseAuthClient = null;
 const shippingContactBackfillsInFlight = new Map();
+const manualCustomerEmailsInFlight = new Map();
 
 function normalizeSupabaseUrl(value) {
   return String(value || '')
@@ -131,10 +139,18 @@ function normalizeAttributionTouch(value) {
     campaign: sanitizeAttributionValue(value.campaign, 150),
     content: sanitizeAttributionValue(value.content, 150),
     term: sanitizeAttributionValue(value.term, 150),
+    campaignId: sanitizeAttributionValue(value.campaignId, 150),
     referrer: sanitizeAttributionValue(value.referrer),
     landingPage,
     capturedAt: sanitizeAttributionValue(value.capturedAt, 40),
     gclid: sanitizeAttributionValue(value.gclid, 250),
+    gbraid: sanitizeAttributionValue(value.gbraid, 250),
+    wbraid: sanitizeAttributionValue(value.wbraid, 250),
+    dclid: sanitizeAttributionValue(value.dclid, 250),
+    gclsrc: sanitizeAttributionValue(value.gclsrc, 250),
+    msclkid: sanitizeAttributionValue(value.msclkid, 250),
+    ttclid: sanitizeAttributionValue(value.ttclid, 250),
+    srsltid: sanitizeAttributionValue(value.srsltid, 250),
     fbclid: sanitizeAttributionValue(value.fbclid, 250),
   };
 }
@@ -171,7 +187,15 @@ function buildStripeAttributionMetadata(attribution) {
     attributionLanding: attribution.lastTouch.landingPage,
     attributionReferrer: attribution.lastTouch.referrer,
     attributionGclid: attribution.lastTouch.gclid,
+    attributionGbraid: attribution.lastTouch.gbraid,
+    attributionWbraid: attribution.lastTouch.wbraid,
+    attributionDclid: attribution.lastTouch.dclid,
+    attributionGclsrc: attribution.lastTouch.gclsrc,
+    attributionMsclkid: attribution.lastTouch.msclkid,
+    attributionTtclid: attribution.lastTouch.ttclid,
+    attributionSrsltid: attribution.lastTouch.srsltid,
     attributionFbclid: attribution.lastTouch.fbclid,
+    attributionCampaignId: attribution.lastTouch.campaignId,
     firstTouchSource: attribution.firstTouch.source,
     firstTouchMedium: attribution.firstTouch.medium,
     firstTouchCampaign: attribution.firstTouch.campaign,
@@ -191,7 +215,15 @@ function getAttributionFromStripeMetadata(metadata = {}) {
     referrer: metadata.attributionReferrer,
     landingPage: metadata.attributionLanding || metadata.firstTouchLanding || '/',
     gclid: metadata.attributionGclid,
+    gbraid: metadata.attributionGbraid,
+    wbraid: metadata.attributionWbraid,
+    dclid: metadata.attributionDclid,
+    gclsrc: metadata.attributionGclsrc,
+    msclkid: metadata.attributionMsclkid,
+    ttclid: metadata.attributionTtclid,
+    srsltid: metadata.attributionSrsltid,
     fbclid: metadata.attributionFbclid,
+    campaignId: metadata.attributionCampaignId,
   });
   const firstTouch = normalizeAttributionTouch({
     source: metadata.firstTouchSource || metadata.attributionSource,
@@ -350,6 +382,28 @@ function normalizeStripeSessionId(value) {
   return sessionId;
 }
 
+function normalizeCheckoutRequestId(value) {
+  const requestId = String(value || '').trim();
+
+  if (!requestId) {
+    return '';
+  }
+
+  if (!/^[A-Za-z0-9_-]{16,180}$/.test(requestId)) {
+    throw httpError('Invalid checkout request.', 400);
+  }
+
+  return requestId;
+}
+
+function normalizeOrderNote(value) {
+  return String(value || '')
+    .replace(/[\u0000-\u001F\u007F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 500);
+}
+
 function addBusinessDays(date, businessDays) {
   const nextDate = new Date(date);
   let daysAdded = 0;
@@ -386,8 +440,15 @@ async function normalizeCartItems(items) {
       throw httpError('Invalid cart item.');
     }
 
-    const sizeOption = findSizeOption(product, item.sizeId);
-    const frameOption = findFrameOption(product, item.frameId, sizeOption);
+    const sizeOption = product?.sizeOptions.find(
+      (option) => option.id === item.sizeId || option.legacyIds?.includes(item.sizeId),
+    );
+    const frameOption = product?.frameOptions.find((option) => option.id === item.frameId);
+
+    if (!sizeOption || !frameOption || !isFrameOptionAvailableForSize(frameOption, sizeOption)) {
+      throw httpError('Invalid product option.', 400);
+    }
+
     const framePriceDelta = getFramePriceDelta(product, sizeOption, frameOption);
     const unitAmount = sizeOption.priceInCents + framePriceDelta;
 
@@ -537,8 +598,13 @@ function buildCheckoutDraft(session, cartItems, customer = null, attribution = n
         ...(shippingContact ? { shippingContact } : {}),
       },
       ...(attribution ? { attribution } : {}),
+      ...(session.metadata?.orderNote ? { orderNote: session.metadata.orderNote } : {}),
     },
   };
+}
+
+function isCheckoutSessionPaid(session) {
+  return session?.payment_status === 'paid' || session?.payment_status === 'no_payment_required';
 }
 
 async function getLineItemsFromStripe(sessionId) {
@@ -584,6 +650,7 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
   const paymentStatus = paymentStatusOverride || session.payment_status || 'pending';
   const attribution =
     existingOrder?.raw?.attribution || getAttributionFromStripeMetadata(session.metadata);
+  const orderNote = existingOrder?.raw?.orderNote || normalizeOrderNote(session.metadata?.orderNote);
   const existingCheckoutSession = existingOrder?.raw?.checkoutSession || {};
   const shippingContact = mergeStripeShippingContacts(
     existingCheckoutSession.shippingContact,
@@ -614,6 +681,7 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
         ...(shippingContact ? { shippingContact } : {}),
       },
       ...(attribution ? { attribution } : {}),
+      ...(orderNote ? { orderNote } : {}),
     },
   };
 
@@ -659,30 +727,10 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
       });
     }
 
-    try {
-      const confirmationResult = await sendCustomerOrderConfirmationEmail(order);
-
-      await orderStore.createNotification({
-        type: 'customer_confirmation_email',
-        orderId: order.id,
-        title: confirmationResult.sent ? 'Customer confirmation sent' : 'Customer confirmation skipped',
-        body: confirmationResult.sent
-          ? `Order confirmation emailed to ${order.customerEmail}.`
-          : confirmationResult.reason,
-        channel: 'email',
-        status: confirmationResult.sent ? 'sent' : confirmationResult.skipped ? 'skipped' : 'failed',
-        metadata: confirmationResult,
-      });
-    } catch (error) {
-      console.error(error);
-      await orderStore.createNotification({
-        type: 'customer_confirmation_email',
-        orderId: order.id,
-        title: 'Customer confirmation failed',
-        body: error?.message || 'Unable to send the customer confirmation email.',
-        channel: 'email',
-        status: 'failed',
-      });
+    if (getCustomerEmailStatus().customerEmailsAutomatic) {
+      await deliverCustomerOrderEmail(order, 'confirmation', { source: 'automatic' });
+    } else {
+      await recordPausedCustomerOrderEmail(order, 'confirmation');
     }
   }
 
@@ -743,17 +791,120 @@ async function backfillStripeShippingContacts(orders) {
 }
 
 async function markOrderEmailFlag(order, flagName) {
-  await orderStore.upsertOrder({
+  const { order: updatedOrder } = await orderStore.upsertOrder({
     id: order.id,
     stripeSessionId: order.stripeSessionId || order.id,
     raw: {
       [flagName]: new Date().toISOString(),
     },
   });
+
+  return updatedOrder;
+}
+
+function getCustomerOrderEmailDelivery(emailType) {
+  if (emailType === 'confirmation') {
+    return {
+      send: sendCustomerOrderConfirmationEmail,
+      sentTitle: 'Customer confirmation sent',
+      skippedTitle: 'Customer confirmation skipped',
+      failedTitle: 'Customer confirmation failed',
+      sentBody: (order) => `Order confirmation emailed to ${order.customerEmail}.`,
+      failedBody: 'Unable to send the customer confirmation email.',
+    };
+  }
+
+  return {
+    send: sendCustomerOrderShippedEmail,
+    sentTitle: 'Shipping email sent',
+    skippedTitle: 'Shipping email skipped',
+    failedTitle: 'Shipping email failed',
+    sentBody: (order) => `Shipping notification emailed to ${order.customerEmail}.`,
+    failedBody: 'Unable to send the shipping notification email.',
+  };
+}
+
+async function deliverCustomerOrderEmail(
+  order,
+  emailType,
+  { source = 'automatic', resend = false } = {},
+) {
+  const definition = getCustomerOrderEmailDefinition(emailType);
+  const delivery = getCustomerOrderEmailDelivery(emailType);
+  let emailResult;
+
+  try {
+    emailResult = await delivery.send(order);
+  } catch (error) {
+    console.error(error);
+    emailResult = {
+      sent: false,
+      skipped: false,
+      reason: error?.message || delivery.failedBody,
+    };
+  }
+
+  let updatedOrder = order;
+
+  if (emailResult.sent) {
+    updatedOrder = await markOrderEmailFlag(order, definition.flagName);
+  }
+
+  const notificationStatus = emailResult.sent
+    ? 'sent'
+    : emailResult.skipped
+      ? 'skipped'
+      : 'failed';
+
+  await orderStore.createNotification({
+    type: definition.notificationType,
+    orderId: order.id,
+    title: emailResult.sent
+      ? delivery.sentTitle
+      : emailResult.skipped
+        ? delivery.skippedTitle
+        : delivery.failedTitle,
+    body: emailResult.sent ? delivery.sentBody(order) : emailResult.reason || delivery.failedBody,
+    channel: 'email',
+    status: notificationStatus,
+    metadata: {
+      ...emailResult,
+      source,
+      resend,
+    },
+  });
+
+  return {
+    order: updatedOrder,
+    email: {
+      emailType,
+      ...emailResult,
+      resend,
+    },
+  };
+}
+
+async function recordPausedCustomerOrderEmail(order, emailType) {
+  const definition = getCustomerOrderEmailDefinition(emailType);
+  const label = emailType === 'confirmation' ? 'Customer confirmation' : 'Shipping email';
+
+  await orderStore.createNotification({
+    type: definition.notificationType,
+    orderId: order.id,
+    title: `${label} awaiting manual send`,
+    body: 'Automatic customer emails are paused. Send this email manually from the admin dashboard.',
+    channel: 'email',
+    status: 'skipped',
+    metadata: {
+      source: 'automatic',
+      automatic: false,
+    },
+  });
 }
 
 async function maybeSendAbandonedCartEmail(order) {
   if (
+    !getCustomerEmailStatus().customerEmailsAutomatic ||
     !order ||
     order.paymentStatus === 'paid' ||
     !order.customerEmail ||
@@ -801,40 +952,18 @@ async function maybeSendCustomerShippedEmail(order) {
     !order ||
     order.paymentStatus !== 'paid' ||
     !order.customerEmail ||
+    (!order.trackingNumber && !order.trackingUrl) ||
     order.raw?.shippedEmailSentAt
   ) {
     return;
   }
 
-  try {
-    const shippedResult = await sendCustomerOrderShippedEmail(order);
-
-    await orderStore.createNotification({
-      type: 'customer_shipped_email',
-      orderId: order.id,
-      title: shippedResult.sent ? 'Shipping email sent' : 'Shipping email skipped',
-      body: shippedResult.sent
-        ? `Shipping notification emailed to ${order.customerEmail}.`
-        : shippedResult.reason,
-      channel: 'email',
-      status: shippedResult.sent ? 'sent' : shippedResult.skipped ? 'skipped' : 'failed',
-      metadata: shippedResult,
-    });
-
-    if (shippedResult.sent) {
-      await markOrderEmailFlag(order, 'shippedEmailSentAt');
-    }
-  } catch (error) {
-    console.error(error);
-    await orderStore.createNotification({
-      type: 'customer_shipped_email',
-      orderId: order.id,
-      title: 'Shipping email failed',
-      body: error?.message || 'Unable to send the shipping notification email.',
-      channel: 'email',
-      status: 'failed',
-    });
+  if (!getCustomerEmailStatus().customerEmailsAutomatic) {
+    await recordPausedCustomerOrderEmail(order, 'shipping');
+    return;
   }
+
+  await deliverCustomerOrderEmail(order, 'shipping', { source: 'automatic' });
 }
 
 function getOrderTrackingItems(order) {
@@ -865,7 +994,7 @@ export async function getGoogleAdsConversion(sessionId) {
   const normalizedSessionId = normalizeStripeSessionId(sessionId);
   const session = await stripe.checkout.sessions.retrieve(normalizedSessionId);
 
-  if (session.payment_status !== 'paid') {
+  if (!isCheckoutSessionPaid(session)) {
     return { conversion: null };
   }
 
@@ -885,6 +1014,7 @@ export async function getGoogleAdsConversion(sessionId) {
 
 export async function getHealth() {
   await ensureReady();
+  const emailStatus = getCustomerEmailStatus();
 
   return {
     ok: true,
@@ -895,7 +1025,9 @@ export async function getHealth() {
     storage: orderStore.type,
     catalogStorage: productStore.type,
     newsletterStorage: newsletterStore.type,
-    notificationsConfigured: Boolean(process.env.RESEND_API_KEY && process.env.ORDER_NOTIFICATION_EMAIL),
+    notificationsConfigured: emailStatus.ownerAlertsConfigured,
+    customerEmailsConfigured: emailStatus.customerEmailsConfigured,
+    customerEmailsAutomatic: emailStatus.customerEmailsAutomatic,
     adminConfigured: isAdminAuthConfigured(),
   };
 }
@@ -916,52 +1048,72 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
   const cartItems = await normalizeCartItems(body?.items);
   const customer = await getOptionalCustomerFromAuthorizationHeader(authorizationHeader);
   const attribution = normalizeCheckoutAttribution(body?.attribution);
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
-    line_items: buildLineItems(cartItems),
-    payment_method_types: ['card', 'amazon_pay', 'klarna', 'cashapp'],
-    ...(customer?.email ? { customer_email: customer.email } : {}),
-    billing_address_collection: 'auto',
-    phone_number_collection: {
-      enabled: true,
-    },
-    shipping_address_collection: {
-      allowed_countries: ['US'],
-    },
-    shipping_options: [
-      {
-        shipping_rate_data: {
-          type: 'fixed_amount',
-          fixed_amount: {
-            amount: 0,
-            currency: 'usd',
-          },
-          display_name: 'Free standard shipping',
-          delivery_estimate: {
-            minimum: {
-              unit: 'business_day',
-              value: 4,
+  const checkoutRequestId = normalizeCheckoutRequestId(body?.checkoutRequestId);
+  const orderNote = normalizeOrderNote(body?.orderNote);
+  const checkoutMetadata = {
+    brand: 'Armoze',
+    orderSource: 'next-storefront',
+    ...(checkoutRequestId ? { checkoutRequestId } : {}),
+    ...(orderNote ? { orderNote } : {}),
+    ...buildStripeAttributionMetadata(attribution),
+  };
+  const session = await stripe.checkout.sessions.create(
+    {
+      mode: 'payment',
+      line_items: buildLineItems(cartItems),
+      payment_method_types: ['card', 'amazon_pay', 'klarna', 'cashapp'],
+      ...(customer?.email ? { customer_email: customer.email } : {}),
+      billing_address_collection: 'auto',
+      phone_number_collection: {
+        enabled: true,
+      },
+      shipping_address_collection: {
+        allowed_countries: ['US'],
+      },
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            fixed_amount: {
+              amount: 0,
+              currency: 'usd',
             },
-            maximum: {
-              unit: 'business_day',
-              value: 8,
+            display_name: 'Free standard shipping',
+            delivery_estimate: {
+              minimum: {
+                unit: 'business_day',
+                value: FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS.minimum,
+              },
+              maximum: {
+                unit: 'business_day',
+                value: FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS.maximum,
+              },
             },
           },
         },
+      ],
+      allow_promotion_codes: true,
+      after_expiration: {
+        recovery: {
+          enabled: true,
+          allow_promotion_codes: true,
+        },
       },
-    ],
-    allow_promotion_codes: true,
-    automatic_tax: {
-      enabled: automaticTaxEnabled,
+      automatic_tax: {
+        enabled: automaticTaxEnabled,
+      },
+      payment_intent_data: {
+        description: 'Armoze canvas print order',
+        metadata: checkoutMetadata,
+      },
+      success_url: `${clientUrl}/cart?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${clientUrl}/cart?checkout=cancelled#cart`,
+      metadata: checkoutMetadata,
     },
-    success_url: `${clientUrl}/cart?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${clientUrl}/cart?checkout=cancelled#cart`,
-    metadata: {
-      brand: 'Armoze',
-      orderSource: 'next-storefront',
-      ...buildStripeAttributionMetadata(attribution),
-    },
-  });
+    checkoutRequestId
+      ? { idempotencyKey: `armoze-checkout-${checkoutRequestId}` }
+      : undefined,
+  );
 
   await orderStore.upsertOrder(buildCheckoutDraft(session, cartItems, customer, attribution));
 
@@ -980,7 +1132,7 @@ export async function getGoogleCustomerReviewOptIn(sessionId) {
   const normalizedSessionId = normalizeStripeSessionId(sessionId);
   const session = await stripe.checkout.sessions.retrieve(normalizedSessionId);
 
-  if (session.payment_status !== 'paid') {
+  if (!isCheckoutSessionPaid(session)) {
     return { optIn: null };
   }
 
@@ -1075,16 +1227,21 @@ export async function processStripeWebhook(rawBody, stripeSignature) {
 
   if (stripeWebhookSecret) {
     event = stripe.webhooks.constructEvent(rawBody, stripeSignature, stripeWebhookSecret);
-  } else if (allowUnsignedWebhooks) {
+  } else if (allowUnsignedWebhooks && process.env.NODE_ENV !== 'production') {
     event = JSON.parse(Buffer.isBuffer(rawBody) ? rawBody.toString('utf8') : rawBody);
   } else {
     throw httpError('Stripe webhook signing is not configured. Set STRIPE_WEBHOOK_SECRET.', 500);
   }
 
-  if (
-    event.type === 'checkout.session.completed' ||
-    event.type === 'checkout.session.async_payment_succeeded'
-  ) {
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    await completeOrderFromCheckoutSession(
+      session,
+      isCheckoutSessionPaid(session) ? 'paid' : session.payment_status || 'pending',
+    );
+  }
+
+  if (event.type === 'checkout.session.async_payment_succeeded') {
     await completeOrderFromCheckoutSession(event.data.object, 'paid');
   }
 
@@ -1112,11 +1269,56 @@ export async function listAdminOrders({ limit = 50 } = {}) {
     ...result,
     orders,
     notifications,
-    emailStatus: {
-      customerEmailsConfigured: Boolean(process.env.RESEND_API_KEY),
-      ownerAlertsConfigured: Boolean(process.env.RESEND_API_KEY && process.env.ORDER_NOTIFICATION_EMAIL),
-    },
+    emailStatus: getCustomerEmailStatus(),
   };
+}
+
+export async function sendAdminOrderEmail(orderId, body = {}) {
+  await ensureReady();
+
+  const order = await orderStore.getOrder(String(orderId || '').trim());
+
+  if (!order) {
+    throw httpError('Order not found.', 404);
+  }
+
+  const request = parseManualOrderEmailRequest(body);
+  const definition = getCustomerOrderEmailDefinition(request.emailType);
+  const sendKey = `${order.id}:${request.emailType}`;
+
+  if (!request.resend && manualCustomerEmailsInFlight.has(sendKey)) {
+    throw httpError('This customer email is already being sent.', 409);
+  }
+
+  const sendEmail = async () => {
+    const hasSentNotification = await orderStore.hasSentNotification(
+      order.id,
+      definition.notificationType,
+    );
+
+    assertManualOrderEmailAllowed(order, {
+      ...request,
+      hasSentNotification,
+    });
+
+    return deliverCustomerOrderEmail(order, request.emailType, {
+      source: 'manual',
+      resend: request.resend,
+    });
+  };
+
+  if (request.resend) {
+    return sendEmail();
+  }
+
+  const pendingSend = sendEmail();
+  manualCustomerEmailsInFlight.set(sendKey, pendingSend);
+
+  try {
+    return await pendingSend;
+  } finally {
+    manualCustomerEmailsInFlight.delete(sendKey);
+  }
 }
 
 export async function listAdminProducts() {

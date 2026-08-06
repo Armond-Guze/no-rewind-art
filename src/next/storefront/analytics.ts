@@ -9,6 +9,9 @@ type EcommercePayload = {
   value?: number;
   transaction_id?: string;
   coupon?: string;
+  page_location?: string;
+  page_path?: string;
+  page_title?: string;
   search_term?: string;
   item_list_id?: string;
   item_list_name?: string;
@@ -81,14 +84,21 @@ export function initStorefrontTracking() {
     window.gtag('js', new Date());
   }
 
+  const primaryGoogleTagId = gaMeasurementId || googleAdsId;
+
+  if (primaryGoogleTagId) {
+    appendScript(
+      `https://www.googletagmanager.com/gtag/js?id=${primaryGoogleTagId}`,
+      'armoze-google-tag',
+    );
+  }
+
   if (gaMeasurementId) {
-    appendScript(`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`, 'armoze-ga4');
-    window.gtag?.('config', gaMeasurementId);
+    window.gtag?.('config', gaMeasurementId, { send_page_view: false });
   }
 
   if (googleAdsId) {
-    appendScript(`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`, 'armoze-google-ads');
-    window.gtag?.('config', googleAdsId);
+    window.gtag?.('config', googleAdsId, { send_page_view: false });
   }
 
   if (metaPixelId && !window.fbq) {
@@ -106,7 +116,6 @@ export function initStorefrontTracking() {
     window._fbq = window.fbq;
     appendScript('https://connect.facebook.net/en_US/fbevents.js', 'armoze-meta-pixel');
     window.fbq('init', metaPixelId);
-    window.fbq('track', 'PageView');
   }
 }
 
@@ -125,25 +134,24 @@ export function trackStorefrontEvent(eventName: string, payload: EcommercePayloa
       ...(payload.transaction_id ? { transaction_id: payload.transaction_id } : {}),
     };
 
-    if (googleAdsPurchaseEventName) {
-      window.gtag?.('event', googleAdsPurchaseEventName, conversionPayload);
-    }
-
     if (googleAdsPurchaseLabel) {
       window.gtag?.('event', 'conversion', {
         send_to: `${googleAdsId}/${googleAdsPurchaseLabel}`,
         ...conversionPayload,
       });
+    } else if (googleAdsPurchaseEventName) {
+      window.gtag?.('event', googleAdsPurchaseEventName, conversionPayload);
     }
   }
 
   const metaEventByName: Record<string, string> = {
+    page_view: 'PageView',
     view_item: 'ViewContent',
     search: 'Search',
     add_to_cart: 'AddToCart',
     begin_checkout: 'InitiateCheckout',
     purchase: 'Purchase',
-    sign_up: 'Lead',
+    generate_lead: 'Lead',
   };
   const metaEvent = metaEventByName[eventName];
 

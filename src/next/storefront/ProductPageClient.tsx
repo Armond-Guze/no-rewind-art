@@ -24,7 +24,9 @@ import {
 import { addStoredCartItem } from '../../cart';
 import { etsyReviewHighlights } from '../../data/reviews';
 import type { FrameOption, Product, ProductVideo, SizeOption } from '../../data/products';
+import { supabaseClient } from '../../lib/supabase';
 import {
+  createCheckoutRequestId,
   formatPrice,
   getAvailableFrameOptions,
   getBaseFrameOption,
@@ -37,7 +39,6 @@ import {
   hasProductSpecificReviewSummary,
   isProductMockupImage,
   isSideMockupImage,
-  launchOfferCode,
   sizeOptionMatches,
 } from './product-utils';
 import {
@@ -71,11 +72,11 @@ function addBusinessDays(start: Date, businessDays: number) {
   return next;
 }
 
-function getDeliveryEstimate() {
+function getProductionEstimate() {
   const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
   const now = new Date();
 
-  return `${formatter.format(addBusinessDays(now, 4))} – ${formatter.format(addBusinessDays(now, 8))}`;
+  return `${formatter.format(addBusinessDays(now, 5))} – ${formatter.format(addBusinessDays(now, 8))}`;
 }
 
 const framePreviewImages: Record<string, string> = {
@@ -654,8 +655,9 @@ export default function ProductPageClient({
   const [shippingOpen, setShippingOpen] = useState(false);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [deliveryEstimate] = useState(getDeliveryEstimate);
+  const [productionEstimate] = useState(getProductionEstimate);
   const [checkoutError, setCheckoutError] = useState('');
+  const [addedToCart, setAddedToCart] = useState(false);
   const [showMobilePurchaseBar, setShowMobilePurchaseBar] = useState(false);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const galleryItems = getProductMediaGallery(product);
@@ -667,6 +669,8 @@ export default function ProductPageClient({
   const mobileGalleryRef = useRef<HTMLDivElement | null>(null);
   const mobileScrollFrame = useRef<number | null>(null);
   const purchaseActionsRef = useRef<HTMLDivElement | null>(null);
+  const checkoutRequest = useRef<{ id: string; signature: string } | null>(null);
+  const lastTrackedProductId = useRef('');
   const isMockupGalleryImage = isProductMockupImage(product, selectedGalleryImage);
   const isSideGalleryImage = isSideMockupImage(selectedGalleryImage);
   const isFrontMockupGalleryImage = isMockupGalleryImage && !isSideGalleryImage;
@@ -804,12 +808,26 @@ export default function ProductPageClient({
   }, []);
 
   useEffect(() => {
+    if (!addedToCart) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setAddedToCart(false), 2200);
+    return () => window.clearTimeout(timeoutId);
+  }, [addedToCart]);
+
+  useEffect(() => {
+    if (lastTrackedProductId.current === product.id) {
+      return;
+    }
+
     const trackedSizeOption =
       product.sizeOptions.find((option) => option.id === selectedOptionId) ?? selectedOption;
     const trackedFrameOption =
       product.frameOptions.find((option) => option.id === selectedFrameOptionId) ?? selectedFrameOption;
 
     initStorefrontTracking();
+    lastTrackedProductId.current = product.id;
     trackStorefrontEvent('view_item', {
       currency: 'USD',
       value: selectedUnitPrice / 100,
@@ -838,36 +856,51 @@ export default function ProductPageClient({
       value: selectedUnitPrice / 100,
       items: [trackingItem],
     });
+    setAddedToCart(true);
   }
 
   async function startBuyNow() {
     setCheckoutState('loading');
     setCheckoutError('');
     const trackingItem = getProductTrackingItem(product, selectedOption, selectedFrameOption);
+    const checkoutItems = [
+      {
+        id: product.id,
+        sizeId: selectedOption.id,
+        frameId: selectedFrameOption.id,
+        quantity: 1,
+      },
+    ];
+    const checkoutSignature = JSON.stringify(checkoutItems);
+
+    if (!checkoutRequest.current || checkoutRequest.current.signature !== checkoutSignature) {
+      checkoutRequest.current = {
+        id: createCheckoutRequestId(),
+        signature: checkoutSignature,
+      };
+    }
 
     trackStorefrontEvent('begin_checkout', {
       currency: 'USD',
       value: selectedUnitPrice / 100,
-      coupon: launchOfferCode,
       items: [trackingItem],
     });
 
     try {
+      const { data: authData } = supabaseClient
+        ? await supabaseClient.auth.getSession()
+        : { data: { session: null } };
+      const accessToken = authData.session?.access_token;
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
           attribution: getCheckoutAttribution(),
-          items: [
-            {
-              id: product.id,
-              sizeId: selectedOption.id,
-              frameId: selectedFrameOption.id,
-              quantity: 1,
-            },
-          ],
+          checkoutRequestId: checkoutRequest.current.id,
+          items: checkoutItems,
         }),
       });
 
@@ -1164,14 +1197,15 @@ export default function ProductPageClient({
                 type="button"
                 onClick={addSelectionToCart}
               >
-                Add to cart
+                {addedToCart ? 'Added to cart' : 'Add to cart'}
               </button>
             </div>
 
-            {deliveryEstimate ? (
+            {productionEstimate ? (
               <p className="product-delivery-note">
                 <Truck aria-hidden="true" size={15} strokeWidth={2.4} />
-                Order today, arrives <strong>{deliveryEstimate}</strong>
+                Estimated to ship <strong>{productionEstimate}</strong>. Carrier transit begins afterward;
+                delivery dates are not guaranteed.
               </p>
             ) : null}
 
@@ -1265,8 +1299,8 @@ export default function ProductPageClient({
                   <div className="product-details-content" id={`${product.id}-shipping-returns`}>
                     <ul className="product-info-list">
                       <li><Truck aria-hidden="true" size={16} strokeWidth={2.4} /> Free U.S. shipping</li>
-                      <li><Clock aria-hidden="true" size={16} strokeWidth={2.4} /> Made in 2-3 business days</li>
-                      <li><Package aria-hidden="true" size={16} strokeWidth={2.4} /> Ships in 2-5 business days after production</li>
+                      <li><Clock aria-hidden="true" size={16} strokeWidth={2.4} /> Production takes about 5–8 business days</li>
+                      <li><Package aria-hidden="true" size={16} strokeWidth={2.4} /> Transit begins after shipment; delivery dates are not guaranteed</li>
                       <li><RotateCcw aria-hidden="true" size={16} strokeWidth={2.4} /> 30-day returns on eligible orders</li>
                       <li><ShieldCheck aria-hidden="true" size={16} strokeWidth={2.4} /> Support for damaged or incorrect orders</li>
                     </ul>
@@ -1417,7 +1451,7 @@ export default function ProductPageClient({
             tabIndex={showMobilePurchaseBar ? undefined : -1}
             onClick={addSelectionToCart}
           >
-            Add to cart
+            {addedToCart ? 'Added' : 'Add to cart'}
           </button>
         </div>
 

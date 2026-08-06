@@ -14,8 +14,33 @@ function uniqueValues(values) {
   return [...new Set(values.filter(Boolean))];
 }
 
+function getFallbackSitemapEntries() {
+  const products = seedCatalog.products
+    .filter((product) => product.published !== false && product.slug)
+    .map((product) => ({
+      id: product.id,
+      slug: product.slug,
+      collectionSlugs: Array.isArray(product.collectionSlugs) ? product.collectionSlugs : [],
+      updatedAt: null,
+    }));
+
+  return {
+    products,
+    collectionSlugs: uniqueValues(products.flatMap((product) => product.collectionSlugs)),
+  };
+}
+
 export default async function sitemap() {
-  const { collectionSlugs, products } = await getSanitySitemapEntries();
+  let sitemapEntries;
+
+  try {
+    sitemapEntries = await getSanitySitemapEntries();
+  } catch (error) {
+    console.warn('Sanity sitemap data unavailable; using the bundled catalog.', error);
+    sitemapEntries = getFallbackSitemapEntries();
+  }
+
+  const { collectionSlugs, products } = sitemapEntries;
   const seoCollectionSlugs = getSeoPageFactoryCollectionSlugs();
   const catalogCollectionSlugs = seedCatalog.collections.map((collection) => collection.slug);
   const allCollectionSlugs = uniqueValues([

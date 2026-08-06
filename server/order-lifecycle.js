@@ -1,3 +1,8 @@
+export const FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS = Object.freeze({
+  minimum: 8,
+  maximum: 14,
+});
+
 function normalizeStripeText(value, maxLength = 500) {
   return String(value || '')
     .replace(/[\u0000-\u001f\u007f]/g, ' ')

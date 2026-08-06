@@ -59,11 +59,6 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: '/products/97-percent',
-        destination: '/collections/best-sellers',
-        permanent: true,
-      },
-      {
         source: '/collections/discipline-focus',
         destination: '/collections/music',
         permanent: true,

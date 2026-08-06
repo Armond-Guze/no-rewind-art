@@ -24,6 +24,7 @@ import {
 } from '../../cart';
 import type { FrameOption, Product, SizeOption } from '../../data/products';
 import {
+  createCheckoutRequestId,
   formatPrice,
   getCartProductImage,
   getConfiguredUnitPrice,
@@ -42,6 +43,7 @@ import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 
 type CheckoutState = 'idle' | 'loading' | 'error';
+type CheckoutVerificationState = 'idle' | 'verifying' | 'verified' | 'error';
 
 type CartLine = StoredCartItem & {
   product: Product;
@@ -166,7 +168,17 @@ export default function CartPageClient({
   const [cartReady, setCartReady] = useState(Boolean(initialMerchantCartItem));
   const [checkoutState, setCheckoutState] = useState<CheckoutState>('idle');
   const [checkoutError, setCheckoutError] = useState('');
-  const lastTrackedCartView = useRef('');
+  const [checkoutVerificationState, setCheckoutVerificationState] =
+    useState<CheckoutVerificationState>(
+      checkoutResult === 'success' ? (checkoutSessionId ? 'verifying' : 'error') : 'idle',
+    );
+  const [checkoutVerificationMessage, setCheckoutVerificationMessage] = useState(
+    checkoutResult === 'success' && !checkoutSessionId
+      ? 'We could not verify this payment because the checkout reference is missing. Your cart has been kept. Contact support if you were charged.'
+      : '',
+  );
+  const checkoutRequest = useRef<{ id: string; signature: string } | null>(null);
+  const hasTrackedCartView = useRef(false);
 
   const cartProducts = useMemo(() => buildCartLines(cart, products), [cart, products]);
   const subtotal = useMemo(() => getCartSubtotal(cartProducts), [cartProducts]);
@@ -235,15 +247,11 @@ export default function CartPageClient({
       return;
     }
 
-    const cartViewKey = cartProducts
-      .map((item) => `${item.lineKey}:${item.quantity}`)
-      .join('|');
-
-    if (cartViewKey === lastTrackedCartView.current) {
+    if (hasTrackedCartView.current) {
       return;
     }
 
-    lastTrackedCartView.current = cartViewKey;
+    hasTrackedCartView.current = true;
     trackStorefrontEvent('view_cart', {
       currency: 'USD',
       value: subtotal / 100,
@@ -296,66 +304,64 @@ export default function CartPageClient({
       return;
     }
 
-    const trackingKey = checkoutSessionId
-      ? `armoze_purchase_return_tracked_${checkoutSessionId}`
-      : 'armoze_purchase_return_tracked';
+    if (!checkoutSessionId) {
+      return;
+    }
+
+    const verifiedCheckoutSessionId = checkoutSessionId;
+    const trackingKey = `armoze_purchase_return_tracked_${verifiedCheckoutSessionId}`;
 
     if (hasTrackedPurchase(trackingKey)) {
       writeStoredCart([]);
       notifyStoredCartUpdated([]);
-      return;
+      const verificationTimer = window.setTimeout(() => {
+        setCheckoutVerificationState('verified');
+      }, 0);
+
+      return () => {
+        window.clearTimeout(verificationTimer);
+      };
     }
 
     let cancelled = false;
 
     async function trackPurchaseReturn() {
-      let tracked = false;
-      let serverChecked = false;
-
-      if (checkoutSessionId) {
-        try {
-          const response = await fetch(
-            `/api/google-ads/conversion?session_id=${encodeURIComponent(checkoutSessionId)}`,
-          );
-          serverChecked = response.ok;
-
-          if (response.ok) {
-            const data = (await response.json()) as PurchaseConversionResponse;
-
-            if (!cancelled && data.conversion) {
-              trackStorefrontEvent('purchase', data.conversion);
-              tracked = true;
-            }
-          }
-        } catch (error) {
-          console.error(error);
-        }
-      }
-
-      if (!tracked && !serverChecked && !cancelled) {
-        const currentCart = readStoredCart();
-        const trackingLines = buildCartLines(currentCart, products);
-        const trackingItems = trackingLines.map((item) =>
-          getProductTrackingItem(item.product, item.sizeOption, item.frameOption, item.quantity),
+      try {
+        const response = await fetch(
+          `/api/google-ads/conversion?session_id=${encodeURIComponent(verifiedCheckoutSessionId)}`,
         );
+        const data = (await response.json().catch(() => ({}))) as PurchaseConversionResponse & {
+          error?: string;
+        };
 
-        if (trackingLines.length) {
-          trackStorefrontEvent('purchase', {
-            currency: 'USD',
-            value: getCartSubtotal(trackingLines) / 100,
-            items: trackingItems,
-          });
-          tracked = true;
+        if (!response.ok) {
+          throw new Error(data.error || 'Payment verification failed.');
         }
-      }
 
-      if (tracked && !cancelled) {
+        if (!data.conversion?.transaction_id) {
+          throw new Error('Payment is still processing or could not be verified yet.');
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        trackStorefrontEvent('purchase', data.conversion);
         markPurchaseTracked(trackingKey);
-      }
-
-      if (!cancelled) {
         writeStoredCart([]);
         notifyStoredCartUpdated([]);
+        setCheckoutVerificationState('verified');
+      } catch (error) {
+        console.error(error);
+
+        if (!cancelled) {
+          setCheckoutVerificationState('error');
+          setCheckoutVerificationMessage(
+            error instanceof Error
+              ? `${error.message} Your cart has been kept. Contact support if you were charged.`
+              : 'Payment verification failed. Your cart has been kept. Contact support if you were charged.',
+          );
+        }
       }
     }
 
@@ -364,13 +370,35 @@ export default function CartPageClient({
     return () => {
       cancelled = true;
     };
-  }, [cartReady, checkoutResult, checkoutSessionId, products]);
+  }, [cartReady, checkoutResult, checkoutSessionId]);
 
   function updateQuantity(lineKey: string, nextQuantity: number) {
+    const line = cartProducts.find((item) => item.lineKey === lineKey);
+    const boundedQuantity = Math.max(0, Math.min(nextQuantity, 10));
+
+    if (line && boundedQuantity !== line.quantity) {
+      const quantityDelta = boundedQuantity - line.quantity;
+      const changedQuantity = Math.abs(quantityDelta);
+      const unitPrice = getConfiguredUnitPrice(line.product, line.sizeOption, line.frameOption);
+
+      trackStorefrontEvent(quantityDelta > 0 ? 'add_to_cart' : 'remove_from_cart', {
+        currency: 'USD',
+        value: (unitPrice * changedQuantity) / 100,
+        items: [
+          getProductTrackingItem(
+            line.product,
+            line.sizeOption,
+            line.frameOption,
+            changedQuantity,
+          ),
+        ],
+      });
+    }
+
     const nextCart = cart
       .map((item) =>
         item.lineKey === lineKey
-          ? { ...item, quantity: Math.max(0, Math.min(nextQuantity, 10)) }
+          ? { ...item, quantity: boundedQuantity }
           : item,
       )
       .filter((item) => item.quantity > 0);
@@ -390,11 +418,24 @@ export default function CartPageClient({
     const trackingItems = cartProducts.map((item) =>
       getProductTrackingItem(item.product, item.sizeOption, item.frameOption, item.quantity),
     );
+    const checkoutItems = cartProducts.map((item) => ({
+      id: item.productId,
+      sizeId: item.sizeOption.id,
+      frameId: item.frameOption.id,
+      quantity: item.quantity,
+    }));
+    const checkoutSignature = JSON.stringify(checkoutItems);
+
+    if (!checkoutRequest.current || checkoutRequest.current.signature !== checkoutSignature) {
+      checkoutRequest.current = {
+        id: createCheckoutRequestId(),
+        signature: checkoutSignature,
+      };
+    }
 
     trackStorefrontEvent('begin_checkout', {
       currency: 'USD',
       value: subtotal / 100,
-      coupon: launchOfferCode,
       items: trackingItems,
     });
 
@@ -411,12 +452,8 @@ export default function CartPageClient({
         },
         body: JSON.stringify({
           attribution: getCheckoutAttribution(),
-          items: cartProducts.map((item) => ({
-            id: item.productId,
-            sizeId: item.sizeOption.id,
-            frameId: item.frameOption.id,
-            quantity: item.quantity,
-          })),
+          checkoutRequestId: checkoutRequest.current.id,
+          items: checkoutItems,
         }),
       });
 
@@ -446,10 +483,22 @@ export default function CartPageClient({
         <GoogleCustomerReviewsOptIn checkoutResult={checkoutResult} />
       )}
       <main className="standalone-cart-page">
-        {checkoutResult === 'success' ? (
+        {checkoutResult === 'success' && checkoutVerificationState === 'verified' ? (
           <div className="checkout-banner success">
             <span>Payment complete. Your order is being prepared.</span>
             <Link href="/account">View order history</Link>
+          </div>
+        ) : null}
+
+        {checkoutResult === 'success' && checkoutVerificationState === 'verifying' ? (
+          <div className="checkout-banner">
+            Confirming your payment with Stripe…
+          </div>
+        ) : null}
+
+        {checkoutResult === 'success' && checkoutVerificationState === 'error' ? (
+          <div className="checkout-banner cancelled">
+            {checkoutVerificationMessage}
           </div>
         ) : null}
 
@@ -469,7 +518,7 @@ export default function CartPageClient({
             </p>
             <ul className="cart-page-benefits" aria-label="What to expect from your order">
               <li><Truck aria-hidden="true" size={20} /><span><strong>Free U.S. shipping</strong> on every canvas order</span></li>
-              <li><Clock aria-hidden="true" size={20} /><span><strong>Made to order</strong> in 2-3 business days</span></li>
+              <li><Clock aria-hidden="true" size={20} /><span><strong>Made to order</strong> in about 5–8 business days before shipment; transit begins afterward and delivery dates are not guaranteed</span></li>
               <li><ShieldCheck aria-hidden="true" size={20} /><span><strong>30-day returns</strong> and damage support</span></li>
             </ul>
             <Link className="cart-continue-link" href="/collections/best-sellers">

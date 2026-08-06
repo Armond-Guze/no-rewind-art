@@ -68,6 +68,11 @@ type AdminAttributionTouch = {
   landingPage?: string;
   capturedAt?: string;
   gclid?: string;
+  gbraid?: string;
+  wbraid?: string;
+  dclid?: string;
+  msclkid?: string;
+  ttclid?: string;
   fbclid?: string;
 };
 
@@ -75,6 +80,16 @@ type AdminOrderAttribution = {
   firstTouch?: AdminAttributionTouch;
   lastTouch?: AdminAttributionTouch;
 };
+
+type AdminAttributionChannel =
+  | 'paid'
+  | 'organic-search'
+  | 'direct'
+  | 'organic-social'
+  | 'email'
+  | 'referral'
+  | 'other'
+  | 'unknown';
 
 type AdminShippingAddress = {
   line1?: string;
@@ -112,6 +127,8 @@ type AdminOrder = {
   updatedAt: string;
   raw?: {
     attribution?: AdminOrderAttribution;
+    orderNote?: string;
+    confirmationEmailSentAt?: string;
     shippedEmailSentAt?: string;
     checkoutSession?: {
       shippingContact?: AdminShippingContact | null;
@@ -144,6 +161,7 @@ type AdminDashboardResponse = {
   notifications: AdminNotification[];
   emailStatus?: {
     customerEmailsConfigured: boolean;
+    customerEmailsAutomatic?: boolean;
     ownerAlertsConfigured: boolean;
   };
 };
@@ -193,6 +211,20 @@ type AdminOrderUpdatePayload = {
   carrier?: string;
   trackingNumber?: string;
   trackingUrl?: string;
+};
+
+type AdminCustomerEmailType = 'confirmation' | 'shipping';
+
+type AdminCustomerEmailResponse = {
+  order: AdminOrder;
+  email: {
+    emailType: AdminCustomerEmailType;
+    sent: boolean;
+    skipped: boolean;
+    reason?: string;
+    id?: string | null;
+    resend: boolean;
+  };
 };
 
 type AdminProductDraft = Product & {
@@ -262,9 +294,19 @@ function shortenNotificationIdentifiers(value: string) {
 }
 
 function titleCaseAttributionValue(value: string) {
+  const acronyms = new Set(['cpc', 'ppc', 'cpm', 'cpv', 'cpa', 'seo', 'crm', 'edm']);
+
   return value
     .replace(/[_-]+/g, ' ')
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => {
+      const normalizedWord = word.toLowerCase();
+      return acronyms.has(normalizedWord)
+        ? normalizedWord.toUpperCase()
+        : `${word.charAt(0).toUpperCase()}${word.slice(1)}`;
+    })
+    .join(' ');
 }
 
 function formatAttributionSource(touch: AdminAttributionTouch | undefined) {
@@ -296,6 +338,206 @@ function formatReferrer(value: string | undefined) {
   }
 }
 
+function attributionSourceMatches(source: string, candidates: string[]) {
+  return candidates.some((candidate) =>
+    source === candidate ||
+    source.startsWith(`${candidate}.`) ||
+    source.endsWith(`.${candidate}`),
+  );
+}
+
+function formatAttributionPlatform(source: string) {
+  const knownPlatforms: Array<[string[], string]> = [
+    [['google'], 'Google'],
+    [['bing.com'], 'Bing'],
+    [['search.yahoo.com', 'yahoo.com'], 'Yahoo'],
+    [['duckduckgo.com'], 'DuckDuckGo'],
+    [['ecosia.org'], 'Ecosia'],
+    [['baidu.com'], 'Baidu'],
+    [['yandex.com'], 'Yandex'],
+    [['search.brave.com'], 'Brave Search'],
+    [['facebook.com', 'facebook'], 'Facebook'],
+    [['instagram.com', 'instagram'], 'Instagram'],
+    [['tiktok.com', 'tiktok'], 'TikTok'],
+    [['pinterest.com', 'pinterest'], 'Pinterest'],
+    [['linkedin.com', 'linkedin'], 'LinkedIn'],
+    [['youtube.com', 'youtube'], 'YouTube'],
+    [['twitter.com', 'twitter', 't.co', 'x.com'], 'X / Twitter'],
+    [['reddit.com', 'reddit'], 'Reddit'],
+  ];
+
+  return knownPlatforms.find(([candidates]) => attributionSourceMatches(source, candidates))?.[1]
+    || titleCaseAttributionValue(source.split('.')[0]);
+}
+
+function getAttributionChannel(touch: AdminAttributionTouch | undefined): {
+  channel: AdminAttributionChannel;
+  label: string;
+  detail: string;
+} {
+  if (!touch?.source) {
+    return {
+      channel: 'unknown',
+      label: 'Not captured',
+      detail: 'No source data was saved for this checkout',
+    };
+  }
+
+  const source = touch.source.toLowerCase().replace(/^www\./, '');
+  const medium = touch.medium?.toLowerCase().replace(/[\s-]+/g, '_') || '';
+  const isSearchEngine = attributionSourceMatches(source, [
+    'google',
+    'google.com',
+    'bing.com',
+    'search.yahoo.com',
+    'yahoo.com',
+    'duckduckgo.com',
+    'ecosia.org',
+    'baidu.com',
+    'yandex.com',
+    'search.brave.com',
+  ]);
+  const isSocialSource = attributionSourceMatches(source, [
+    'facebook.com',
+    'facebook',
+    'instagram.com',
+    'instagram',
+    'tiktok.com',
+    'tiktok',
+    'pinterest.com',
+    'pinterest',
+    'linkedin.com',
+    'linkedin',
+    'youtube.com',
+    'youtube',
+    'twitter.com',
+    'twitter',
+    't.co',
+    'x.com',
+    'reddit.com',
+    'reddit',
+  ]);
+  const paidMediums = [
+    'cpc',
+    'ppc',
+    'paid',
+    'paid_search',
+    'paid_social',
+    'social_paid',
+    'display',
+    'banner',
+    'programmatic',
+    'cpm',
+    'cpv',
+    'cpa',
+    'retargeting',
+    'remarketing',
+  ];
+  const isUnconfirmedFacebookClick = Boolean(
+    touch.fbclid &&
+    isSocialSource &&
+    ['social', 'paid_social'].includes(medium) &&
+    !touch.campaign,
+  );
+  const isPaid = Boolean(touch.gclid) || (
+    paidMediums.includes(medium) && !isUnconfirmedFacebookClick
+  );
+
+  if (isPaid) {
+    return {
+      channel: 'paid',
+      label: 'Paid ad',
+      detail: formatAttributionSource(touch),
+    };
+  }
+
+  if (isUnconfirmedFacebookClick) {
+    return {
+      channel: 'other',
+      label: 'Facebook click',
+      detail: 'Paid vs organic unknown — tag Meta ads with UTMs',
+    };
+  }
+
+  if (['organic', 'organic_search', 'search', 'seo'].includes(medium) || isSearchEngine) {
+    return {
+      channel: 'organic-search',
+      label: 'Organic search',
+      detail: formatAttributionPlatform(source),
+    };
+  }
+
+  if (
+    source === 'direct' &&
+    (!medium || medium === 'none' || medium === '(none)' || medium === 'direct') &&
+    !touch.referrer &&
+    !touch.gclid &&
+    !touch.fbclid &&
+    !touch.campaign
+  ) {
+    return {
+      channel: 'direct',
+      label: 'Direct',
+      detail: 'No ad, search, or referring site recorded',
+    };
+  }
+
+  if (
+    medium === 'email' ||
+    medium === 'e_mail' ||
+    medium === 'newsletter' ||
+    medium === 'edm' ||
+    medium === 'crm' ||
+    medium === 'lifecycle' ||
+    attributionSourceMatches(source, ['email', 'newsletter', 'mailchimp', 'klaviyo', 'resend'])
+  ) {
+    return {
+      channel: 'email',
+      label: 'Email',
+      detail: formatAttributionSource(touch),
+    };
+  }
+
+  if (
+    ['social', 'organic_social', 'social_organic', 'social_network'].includes(medium) ||
+    isSocialSource
+  ) {
+    return {
+      channel: 'organic-social',
+      label: 'Organic social',
+      detail: formatAttributionPlatform(source),
+    };
+  }
+
+  if (
+    ['referral', 'referrer', 'affiliate', 'partner'].includes(medium) ||
+    touch.referrer
+  ) {
+    return {
+      channel: 'referral',
+      label: 'Referral',
+      detail: formatReferrer(touch.referrer) || source,
+    };
+  }
+
+  return {
+    channel: 'other',
+    label: 'Unclassified campaign',
+    detail: formatAttributionSource(touch),
+  };
+}
+
+function attributionTouchesMatch(
+  firstTouch: AdminAttributionTouch | undefined,
+  lastTouch: AdminAttributionTouch | undefined,
+) {
+  return (
+    firstTouch?.source?.toLowerCase() === lastTouch?.source?.toLowerCase() &&
+    (firstTouch?.medium || '').toLowerCase() === (lastTouch?.medium || '').toLowerCase() &&
+    (firstTouch?.campaign || '').toLowerCase() === (lastTouch?.campaign || '').toLowerCase()
+  );
+}
+
 function getFulfillmentLabel(value: string) {
   return fulfillmentStatusOptions.find((option) => option.value === value)?.label || value;
 }
@@ -319,7 +561,7 @@ function getShippingAddressLines(address: AdminShippingAddress | undefined) {
   return [address.line1, address.line2, cityLine, address.country].filter(Boolean) as string[];
 }
 
-function getOrderNextStep(order: AdminOrder, customerEmailsConfigured: boolean) {
+function getOrderNextStep(order: AdminOrder, customerEmailsAutomatic: boolean) {
   if (order.fulfillmentStatus === 'new') {
     return {
       step: 'Step 1 of 3',
@@ -332,9 +574,9 @@ function getOrderNextStep(order: AdminOrder, customerEmailsConfigured: boolean) 
     return {
       step: 'Step 2 of 3',
       title: 'Waiting on Sensaria tracking',
-      body: customerEmailsConfigured
+      body: customerEmailsAutomatic
         ? 'When Sensaria sends tracking, paste it below. Saving it as shipped automatically emails the customer from Armoze.'
-        : 'When Sensaria sends tracking, paste it below. Customer email is not configured yet, so you will need to send the shipping update manually.',
+        : 'When Sensaria sends tracking, paste it below and mark the order shipped. Nothing is emailed until you choose a customer email action.',
     };
   }
 
@@ -344,7 +586,7 @@ function getOrderNextStep(order: AdminOrder, customerEmailsConfigured: boolean) 
       title: 'Shipment is on the way',
       body: order.raw?.shippedEmailSentAt
         ? 'The Armoze shipping email was sent. Mark delivered when you are ready to close the order.'
-        : 'Check Activity to confirm the customer shipping email. Mark delivered when you are ready to close the order.',
+        : 'Tracking is saved, but the customer has not been emailed. Send the shipping email when you are ready.',
     };
   }
 
@@ -375,7 +617,8 @@ function buildFulfillmentCopy(order: AdminOrder) {
   return [
     `PO number: ${identifier}`,
     `Name: ${contact?.name || order.customerName || 'Not captured'}`,
-    `Email: ${contact?.email || order.customerEmail || 'Not captured'}`,
+    'Sensaria GO email: [use your Armoze operations email, not the customer email]',
+    `Customer email (Armoze only): ${contact?.email || order.customerEmail || 'Not captured'}`,
     `Phone: ${contact?.phone || '[not collected — enter your business phone]'}`,
     '',
     'Ship to:',
@@ -596,6 +839,26 @@ async function updateAdminOrder(
   return (await response.json()) as { order: AdminOrder };
 }
 
+async function sendAdminCustomerEmail(
+  adminToken: string,
+  orderId: string,
+  emailType: AdminCustomerEmailType,
+  resend = false,
+) {
+  const response = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}/email`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${adminToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ emailType, resend }),
+  });
+
+  await requireAdminResponse(response, 'Customer email could not be sent.');
+
+  return (await response.json()) as AdminCustomerEmailResponse;
+}
+
 let orderAudioContext: AudioContext | null = null;
 
 function getOrderAudioContext() {
@@ -669,6 +932,8 @@ export default function AdminDashboardClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [updatingOrderId, setUpdatingOrderId] = useState('');
+  const [sendingCustomerEmailKey, setSendingCustomerEmailKey] = useState('');
+  const [customerEmailNotice, setCustomerEmailNotice] = useState<{ orderId: string; message: string } | null>(null);
   const [notificationSoundEnabled, setNotificationSoundEnabled] = useState(false);
   const [adminProducts, setAdminProducts] = useState<Product[]>([]);
   const [assetPaths, setAssetPaths] = useState<string[]>([]);
@@ -1048,6 +1313,39 @@ export default function AdminDashboardClient() {
     }
   }
 
+  async function handleCustomerEmailSend(order: AdminOrder, emailType: AdminCustomerEmailType) {
+    if (!adminToken || !order.customerEmail) {
+      setError('This order does not have a customer email address.');
+      return;
+    }
+
+    const emailLabel = emailType === 'confirmation' ? 'order confirmation' : 'shipping update';
+    const confirmed = window.confirm(`Send the ${emailLabel} to ${order.customerEmail} now?`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    const emailKey = `${order.id}:${emailType}`;
+    setSendingCustomerEmailKey(emailKey);
+    setCustomerEmailNotice(null);
+    setError('');
+
+    try {
+      const result = await sendAdminCustomerEmail(adminToken, order.id, emailType);
+
+      replaceDashboardOrder(result.order);
+      setCustomerEmailNotice({
+        orderId: order.id,
+        message: `${emailType === 'confirmation' ? 'Confirmation' : 'Shipping email'} sent to ${order.customerEmail}.`,
+      });
+    } catch (emailError) {
+      setError(emailError instanceof Error ? emailError.message : 'Customer email could not be sent.');
+    } finally {
+      setSendingCustomerEmailKey('');
+    }
+  }
+
   function selectProductForEditing(productId: string) {
     const product = adminProducts.find((candidate) => candidate.id === productId);
 
@@ -1250,6 +1548,7 @@ export default function AdminDashboardClient() {
   const orders = dashboard?.orders ?? emptyAdminOrders;
   const notifications = dashboard?.notifications ?? [];
   const customerEmailsConfigured = Boolean(dashboard?.emailStatus?.customerEmailsConfigured);
+  const customerEmailsAutomatic = Boolean(dashboard?.emailStatus?.customerEmailsAutomatic);
   const ordersToPlaceCount = orders.filter(
     (order) => order.paymentStatus === 'paid' && order.fulfillmentStatus === 'new',
   ).length;
@@ -2103,14 +2402,16 @@ export default function AdminDashboardClient() {
           <ol>
             <li><span>1</span><div><strong>Place the GO order</strong><small>Copy the recipient and product details from Armoze, upload the print-ready master, then pay in Sensaria.</small></div></li>
             <li><span>2</span><div><strong>Wait for production</strong><small>Save the Sensaria order number here and monitor GO until tracking appears under Orders.</small></div></li>
-            <li><span>3</span><div><strong>Add tracking</strong><small>{customerEmailsConfigured ? 'Save tracking as shipped and Armoze emails the customer automatically.' : 'Customer email is not configured; send the shipping update yourself after saving tracking.'}</small></div></li>
+            <li><span>3</span><div><strong>Add tracking</strong><small>{customerEmailsAutomatic ? 'Save tracking as shipped and Armoze emails the customer automatically.' : 'Save the tracking and mark shipped. The customer is only emailed when you explicitly send it.'}</small></div></li>
           </ol>
-          <div className={`admin-email-readiness ${customerEmailsConfigured ? 'is-ready' : 'needs-setup'}`}>
+          <div className={`admin-email-readiness ${customerEmailsAutomatic ? 'is-ready' : customerEmailsConfigured ? 'is-paused' : 'needs-setup'}`}>
             <Mail aria-hidden="true" size={16} />
             <span>
-              {customerEmailsConfigured
-                ? 'Customer emails are on: paid orders get a confirmation, and marking shipped sends tracking.'
-                : 'Customer emails are off: connect Resend before relying on automatic confirmations or tracking emails.'}
+              {customerEmailsAutomatic
+                ? 'Customer emails are automatic: paid orders get a confirmation, and marking shipped sends tracking.'
+                : customerEmailsConfigured
+                  ? 'Customer emails are paused: saving an order or tracking does not email the customer. Send each email manually when ready.'
+                  : 'Customer emails are paused and Resend is not configured. No customer email can be sent yet.'}
             </span>
           </div>
         </section>
@@ -2161,9 +2462,16 @@ export default function AdminDashboardClient() {
               const attribution = order.raw?.attribution;
               const lastTouch = attribution?.lastTouch || attribution?.firstTouch;
               const firstTouch = attribution?.firstTouch;
+              const saleSource = getAttributionChannel(lastTouch);
+              const firstSource = getAttributionChannel(firstTouch || lastTouch);
+              const hasDifferentFirstTouch = Boolean(
+                firstTouch && lastTouch && !attributionTouchesMatch(firstTouch, lastTouch),
+              );
               const shippingContact = getShippingContact(order);
               const shippingAddressLines = getShippingAddressLines(shippingContact?.address);
-              const nextStep = getOrderNextStep(order, customerEmailsConfigured);
+              const nextStep = getOrderNextStep(order, customerEmailsAutomatic);
+              const confirmationEmailSent = Boolean(order.raw?.confirmationEmailSentAt);
+              const shippingEmailSent = Boolean(order.raw?.shippedEmailSentAt);
 
               return (
                 <article className="admin-order" key={order.id}>
@@ -2212,6 +2520,27 @@ export default function AdminDashboardClient() {
                       </span>
                     ) : null}
                   </div>
+
+                  <div className={`admin-order-acquisition is-${saleSource.channel}`}>
+                    <div className="admin-order-acquisition-heading">
+                      <MousePointerClick aria-hidden="true" size={16} />
+                      <span>How they found you</span>
+                    </div>
+                    <strong>{saleSource.label}</strong>
+                    <small>{saleSource.detail}</small>
+                    {hasDifferentFirstTouch ? (
+                      <span className="admin-order-first-touch">
+                        First visit: <b>{firstSource.label}</b> · {firstSource.detail}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {order.raw?.orderNote ? (
+                    <div className="admin-order-note">
+                      <strong>Customer note</strong>
+                      <p>{order.raw.orderNote}</p>
+                    </div>
+                  ) : null}
 
                   {isPaid ? (
                     <div className={`admin-next-step ${order.fulfillmentStatus}`}>
@@ -2278,10 +2607,72 @@ export default function AdminDashboardClient() {
                           <small>This ties the GO order back to Armoze.</small>
                         </div>
                       </div>
+                      <p className="admin-fulfillment-note">
+                        In Sensaria&apos;s required email field, use your Armoze operations inbox—not the customer&apos;s email—until you have tested exactly what GO sends.
+                      </p>
                       {!shippingContact?.phone ? (
                         <p className="admin-fulfillment-warning">
                           This older checkout has no phone. Sensaria requires one, so enter your business phone for this order. New Armoze checkouts now collect the recipient phone.
                         </p>
+                      ) : null}
+                    </section>
+                  ) : null}
+
+                  {isPaid ? (
+                    <section className="admin-customer-email-panel" aria-label="Customer email controls">
+                      <div className="admin-customer-email-copy">
+                        <Mail aria-hidden="true" size={17} />
+                        <div>
+                          <strong>Customer emails</strong>
+                          <small>
+                            {customerEmailsAutomatic
+                              ? 'Automatic mode is on.'
+                              : 'Paused—only the buttons here can send an email.'}
+                          </small>
+                        </div>
+                      </div>
+                      <div className="admin-customer-email-actions">
+                        <button
+                          className="button button-secondary"
+                          type="button"
+                          disabled={
+                            !customerEmailsConfigured ||
+                            !order.customerEmail ||
+                            confirmationEmailSent ||
+                            sendingCustomerEmailKey === `${order.id}:confirmation`
+                          }
+                          onClick={() => { void handleCustomerEmailSend(order, 'confirmation'); }}
+                        >
+                          {confirmationEmailSent
+                            ? 'Confirmation sent'
+                            : sendingCustomerEmailKey === `${order.id}:confirmation`
+                              ? 'Sending'
+                              : 'Send confirmation'}
+                        </button>
+                        <button
+                          className="button button-secondary"
+                          type="button"
+                          disabled={
+                            !customerEmailsConfigured ||
+                            !order.customerEmail ||
+                            order.fulfillmentStatus !== 'shipped' ||
+                            !hasTracking ||
+                            shippingEmailSent ||
+                            sendingCustomerEmailKey === `${order.id}:shipping`
+                          }
+                          onClick={() => { void handleCustomerEmailSend(order, 'shipping'); }}
+                        >
+                          {shippingEmailSent
+                            ? 'Shipping email sent'
+                            : sendingCustomerEmailKey === `${order.id}:shipping`
+                              ? 'Sending'
+                              : order.fulfillmentStatus === 'shipped' && hasTracking
+                                ? 'Send shipping email'
+                                : 'Shipping email after tracking'}
+                        </button>
+                      </div>
+                      {customerEmailNotice?.orderId === order.id ? (
+                        <p>{customerEmailNotice.message}</p>
                       ) : null}
                     </section>
                   ) : null}
@@ -2415,7 +2806,7 @@ export default function AdminDashboardClient() {
                               {updatingOrderId === order.id
                                 ? 'Saving'
                                 : order.fulfillmentStatus === 'printing'
-                                  ? customerEmailsConfigured
+                                  ? customerEmailsAutomatic
                                     ? 'Save, mark shipped & email customer'
                                     : 'Save & mark shipped'
                                   : 'Update tracking'}
@@ -2423,9 +2814,9 @@ export default function AdminDashboardClient() {
                           </form>
                           {order.fulfillmentStatus === 'printing' ? (
                             <p className="admin-shipping-action-note">
-                              {customerEmailsConfigured
+                              {customerEmailsAutomatic
                                 ? 'This button sends the Armoze shipping email. It does not ask Sensaria to send one.'
-                                : 'Automatic email is off. Send the customer their tracking after saving.'}
+                                : 'Customer email is paused. This saves the tracking and marks shipped without emailing anyone.'}
                             </p>
                           ) : null}
                           {hasTracking || order.shippedAt ? (
@@ -2457,12 +2848,12 @@ export default function AdminDashboardClient() {
 
                   <details className="admin-marketing-details">
                     <summary>
-                      <span><MousePointerClick aria-hidden="true" size={15} /> Marketing source</span>
-                      <small>{formatAttributionSource(lastTouch)}</small>
+                      <span><MousePointerClick aria-hidden="true" size={15} /> Attribution details</span>
+                      <small>Campaign, referrer & landing page</small>
                     </summary>
                     <div className={`admin-order-attribution${lastTouch ? '' : ' is-empty'}`}>
                       <div className="admin-order-attribution-source">
-                        <span>How they found you</span>
+                        <span>Checkout touch</span>
                         <strong>{formatAttributionSource(lastTouch)}</strong>
                       </div>
                       {lastTouch ? (
@@ -2476,7 +2867,7 @@ export default function AdminDashboardClient() {
                           {lastTouch.landingPage ? (
                             <div><dt>Landing page</dt><dd>{lastTouch.landingPage}</dd></div>
                           ) : null}
-                          {firstTouch?.source && firstTouch.source !== lastTouch.source ? (
+                          {hasDifferentFirstTouch ? (
                             <div><dt>First touch</dt><dd>{formatAttributionSource(firstTouch)}</dd></div>
                           ) : null}
                         </dl>

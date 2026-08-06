@@ -55,7 +55,7 @@ const supportCards = [
 const helpTopics = [
   {
     title: 'Shipping and tracking',
-    body: 'Canvas prints are produced in 2-3 business days, then standard U.S. shipping is typically 2-5 business days after production.',
+    body: 'Production takes about 5–8 business days before shipment. Carrier transit begins afterward, and delivery dates are estimates, not guarantees.',
     href: '/shipping',
     icon: Truck,
   },

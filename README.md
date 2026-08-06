@@ -387,9 +387,12 @@ and the dashboard still works; email notifications are recorded as skipped.
 
 ## Customer Emails
 
-With `RESEND_API_KEY` set, the backend also sends customer-facing emails from
-`CUSTOMER_EMAIL_FROM` (falls back to `NEWSLETTER_DISCOUNT_FROM`, then
-`ORDER_NOTIFICATION_FROM`):
+Customer transactional emails are paused by default, even when `RESEND_API_KEY`
+is set. They send from `CUSTOMER_EMAIL_FROM` (falls back to
+`NEWSLETTER_DISCOUNT_FROM`, then `ORDER_NOTIFICATION_FROM`) only after an
+authenticated admin explicitly requests one. Owner order alerts remain
+automatic and separate. Set `CUSTOMER_EMAILS_AUTOMATIC=true` only when all three
+automatic customer flows should be enabled:
 
 1. Order confirmation: sent once when an order first becomes paid.
 2. Shipping notification: sent once when the admin dashboard marks an order as
@@ -400,9 +403,26 @@ With `RESEND_API_KEY` set, the backend also sends customer-facing emails from
    (default `FIRST15`), so make sure that promotion code actually exists in
    Stripe (test and live mode) or the code will fail at checkout.
 
-Each send is recorded in the admin notification log, and repeat sends are
-guarded per order. Stripe checkout sessions expire 24 hours after creation,
-which is what triggers the recovery email for signed-in customers.
+Manual confirmation and shipping sends use:
+
+```text
+POST /api/admin/orders/:orderId/email
+Authorization: Bearer <admin session token>
+Content-Type: application/json
+
+{"emailType":"confirmation"}
+{"emailType":"shipping"}
+```
+
+Shipping email requests require the order to be paid, marked shipped, and have
+a tracking number or tracking URL. Successful sends are recorded in the admin
+notification log and guarded against duplicates. A deliberate repeat requires
+`{"emailType":"confirmation","resend":true}` (or `shipping`).
+
+When automatic delivery is enabled, Stripe checkout sessions expire after 24
+hours and can trigger abandoned-cart recovery for customers whose email is
+known. The recovery email uses `NEWSLETTER_DISCOUNT_CODE` (default `FIRST15`),
+so the matching Stripe promotion code must exist in both test and live mode.
 
 ## Newsletter Signup
 
@@ -463,6 +483,7 @@ ADMIN_API_TOKEN=long_private_emergency_admin_token
 RESEND_API_KEY=re_...
 ORDER_NOTIFICATION_EMAIL=owner@example.com
 ORDER_NOTIFICATION_FROM=Armoze Orders <orders@resend.dev>
+CUSTOMER_EMAILS_AUTOMATIC=false
 ```
 
 Production should use `DATABASE_URL` or the Supabase/Vercel integration's

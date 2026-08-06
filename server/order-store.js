@@ -270,6 +270,16 @@ class LocalOrderStore {
     const database = await readLocalDatabase();
     return database.notifications.slice(0, limit);
   }
+
+  async hasSentNotification(orderId, type) {
+    const database = await readLocalDatabase();
+    return database.notifications.some(
+      (notification) =>
+        notification.orderId === orderId &&
+        notification.type === type &&
+        notification.status === 'sent',
+    );
+  }
 }
 
 class PostgresOrderStore {
@@ -351,6 +361,10 @@ class PostgresOrderStore {
         where payment_status = 'paid'
       `);
       await client.query('create index if not exists notifications_created_at_idx on notifications (created_at desc)');
+      await client.query(`
+        create index if not exists notifications_order_type_status_idx
+        on notifications (order_id, type, status)
+      `);
     } finally {
       if (advisoryLockAcquired) {
         await client.query('select pg_advisory_unlock(421042, 20260513)').catch(() => {});
@@ -415,12 +429,23 @@ class PostgresOrderStore {
   }
 
   async upsertOrder(order) {
-    const existing = await this.getOrder(order.id || order.stripeSessionId);
-    const merged = mergeOrder(existing, order);
-    const wasNewlyPaid = existing?.paymentStatus !== 'paid' && merged.paymentStatus === 'paid';
+    const orderKey = order.id || order.stripeSessionId;
+    const client = await this.pool.connect();
 
-    const result = await this.pool.query(
-      `
+    try {
+      await client.query('begin');
+      await client.query('select pg_advisory_xact_lock(hashtext($1))', [orderKey]);
+
+      const existingResult = await client.query(
+        'select * from orders where id = $1 or stripe_session_id = $1 limit 1 for update',
+        [orderKey],
+      );
+      const existing = this.rowToOrder(existingResult.rows[0]);
+      const merged = mergeOrder(existing, order);
+      const wasNewlyPaid = existing?.paymentStatus !== 'paid' && merged.paymentStatus === 'paid';
+
+      const result = await client.query(
+        `
         insert into orders (
           id,
           stripe_session_id,
@@ -473,35 +498,42 @@ class PostgresOrderStore {
           owner_notification_sent_at = excluded.owner_notification_sent_at,
           updated_at = excluded.updated_at
         returning *
-      `,
-      [
-        merged.id,
-        merged.stripeSessionId,
-        merged.paymentIntentId,
-        merged.checkoutStatus,
-        merged.paymentStatus,
-        merged.fulfillmentStatus,
-        merged.fulfillmentReference,
-        merged.customerName,
-        merged.customerEmail,
-        merged.currency,
-        merged.amountSubtotal,
-        merged.amountShipping,
-        merged.amountTax,
-        merged.amountTotal,
-        JSON.stringify(merged.items),
-        merged.carrier,
-        merged.trackingNumber,
-        merged.trackingUrl,
-        merged.shippedAt,
-        JSON.stringify(merged.raw),
-        merged.ownerNotificationSentAt,
-        merged.createdAt,
-        merged.updatedAt,
-      ],
-    );
+        `,
+        [
+          merged.id,
+          merged.stripeSessionId,
+          merged.paymentIntentId,
+          merged.checkoutStatus,
+          merged.paymentStatus,
+          merged.fulfillmentStatus,
+          merged.fulfillmentReference,
+          merged.customerName,
+          merged.customerEmail,
+          merged.currency,
+          merged.amountSubtotal,
+          merged.amountShipping,
+          merged.amountTax,
+          merged.amountTotal,
+          JSON.stringify(merged.items),
+          merged.carrier,
+          merged.trackingNumber,
+          merged.trackingUrl,
+          merged.shippedAt,
+          JSON.stringify(merged.raw),
+          merged.ownerNotificationSentAt,
+          merged.createdAt,
+          merged.updatedAt,
+        ],
+      );
 
-    return { order: this.rowToOrder(result.rows[0]), wasNewlyPaid };
+      await client.query('commit');
+      return { order: this.rowToOrder(result.rows[0]), wasNewlyPaid };
+    } catch (error) {
+      await client.query('rollback');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async listOrders({ limit = 50 } = {}) {
@@ -655,6 +687,21 @@ class PostgresOrderStore {
     );
 
     return result.rows.map((row) => this.notificationRowToObject(row));
+  }
+
+  async hasSentNotification(orderId, type) {
+    const result = await this.pool.query(
+      `
+        select exists (
+          select 1
+          from notifications
+          where order_id = $1 and type = $2 and status = 'sent'
+        ) as sent
+      `,
+      [orderId, type],
+    );
+
+    return result.rows[0]?.sent === true;
   }
 }
 

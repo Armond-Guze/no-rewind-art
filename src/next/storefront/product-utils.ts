@@ -5,6 +5,34 @@ export const supportMailto = `mailto:${supportEmail}`;
 export const launchOfferCode = 'FIRST15';
 export const launchOfferDiscount = '15%';
 
+export function createCheckoutRequestId() {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `checkout-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+// Temporary compatibility for live Sanity documents that still carry the retired
+// discipline-focus tag. Keep this list explicit so unrelated discipline art does
+// not spill into the Music collection; remove it after those documents are migrated.
+const legacyMusicProductIds = new Set([
+  'life-has-no-rewind-canvas',
+  'reminder-life-has-no-rewind-canvas',
+  'daily-reminder-canvas',
+  'you-cant-turn-back-the-clock-canvas',
+]);
+
+export function productMatchesCollection(
+  product: Pick<Product, 'id' | 'collectionSlugs'>,
+  collectionSlug: string,
+) {
+  return (
+    product.collectionSlugs.includes(collectionSlug) ||
+    (collectionSlug === 'music' && legacyMusicProductIds.has(product.id))
+  );
+}
+
 export function formatPrice(cents: number, currency = 'USD') {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -339,7 +367,7 @@ export function getProductsForCollection(products: Product[], collection: Collec
 
   if (collection.productIds) {
     const taggedProducts = filterProductsForCollectionRules(
-      publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug)),
+      publishedProducts.filter((product) => productMatchesCollection(product, collection.slug)),
       collection.slug,
     );
 
@@ -360,14 +388,14 @@ export function getProductsForCollection(products: Product[], collection: Collec
       publishedProducts.filter(
         (product) =>
           collection.tones?.includes(product.tone) ||
-          product.collectionSlugs.includes(collection.slug),
+          productMatchesCollection(product, collection.slug),
       ),
       collection.slug,
     );
   }
 
   return filterProductsForCollectionRules(
-    publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug)),
+    publishedProducts.filter((product) => productMatchesCollection(product, collection.slug)),
     collection.slug,
   );
 }

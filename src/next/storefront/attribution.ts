@@ -6,10 +6,18 @@ export type AttributionTouch = {
   campaign?: string;
   content?: string;
   term?: string;
+  campaignId?: string;
   referrer?: string;
   landingPage: string;
   capturedAt: string;
   gclid?: string;
+  gbraid?: string;
+  wbraid?: string;
+  dclid?: string;
+  gclsrc?: string;
+  msclkid?: string;
+  ttclid?: string;
+  srsltid?: string;
   fbclid?: string;
 };
 
@@ -71,6 +79,47 @@ function getExternalReferrer() {
   }
 }
 
+function sourceMatches(source: string, candidates: string[]) {
+  return candidates.some((candidate) =>
+    source === candidate ||
+    source.startsWith(`${candidate}.`) ||
+    source.endsWith(`.${candidate}`),
+  );
+}
+
+function getReferrerMedium(source: string) {
+  if (sourceMatches(source, [
+    'google.com',
+    'bing.com',
+    'search.yahoo.com',
+    'yahoo.com',
+    'duckduckgo.com',
+    'ecosia.org',
+    'baidu.com',
+    'yandex.com',
+    'search.brave.com',
+  ])) {
+    return 'organic';
+  }
+
+  if (sourceMatches(source, [
+    'facebook.com',
+    'instagram.com',
+    'tiktok.com',
+    'pinterest.com',
+    'linkedin.com',
+    'youtube.com',
+    'twitter.com',
+    't.co',
+    'x.com',
+    'reddit.com',
+  ])) {
+    return 'social';
+  }
+
+  return 'referral';
+}
+
 function getSourceAndMedium(params: URLSearchParams, referrer: string) {
   const campaignSource = params.get('utm_source')?.trim();
   const campaignMedium = params.get('utm_medium')?.trim();
@@ -82,23 +131,72 @@ function getSourceAndMedium(params: URLSearchParams, referrer: string) {
     };
   }
 
-  if (params.get('gclid')) {
+  if (params.get('gclid') || params.get('gbraid') || params.get('wbraid') || params.get('dclid')) {
     return { source: 'google', medium: 'cpc' };
   }
 
+  if (params.get('msclkid')) {
+    return { source: 'bing', medium: 'cpc' };
+  }
+
+  if (params.get('ttclid')) {
+    return { source: 'tiktok', medium: 'paid_social' };
+  }
+
+  if (params.get('srsltid')) {
+    return { source: 'google', medium: 'organic' };
+  }
+
   if (params.get('fbclid')) {
-    return { source: 'facebook', medium: 'paid_social' };
+    // Facebook appends fbclid to both paid ads and organic outbound links.
+    // Ads should use UTMs (for example utm_medium=paid_social) so we do not
+    // claim an organic Facebook click was definitely paid.
+    return { source: 'facebook', medium: 'social' };
   }
 
   if (referrer) {
     try {
-      return { source: new URL(referrer).hostname.replace(/^www\./, ''), medium: 'referral' };
+      const source = new URL(referrer).hostname.replace(/^www\./, '').toLowerCase();
+      return { source, medium: getReferrerMedium(source) };
     } catch {
       return { source: 'referral', medium: 'referral' };
     }
   }
 
   return { source: 'direct', medium: 'none' };
+}
+
+const landingPageParameterNames = [
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_content',
+  'utm_term',
+  'utm_id',
+  'gclid',
+  'gbraid',
+  'wbraid',
+  'dclid',
+  'gclsrc',
+  'msclkid',
+  'ttclid',
+  'srsltid',
+  'fbclid',
+] as const;
+
+function buildSafeLandingPage(params: URLSearchParams) {
+  const safeParams = new URLSearchParams();
+
+  landingPageParameterNames.forEach((name) => {
+    const value = params.get(name)?.trim();
+
+    if (value) {
+      safeParams.set(name, value.slice(0, 250));
+    }
+  });
+
+  const query = safeParams.toString();
+  return `${window.location.pathname}${query ? `?${query}` : ''}`;
 }
 
 function buildCurrentTouch(): AttributionTouch {
@@ -112,10 +210,18 @@ function buildCurrentTouch(): AttributionTouch {
     ...(params.get('utm_campaign') ? { campaign: params.get('utm_campaign')!.trim() } : {}),
     ...(params.get('utm_content') ? { content: params.get('utm_content')!.trim() } : {}),
     ...(params.get('utm_term') ? { term: params.get('utm_term')!.trim() } : {}),
+    ...(params.get('utm_id') ? { campaignId: params.get('utm_id')!.trim() } : {}),
     ...(referrer ? { referrer } : {}),
-    landingPage: `${window.location.pathname}${window.location.search}`,
+    landingPage: buildSafeLandingPage(params),
     capturedAt: new Date().toISOString(),
     ...(params.get('gclid') ? { gclid: params.get('gclid')!.trim() } : {}),
+    ...(params.get('gbraid') ? { gbraid: params.get('gbraid')!.trim() } : {}),
+    ...(params.get('wbraid') ? { wbraid: params.get('wbraid')!.trim() } : {}),
+    ...(params.get('dclid') ? { dclid: params.get('dclid')!.trim() } : {}),
+    ...(params.get('gclsrc') ? { gclsrc: params.get('gclsrc')!.trim() } : {}),
+    ...(params.get('msclkid') ? { msclkid: params.get('msclkid')!.trim() } : {}),
+    ...(params.get('ttclid') ? { ttclid: params.get('ttclid')!.trim() } : {}),
+    ...(params.get('srsltid') ? { srsltid: params.get('srsltid')!.trim() } : {}),
     ...(params.get('fbclid') ? { fbclid: params.get('fbclid')!.trim() } : {}),
   };
 }
@@ -123,15 +229,7 @@ function buildCurrentTouch(): AttributionTouch {
 function hasUrlAttributionSignal() {
   const params = new URLSearchParams(window.location.search);
 
-  return [
-    'utm_source',
-    'utm_medium',
-    'utm_campaign',
-    'utm_content',
-    'utm_term',
-    'gclid',
-    'fbclid',
-  ].some((key) => params.has(key));
+  return landingPageParameterNames.some((key) => Boolean(params.get(key)?.trim()));
 }
 
 export function captureStorefrontAttribution() {

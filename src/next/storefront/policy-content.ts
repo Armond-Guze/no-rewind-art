@@ -23,20 +23,20 @@ export const policyPages: Record<PolicyPageKey, PolicyPageContent> = {
         title: 'Made-to-order processing',
         body: [
           'Armoze prints are made to order. Production usually begins shortly after checkout is completed and payment is confirmed.',
-          'Most orders are prepared for shipment within 2 to 3 business days. During busy periods or supplier delays, production may take longer.',
+          'Production takes about 5–8 business days before shipment. During busy periods or supplier delays, production may take longer.',
         ],
       },
       {
         title: 'Shipping estimates',
         body: [
-          'Standard shipping is currently offered for U.S. orders through Stripe Checkout. Estimated delivery is typically 2 to 5 business days after production is complete.',
+          'Standard shipping is currently offered for U.S. orders through Stripe Checkout. Carrier transit begins after production is complete and the order ships.',
           'Delivery dates are estimates, not guarantees. Carrier delays, weather, holidays, incorrect addresses, or production issues may affect timing.',
         ],
       },
       {
         title: 'Tracking and address changes',
         body: [
-          'When tracking is available, it will be sent to the email address used at checkout.',
+          'Tracking details are provided when your order ships.',
           `If you entered the wrong shipping address, contact ${supportEmail} as soon as possible. Address changes cannot be guaranteed after an order enters production or ships.`,
         ],
       },

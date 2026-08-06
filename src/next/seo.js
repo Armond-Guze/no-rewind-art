@@ -11,6 +11,7 @@ import {
 import { policyPages } from './storefront/policy-content.ts';
 import {
   hasProductSpecificReviewSummary,
+  productMatchesCollection,
   sizeOptionMatches,
   supportEmail,
 } from './storefront/product-utils.ts';
@@ -410,7 +411,7 @@ export function getProductsForCollection(catalog, slug) {
 
   if (collection.productIds) {
     const taggedProducts = filterProductsForCollectionRules(
-      publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug)),
+      publishedProducts.filter((product) => productMatchesCollection(product, collection.slug)),
       collection.slug,
     );
 
@@ -431,14 +432,14 @@ export function getProductsForCollection(catalog, slug) {
       publishedProducts.filter(
         (product) =>
           collection.tones.includes(product.tone) ||
-          product.collectionSlugs.includes(collection.slug),
+          productMatchesCollection(product, collection.slug),
       ),
       collection.slug,
     );
   }
 
   return filterProductsForCollectionRules(
-    publishedProducts.filter((product) => product.collectionSlugs.includes(collection.slug)),
+    publishedProducts.filter((product) => productMatchesCollection(product, collection.slug)),
     collection.slug,
   );
 }

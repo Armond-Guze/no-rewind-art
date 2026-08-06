@@ -42,10 +42,25 @@ test('local order store persists fulfillment references and prioritizes paid ord
       fulfillmentReference: 'GO-12345',
     });
     const listed = await store.listOrders({ limit: 2 });
+    await store.createNotification({
+      orderId: 'cs_test_paid',
+      type: 'customer_confirmation_email',
+      status: 'sent',
+      title: 'Confirmation sent',
+      body: 'Sent.',
+    });
 
     assert.equal(updated.fulfillmentReference, 'GO-12345');
     assert.equal(listed.orders[0].id, 'cs_test_paid');
     assert.equal((await store.getOrder('cs_test_paid')).fulfillmentReference, 'GO-12345');
+    assert.equal(
+      await store.hasSentNotification('cs_test_paid', 'customer_confirmation_email'),
+      true,
+    );
+    assert.equal(
+      await store.hasSentNotification('cs_test_paid', 'customer_shipped_email'),
+      false,
+    );
   } finally {
     for (const name of databaseEnvironmentNames) {
       if (previousEnvironment[name] === undefined) {
