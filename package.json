@@ -14,6 +14,7 @@
     "launch:audit:strict": "node scripts/launch-readiness-audit.mjs --strict",
     "db:security:check": "node scripts/database-security.mjs",
     "db:security:apply": "node scripts/database-security.mjs --apply",
+    "db:security:verify-data-api": "node scripts/verify-supabase-data-api.mjs",
     "sync:artwork": "node scripts/sync-artwork-library.mjs",
     "prices:drop-tiers": "node scripts/apply-size-price-drop.mjs",
     "prices:normalize-endings": "node scripts/normalize-price-endings.mjs",

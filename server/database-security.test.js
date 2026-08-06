@@ -1,6 +1,23 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { secureServerOnlyTables, serverOnlyTableNames } from './database-security.js';
+import { serverOnlyTableNames, verifyServerOnlyTables } from './database-security.js';
+
+function secureRow(tableName) {
+  return {
+    table_name: tableName,
+    rls_enabled: true,
+    rls_forced: false,
+    runtime_has_schema_usage: true,
+    runtime_can_select: true,
+    runtime_can_insert: true,
+    runtime_can_update: true,
+    runtime_can_delete: false,
+    anon_has_data_privilege: false,
+    authenticated_has_data_privilege: false,
+    public_has_data_privilege: false,
+    deny_policy_exists: true,
+  };
+}
 
 test('lists every application-owned public table', () => {
   assert.deepEqual(serverOnlyTableNames, [
@@ -12,27 +29,63 @@ test('lists every application-owned public table', () => {
   ]);
 });
 
-test('enables RLS and revokes public roles for each unique table', async () => {
-  const queries = [];
+test('accepts locked-down tables with the required runtime DML', async () => {
   const queryable = {
-    async query(text) {
-      queries.push(text);
-      return { rows: [] };
+    async query(_text, values) {
+      return { rows: values[0].map(secureRow) };
     },
   };
 
-  await secureServerOnlyTables(queryable, ['orders', 'orders', 'notifications']);
+  const rows = await verifyServerOnlyTables(queryable, ['orders', 'notifications']);
+  assert.equal(rows.length, 2);
+});
 
-  assert.equal(queries.length, 2);
-  assert.match(queries[0], /alter table public\.orders enable row level security/i);
-  assert.match(queries[0], /revoke all privileges on table public\.orders from public/i);
-  assert.match(queries[0], /array\['anon','authenticated'\]/i);
-  assert.match(queries[1], /alter table public\.notifications enable row level security/i);
+test('rejects missing, exposed, forced, or runtime-inaccessible tables', async () => {
+  await assert.rejects(
+    verifyServerOnlyTables({ query: async () => ({ rows: [] }) }, ['orders']),
+    /missing tables: orders/,
+  );
+
+  for (const insecureUpdate of [
+    { rls_enabled: false },
+    { rls_forced: true },
+    { anon_has_data_privilege: true },
+    { authenticated_has_data_privilege: true },
+    { public_has_data_privilege: true },
+    { deny_policy_exists: false },
+  ]) {
+    await assert.rejects(
+      verifyServerOnlyTables(
+        {
+          query: async () => ({
+            rows: [{ ...secureRow('orders'), ...insecureUpdate }],
+          }),
+        },
+        ['orders'],
+      ),
+      /security migration required/,
+    );
+  }
+
+  await assert.rejects(
+    verifyServerOnlyTables(
+      {
+        query: async () => ({
+          rows: [{ ...secureRow('orders'), runtime_can_update: false }],
+        }),
+      },
+      ['orders'],
+    ),
+    /lacks UPDATE on orders/,
+  );
 });
 
 test('rejects interpolated table identifiers', async () => {
   await assert.rejects(
-    secureServerOnlyTables({ query: async () => ({ rows: [] }) }, ['orders; drop table orders']),
+    verifyServerOnlyTables(
+      { query: async () => ({ rows: [] }) },
+      ['orders; drop table orders'],
+    ),
     /Unsafe database identifier/,
   );
 });

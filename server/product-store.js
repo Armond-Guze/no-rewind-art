@@ -2,7 +2,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createClient } from '@sanity/client';
 import pg from 'pg';
-import { secureServerOnlyTables } from './database-security.js';
+import { verifyServerOnlyTables } from './database-security.js';
 import { readJsonFile, writeJsonFileAtomic } from './local-json-file.js';
 import {
   getArtworkShapeFromSizePreset,
@@ -627,53 +627,12 @@ class PostgresProductStore {
     this.pool = new Pool({
       connectionString: normalizeDatabaseUrl(databaseUrl),
       ssl,
+      options: '-c search_path=public,pg_catalog',
     });
   }
 
   async init() {
-    const client = await this.pool.connect();
-    let advisoryLockAcquired = false;
-
-    try {
-      const lockResult = await client.query('select pg_try_advisory_lock(421042, 20260515) as acquired');
-      advisoryLockAcquired = lockResult.rows[0]?.acquired === true;
-      await client.query(`
-        create table if not exists products (
-          id text primary key,
-          slug text unique not null,
-          published boolean not null default true,
-          sort_order integer not null default 0,
-          data jsonb not null default '{}'::jsonb,
-          created_at timestamptz not null default now(),
-          updated_at timestamptz not null default now()
-        );
-      `);
-      await secureServerOnlyTables(client, ['products']);
-
-      for (const row of seedRows()) {
-        await client.query(
-          `
-            insert into products (id, slug, published, sort_order, data, created_at, updated_at)
-            values ($1, $2, $3, $4, $5::jsonb, $6, $7)
-            on conflict do nothing
-          `,
-          [
-            row.id,
-            row.slug,
-            row.published,
-            row.sortOrder,
-            JSON.stringify(row.data),
-            row.createdAt,
-            row.updatedAt,
-          ],
-        );
-      }
-    } finally {
-      if (advisoryLockAcquired) {
-        await client.query('select pg_advisory_unlock(421042, 20260515)').catch(() => {});
-      }
-      client.release();
-    }
+    await verifyServerOnlyTables(this.pool, ['products']);
   }
 
   rowToStoreRow(row) {

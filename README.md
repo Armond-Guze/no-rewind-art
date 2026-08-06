@@ -309,6 +309,24 @@ them from Stripe webhook events. Local development uses
 `DATABASE_URL` to a Postgres/Supabase connection string so orders persist
 outside the server filesystem.
 
+Production database schema and permissions are managed explicitly rather than
+from serverless cold starts. For a new database, run `server/schema.sql` as the
+database owner. For an existing database, apply
+`server/migrations/20260806_lock_down_public_tables.sql` through the exact
+Postgres role used by Vercel. The migration enables non-forced RLS, revokes
+`PUBLIC`, `anon`, and `authenticated`, installs restrictive deny policies, and
+hardens future-object defaults. Runtime startup only verifies this state.
+
+With database credentials available locally, verification commands are:
+
+```bash
+npm run db:security:check
+npm run db:security:verify-data-api
+```
+
+The second command uses only the Supabase publishable key and sends `limit=0`
+requests; it never downloads table rows.
+
 Admin dashboard:
 
 ```text
@@ -352,9 +370,10 @@ http://127.0.0.1:5173/sign-in
 
 The admin dashboard also includes a product editor. It can update product
 titles, SEO titles, descriptions, image alt text, gallery paths, product
-details, size prices, frame add-on prices, and publish status. Product data is
-seeded from `src/data/catalog.json`, then stored in Postgres/Supabase in
-production. Local development stores edited products in
+details, size prices, frame add-on prices, and publish status. Existing
+production product data is stored in Postgres/Supabase; new databases are
+created and seeded through a controlled migration/import instead of request
+startup. Local development stores edited products in
 `~/.armoze/products/products.json`.
 
 Catalog APIs:
@@ -438,13 +457,13 @@ Local development stores subscribers in:
 ~/.armoze/newsletter/subscribers.json
 ```
 
-Production uses the same `DATABASE_URL`/Supabase Postgres connection as orders
-and creates a `newsletter_subscribers` table automatically. To set it up
-properly:
+Production uses the same `DATABASE_URL`/Supabase Postgres connection as orders.
+To set it up properly:
 
 1. Make sure Vercel has `DATABASE_URL` and `DATABASE_SSL=true`.
-2. Redeploy so the API can create the `newsletter_subscribers` table.
-3. Submit your own email in the footer and confirm the row appears in Supabase.
+2. Run `server/schema.sql` or the current controlled migration as the database
+   owner; runtime startup deliberately does not create tables.
+3. Redeploy, submit your own email in the footer, and confirm the row appears in Supabase.
 4. In Resend, create a segment named `Newsletter Subscribers`, then add its ID
    to Vercel as `RESEND_SEGMENT_ID`. Also set
    `NEWSLETTER_CAMPAIGN_FROM=Armoze <hello@armoze.com>` and

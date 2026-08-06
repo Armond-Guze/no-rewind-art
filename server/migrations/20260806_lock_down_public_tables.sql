@@ -1,75 +1,160 @@
--- Server-only storefront data must not be readable or writable through the
--- Supabase Data API. The application connects directly to PostgreSQL.
+-- Phase 1 immediately closes Supabase Data API access. It intentionally does
+-- not FORCE RLS because the application connects directly as the table owner.
 
 begin;
 
+set local lock_timeout = '5s';
+set local statement_timeout = '30s';
 select pg_advisory_xact_lock(421042, 20260806);
 
-alter table if exists public.orders enable row level security;
-alter table if exists public.notifications enable row level security;
-alter table if exists public.newsletter_subscribers enable row level security;
-alter table if exists public.products enable row level security;
-alter table if exists public.merchant_feed_snapshots enable row level security;
-
-revoke all privileges on table public.orders from public;
-revoke all privileges on table public.notifications from public;
-revoke all privileges on table public.newsletter_subscribers from public;
-revoke all privileges on table public.products from public;
-revoke all privileges on table public.merchant_feed_snapshots from public;
-
-do $database_security$
+do $database_security_preflight$
 declare
-  role_name text;
-  table_name text;
+  missing_tables text[];
+  runtime_bypasses_rls boolean;
 begin
-  foreach role_name in array array['anon', 'authenticated'] loop
-    if to_regrole(role_name) is not null then
-      foreach table_name in array array[
+  select array_agg(table_name order by table_name)
+    into missing_tables
+  from unnest(array[
+    'orders',
+    'newsletter_subscribers',
+    'notifications',
+    'products',
+    'merchant_feed_snapshots'
+  ]::text[]) as required(table_name)
+  where to_regclass(format('public.%I', table_name)) is null;
+
+  if missing_tables is not null then
+    raise exception
+      'Security migration aborted: missing required tables: %',
+      array_to_string(missing_tables, ', ');
+  end if;
+
+  select coalesce(rolsuper or rolbypassrls, false)
+    into runtime_bypasses_rls
+  from pg_roles
+  where rolname = current_user;
+
+  if not runtime_bypasses_rls and exists (
+    select 1
+    from pg_class target_table
+    join pg_namespace target_schema on target_schema.oid = target_table.relnamespace
+    where target_schema.nspname = 'public'
+      and target_table.relname = any(array[
         'orders',
-        'notifications',
         'newsletter_subscribers',
+        'notifications',
         'products',
         'merchant_feed_snapshots'
-      ] loop
-        execute format(
-          'revoke all privileges on table public.%I from %I',
-          table_name,
-          role_name
-        );
-      end loop;
-    end if;
-  end loop;
+      ])
+      and target_table.relkind in ('r', 'p')
+      and not pg_has_role(
+        current_user,
+        pg_get_userbyid(target_table.relowner),
+        'USAGE'
+      )
+  ) then
+    raise exception
+      'Security migration aborted: runtime role % neither owns/inherits all target tables nor BYPASSRLS.',
+      current_user;
+  end if;
 end
-$database_security$;
+$database_security_preflight$;
 
--- Supabase commonly grants Data API roles access to new public objects through
--- default privileges. These statements affect only objects created by the role
--- that runs this migration.
-alter default privileges in schema public revoke all on tables from public;
-alter default privileges in schema public revoke all on sequences from public;
-alter default privileges in schema public revoke execute on functions from public;
+revoke all privileges on table
+  public.orders,
+  public.newsletter_subscribers,
+  public.notifications,
+  public.products,
+  public.merchant_feed_snapshots
+from public, anon, authenticated;
+
+alter table public.orders enable row level security;
+alter table public.newsletter_subscribers enable row level security;
+alter table public.notifications enable row level security;
+alter table public.products enable row level security;
+alter table public.merchant_feed_snapshots enable row level security;
+
+drop policy if exists armoze_deny_data_api on public.orders;
+create policy armoze_deny_data_api
+  on public.orders as restrictive for all to anon, authenticated
+  using (false) with check (false);
+
+drop policy if exists armoze_deny_data_api on public.newsletter_subscribers;
+create policy armoze_deny_data_api
+  on public.newsletter_subscribers as restrictive for all to anon, authenticated
+  using (false) with check (false);
+
+drop policy if exists armoze_deny_data_api on public.notifications;
+create policy armoze_deny_data_api
+  on public.notifications as restrictive for all to anon, authenticated
+  using (false) with check (false);
+
+drop policy if exists armoze_deny_data_api on public.products;
+create policy armoze_deny_data_api
+  on public.products as restrictive for all to anon, authenticated
+  using (false) with check (false);
+
+drop policy if exists armoze_deny_data_api on public.merchant_feed_snapshots;
+create policy armoze_deny_data_api
+  on public.merchant_feed_snapshots as restrictive for all to anon, authenticated
+  using (false) with check (false);
+
+commit;
+
+-- Phase 2 prevents the same exposure on future objects. It is separate so an
+-- owner/default-privilege problem cannot roll back the urgent table lockout.
+begin;
+
+set local lock_timeout = '5s';
+set local statement_timeout = '30s';
+select pg_advisory_xact_lock(421042, 20260806);
 
 do $database_default_security$
 declare
-  role_name text;
+  creator_role name;
 begin
-  foreach role_name in array array['anon', 'authenticated'] loop
-    if to_regrole(role_name) is not null then
-      execute format(
-        'alter default privileges in schema public revoke all on tables from %I',
-        role_name
-      );
-      execute format(
-        'alter default privileges in schema public revoke all on sequences from %I',
-        role_name
-      );
-      execute format(
-        'alter default privileges in schema public revoke execute on functions from %I',
-        role_name
-      );
-    end if;
+  for creator_role in
+    select role_name
+    from (
+      select distinct pg_get_userbyid(target_table.relowner)::name as role_name
+      from pg_class target_table
+      join pg_namespace target_schema on target_schema.oid = target_table.relnamespace
+      where target_schema.nspname = 'public'
+        and target_table.relname = any(array[
+          'orders',
+          'newsletter_subscribers',
+          'notifications',
+          'products',
+          'merchant_feed_snapshots'
+        ])
+        and target_table.relkind in ('r', 'p')
+
+      union
+
+      select current_user::name
+    ) roles
+  loop
+    execute format('grant usage, create on schema public to %I', creator_role);
+    execute format(
+      'alter default privileges for role %I in schema public revoke all privileges on tables from public, anon, authenticated',
+      creator_role
+    );
+    execute format(
+      'alter default privileges for role %I in schema public revoke all privileges on sequences from public, anon, authenticated',
+      creator_role
+    );
+    execute format(
+      'alter default privileges for role %I in schema public revoke all privileges on functions from public, anon, authenticated',
+      creator_role
+    );
+    execute format(
+      'alter default privileges for role %I in schema public revoke all privileges on types from public, anon, authenticated',
+      creator_role
+    );
   end loop;
 end
 $database_default_security$;
+
+revoke create on schema public from public, anon, authenticated;
 
 commit;

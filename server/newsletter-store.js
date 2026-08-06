@@ -1,7 +1,7 @@
 import os from 'node:os';
 import path from 'node:path';
 import pg from 'pg';
-import { secureServerOnlyTables } from './database-security.js';
+import { verifyServerOnlyTables } from './database-security.js';
 import { readJsonFile, writeJsonFileAtomic } from './local-json-file.js';
 
 const { Pool } = pg;
@@ -126,27 +126,12 @@ class PostgresNewsletterStore {
     this.pool = new Pool({
       connectionString: normalizeDatabaseUrl(databaseUrl),
       ssl,
+      options: '-c search_path=public,pg_catalog',
     });
   }
 
   async init() {
-    await this.pool.query(`
-      create table if not exists newsletter_subscribers (
-        id text primary key,
-        email text unique not null,
-        source text not null default 'footer',
-        status text not null default 'active',
-        created_at timestamptz not null default now(),
-        updated_at timestamptz not null default now()
-      );
-    `);
-
-    await this.pool.query(`
-      create index if not exists newsletter_subscribers_updated_at_idx
-      on newsletter_subscribers (updated_at desc);
-    `);
-
-    await secureServerOnlyTables(this.pool, ['newsletter_subscribers']);
+    await verifyServerOnlyTables(this.pool, ['newsletter_subscribers']);
   }
 
   rowToSubscriber(row) {
