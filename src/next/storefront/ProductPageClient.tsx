@@ -7,10 +7,14 @@ import {
   ArrowLeft,
   BadgeCheck,
   Box,
+  CalendarClock,
   Check,
   ChevronDown,
   ChevronUp,
   Clock,
+  Frame,
+  Hammer,
+  Paintbrush,
   Play,
   RotateCcw,
   Ruler,
@@ -1423,10 +1427,10 @@ export default function ProductPageClient({
                 {detailsOpen ? (
                   <div className="product-details-content" id={`${product.id}-details`}>
                     <ul className="product-info-list">
-                      <li><span className="product-info-flag" aria-hidden="true" /> Made in USA</li>
-                      <li><Check aria-hidden="true" size={16} strokeWidth={2.6} /> Ready-to-hang canvas print</li>
-                      <li><Check aria-hidden="true" size={16} strokeWidth={2.6} /> Made to order, just for you</li>
-                      <li><Check aria-hidden="true" size={16} strokeWidth={2.6} /> Premium matte canvas finish</li>
+                      <li><span className="product-info-flag-badge" aria-hidden="true"><span className="product-info-flag" /></span> Made in USA</li>
+                      <li><Frame className="product-info-icon product-info-icon-blue" aria-hidden="true" /> Ready-to-hang canvas print</li>
+                      <li><Hammer className="product-info-icon product-info-icon-terracotta" aria-hidden="true" /> Made to order, just for you</li>
+                      <li><Paintbrush className="product-info-icon product-info-icon-plum" aria-hidden="true" /> Premium matte canvas finish</li>
                     </ul>
                   </div>
                 ) : null}
@@ -1449,10 +1453,10 @@ export default function ProductPageClient({
                 {shippingOpen ? (
                   <div className="product-details-content" id={`${product.id}-shipping-returns`}>
                     <ul className="product-info-list">
-                      <li><Truck aria-hidden="true" size={16} strokeWidth={2.4} /> Free U.S. shipping</li>
-                      <li><Clock aria-hidden="true" size={16} strokeWidth={2.4} /> Expected arrival in 5–8 business days</li>
-                      <li><RotateCcw aria-hidden="true" size={16} strokeWidth={2.4} /> 30-day returns on eligible orders</li>
-                      <li><ShieldCheck aria-hidden="true" size={16} strokeWidth={2.4} /> Support for damaged or incorrect orders</li>
+                      <li><Truck className="product-info-icon product-info-icon-blue" aria-hidden="true" /> Free U.S. shipping</li>
+                      <li><CalendarClock className="product-info-icon product-info-icon-violet" aria-hidden="true" /> Expected arrival in 5–8 business days</li>
+                      <li><RotateCcw className="product-info-icon product-info-icon-terracotta" aria-hidden="true" /> 30-day returns on eligible orders</li>
+                      <li><ShieldCheck className="product-info-icon product-info-icon-green" aria-hidden="true" /> Support for damaged or incorrect orders</li>
                     </ul>
                   </div>
                 ) : null}
