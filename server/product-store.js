@@ -2,6 +2,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createClient } from '@sanity/client';
 import pg from 'pg';
+import { secureServerOnlyTables } from './database-security.js';
 import { readJsonFile, writeJsonFileAtomic } from './local-json-file.js';
 import {
   getArtworkShapeFromSizePreset,
@@ -647,6 +648,7 @@ class PostgresProductStore {
           updated_at timestamptz not null default now()
         );
       `);
+      await secureServerOnlyTables(client, ['products']);
 
       for (const row of seedRows()) {
         await client.query(

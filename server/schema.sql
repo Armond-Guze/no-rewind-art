@@ -72,3 +72,39 @@ create table if not exists newsletter_subscribers (
 
 create index if not exists newsletter_subscribers_updated_at_idx
   on newsletter_subscribers (updated_at desc);
+
+-- These tables are accessed only by the server's direct PostgreSQL connection.
+-- Keep them inaccessible through the Supabase Data API.
+alter table orders enable row level security;
+alter table notifications enable row level security;
+alter table products enable row level security;
+alter table newsletter_subscribers enable row level security;
+
+revoke all privileges on table orders from public;
+revoke all privileges on table notifications from public;
+revoke all privileges on table products from public;
+revoke all privileges on table newsletter_subscribers from public;
+
+do $database_security$
+declare
+  role_name text;
+  table_name text;
+begin
+  foreach role_name in array array['anon', 'authenticated'] loop
+    if to_regrole(role_name) is not null then
+      foreach table_name in array array[
+        'orders',
+        'notifications',
+        'products',
+        'newsletter_subscribers'
+      ] loop
+        execute format(
+          'revoke all privileges on table %I from %I',
+          table_name,
+          role_name
+        );
+      end loop;
+    end if;
+  end loop;
+end
+$database_security$;

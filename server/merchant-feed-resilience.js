@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import pg from 'pg';
+import { secureServerOnlyTables } from './database-security.js';
 
 const { Pool } = pg;
 const defaultMinimumItemCount = 100;
@@ -68,15 +69,17 @@ function getDatabasePool() {
 }
 
 async function ensureSnapshotTable(pool) {
-  globalThis[databaseReadyKey] ??= pool
-    .query(`
+  globalThis[databaseReadyKey] ??= (async () => {
+    await pool.query(`
       create table if not exists merchant_feed_snapshots (
         snapshot_key text primary key,
         feed_xml text not null,
         item_count integer not null,
         updated_at timestamptz not null default now()
       );
-    `)
+    `);
+    await secureServerOnlyTables(pool, ['merchant_feed_snapshots']);
+  })()
     .catch((error) => {
       globalThis[databaseReadyKey] = null;
       throw error;

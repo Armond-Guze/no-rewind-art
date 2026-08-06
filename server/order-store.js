@@ -1,6 +1,7 @@
 import os from 'node:os';
 import path from 'node:path';
 import pg from 'pg';
+import { secureServerOnlyTables } from './database-security.js';
 import { readJsonFile, writeJsonFileAtomic } from './local-json-file.js';
 import { compareAdminOrders } from './order-lifecycle.js';
 
@@ -365,6 +366,7 @@ class PostgresOrderStore {
         create index if not exists notifications_order_type_status_idx
         on notifications (order_id, type, status)
       `);
+      await secureServerOnlyTables(client, ['orders', 'notifications']);
     } finally {
       if (advisoryLockAcquired) {
         await client.query('select pg_advisory_unlock(421042, 20260513)').catch(() => {});

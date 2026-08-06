@@ -1,6 +1,7 @@
 import os from 'node:os';
 import path from 'node:path';
 import pg from 'pg';
+import { secureServerOnlyTables } from './database-security.js';
 import { readJsonFile, writeJsonFileAtomic } from './local-json-file.js';
 
 const { Pool } = pg;
@@ -144,6 +145,8 @@ class PostgresNewsletterStore {
       create index if not exists newsletter_subscribers_updated_at_idx
       on newsletter_subscribers (updated_at desc);
     `);
+
+    await secureServerOnlyTables(this.pool, ['newsletter_subscribers']);
   }
 
   rowToSubscriber(row) {
