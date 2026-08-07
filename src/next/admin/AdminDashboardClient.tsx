@@ -130,6 +130,8 @@ type AdminOrder = {
     orderNote?: string;
     confirmationEmailSentAt?: string;
     shippedEmailSentAt?: string;
+    deliveredEmailSentAt?: string;
+    vendorCostCents?: number | null;
     checkoutSession?: {
       shippingContact?: AdminShippingContact | null;
     };
@@ -211,9 +213,10 @@ type AdminOrderUpdatePayload = {
   carrier?: string;
   trackingNumber?: string;
   trackingUrl?: string;
+  vendorCost?: string;
 };
 
-type AdminCustomerEmailType = 'confirmation' | 'shipping';
+type AdminCustomerEmailType = 'confirmation' | 'shipping' | 'delivered';
 
 type AdminCustomerEmailResponse = {
   order: AdminOrder;
@@ -1252,6 +1255,7 @@ export default function AdminDashboardClient() {
 
     const formData = new FormData(event.currentTarget);
     const fulfillmentReference = String(formData.get('fulfillmentReference') || '').trim();
+    const vendorCost = String(formData.get('vendorCost') || '').trim();
 
     if (!fulfillmentReference) {
       setError('Enter the Sensaria GO order number before marking the order At Sensaria.');
@@ -1265,6 +1269,7 @@ export default function AdminDashboardClient() {
       const { order: updatedOrder } = await updateAdminOrder(adminToken, order.id, {
         fulfillmentReference,
         fulfillmentStatus: 'printing',
+        ...(vendorCost ? { vendorCost } : {}),
       });
 
       replaceDashboardOrder(updatedOrder);
@@ -1287,6 +1292,7 @@ export default function AdminDashboardClient() {
     const carrier = String(formData.get('carrier') || '').trim();
     const trackingNumber = String(formData.get('trackingNumber') || '').trim();
     const trackingUrl = String(formData.get('trackingUrl') || '').trim();
+    const vendorCost = String(formData.get('vendorCost') || '').trim();
     const shouldMarkShipped = order.fulfillmentStatus === 'printing';
 
     if (shouldMarkShipped && !trackingNumber && !trackingUrl) {
@@ -1302,6 +1308,7 @@ export default function AdminDashboardClient() {
         carrier,
         trackingNumber,
         trackingUrl,
+        ...(vendorCost ? { vendorCost } : {}),
         ...(shouldMarkShipped ? { fulfillmentStatus: 'shipped' } : {}),
       });
 
@@ -1319,7 +1326,12 @@ export default function AdminDashboardClient() {
       return;
     }
 
-    const emailLabel = emailType === 'confirmation' ? 'order confirmation' : 'shipping update';
+    const emailLabel =
+      emailType === 'confirmation'
+        ? 'order confirmation'
+        : emailType === 'delivered'
+          ? 'delivery follow-up'
+          : 'shipping update';
     const confirmed = window.confirm(`Send the ${emailLabel} to ${order.customerEmail} now?`);
 
     if (!confirmed) {
@@ -2472,6 +2484,10 @@ export default function AdminDashboardClient() {
               const nextStep = getOrderNextStep(order, customerEmailsAutomatic);
               const confirmationEmailSent = Boolean(order.raw?.confirmationEmailSentAt);
               const shippingEmailSent = Boolean(order.raw?.shippedEmailSentAt);
+              const deliveredEmailSent = Boolean(order.raw?.deliveredEmailSentAt);
+              const vendorCostCents = order.raw?.vendorCostCents;
+              const hasVendorCost = typeof vendorCostCents === 'number' && vendorCostCents >= 0;
+              const marginCents = hasVendorCost ? order.amountTotal - vendorCostCents : null;
 
               return (
                 <article className="admin-order" key={order.id}>
@@ -2670,6 +2686,26 @@ export default function AdminDashboardClient() {
                                 ? 'Send shipping email'
                                 : 'Shipping email after tracking'}
                         </button>
+                        <button
+                          className="button button-secondary"
+                          type="button"
+                          disabled={
+                            !customerEmailsConfigured ||
+                            !order.customerEmail ||
+                            order.fulfillmentStatus !== 'delivered' ||
+                            deliveredEmailSent ||
+                            sendingCustomerEmailKey === `${order.id}:delivered`
+                          }
+                          onClick={() => { void handleCustomerEmailSend(order, 'delivered'); }}
+                        >
+                          {deliveredEmailSent
+                            ? 'Follow-up sent'
+                            : sendingCustomerEmailKey === `${order.id}:delivered`
+                              ? 'Sending'
+                              : order.fulfillmentStatus === 'delivered'
+                                ? 'Send delivery follow-up'
+                                : 'Follow-up after delivery'}
+                        </button>
                       </div>
                       {customerEmailNotice?.orderId === order.id ? (
                         <p>{customerEmailNotice.message}</p>
@@ -2745,6 +2781,16 @@ export default function AdminDashboardClient() {
                               required
                             />
                           </label>
+                          <label>
+                            <span>Sensaria cost (optional)</span>
+                            <input
+                              name="vendorCost"
+                              defaultValue={hasVendorCost ? (vendorCostCents / 100).toFixed(2) : ''}
+                              disabled={updatingOrderId === order.id}
+                              inputMode="decimal"
+                              placeholder="What GO charged, like 24.99"
+                            />
+                          </label>
                           <button
                             className="button button-primary"
                             type="submit"
@@ -2762,6 +2808,9 @@ export default function AdminDashboardClient() {
                             <span><Truck aria-hidden="true" size={17} /> Shipping & tracking</span>
                             <small>
                               {order.fulfillmentReference ? `GO # ${order.fulfillmentReference}` : 'GO order # not saved'}
+                              {hasVendorCost && marginCents !== null
+                                ? ` · Cost ${formatPrice(vendorCostCents, order.currency)} · Margin ${formatPrice(marginCents, order.currency)}`
+                                : ' · Cost not saved'}
                             </small>
                           </div>
                           <form
@@ -2796,6 +2845,16 @@ export default function AdminDashboardClient() {
                                 defaultValue={order.trackingUrl}
                                 disabled={updatingOrderId === order.id}
                                 placeholder="https://..."
+                              />
+                            </label>
+                            <label>
+                              <span>Sensaria cost (optional)</span>
+                              <input
+                                name="vendorCost"
+                                defaultValue={hasVendorCost ? (vendorCostCents / 100).toFixed(2) : ''}
+                                disabled={updatingOrderId === order.id}
+                                inputMode="decimal"
+                                placeholder="What GO charged, like 24.99"
                               />
                             </label>
                             <button

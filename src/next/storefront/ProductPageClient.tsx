@@ -54,6 +54,7 @@ import {
   trackStorefrontEvent,
 } from './analytics';
 import { getCheckoutAttribution } from './attribution';
+import { getNewsletterDiscountCode } from './discount';
 import {
   OptimizedCanvasImage,
   OptimizedRawImage,
@@ -1044,6 +1045,7 @@ export default function ProductPageClient({
           attribution: getCheckoutAttribution(),
           checkoutRequestId: checkoutRequest.current.id,
           items: checkoutItems,
+          ...(getNewsletterDiscountCode() ? { discountCode: getNewsletterDiscountCode() } : {}),
         }),
       });
 

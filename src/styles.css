@@ -7152,6 +7152,20 @@ a.admin-icon-button {
   margin-top: 8px;
 }
 
+.support-hero-note {
+  margin: 14px 0 0;
+  color: var(--muted);
+}
+
+.support-hero-note a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.order-status-form {
+  text-align: left;
+}
+
 .support-page .button-primary {
   background: #111;
   color: #fff;

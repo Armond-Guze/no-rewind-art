@@ -38,6 +38,7 @@ import {
 import { supabaseClient } from '../../lib/supabase';
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
 import { getCheckoutAttribution } from './attribution';
+import { getNewsletterDiscountCode } from './discount';
 import { GoogleCustomerReviewsOptIn } from './GoogleCustomerReviewsOptIn';
 import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
@@ -179,6 +180,13 @@ export default function CartPageClient({
   );
   const checkoutRequest = useRef<{ id: string; signature: string } | null>(null);
   const hasTrackedCartView = useRef(false);
+  const [appliedDiscountCode, setAppliedDiscountCode] = useState('');
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      setAppliedDiscountCode(getNewsletterDiscountCode());
+    });
+  }, []);
 
   const cartProducts = useMemo(() => buildCartLines(cart, products), [cart, products]);
   const subtotal = useMemo(() => getCartSubtotal(cartProducts), [cartProducts]);
@@ -454,6 +462,7 @@ export default function CartPageClient({
           attribution: getCheckoutAttribution(),
           checkoutRequestId: checkoutRequest.current.id,
           items: checkoutItems,
+          ...(getNewsletterDiscountCode() ? { discountCode: getNewsletterDiscountCode() } : {}),
         }),
       });
 
@@ -627,10 +636,17 @@ export default function CartPageClient({
                   </p>
                 ) : null}
 
-                <p className="cart-promo-hint">
-                  First order? Code <strong>{launchOfferCode}</strong> takes {launchOfferDiscount} off at
-                  checkout.
-                </p>
+                {appliedDiscountCode ? (
+                  <p className="cart-promo-hint">
+                    Your code <strong>{appliedDiscountCode}</strong> is applied automatically at
+                    checkout.
+                  </p>
+                ) : (
+                  <p className="cart-promo-hint">
+                    First order? Code <strong>{launchOfferCode}</strong> takes {launchOfferDiscount} off at
+                    checkout.
+                  </p>
+                )}
 
                 {crossSellProducts.length ? (
                   <div className="cart-cross-sell" aria-label="Add another print">

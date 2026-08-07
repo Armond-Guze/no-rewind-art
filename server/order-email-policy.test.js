@@ -48,9 +48,13 @@ test('normalizes the authenticated manual-send payload', () => {
     emailType: 'shipping',
     resend: true,
   });
+  assert.deepEqual(parseManualOrderEmailRequest({ emailType: 'delivered' }), {
+    emailType: 'delivered',
+    resend: false,
+  });
   assert.throws(
     () => parseManualOrderEmailRequest({ emailType: 'abandoned' }),
-    (error) => error.status === 400 && /confirmation or shipping/.test(error.message),
+    (error) => error.status === 400 && /confirmation, shipping, or delivered/.test(error.message),
   );
   assert.throws(
     () => parseManualOrderEmailRequest({ emailType: 'confirmation', resend: 'yes' }),
@@ -88,6 +92,28 @@ test('manual shipping email requires paid, shipped, tracked orders', () => {
     {
       flagName: 'shippedEmailSentAt',
       notificationType: 'customer_shipped_email',
+    },
+  );
+});
+
+test('manual delivered email requires a delivered order', () => {
+  assert.throws(
+    () =>
+      assertManualOrderEmailAllowed(
+        { ...paidOrder, fulfillmentStatus: 'shipped' },
+        { emailType: 'delivered' },
+      ),
+    (error) => error.status === 409 && /Mark the order delivered/.test(error.message),
+  );
+
+  assert.deepEqual(
+    assertManualOrderEmailAllowed(
+      { ...paidOrder, fulfillmentStatus: 'delivered' },
+      { emailType: 'delivered' },
+    ),
+    {
+      flagName: 'deliveredEmailSentAt',
+      notificationType: 'customer_delivered_email',
     },
   );
 });

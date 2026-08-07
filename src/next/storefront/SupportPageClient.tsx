@@ -201,10 +201,17 @@ export default function SupportPageClient() {
             <a className="button button-primary" href="#support-request">
               Start a Request
             </a>
+            <Link className="button button-secondary" href="/order-status">
+              Track an Order
+            </Link>
             <Link className="button button-secondary" href="/account">
               View Orders
             </Link>
           </div>
+          <p className="support-hero-note">
+            Checking on a delivery? <Link href="/order-status">Look up your order status</Link> with
+            your order reference and email — no account needed.
+          </p>
         </section>
 
         <section className="support-request-section" id="support-request" aria-labelledby="support-request-title">

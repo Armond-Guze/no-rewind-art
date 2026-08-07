@@ -48,6 +48,7 @@ import {
 } from './product-utils';
 import { getProductTrackingItem, initStorefrontTracking, trackStorefrontEvent } from './analytics';
 import { captureStorefrontAttribution, getCheckoutAttribution } from './attribution';
+import { getNewsletterDiscountCode, saveNewsletterDiscountCode } from './discount';
 import { ProductImage } from './OptimizedArtwork';
 
 const newsletterPopupDelayMs = 12000;
@@ -310,6 +311,7 @@ function NewsletterDiscountPopup() {
 
       const nextDiscountCode = data.discount?.code || launchOfferCode;
 
+      saveNewsletterDiscountCode(nextDiscountCode);
       setDiscountCode(nextDiscountCode);
       setSubmitted(true);
       setStatus('success');
@@ -1067,6 +1069,7 @@ function CartDrawer({
           checkoutRequestId: checkoutRequest.current.id,
           items: checkoutItems,
           orderNote: orderNote.trim(),
+          ...(getNewsletterDiscountCode() ? { discountCode: getNewsletterDiscountCode() } : {}),
         }),
       });
 
@@ -1317,6 +1320,7 @@ function NextSiteFooter() {
 
       const discountCode = data.discount?.code || launchOfferCode;
 
+      saveNewsletterDiscountCode(discountCode);
       setNewsletterStatus('success');
       setNewsletterMessage(
         data.email?.sent

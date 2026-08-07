@@ -91,6 +91,64 @@ export async function sendOwnerOrderNotification(order) {
   };
 }
 
+export async function sendOwnerOrderPush(order) {
+  const token = process.env.PUSHOVER_APP_TOKEN;
+  const user = process.env.PUSHOVER_USER_KEY;
+
+  if (!token || !user) {
+    return {
+      sent: false,
+      skipped: true,
+      reason: 'Set PUSHOVER_APP_TOKEN and PUSHOVER_USER_KEY to enable push alerts.',
+    };
+  }
+
+  const dashboardUrl = `${process.env.CLIENT_URL || 'http://127.0.0.1:5173'}/admin`;
+  const itemLines = (order.items || []).flatMap((item, index) => {
+    const frame = item.frameLabel === 'Canvas' ? 'Wrapped Canvas' : item.frameLabel;
+    const lines = index > 0 ? [''] : [];
+    lines.push(`<b>${item.quantity} × ${escapeHtml(item.title)}</b>`);
+    if (item.sizeLabel) {
+      lines.push(`Size: ${escapeHtml(item.sizeLabel)}`);
+    }
+    if (frame) {
+      lines.push(`<b>${escapeHtml(frame)}</b>`);
+    }
+    return lines;
+  });
+
+  const response = await fetch('https://api.pushover.net/1/messages.json', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      token,
+      user,
+      html: 1,
+      title: `Cha-ching! ${formatPrice(order.amountTotal, order.currency)}`,
+      message: [...itemLines, escapeHtml(order.customerName || 'A customer')].join('\n'),
+      sound: process.env.PUSHOVER_SOUND || 'cashregister',
+      url: dashboardUrl,
+      url_title: 'Open the Armoze dashboard',
+    }),
+  });
+
+  const result = await response.json().catch(() => null);
+
+  if (!response.ok || result?.status !== 1) {
+    return {
+      sent: false,
+      skipped: false,
+      reason: result?.errors?.join('; ') || `Pushover responded with status ${response.status}.`,
+    };
+  }
+
+  return {
+    sent: true,
+    skipped: false,
+    id: result.request || null,
+  };
+}
+
 function getSiteUrl() {
   return process.env.PUBLIC_SITE_URL || process.env.CLIENT_URL || 'https://armoze.com';
 }
@@ -178,6 +236,8 @@ export async function sendCustomerOrderConfirmationEmail(order) {
   const totals = orderTotalsLines(order);
   const subject = 'Your Armoze order is confirmed';
 
+  const orderStatusUrl = `${siteUrl}/order-status?order=${encodeURIComponent(order.id)}`;
+
   const text = [
     `Hi ${firstName},`,
     '',
@@ -191,6 +251,8 @@ export async function sendCustomerOrderConfirmationEmail(order) {
     'Expected arrival is typically 5–8 business days after checkout.',
     'Tracking details are provided when your order ships.',
     '',
+    `Order reference: ${order.id}`,
+    `Check your order status anytime: ${orderStatusUrl}`,
     `Track your orders: ${siteUrl}/account`,
     'Questions? Reply to this email or write to hello@armoze.com.',
   ].join('\n');
@@ -205,8 +267,9 @@ export async function sendCustomerOrderConfirmationEmail(order) {
       <p style="margin: 0 0 8px;">Expected arrival is typically 5–8 business days after checkout.</p>
       <p style="margin: 0 0 18px;">Tracking details are provided when your order ships.</p>
       <p style="margin: 0 0 20px;">
-        <a href="${escapeHtml(`${siteUrl}/account`)}" style="display: inline-block; padding: 12px 18px; background: #111; color: #fff; font-weight: 700; text-decoration: none;">View your orders</a>
+        <a href="${escapeHtml(orderStatusUrl)}" style="display: inline-block; padding: 12px 18px; background: #111; color: #fff; font-weight: 700; text-decoration: none;">Track your order</a>
       </p>
+      <p style="margin: 0 0 8px; color: #666; font-size: 13px;">Order reference: ${escapeHtml(order.id)}</p>
       <p style="margin: 0; color: #666; font-size: 13px;">Questions? Reply to this email or write to hello@armoze.com.</p>
     </div>
   `;
@@ -225,6 +288,8 @@ export async function sendCustomerOrderShippedEmail(order) {
     order.trackingUrl ? `Track your package: ${order.trackingUrl}` : '',
   ].filter(Boolean);
 
+  const orderStatusUrl = `${siteUrl}/order-status?order=${encodeURIComponent(order.id)}`;
+
   const text = [
     `Hi ${firstName},`,
     '',
@@ -234,6 +299,7 @@ export async function sendCustomerOrderShippedEmail(order) {
     'What is in this shipment:',
     lines,
     '',
+    `Check your order status anytime: ${orderStatusUrl}`,
     `Track your orders: ${siteUrl}/account`,
     'Questions? Reply to this email or write to hello@armoze.com.',
   ].join('\n');
@@ -253,6 +319,7 @@ export async function sendCustomerOrderShippedEmail(order) {
       ${trackingButton}
       <h2 style="font-size: 15px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em;">In this shipment</h2>
       <pre style="background: #f6f3ec; padding: 14px; white-space: pre-wrap; margin: 0 0 20px;">${escapeHtml(lines)}</pre>
+      <p style="margin: 0 0 8px; color: #666; font-size: 13px;"><a href="${escapeHtml(orderStatusUrl)}" style="color: #666;">Check your order status</a></p>
       <p style="margin: 0; color: #666; font-size: 13px;">Questions? Reply to this email or write to hello@armoze.com.</p>
     </div>
   `;
@@ -260,11 +327,65 @@ export async function sendCustomerOrderShippedEmail(order) {
   return sendWithResend({ to: order.customerEmail, subject, text, html });
 }
 
-export async function sendAbandonedCartEmail(order, { discountCode = 'FIRST15', discountLabel = '15%' } = {}) {
+export async function sendCustomerOrderDeliveredEmail(
+  order,
+  { discountCode = 'FIRST15', discountLabel = '15%' } = {},
+) {
+  const siteUrl = getSiteUrl();
+  const firstName = getCustomerFirstName(order);
+  const lines = orderLines(order);
+  const subject = 'How does it look on your wall?';
+
+  const text = [
+    `Hi ${firstName},`,
+    '',
+    'Your Armoze order should be on your wall by now — we hope it looks incredible.',
+    '',
+    'Your order:',
+    lines,
+    '',
+    'Two small favors that mean a lot to a small studio:',
+    '- Reply to this email with a quick photo of the print in your space. We love seeing where the work ends up.',
+    '- If you have a minute, tell us what you think — a sentence or two is plenty.',
+    '',
+    `And when you are ready for the next wall: code ${discountCode} takes ${discountLabel} off your next order.`,
+    '',
+    `Shop the collection: ${siteUrl}`,
+    'Questions or anything not right with your order? Reply to this email and we will make it right.',
+  ].join('\n');
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #151515; line-height: 1.6; max-width: 560px;">
+      <h1 style="font-size: 24px; margin: 0 0 12px;">How does it look on your wall?</h1>
+      <p style="margin: 0 0 18px;">Hi ${escapeHtml(firstName)}, your Armoze order should be on your wall by now — we hope it looks incredible.</p>
+      <pre style="background: #f6f3ec; padding: 14px; white-space: pre-wrap; margin: 0 0 20px;">${escapeHtml(lines)}</pre>
+      <p style="margin: 0 0 8px;">Two small favors that mean a lot to a small studio:</p>
+      <ul style="margin: 0 0 20px; padding-left: 20px;">
+        <li style="margin: 0 0 6px;">Reply with a quick photo of the print in your space — we love seeing where the work ends up.</li>
+        <li style="margin: 0;">Tell us what you think. A sentence or two is plenty.</li>
+      </ul>
+      <p style="margin: 0 0 10px;">When you are ready for the next wall, this takes ${escapeHtml(discountLabel)} off:</p>
+      <p style="display: inline-block; margin: 0 0 20px; padding: 14px 18px; background: #111; color: #fff; font-size: 22px; font-weight: 700; letter-spacing: 0.12em;">${escapeHtml(discountCode)}</p>
+      <p style="margin: 0 0 20px;">
+        <a href="${escapeHtml(siteUrl)}" style="display: inline-block; padding: 12px 18px; background: #111; color: #fff; font-weight: 700; text-decoration: none;">Shop the collection</a>
+      </p>
+      <p style="margin: 0; color: #666; font-size: 13px;">Anything not right with your order? Reply to this email and we will make it right.</p>
+    </div>
+  `;
+
+  return sendWithResend({ to: order.customerEmail, subject, text, html });
+}
+
+export async function sendAbandonedCartEmail(
+  order,
+  { discountCode = 'FIRST15', discountLabel = '15%', recoveryUrl = '' } = {},
+) {
   const siteUrl = getSiteUrl();
   const firstName = getCustomerFirstName(order);
   const lines = orderLines(order);
   const subject = `Still thinking it over? Take ${discountLabel} off`;
+  const resumeUrl = recoveryUrl || `${siteUrl}/cart`;
+  const resumeLabel = recoveryUrl ? 'Resume your checkout' : 'Finish your order';
 
   const text = [
     `Hi ${firstName},`,
@@ -274,7 +395,7 @@ export async function sendAbandonedCartEmail(order, { discountCode = 'FIRST15', 
     '',
     `Use code ${discountCode} at checkout for ${discountLabel} off.`,
     '',
-    `Finish your order: ${siteUrl}/cart`,
+    `${resumeLabel}: ${resumeUrl}`,
     '',
     'You are receiving this because you started checkout at Armoze.',
   ].join('\n');
@@ -287,7 +408,7 @@ export async function sendAbandonedCartEmail(order, { discountCode = 'FIRST15', 
       <p style="margin: 0 0 10px;">Use this code at checkout for ${escapeHtml(discountLabel)} off:</p>
       <p style="display: inline-block; margin: 0 0 20px; padding: 14px 18px; background: #111; color: #fff; font-size: 22px; font-weight: 700; letter-spacing: 0.12em;">${escapeHtml(discountCode)}</p>
       <p style="margin: 0 0 20px;">
-        <a href="${escapeHtml(`${siteUrl}/cart`)}" style="display: inline-block; padding: 12px 18px; background: #111; color: #fff; font-weight: 700; text-decoration: none;">Finish your order</a>
+        <a href="${escapeHtml(resumeUrl)}" style="display: inline-block; padding: 12px 18px; background: #111; color: #fff; font-weight: 700; text-decoration: none;">${escapeHtml(resumeLabel)}</a>
       </p>
       <p style="margin: 0; color: #666; font-size: 13px;">You are receiving this because you started checkout at Armoze.</p>
     </div>

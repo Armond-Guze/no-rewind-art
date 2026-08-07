@@ -7,6 +7,10 @@ const customerOrderEmailDefinitions = {
     flagName: 'shippedEmailSentAt',
     notificationType: 'customer_shipped_email',
   },
+  delivered: {
+    flagName: 'deliveredEmailSentAt',
+    notificationType: 'customer_delivered_email',
+  },
 };
 
 function policyError(message, status = 400) {
@@ -32,7 +36,7 @@ export function parseManualOrderEmailRequest(body) {
   const emailType = String(requestBody.emailType || '').trim();
 
   if (!getCustomerOrderEmailDefinition(emailType)) {
-    throw policyError('emailType must be confirmation or shipping.');
+    throw policyError('emailType must be confirmation, shipping, or delivered.');
   }
 
   if (Object.hasOwn(requestBody, 'resend') && typeof requestBody.resend !== 'boolean') {
@@ -52,7 +56,7 @@ export function assertManualOrderEmailAllowed(
   const definition = getCustomerOrderEmailDefinition(emailType);
 
   if (!definition) {
-    throw policyError('emailType must be confirmation or shipping.');
+    throw policyError('emailType must be confirmation, shipping, or delivered.');
   }
 
   if (order.paymentStatus !== 'paid') {
@@ -71,6 +75,10 @@ export function assertManualOrderEmailAllowed(
     if (order.fulfillmentStatus !== 'shipped') {
       throw policyError('Mark the order shipped before sending the shipping email.', 409);
     }
+  }
+
+  if (emailType === 'delivered' && order.fulfillmentStatus !== 'delivered') {
+    throw policyError('Mark the order delivered before sending the delivery follow-up email.', 409);
   }
 
   const alreadySent = Boolean(

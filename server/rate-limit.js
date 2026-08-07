@@ -22,6 +22,11 @@ export const rateLimits = {
     limit: 60,
     windowMs: 10 * 60 * 1000,
   },
+  orderStatus: {
+    key: 'order-status',
+    limit: 12,
+    windowMs: 10 * 60 * 1000,
+  },
   admin: {
     key: 'admin',
     limit: 120,

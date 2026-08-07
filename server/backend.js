@@ -15,9 +15,11 @@ import {
 import {
   sendAbandonedCartEmail,
   sendCustomerOrderConfirmationEmail,
+  sendCustomerOrderDeliveredEmail,
   sendCustomerOrderShippedEmail,
   sendNewsletterDiscountEmail,
   sendOwnerOrderNotification,
+  sendOwnerOrderPush,
 } from './notifications.js';
 import {
   FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS,
@@ -350,6 +352,20 @@ function normalizeOptionalText(value, maxLength) {
   return text;
 }
 
+function normalizeVendorCostCents(value) {
+  if (value === null || value === undefined || String(value).trim() === '') {
+    return null;
+  }
+
+  const amount = Number(String(value).replace(/[$,\s]/g, ''));
+
+  if (!Number.isFinite(amount) || amount < 0 || amount > 100000) {
+    throw httpError('Enter the vendor cost as a dollar amount, like 24.99.');
+  }
+
+  return Math.round(amount * 100);
+}
+
 function normalizeOptionalUrl(value) {
   const url = normalizeOptionalText(value, 500);
 
@@ -656,6 +672,8 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
     existingCheckoutSession.shippingContact,
     extractStripeShippingContact(session),
   );
+  const recoveryUrl =
+    session.after_expiration?.recovery?.url || existingCheckoutSession.recoveryUrl || '';
   const orderUpdate = {
     id: session.id,
     stripeSessionId: session.id,
@@ -679,6 +697,7 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
         paymentStatus: session.payment_status,
         customer: session.customer,
         ...(shippingContact ? { shippingContact } : {}),
+        ...(recoveryUrl ? { recoveryUrl } : {}),
       },
       ...(attribution ? { attribution } : {}),
       ...(orderNote ? { orderNote } : {}),
@@ -723,6 +742,32 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
         title: 'Owner email failed',
         body: error?.message || 'Unable to send owner notification.',
         channel: 'email',
+        status: 'failed',
+      });
+    }
+
+    try {
+      const pushResult = await sendOwnerOrderPush(order);
+
+      await orderStore.createNotification({
+        type: 'owner_push',
+        orderId: order.id,
+        title: pushResult.sent ? 'Owner push sent' : 'Owner push skipped',
+        body: pushResult.sent
+          ? `Pushover alert sent for order ${order.id}.`
+          : pushResult.reason,
+        channel: 'push',
+        status: pushResult.sent ? 'sent' : pushResult.skipped ? 'skipped' : 'failed',
+        metadata: pushResult,
+      });
+    } catch (error) {
+      console.error(error);
+      await orderStore.createNotification({
+        type: 'owner_push',
+        orderId: order.id,
+        title: 'Owner push failed',
+        body: error?.message || 'Unable to send owner push alert.',
+        channel: 'push',
         status: 'failed',
       });
     }
@@ -814,6 +859,21 @@ function getCustomerOrderEmailDelivery(emailType) {
     };
   }
 
+  if (emailType === 'delivered') {
+    return {
+      send: (order) =>
+        sendCustomerOrderDeliveredEmail(order, {
+          discountCode: newsletterDiscountCode,
+          discountLabel: newsletterDiscountLabel,
+        }),
+      sentTitle: 'Delivery follow-up sent',
+      skippedTitle: 'Delivery follow-up skipped',
+      failedTitle: 'Delivery follow-up failed',
+      sentBody: (order) => `Delivery follow-up emailed to ${order.customerEmail}.`,
+      failedBody: 'Unable to send the delivery follow-up email.',
+    };
+  }
+
   return {
     send: sendCustomerOrderShippedEmail,
     sentTitle: 'Shipping email sent',
@@ -886,7 +946,12 @@ async function deliverCustomerOrderEmail(
 
 async function recordPausedCustomerOrderEmail(order, emailType) {
   const definition = getCustomerOrderEmailDefinition(emailType);
-  const label = emailType === 'confirmation' ? 'Customer confirmation' : 'Shipping email';
+  const label =
+    emailType === 'confirmation'
+      ? 'Customer confirmation'
+      : emailType === 'delivered'
+        ? 'Delivery follow-up'
+        : 'Shipping email';
 
   await orderStore.createNotification({
     type: definition.notificationType,
@@ -917,6 +982,7 @@ async function maybeSendAbandonedCartEmail(order) {
     const recoveryResult = await sendAbandonedCartEmail(order, {
       discountCode: newsletterDiscountCode,
       discountLabel: newsletterDiscountLabel,
+      recoveryUrl: order.raw?.checkoutSession?.recoveryUrl || '',
     });
 
     await orderStore.createNotification({
@@ -964,6 +1030,24 @@ async function maybeSendCustomerShippedEmail(order) {
   }
 
   await deliverCustomerOrderEmail(order, 'shipping', { source: 'automatic' });
+}
+
+async function maybeSendCustomerDeliveredEmail(order) {
+  if (
+    !order ||
+    order.paymentStatus !== 'paid' ||
+    !order.customerEmail ||
+    order.raw?.deliveredEmailSentAt
+  ) {
+    return;
+  }
+
+  if (!getCustomerEmailStatus().customerEmailsAutomatic) {
+    await recordPausedCustomerOrderEmail(order, 'delivered');
+    return;
+  }
+
+  await deliverCustomerOrderEmail(order, 'delivered', { source: 'automatic' });
 }
 
 function getOrderTrackingItems(order) {
@@ -1038,6 +1122,28 @@ export async function listPublicCatalog() {
   return productStore.listCatalog();
 }
 
+const promotionCodeCache = new Map();
+
+async function findActivePromotionCodeId(code) {
+  const cached = promotionCodeCache.get(code);
+
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.id;
+  }
+
+  try {
+    const result = await stripe.promotionCodes.list({ code, active: true, limit: 1 });
+    const id = result.data[0]?.id || null;
+
+    promotionCodeCache.set(code, { id, expiresAt: Date.now() + 10 * 60 * 1000 });
+
+    return id;
+  } catch (error) {
+    console.error(`Unable to look up Stripe promotion code ${code}.`, error);
+    return null;
+  }
+}
+
 export async function createCheckoutSession(body, authorizationHeader = '') {
   await ensureReady();
 
@@ -1046,6 +1152,19 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
   }
 
   const cartItems = await normalizeCartItems(body?.items);
+  const requestedDiscountCode = String(body?.discountCode || '').trim().toUpperCase();
+  let checkoutDiscounts;
+
+  if (
+    requestedDiscountCode &&
+    requestedDiscountCode === String(newsletterDiscountCode).toUpperCase()
+  ) {
+    const promotionCodeId = await findActivePromotionCodeId(requestedDiscountCode);
+
+    if (promotionCodeId) {
+      checkoutDiscounts = [{ promotion_code: promotionCodeId }];
+    }
+  }
   const customer = await getOptionalCustomerFromAuthorizationHeader(authorizationHeader);
   const attribution = normalizeCheckoutAttribution(body?.attribution);
   const checkoutRequestId = normalizeCheckoutRequestId(body?.checkoutRequestId);
@@ -1092,7 +1211,7 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
           },
         },
       ],
-      allow_promotion_codes: true,
+      ...(checkoutDiscounts ? { discounts: checkoutDiscounts } : { allow_promotion_codes: true }),
       after_expiration: {
         recovery: {
           enabled: true,
@@ -1214,6 +1333,40 @@ export async function listCustomerOrders(authorizationHeader) {
     },
     orders: result.orders.map(publicCustomerOrder),
   };
+}
+
+export async function lookupGuestOrder(body) {
+  await ensureReady();
+
+  const email = String(body?.email || '').trim().toLowerCase();
+  const reference = String(body?.order || body?.reference || '').trim().toLowerCase();
+
+  if (!email || !email.includes('@')) {
+    throw httpError('Enter the email address you used at checkout.');
+  }
+
+  if (reference.length < 6) {
+    throw httpError('Enter the order reference from your confirmation email.');
+  }
+
+  const { orders } = await orderStore.listCustomerOrdersByEmail(email, { limit: 25 });
+  const order = orders.find((candidate) => {
+    const id = String(candidate.id || '').toLowerCase();
+    const sessionId = String(candidate.stripeSessionId || '').toLowerCase();
+
+    return (
+      id === reference ||
+      sessionId === reference ||
+      id.endsWith(reference) ||
+      sessionId.endsWith(reference)
+    );
+  });
+
+  if (!order) {
+    throw httpError('No order matches that reference and email. Check both and try again.', 404);
+  }
+
+  return { order: publicCustomerOrder(order) };
 }
 
 export async function processStripeWebhook(rawBody, stripeSignature) {
@@ -1547,18 +1700,40 @@ export async function updateAdminOrder(orderId, body = {}) {
     update.trackingUrl = normalizeOptionalUrl(updateBody.trackingUrl);
   }
 
-  if (!Object.keys(update).length) {
+  let vendorCostCents;
+
+  if (Object.hasOwn(updateBody, 'vendorCost')) {
+    vendorCostCents = normalizeVendorCostCents(updateBody.vendorCost);
+  }
+
+  if (!Object.keys(update).length && vendorCostCents === undefined) {
     throw httpError('Order update is empty.');
   }
 
   const previousOrder = await orderStore.getOrder(orderId);
-  const order =
-    typeof orderStore.updateFulfillment === 'function'
-      ? await orderStore.updateFulfillment(orderId, update)
-      : await orderStore.updateFulfillmentStatus(orderId, update.fulfillmentStatus);
+  let order = previousOrder;
+
+  if (Object.keys(update).length) {
+    order =
+      typeof orderStore.updateFulfillment === 'function'
+        ? await orderStore.updateFulfillment(orderId, update)
+        : await orderStore.updateFulfillmentStatus(orderId, update.fulfillmentStatus);
+  }
 
   if (!order) {
     throw httpError('Order not found.', 404);
+  }
+
+  if (vendorCostCents !== undefined) {
+    const { order: orderWithCost } = await orderStore.upsertOrder({
+      id: order.id,
+      stripeSessionId: order.stripeSessionId || order.id,
+      raw: {
+        vendorCostCents,
+      },
+    });
+
+    order = orderWithCost || order;
   }
 
   const becameShipped =
@@ -1566,6 +1741,13 @@ export async function updateAdminOrder(orderId, body = {}) {
 
   if (becameShipped) {
     await maybeSendCustomerShippedEmail(order);
+  }
+
+  const becameDelivered =
+    update.fulfillmentStatus === 'delivered' && previousOrder?.fulfillmentStatus !== 'delivered';
+
+  if (becameDelivered) {
+    await maybeSendCustomerDeliveredEmail(order);
   }
 
   return { order };
