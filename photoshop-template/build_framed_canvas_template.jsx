@@ -9,9 +9,9 @@
     // Measured from the supplied 1003 x 1156 image.
     var OPENING = {
         left: 121,
-        top: 167,
-        right: 808,
-        bottom: 1041,
+        top: 166,
+        right: 809,
+        bottom: 1042,
         radius: 4.0
     };
 
