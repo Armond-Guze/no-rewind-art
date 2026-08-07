@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "rendererVersion": "1.0.0",
+  "output": {
+    "root": "dist/mockups",
+    "masterSize": 3000,
+    "webSize": 1200,
+    "pngCompressionLevel": 9,
+    "jpegQuality": 93
+  },
+  "scenes": [
+    {
+      "id": "natural-living-v1",
+      "label": "Natural living room",
+      "background": "mockups/assets/scenes/natural-living-v1/background.png",
+      "canvas": {
+        "centerX": 0.5,
+        "centerY": 0.365,
+        "maxWidth": 0.64,
+        "maxHeight": 0.42
+      },
+      "depth": {
+        "x": 0.006,
+        "y": 0.004,
+        "brightness": 0.56
+      },
+      "castShadow": {
+        "offsetX": 0.008,
+        "offsetY": 0.011,
+        "blur": 0.018,
+        "opacity": 0.2
+      },
+      "contactShadow": {
+        "offsetX": 0.003,
+        "offsetY": 0.004,
+        "blur": 0.004,
+        "opacity": 0.3
+      },
+      "lighting": {
+        "direction": "left",
+        "highlightOpacity": 0.035,
+        "shadeOpacity": 0.018
+      }
+    },
+    {
+      "id": "dark-office-v1",
+      "label": "Dark natural-light office",
+      "background": "mockups/assets/scenes/dark-office-v1/background.png",
+      "canvas": {
+        "centerX": 0.54,
+        "centerY": 0.46,
+        "maxWidth": 0.6,
+        "maxHeight": 0.4
+      },
+      "depth": {
+        "x": 0.006,
+        "y": 0.004,
+        "brightness": 0.5
+      },
+      "castShadow": {
+        "offsetX": -0.007,
+        "offsetY": 0.01,
+        "blur": 0.017,
+        "opacity": 0.25
+      },
+      "contactShadow": {
+        "offsetX": -0.003,
+        "offsetY": 0.004,
+        "blur": 0.004,
+        "opacity": 0.34
+      },
+      "lighting": {
+        "direction": "right",
+        "highlightOpacity": 0.045,
+        "shadeOpacity": 0.025
+      }
+    },
+    {
+      "id": "loft-reading-v1",
+      "label": "Daylit loft reading corner",
+      "background": "mockups/assets/scenes/loft-reading-v1/background.png",
+      "canvas": {
+        "centerX": 0.56,
+        "centerY": 0.48,
+        "maxWidth": 0.62,
+        "maxHeight": 0.38
+      },
+      "depth": {
+        "x": 0.006,
+        "y": 0.004,
+        "brightness": 0.54
+      },
+      "castShadow": {
+        "offsetX": 0.008,
+        "offsetY": 0.011,
+        "blur": 0.018,
+        "opacity": 0.22
+      },
+      "contactShadow": {
+        "offsetX": 0.003,
+        "offsetY": 0.004,
+        "blur": 0.004,
+        "opacity": 0.32
+      },
+      "lighting": {
+        "direction": "left",
+        "highlightOpacity": 0.04,
+        "shadeOpacity": 0.02
+      }
+    }
+  ]
+}

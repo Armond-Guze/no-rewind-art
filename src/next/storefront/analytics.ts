@@ -35,12 +35,18 @@ type QueuedMetaPixel = {
   version?: string;
 };
 
+type QueuedOpenAiPixel = {
+  (...args: unknown[]): void;
+  q: unknown[][];
+};
+
 declare global {
   interface Window {
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
     fbq?: QueuedMetaPixel;
     _fbq?: QueuedMetaPixel;
+    oaiq?: QueuedOpenAiPixel;
   }
 }
 
@@ -50,6 +56,7 @@ const googleAdsPurchaseLabel = getPublicEnv('VITE_GOOGLE_ADS_PURCHASE_LABEL');
 const googleAdsPurchaseEventName =
   getPublicEnv('VITE_GOOGLE_ADS_PURCHASE_EVENT_NAME') || 'conversion_event_purchase_1';
 const metaPixelId = getPublicEnv('VITE_META_PIXEL_ID');
+const openAiAdsPixelId = getPublicEnv('VITE_OPENAI_ADS_PIXEL_ID');
 let storefrontTrackingInitialized = false;
 
 function appendScript(src: string, id: string) {
@@ -117,6 +124,18 @@ export function initStorefrontTracking() {
     appendScript('https://connect.facebook.net/en_US/fbevents.js', 'armoze-meta-pixel');
     window.fbq('init', metaPixelId);
   }
+
+  if (openAiAdsPixelId && !window.oaiq) {
+    const queue: unknown[][] = [];
+    const oaiq = function oaiq(...args: unknown[]) {
+      queue.push(args);
+    } as QueuedOpenAiPixel;
+    oaiq.q = queue;
+
+    window.oaiq = oaiq;
+    appendScript('https://bzrcdn.openai.com/sdk/oaiq.min.js', 'armoze-openai-ads-pixel');
+    window.oaiq('init', { pixelId: openAiAdsPixelId });
+  }
 }
 
 export function trackStorefrontEvent(eventName: string, payload: EcommercePayload = {}) {
@@ -142,6 +161,37 @@ export function trackStorefrontEvent(eventName: string, payload: EcommercePayloa
     } else if (googleAdsPurchaseEventName) {
       window.gtag?.('event', googleAdsPurchaseEventName, conversionPayload);
     }
+  }
+
+  if (eventName === 'purchase' && openAiAdsPixelId) {
+    const currency = (payload.currency || 'USD').toUpperCase();
+    const value = Number(payload.value);
+    const amount = Number.isFinite(value) ? Math.max(0, Math.round(value * 100)) : undefined;
+    const contents = payload.items?.map((item) => {
+      const itemPrice = Number(item.price);
+      const itemAmount = Number.isFinite(itemPrice)
+        ? Math.max(0, Math.round(itemPrice * 100))
+        : undefined;
+
+      return {
+        id: item.item_id,
+        name: item.item_name,
+        content_type: 'product',
+        quantity: Math.max(1, Math.round(item.quantity || 1)),
+        ...(itemAmount !== undefined ? { amount: itemAmount, currency } : {}),
+      };
+    });
+
+    window.oaiq?.(
+      'measure',
+      'order_created',
+      {
+        type: 'contents',
+        ...(amount !== undefined ? { amount, currency } : {}),
+        ...(contents?.length ? { contents } : {}),
+      },
+      ...(payload.transaction_id ? [{ event_id: payload.transaction_id }] : []),
+    );
   }
 
   const metaEventByName: Record<string, string> = {

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "products": [
+    {
+      "slug": "life-has-no-rewind",
+      "source": "dist/artwork/life-has-no-rewind/60x40.png",
+      "frontCrop": {
+        "left": 450,
+        "top": 450,
+        "width": 18000,
+        "height": 12000
+      },
+      "aspectRatio": "3:2",
+      "textureOpacity": 0.01,
+      "scenes": [
+        "natural-living-v1",
+        "dark-office-v1",
+        "loft-reading-v1"
+      ]
+    }
+  ]
+}

@@ -104,14 +104,14 @@ export const policyPages: Record<PolicyPageKey, PolicyPageContent> = {
     title: 'Privacy Policy',
     description:
       'Learn what information Armoze collects and how order, payment, measurement, advertising, Merchant Center, and customer review services support the store.',
-    updated: 'July 2026',
+    updated: 'August 2026',
     sections: [
       {
         title: 'Information we collect',
         body: [
           'When you place or begin an order, Armoze may receive information such as your name, email address, billing or shipping address, order details, payment status, and support communications. Payment card details are processed by Stripe; Armoze does not store full card numbers on this website.',
           'When you use the site, Google Analytics 4 may collect information such as page and ecommerce events, user and session statistics, approximate location, and browser or device information. Google Analytics may use a first-party cookie, including _ga, to distinguish users and sessions.',
-          'Links from advertising, email, social media, or Google product listings may include campaign or measurement identifiers such as UTM parameters, gclid, fbclid, or srsltid. Armoze may preserve these identifiers with external referrer, landing-page, and visit-timing information so advertising, campaigns, and free-listing activity can be measured.',
+          "Links from advertising, email, social media, or Google product listings may include campaign or measurement identifiers such as UTM parameters, gclid, fbclid, srsltid, or OpenAI's privacy-preserving oppref identifier. Armoze may preserve these identifiers with external referrer, landing-page, and visit-timing information so advertising, campaigns, and free-listing activity can be measured.",
         ],
       },
       {
@@ -143,11 +143,18 @@ export const policyPages: Record<PolicyPageKey, PolicyPageContent> = {
         ],
       },
       {
+        title: 'OpenAI advertising measurement',
+        body: [
+          'Armoze uses the OpenAI Ads Measurement Pixel to measure whether visits from ads in ChatGPT result in purchases. For a completed purchase, the pixel may receive the website origin, event timestamp, product identifiers, quantities, and final purchase value and currency.',
+          "The pixel may capture an oppref identifier from an OpenAI ad link and store it in a first-party __oppref cookie for attribution. Armoze does not send full payment card details through this pixel. Learn more about OpenAI's privacy practices at openai.com/policies/privacy-policy.",
+        ],
+      },
+      {
         title: 'Cookies, links, and local storage',
         body: [
           'The site may use cookies, URL parameters, and browser storage for features such as cart behavior, session state, analytics, advertising measurement, and attribution. Limiting these technologies through your browser may affect some features or measurement.',
           'Armoze stores first- and last-touch attribution details, which may include campaign source, external referrer, landing page, timestamps, and applicable click identifiers, in local storage for up to 90 days. Session storage is also used to recognize the current shopping session. At checkout, first- and last-touch attribution details may be attached to Stripe checkout metadata.',
-          'Service providers, including Google and Stripe, may use cookies or similar technologies when providing their services. Their handling of information is governed by their own policies.',
+          'Service providers, including Google, OpenAI, and Stripe, may use cookies or similar technologies when providing their services. Their handling of information is governed by their own policies.',
         ],
       },
       {

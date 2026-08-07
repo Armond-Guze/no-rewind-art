@@ -1,3 +1,10 @@
+// Pixel IDs are public browser identifiers, not secrets. Keep the ARMOZE pixel as a
+// fallback so production tracking is not disabled by a missing Vercel env value.
+const openAiAdsPixelId =
+  process.env.VITE_OPENAI_ADS_PIXEL_ID ||
+  process.env.NEXT_PUBLIC_OPENAI_ADS_PIXEL_ID ||
+  'X9EVsaEqTjPiZpLG17gifT';
+
 const publicEnv = {
   VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   VITE_SUPABASE_PUBLISHABLE_KEY:
@@ -25,6 +32,8 @@ const publicEnv = {
     'conversion_event_purchase_1',
   VITE_META_PIXEL_ID: process.env.VITE_META_PIXEL_ID || process.env.NEXT_PUBLIC_META_PIXEL_ID || '',
   NEXT_PUBLIC_META_PIXEL_ID: process.env.NEXT_PUBLIC_META_PIXEL_ID || process.env.VITE_META_PIXEL_ID || '',
+  VITE_OPENAI_ADS_PIXEL_ID: openAiAdsPixelId,
+  NEXT_PUBLIC_OPENAI_ADS_PIXEL_ID: openAiAdsPixelId,
   NEXT_PUBLIC_GOOGLE_CUSTOMER_REVIEWS_MERCHANT_ID:
     process.env.NEXT_PUBLIC_GOOGLE_CUSTOMER_REVIEWS_MERCHANT_ID ||
     process.env.GOOGLE_CUSTOMER_REVIEWS_MERCHANT_ID ||

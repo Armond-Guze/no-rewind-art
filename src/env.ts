@@ -21,6 +21,8 @@ const nextEnv: PublicEnv =
           process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_EVENT_NAME,
         VITE_META_PIXEL_ID: process.env.VITE_META_PIXEL_ID,
         NEXT_PUBLIC_META_PIXEL_ID: process.env.NEXT_PUBLIC_META_PIXEL_ID,
+        VITE_OPENAI_ADS_PIXEL_ID: process.env.VITE_OPENAI_ADS_PIXEL_ID,
+        NEXT_PUBLIC_OPENAI_ADS_PIXEL_ID: process.env.NEXT_PUBLIC_OPENAI_ADS_PIXEL_ID,
       };
 
 export function getPublicEnv(name: string) {
@@ -46,6 +48,10 @@ export function getPublicEnv(name: string) {
 
   if (name === 'VITE_META_PIXEL_ID') {
     return nextEnv.VITE_META_PIXEL_ID || nextEnv.NEXT_PUBLIC_META_PIXEL_ID || '';
+  }
+
+  if (name === 'VITE_OPENAI_ADS_PIXEL_ID') {
+    return nextEnv.VITE_OPENAI_ADS_PIXEL_ID || nextEnv.NEXT_PUBLIC_OPENAI_ADS_PIXEL_ID || '';
   }
 
   return nextEnv[name] || '';

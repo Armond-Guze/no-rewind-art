@@ -16,6 +16,8 @@
     "db:security:apply": "node scripts/database-security.mjs --apply",
     "db:security:verify-data-api": "node scripts/verify-supabase-data-api.mjs",
     "sync:artwork": "node scripts/sync-artwork-library.mjs",
+    "mockups:generate": "node scripts/mockups/generate.mjs",
+    "mockups:verify": "node scripts/mockups/verify.mjs",
     "prices:drop-tiers": "node scripts/apply-size-price-drop.mjs",
     "prices:normalize-endings": "node scripts/normalize-price-endings.mjs",
     "test:notification": "node scripts/send-test-order-notification.mjs",
