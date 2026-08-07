@@ -1,0 +1,22 @@
+FRAMED CANVAS SMART OBJECT TEMPLATE
+
+Fastest workflow
+
+1. Open Framed_Canvas_Smart_Object_Template.psdt in Photoshop.
+   A .psdt opens as a fresh untitled copy, so the master stays clean.
+2. In the Layers panel, double-click the thumbnail on:
+      YOUR ARTWORK - DOUBLE-CLICK ME
+3. In the PSB tab that opens, choose File > Place Embedded and select your artwork.
+4. Press Enter/Return to confirm placement. If needed, use Ctrl+T so the artwork covers the full PSB canvas.
+5. Press Ctrl+S, then close the PSB tab. Your artwork will update inside the frame automatically.
+6. Export the finished mockup as JPG or PNG.
+
+Keep these layers turned on:
+
+- FRAME + INNER SHADOW - KEEP ON
+- CANVAS TEXTURE - KEEP ON
+- CANVAS LIGHTING - KEEP ON
+
+The Smart Object is sized and positioned to the photographed canvas opening. Artwork extends slightly beneath the frame edge to prevent white seams.
+
+Tip: artwork close to a 4:5 portrait ratio will require the least cropping.

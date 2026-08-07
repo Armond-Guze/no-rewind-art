@@ -14446,19 +14446,19 @@ a.admin-icon-button {
   .product-canvas-image.frame-white,
 .mobile-gallery-slide
   .product-canvas-image.frame-white {
-  --canvas-frame-face: #f8f7f4;
-  --canvas-frame-face-top: #fefefd;
-  --canvas-frame-face-left: #f8f7f4;
-  --canvas-frame-face-right: #f2f1ec;
-  --canvas-frame-face-bottom: #e9e8e2;
-  --canvas-frame-outer-line: rgba(60, 56, 48, 0.2);
-  --canvas-frame-wall-line: rgba(60, 56, 48, 0.16);
-  --canvas-frame-gap-bg: #eceae4;
-  --canvas-frame-gap-shade-strong: rgba(58, 54, 46, 0.36);
-  --canvas-frame-gap-shade: rgba(58, 54, 46, 0.24);
-  --canvas-frame-gap-shade-soft: rgba(58, 54, 46, 0.17);
-  --canvas-frame-gap-shade-softest: rgba(58, 54, 46, 0.12);
-  --canvas-frame-canvas-shadow: rgba(45, 42, 36, 0.35);
+  --canvas-frame-face: #dededb;
+  --canvas-frame-face-top: #ebebe8;
+  --canvas-frame-face-left: #e3e3df;
+  --canvas-frame-face-right: #d9d9d4;
+  --canvas-frame-face-bottom: #cecec8;
+  --canvas-frame-outer-line: rgba(42, 42, 40, 0.28);
+  --canvas-frame-wall-line: rgba(34, 34, 32, 0.34);
+  --canvas-frame-gap-bg: #bebebb;
+  --canvas-frame-gap-shade-strong: rgba(28, 28, 27, 0.48);
+  --canvas-frame-gap-shade: rgba(28, 28, 27, 0.34);
+  --canvas-frame-gap-shade-soft: rgba(28, 28, 27, 0.22);
+  --canvas-frame-gap-shade-softest: rgba(28, 28, 27, 0.14);
+  --canvas-frame-canvas-shadow: rgba(24, 24, 23, 0.44);
 }
 
 /* the frame casts its own drop shadow — hide the ellipse ground shadow */
