@@ -100,9 +100,9 @@ const framePreviewImages: Record<string, string> = {
 };
 
 const desktopMainProductGalleryImageSizes =
-  '(max-width: 760px) 92vw, (max-width: 1900px) 1065px, (max-width: 3800px) 61vw, 2100px';
+  '(max-width: 760px) 92vw, (max-width: 1900px) 1020px, 1120px';
 const desktopSecondaryProductGalleryImageSizes =
-  '(max-width: 760px) 92vw, (max-width: 1900px) 900px, 1080px';
+  '(max-width: 760px) 92vw, (max-width: 1900px) 860px, 920px';
 
 function FrameOptionPreview({ option }: { option: FrameOption }) {
   const variant = getFramePreviewVariant(option);
