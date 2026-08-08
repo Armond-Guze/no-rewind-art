@@ -57,6 +57,8 @@ type PurchaseConversionResponse = {
     transaction_id: string;
     currency: string;
     value: number;
+    tax?: number;
+    shipping?: number;
     items?: Array<{
       item_id: string;
       item_name: string;

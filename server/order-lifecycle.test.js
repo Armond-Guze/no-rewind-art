@@ -4,10 +4,68 @@ import {
   FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS,
   compareAdminOrders,
   extractStripeShippingContact,
+  getStripePurchaseAmounts,
   hasUsableShippingAddress,
   mergeStripeShippingContacts,
   shouldBackfillStripeShippingContact,
 } from './order-lifecycle.js';
+
+test('reports net merchandise separately from Stripe tax and shipping', () => {
+  assert.deepEqual(
+    getStripePurchaseAmounts({
+      amount_subtotal: 10000,
+      amount_total: 9649,
+      total_details: {
+        amount_discount: 1500,
+        amount_shipping: 500,
+        amount_tax: 649,
+      },
+    }),
+    {
+      amountTotal: 9649,
+      amountTax: 649,
+      amountShipping: 500,
+      amountMerchandise: 8500,
+    },
+  );
+});
+
+test('uses current Stripe zeroes instead of stale stored tax and shipping', () => {
+  assert.deepEqual(
+    getStripePurchaseAmounts(
+      {
+        amount_total: 7200,
+        total_details: { amount_shipping: 0, amount_tax: 0 },
+      },
+      { amountTotal: 9000, amountShipping: 500, amountTax: 700 },
+    ),
+    {
+      amountTotal: 7200,
+      amountTax: 0,
+      amountShipping: 0,
+      amountMerchandise: 7200,
+    },
+  );
+});
+
+test('falls back to stored purchase amounts and clamps impossible merchandise totals', () => {
+  assert.deepEqual(
+    getStripePurchaseAmounts({}, { amountTotal: 8500, amountShipping: 0, amountTax: 500 }),
+    {
+      amountTotal: 8500,
+      amountTax: 500,
+      amountShipping: 0,
+      amountMerchandise: 8000,
+    },
+  );
+  assert.equal(
+    getStripePurchaseAmounts({
+      amount_total: 400,
+      total_details: { amount_shipping: 300, amount_tax: 200 },
+    }).amountMerchandise,
+    0,
+  );
+});
 
 test('free standard checkout delivery matches the customer-facing arrival estimate', () => {
   assert.deepEqual(FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS, {

@@ -24,6 +24,7 @@ import {
 import {
   FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS,
   extractStripeShippingContact,
+  getStripePurchaseAmounts,
   mergeStripeShippingContacts,
   shouldBackfillStripeShippingContact,
 } from './order-lifecycle.js';
@@ -685,8 +686,8 @@ async function completeOrderFromCheckoutSession(session, paymentStatusOverride) 
     customerEmail: session.customer_details?.email || session.customer_email || existingOrder?.customerEmail || '',
     currency: session.currency || existingOrder?.currency || 'usd',
     amountSubtotal: session.amount_subtotal ?? existingOrder?.amountSubtotal ?? 0,
-    amountShipping: session.total_details?.amount_shipping || existingOrder?.amountShipping || 0,
-    amountTax: session.total_details?.amount_tax || existingOrder?.amountTax || 0,
+    amountShipping: session.total_details?.amount_shipping ?? existingOrder?.amountShipping ?? 0,
+    amountTax: session.total_details?.amount_tax ?? existingOrder?.amountTax ?? 0,
     amountTotal: session.amount_total ?? existingOrder?.amountTotal ?? 0,
     items,
     raw: {
@@ -1083,14 +1084,19 @@ export async function getGoogleAdsConversion(sessionId) {
   }
 
   const order = await completeOrderFromCheckoutSession(session, 'paid');
-  const amountTotal = Number(order.amountTotal ?? session.amount_total ?? 0);
+  const { amountMerchandise, amountTax, amountShipping } = getStripePurchaseAmounts(
+    session,
+    order,
+  );
   const currency = String(order.currency || session.currency || 'usd').toUpperCase();
 
   return {
     conversion: {
       transaction_id: order.id || session.id,
       currency,
-      value: amountTotal / 100,
+      value: amountMerchandise / 100,
+      tax: amountTax / 100,
+      shipping: amountShipping / 100,
       items: getOrderTrackingItems(order),
     },
   };

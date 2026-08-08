@@ -3,6 +3,29 @@ export const FREE_STANDARD_DELIVERY_ESTIMATE_BUSINESS_DAYS = Object.freeze({
   maximum: 8,
 });
 
+function normalizeStripeCents(value) {
+  const amount = Number(value);
+
+  return Number.isFinite(amount) ? Math.max(0, Math.round(amount)) : 0;
+}
+
+export function getStripePurchaseAmounts(session = {}, order = {}) {
+  const amountTotal = normalizeStripeCents(session.amount_total ?? order.amountTotal);
+  const amountTax = normalizeStripeCents(
+    session.total_details?.amount_tax ?? order.amountTax,
+  );
+  const amountShipping = normalizeStripeCents(
+    session.total_details?.amount_shipping ?? order.amountShipping,
+  );
+
+  return {
+    amountTotal,
+    amountTax,
+    amountShipping,
+    amountMerchandise: Math.max(0, amountTotal - amountTax - amountShipping),
+  };
+}
+
 function normalizeStripeText(value, maxLength = 500) {
   return String(value || '')
     .replace(/[\u0000-\u001f\u007f]/g, ' ')

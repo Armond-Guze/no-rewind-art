@@ -1,6 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -93,6 +99,9 @@ const framePreviewImages: Record<string, string> = {
   white: '/product-support/frame-option-white.jpg',
 };
 
+const desktopProductGalleryImageSizes =
+  '(max-width: 760px) 92vw, (max-width: 1900px) 1020px, (max-width: 3800px) 58vw, 2100px';
+
 function FrameOptionPreview({ option }: { option: FrameOption }) {
   const variant = getFramePreviewVariant(option);
   const previewImage = framePreviewImages[variant] ?? framePreviewImages.canvas;
@@ -179,6 +188,14 @@ function getSizeGuideRecommendation(width: number, height: number) {
 
   return 'Statement scale for large walls, offices, and open rooms.';
 }
+
+const SIZE_GUIDE_SOFA_WIDTH_INCHES = 72;
+const SIZE_GUIDE_SOFA_WIDTH_PERCENT = 57;
+const SIZE_GUIDE_DOOR_HEIGHT_INCHES = 80;
+const SIZE_GUIDE_OPTION_MAX_EDGE_PX = 48;
+const SIZE_GUIDE_LANDSCAPE_MAX_WIDTH_PERCENT = 88;
+const SIZE_GUIDE_LANDSCAPE_MAX_HEIGHT_PERCENT = 54;
+const SIZE_GUIDE_PORTRAIT_MAX_HEIGHT_PERCENT = 72;
 
 type SizeGuideImageCrop = {
   left: number;
@@ -279,8 +296,36 @@ function ProductSizeGuide({
   const { width, height } = getSizeDimensions(selectedOption);
   const isPortrait = height > width;
   const imageCrop = getSizeGuideImageCrop(product.image, width / height);
-  const previewWidth = Math.min(78, Math.max(18, (width / 96) * 100));
-  const portraitPreviewHeight = Math.min(54, Math.max(20, (height / 80) * 72));
+  const rawPreviewWidth = (width / SIZE_GUIDE_SOFA_WIDTH_INCHES) * SIZE_GUIDE_SOFA_WIDTH_PERCENT;
+  const rawPreviewHeight = rawPreviewWidth * (height / width) * 1.5;
+  const landscapeFitScale = Math.min(
+    1,
+    SIZE_GUIDE_LANDSCAPE_MAX_WIDTH_PERCENT / rawPreviewWidth,
+    SIZE_GUIDE_LANDSCAPE_MAX_HEIGHT_PERCENT / rawPreviewHeight,
+  );
+  const rawPortraitPreviewHeight = (height / SIZE_GUIDE_DOOR_HEIGHT_INCHES) * 72;
+  const portraitFitScale = Math.min(
+    1,
+    SIZE_GUIDE_PORTRAIT_MAX_HEIGHT_PERCENT / rawPortraitPreviewHeight,
+  );
+  const previewWidth = rawPreviewWidth * landscapeFitScale;
+  const portraitPreviewHeight = rawPortraitPreviewHeight * portraitFitScale;
+  const previewIsFitted = isPortrait ? portraitFitScale < 1 : landscapeFitScale < 1;
+  const selectedReferenceRatio = Math.round(
+    isPortrait
+      ? (height / SIZE_GUIDE_DOOR_HEIGHT_INCHES) * 100
+      : (width / SIZE_GUIDE_SOFA_WIDTH_INCHES) * 100,
+  );
+  const largestOptionEdge = Math.max(
+    1,
+    ...product.sizeOptions.map((option) => {
+      const dimensions = getSizeDimensions(option);
+      return Math.max(dimensions.width, dimensions.height);
+    }),
+  );
+  const optionPreviewPixelsPerInch = SIZE_GUIDE_OPTION_MAX_EDGE_PX / largestOptionEdge;
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previewStyle = {
     '--size-guide-canvas-width': `${previewWidth}%`,
     '--size-guide-canvas-height': `${portraitPreviewHeight}%`,
@@ -307,13 +352,51 @@ function ProductSizeGuide({
   ].filter(Boolean).join(' ');
   const wallSceneClassName = `size-guide-wall-scene${isPortrait ? ' is-portrait' : ''}`;
 
+  useEffect(() => {
+    const previouslyFocusedElement =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    closeButtonRef.current?.focus();
+
+    return () => previouslyFocusedElement?.focus();
+  }, []);
+
+  function handleDialogKeyDown(event: ReactKeyboardEvent<HTMLElement>) {
+    if (event.key !== 'Tab' || !dialogRef.current) {
+      return;
+    }
+
+    const focusableElements = Array.from(
+      dialogRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((element) => element.offsetParent !== null);
+
+    if (!focusableElements.length) {
+      return;
+    }
+
+    const activeIndex = focusableElements.indexOf(document.activeElement as HTMLElement);
+    const lastIndex = focusableElements.length - 1;
+
+    if (activeIndex === -1 || (!event.shiftKey && activeIndex === lastIndex)) {
+      event.preventDefault();
+      focusableElements[0].focus();
+    } else if (event.shiftKey && activeIndex === 0) {
+      event.preventDefault();
+      focusableElements[lastIndex].focus();
+    }
+  }
+
   return (
     <div className="size-guide-overlay" role="presentation" onMouseDown={onClose}>
       <section
         className="size-guide-dialog"
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="size-guide-title"
+        onKeyDown={handleDialogKeyDown}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header className="size-guide-header">
@@ -321,7 +404,7 @@ function ProductSizeGuide({
             <p className="eyebrow">Wall preview</p>
             <h2 id="size-guide-title">Choose the right scale.</h2>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close size guide">
+          <button ref={closeButtonRef} type="button" onClick={onClose} aria-label="Close size guide">
             <X aria-hidden="true" size={20} />
           </button>
         </header>
@@ -336,6 +419,12 @@ function ProductSizeGuide({
                   : `${selectedOption.label} canvas above a 72 inch sofa`
               }
             >
+              {!isPortrait ? (
+                <span className="size-guide-scene-label" aria-hidden="true">
+                  <Ruler size={13} />
+                  {previewIsFitted ? 'Fit to view' : 'Shown to scale'}
+                </span>
+              ) : null}
               <div className={frameClassName} style={previewStyle}>
                 {product.image ? (
                   <OptimizedRawImage
@@ -355,22 +444,19 @@ function ProductSizeGuide({
                   <span className="size-guide-door-measure"><i>80 in</i></span>
                 </div>
               ) : (
-                <>
-                  <div className="size-guide-furniture" aria-hidden="true">
-                    <span className="size-guide-floor-lamp" />
-                    <span className="size-guide-sofa"><i /><i /><i /></span>
-                    <span className="size-guide-side-table" />
-                  </div>
-                  <div className="size-guide-sofa-measure" aria-hidden="true">
-                    <span />72 in sofa<span />
-                  </div>
-                </>
+                <div className="size-guide-sofa-measure" aria-hidden="true">
+                  <span /><b>72 in sofa</b><span />
+                </div>
               )}
             </div>
             <div className="size-guide-current-size">
-              <div>
+              <div className="size-guide-current-heading">
                 <span>Selected canvas</span>
                 <strong>{selectedOption.label} in</strong>
+              </div>
+              <div className="size-guide-proportion">
+                <strong>{selectedReferenceRatio}%</strong>
+                <span>{isPortrait ? 'of door height' : 'of sofa width'}</span>
               </div>
               <p>{getSizeGuideRecommendation(width, height)}</p>
             </div>
@@ -382,6 +468,12 @@ function ProductSizeGuide({
               {product.sizeOptions.map((option) => {
                 const dimensions = getSizeDimensions(option);
                 const isSelected = option.id === selectedOption.id;
+                const optionIsPortrait = dimensions.height > dimensions.width;
+                const optionReferenceRatio = Math.round(
+                  optionIsPortrait
+                    ? (dimensions.height / SIZE_GUIDE_DOOR_HEIGHT_INCHES) * 100
+                    : (dimensions.width / SIZE_GUIDE_SOFA_WIDTH_INCHES) * 100,
+                );
                 const optionFrame =
                   getAvailableFrameOptions(product, option).find(
                     (candidate) => candidate.id === frameOption.id,
@@ -397,22 +489,33 @@ function ProductSizeGuide({
                   >
                     <span
                       className="size-guide-option-shape"
-                      style={{ aspectRatio: `${dimensions.width} / ${dimensions.height}` }}
+                      style={{
+                        width: `${dimensions.width * optionPreviewPixelsPerInch}px`,
+                        height: `${dimensions.height * optionPreviewPixelsPerInch}px`,
+                      }}
                       aria-hidden="true"
                     />
-                    <span><strong>{option.label}</strong><small>{getSizeGuideRecommendation(dimensions.width, dimensions.height)}</small></span>
+                    <span>
+                      <strong>{option.label} in</strong>
+                      <small>{getSizeGuideRecommendation(dimensions.width, dimensions.height)}</small>
+                      <em>
+                        {optionReferenceRatio}% of {optionIsPortrait ? 'door height' : 'sofa width'}
+                      </em>
+                    </span>
                     <b>{formatPrice(getConfiguredUnitPrice(product, option, optionFrame))}</b>
                   </button>
                 );
               })}
             </div>
             <button className="button button-primary size-guide-apply" type="button" onClick={onClose}>
-              Use {selectedOption.label}
+              Select {selectedOption.label} in
             </button>
             <small className="size-guide-note">
-              {isPortrait
-                ? 'Portrait preview is proportional to a standard 80-inch doorway. Exact appearance varies by wall placement.'
-                : 'Room preview is proportional to a 72-inch sofa. Exact appearance varies by wall and furniture placement.'}
+              {previewIsFitted
+                ? 'This oversize canvas is fitted within the room preview. Use the listed dimensions for exact scale.'
+                : isPortrait
+                ? 'Shown to scale with a standard 80 in doorway. Exact appearance varies by wall placement.'
+                : 'Shown to scale with a 72 in sofa. Exact appearance varies by wall and furniture placement.'}
             </small>
           </div>
         </div>
@@ -1246,6 +1349,7 @@ export default function ProductPageClient({
                         aspectRatio={productAspectRatio}
                         sanityImage={framedMockupSrc ? undefined : selectedGalleryImageMetadata}
                         shape={productDisplayShape}
+                        sizes={desktopProductGalleryImageSizes}
                         priority
                       />
                     ) : selectedGalleryImage ? (
@@ -1255,6 +1359,7 @@ export default function ProductPageClient({
                         alt={selectedGalleryImageMetadata?.alt || product.imageAlt}
                         aspectRatio={productAspectRatio}
                         sanityImage={selectedGalleryImageMetadata}
+                        sizes={desktopProductGalleryImageSizes}
                         priority
                       />
                     ) : (

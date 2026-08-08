@@ -7,6 +7,8 @@ import { getBaseFrameOption, getConfiguredUnitPrice, getFeaturedSizeOption } fro
 type EcommercePayload = {
   currency?: string;
   value?: number;
+  tax?: number;
+  shipping?: number;
   transaction_id?: string;
   coupon?: string;
   page_location?: string;
