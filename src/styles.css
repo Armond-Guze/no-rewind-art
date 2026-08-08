@@ -3100,7 +3100,10 @@ h3 {
   }
 
   .listing-gallery > .main-product-image
-    .detail-artwork-shell:has(.detail-gallery-image),
+    .detail-artwork-shell:has(.detail-gallery-image) {
+    width: min(100%, clamp(520px, 88%, 1080px));
+  }
+
   .listing-gallery > .main-product-image
     .detail-artwork-surface:has(.detail-gallery-image) {
     width: 100%;
@@ -3250,7 +3253,7 @@ h3 {
   }
 
   .listing-layout {
-    grid-template-columns: clamp(1120px, 58vw, 2200px) minmax(440px, 500px);
+    grid-template-columns: clamp(1165px, 61vw, 2200px) minmax(440px, 500px);
     gap: clamp(36px, 2.4vw, 48px);
     justify-content: center;
     padding-right: 0;

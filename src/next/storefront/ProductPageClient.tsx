@@ -99,8 +99,10 @@ const framePreviewImages: Record<string, string> = {
   white: '/product-support/frame-option-white.jpg',
 };
 
-const desktopProductGalleryImageSizes =
-  '(max-width: 760px) 92vw, (max-width: 1900px) 1020px, (max-width: 3800px) 58vw, 2100px';
+const desktopMainProductGalleryImageSizes =
+  '(max-width: 760px) 92vw, (max-width: 1900px) 1065px, (max-width: 3800px) 61vw, 2100px';
+const desktopSecondaryProductGalleryImageSizes =
+  '(max-width: 760px) 92vw, (max-width: 1900px) 900px, 1080px';
 
 function FrameOptionPreview({ option }: { option: FrameOption }) {
   const variant = getFramePreviewVariant(option);
@@ -1349,7 +1351,7 @@ export default function ProductPageClient({
                         aspectRatio={productAspectRatio}
                         sanityImage={framedMockupSrc ? undefined : selectedGalleryImageMetadata}
                         shape={productDisplayShape}
-                        sizes={desktopProductGalleryImageSizes}
+                        sizes={desktopMainProductGalleryImageSizes}
                         priority
                       />
                     ) : selectedGalleryImage ? (
@@ -1359,7 +1361,7 @@ export default function ProductPageClient({
                         alt={selectedGalleryImageMetadata?.alt || product.imageAlt}
                         aspectRatio={productAspectRatio}
                         sanityImage={selectedGalleryImageMetadata}
-                        sizes={desktopProductGalleryImageSizes}
+                        sizes={desktopSecondaryProductGalleryImageSizes}
                         priority
                       />
                     ) : (
