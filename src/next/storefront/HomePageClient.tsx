@@ -551,7 +551,6 @@ export default function HomePageClient({
   featuredProducts,
   newArrivalProducts,
   heroProducts,
-  musicProducts,
   homepageSettings,
 }: {
   allProducts: Product[];
@@ -559,7 +558,6 @@ export default function HomePageClient({
   featuredProducts: Product[];
   newArrivalProducts: Product[];
   heroProducts: Product[];
-  musicProducts: Product[];
   homepageSettings?: HomepageSettings;
 }) {
   const queryCheckoutResult = useUrlSearchParam('checkout');
@@ -856,39 +854,6 @@ export default function HomePageClient({
               items={bestSellerMobileItems}
             />
           ) : null}
-        </section>
-
-        <section
-          className="section shop-section storefront-shop-section music-preview"
-          aria-labelledby="music-preview-title"
-        >
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Turn up the walls</p>
-              <h2 id="music-preview-title">Music & cassette art.</h2>
-              <p className="storefront-section-subcopy">Retro sound, lasting statements.</p>
-            </div>
-            <Link className="section-link" href="/collections/music">
-              Shop Music
-              <ArrowUpRight aria-hidden="true" size={16} />
-            </Link>
-          </div>
-
-          <div className="music-feature-list" aria-label="Music artwork features">
-            <span>Music-room ready</span>
-            <span>Retro cassette originals</span>
-            <span>Made to order</span>
-          </div>
-
-          <div className="product-grid music-products-grid">
-            {musicProducts.map((product) => (
-              <HomeProductCard
-                key={product.id}
-                product={product}
-                priority={false}
-              />
-            ))}
-          </div>
         </section>
 
         <section className="storefront-social-proof" aria-labelledby="storefront-social-proof-title">
