@@ -220,6 +220,7 @@ function getOrganizationStructuredData() {
     '@type': 'Organization',
     '@id': `${siteUrl}/#organization`,
     name: 'Armoze',
+    legalName: 'ARMOZE LLC',
     url: siteUrl,
     description: siteDescription,
     logo: {

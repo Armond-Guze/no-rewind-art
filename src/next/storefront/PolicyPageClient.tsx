@@ -3,6 +3,24 @@
 import type { PolicyPageContent } from './policy-content';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 
+function PolicyParagraph({ paragraph }: { paragraph: PolicyPageContent['sections'][number]['body'][number] }) {
+  if (typeof paragraph === 'string') {
+    return <p>{paragraph}</p>;
+  }
+
+  return (
+    <p>
+      {paragraph.text}{' '}
+      {paragraph.links?.map((link, index) => (
+        <span key={link.href}>
+          {index > 0 ? ' | ' : ''}
+          <a href={link.href}>{link.label}</a>
+        </span>
+      ))}
+    </p>
+  );
+}
+
 export default function PolicyPageClient({ page }: { page: PolicyPageContent }) {
   return (
     <StorefrontShell>
@@ -20,8 +38,11 @@ export default function PolicyPageClient({ page }: { page: PolicyPageContent }) 
             <article className="policy-section" key={section.title}>
               <h2>{section.title}</h2>
               <div>
-                {section.body.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
+                {section.body.map((paragraph, index) => (
+                  <PolicyParagraph
+                    key={typeof paragraph === 'string' ? paragraph : `${section.title}-${index}`}
+                    paragraph={paragraph}
+                  />
                 ))}
               </div>
             </article>

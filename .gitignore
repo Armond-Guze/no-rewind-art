@@ -25,5 +25,9 @@ website-shop-preview.png
 website-product-page-preview.png
 .vercel
 
+# Local Codex work products
+.codex-tmp/
+outputs/
+
 # Staging area for files pending manual deletion
 _to_delete/

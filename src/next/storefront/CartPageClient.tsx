@@ -42,6 +42,7 @@ import { getNewsletterDiscountCode } from './discount';
 import { GoogleCustomerReviewsOptIn } from './GoogleCustomerReviewsOptIn';
 import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
+import { CheckoutPolicyNotice } from './CheckoutPolicyNotice';
 
 type CheckoutState = 'idle' | 'loading' | 'error';
 type CheckoutVerificationState = 'idle' | 'verifying' | 'verified' | 'error';
@@ -625,6 +626,8 @@ export default function CartPageClient({
                   <ShoppingBag aria-hidden="true" size={18} />
                   {checkoutState === 'loading' ? 'Opening Checkout' : 'Secure Checkout'}
                 </button>
+
+                <CheckoutPolicyNotice />
 
                 <ul className="cart-confidence" aria-label="Order benefits">
                   <li><Check aria-hidden="true" size={14} /> Free U.S. shipping</li>

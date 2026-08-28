@@ -1,5 +1,8 @@
 import { Resend } from 'resend';
 
+const legalBusinessName = 'ARMOZE LLC';
+const customerSupportEmail = 'hello@armoze.com';
+
 function formatPrice(cents, currency = 'usd') {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -10,10 +13,42 @@ function formatPrice(cents, currency = 'usd') {
 function orderLines(order) {
   return order.items
     .map((item) => {
-      const size = item.sizeLabel ? ` (${item.sizeLabel})` : '';
-      return `${item.quantity} x ${item.title}${size} - ${formatPrice(item.lineTotal, order.currency)}`;
+      const details = [item.sizeLabel, item.frameLabel].filter(Boolean).join(' / ');
+      const quantity = Number(item.quantity || 1);
+      const unitAmount = Number(item.unitAmount || (quantity ? item.lineTotal / quantity : item.lineTotal));
+
+      return [
+        item.title,
+        details ? `Options: ${details}` : '',
+        `Quantity: ${quantity}`,
+        `Unit price: ${formatPrice(unitAmount, order.currency)}`,
+        `Line total: ${formatPrice(item.lineTotal, order.currency)}`,
+      ].filter(Boolean).join('\n');
     })
-    .join('\n');
+    .join('\n\n');
+}
+
+function orderItemsHtml(order) {
+  return order.items
+    .map((item) => {
+      const details = [item.sizeLabel, item.frameLabel].filter(Boolean).join(' / ');
+      const quantity = Number(item.quantity || 1);
+      const unitAmount = Number(item.unitAmount || (quantity ? item.lineTotal / quantity : item.lineTotal));
+
+      return `
+        <tr>
+          <td style="padding: 12px 0; border-bottom: 1px solid #dedbd4; vertical-align: top;">
+            <strong>${escapeHtml(item.title)}</strong>
+            ${details ? `<br><span style="color:#666;font-size:13px;">${escapeHtml(details)}</span>` : ''}
+            <br><span style="color:#666;font-size:13px;">${quantity} x ${escapeHtml(formatPrice(unitAmount, order.currency))}</span>
+          </td>
+          <td style="padding: 12px 0; border-bottom: 1px solid #dedbd4; text-align: right; vertical-align: top; white-space: nowrap;">
+            ${escapeHtml(formatPrice(item.lineTotal, order.currency))}
+          </td>
+        </tr>
+      `;
+    })
+    .join('');
 }
 
 function escapeHtml(value) {
@@ -167,8 +202,36 @@ function getCustomerFirstName(order) {
   return firstName || 'there';
 }
 
+function formatOrderDate(value) {
+  const date = new Date(value || Date.now());
+
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'America/New_York',
+    timeZoneName: 'short',
+  }).format(Number.isNaN(date.getTime()) ? new Date() : date);
+}
+
+function getOrderDiscountAmount(order) {
+  const beforeDiscount =
+    Number(order.amountSubtotal || 0) +
+    Number(order.amountShipping || 0) +
+    Number(order.amountTax || 0);
+
+  return Math.max(0, beforeDiscount - Number(order.amountTotal || 0));
+}
+
 function orderTotalsLines(order) {
   const lines = [`Subtotal: ${formatPrice(order.amountSubtotal, order.currency)}`];
+  const discountAmount = getOrderDiscountAmount(order);
+
+  if (discountAmount > 0) {
+    lines.push(`Discounts: -${formatPrice(discountAmount, order.currency)}`);
+  }
 
   if (Number(order.amountShipping || 0) > 0) {
     lines.push(`Shipping: ${formatPrice(order.amountShipping, order.currency)}`);
@@ -176,11 +239,9 @@ function orderTotalsLines(order) {
     lines.push('Shipping: Free');
   }
 
-  if (Number(order.amountTax || 0) > 0) {
-    lines.push(`Tax: ${formatPrice(order.amountTax, order.currency)}`);
-  }
+  lines.push(`Tax: ${formatPrice(order.amountTax, order.currency)}`);
 
-  lines.push(`Total: ${formatPrice(order.amountTotal, order.currency)}`);
+  lines.push(`Total (${String(order.currency || 'usd').toUpperCase()}): ${formatPrice(order.amountTotal, order.currency)}`);
 
   return lines.join('\n');
 }
@@ -208,6 +269,7 @@ async function sendWithResend({ to, subject, text, html }) {
   const result = await resend.emails.send({
     from: getCustomerEmailFrom(),
     to,
+    replyTo: process.env.CUSTOMER_EMAIL_REPLY_TO || process.env.NEWSLETTER_REPLY_TO || customerSupportEmail,
     subject,
     text,
     html,
@@ -234,43 +296,76 @@ export async function sendCustomerOrderConfirmationEmail(order) {
   const firstName = getCustomerFirstName(order);
   const lines = orderLines(order);
   const totals = orderTotalsLines(order);
-  const subject = 'Your Armoze order is confirmed';
+  const itemsHtml = orderItemsHtml(order);
+  const orderDate = formatOrderDate(order.createdAt);
+  const paymentStatus = order.paymentStatus === 'paid' ? 'Paid' : String(order.paymentStatus || 'Confirmed');
+  const transactionReference = order.paymentIntentId || '';
+  const subject = 'Receipt and order confirmation - Armoze';
 
   const orderStatusUrl = `${siteUrl}/order-status?order=${encodeURIComponent(order.id)}`;
+  const policyLinks = {
+    shipping: `${siteUrl}/shipping`,
+    returns: `${siteUrl}/returns`,
+    support: `${siteUrl}/support`,
+  };
 
   const text = [
     `Hi ${firstName},`,
     '',
-    'Thank you for your Armoze order. We are getting your print ready.',
+    'Payment received. Keep this email as your order receipt.',
     '',
-    'Order summary:',
+    `Sold by: ${legalBusinessName} (Armoze)`,
+    `Order reference: ${order.id}`,
+    `Order date: ${orderDate}`,
+    `Payment status: ${paymentStatus}`,
+    `Customer email: ${order.customerEmail || 'Not provided'}`,
+    ...(transactionReference ? [`Payment reference: ${transactionReference}`] : []),
+    '',
+    'Items:',
     lines,
     '',
     totals,
     '',
-    'Expected arrival is typically 5–8 business days after checkout.',
-    'Tracking details are provided when your order ships.',
+    'Your made-to-order print is being prepared. We will email tracking details when it ships.',
     '',
-    `Order reference: ${order.id}`,
     `Check your order status anytime: ${orderStatusUrl}`,
-    `Track your orders: ${siteUrl}/account`,
-    'Questions? Reply to this email or write to hello@armoze.com.',
+    `Shipping policy: ${policyLinks.shipping}`,
+    `Returns and refunds: ${policyLinks.returns}`,
+    `Customer support: ${policyLinks.support}`,
+    `Questions? Reply to this email or write to ${customerSupportEmail}.`,
   ].join('\n');
 
   const html = `
-    <div style="font-family: Arial, sans-serif; color: #151515; line-height: 1.6; max-width: 560px;">
-      <h1 style="font-size: 24px; margin: 0 0 12px;">Order confirmed</h1>
-      <p style="margin: 0 0 18px;">Hi ${escapeHtml(firstName)}, thank you for your Armoze order. We are getting your print ready.</p>
-      <h2 style="font-size: 15px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em;">Order summary</h2>
-      <pre style="background: #f6f3ec; padding: 14px; white-space: pre-wrap; margin: 0 0 14px;">${escapeHtml(lines)}</pre>
-      <pre style="background: #f6f3ec; padding: 14px; white-space: pre-wrap; margin: 0 0 20px;">${escapeHtml(totals)}</pre>
-      <p style="margin: 0 0 8px;">Expected arrival is typically 5–8 business days after checkout.</p>
-      <p style="margin: 0 0 18px;">Tracking details are provided when your order ships.</p>
+    <div style="font-family: Arial, sans-serif; color: #151515; line-height: 1.55; max-width: 620px; margin: 0 auto;">
+      <div style="padding: 26px 28px; background: #111; color: #fff;">
+        <p style="margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Armoze</p>
+        <h1 style="font-size: 25px; margin: 0;">Receipt &amp; order confirmation</h1>
+      </div>
+      <div style="padding: 28px; border: 1px solid #dedbd4; border-top: 0;">
+      <p style="margin: 0 0 18px;">Hi ${escapeHtml(firstName)}, payment has been received. Keep this email as your order receipt.</p>
+      <table role="presentation" style="width:100%;margin:0 0 24px;border-collapse:collapse;background:#f6f3ec;">
+        <tr><td style="padding:7px 12px;font-size:13px;color:#666;">Sold by</td><td style="padding:7px 12px;text-align:right;font-weight:700;">${legalBusinessName} (Armoze)</td></tr>
+        <tr><td style="padding:7px 12px;font-size:13px;color:#666;">Order reference</td><td style="padding:7px 12px;text-align:right;word-break:break-all;">${escapeHtml(order.id)}</td></tr>
+        <tr><td style="padding:7px 12px;font-size:13px;color:#666;">Order date</td><td style="padding:7px 12px;text-align:right;">${escapeHtml(orderDate)}</td></tr>
+        <tr><td style="padding:7px 12px;font-size:13px;color:#666;">Payment status</td><td style="padding:7px 12px;text-align:right;">${escapeHtml(paymentStatus)}</td></tr>
+        <tr><td style="padding:7px 12px;font-size:13px;color:#666;">Customer email</td><td style="padding:7px 12px;text-align:right;">${escapeHtml(order.customerEmail || 'Not provided')}</td></tr>
+        ${transactionReference ? `<tr><td style="padding:7px 12px;font-size:13px;color:#666;">Payment reference</td><td style="padding:7px 12px;text-align:right;word-break:break-all;">${escapeHtml(transactionReference)}</td></tr>` : ''}
+      </table>
+      <h2 style="font-size: 14px; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.08em;">Items</h2>
+      <table role="presentation" style="width:100%;margin:0 0 18px;border-collapse:collapse;">${itemsHtml}</table>
+      <pre style="background: #f6f3ec; padding: 14px; white-space: pre-wrap; margin: 0 0 20px; font-family: Arial, sans-serif; line-height:1.65;">${escapeHtml(totals)}</pre>
+      <p style="margin: 0 0 18px;">Your made-to-order print is being prepared. We will email tracking details when it ships.</p>
       <p style="margin: 0 0 20px;">
         <a href="${escapeHtml(orderStatusUrl)}" style="display: inline-block; padding: 12px 18px; background: #111; color: #fff; font-weight: 700; text-decoration: none;">Track your order</a>
       </p>
-      <p style="margin: 0 0 8px; color: #666; font-size: 13px;">Order reference: ${escapeHtml(order.id)}</p>
-      <p style="margin: 0; color: #666; font-size: 13px;">Questions? Reply to this email or write to hello@armoze.com.</p>
+      <p style="margin:0 0 8px;color:#666;font-size:13px;">
+        <a href="${escapeHtml(policyLinks.shipping)}" style="color:#555;">Shipping</a> &nbsp;|&nbsp;
+        <a href="${escapeHtml(policyLinks.returns)}" style="color:#555;">Returns &amp; refunds</a> &nbsp;|&nbsp;
+        <a href="${escapeHtml(policyLinks.support)}" style="color:#555;">Support</a>
+      </p>
+      <p style="margin: 0 0 14px; color: #666; font-size: 13px;">Questions? Reply to this email or write to ${customerSupportEmail}.</p>
+      <p style="margin: 0; padding-top:14px; border-top:1px solid #dedbd4; color: #777; font-size: 12px;">Armoze is operated by ${legalBusinessName}.</p>
+      </div>
     </div>
   `;
 

@@ -22,6 +22,9 @@ type CustomerOrder = {
   paymentStatus: string;
   fulfillmentStatus: string;
   currency: string;
+  amountSubtotal: number;
+  amountShipping: number;
+  amountTax: number;
   amountTotal: number;
   items: CustomerOrderItem[];
   carrier: string;
@@ -58,6 +61,13 @@ function getFulfillmentLabel(status: string) {
 
 function hasTracking(order: CustomerOrder) {
   return Boolean(order.carrier || order.trackingNumber || order.trackingUrl || order.shippedAt);
+}
+
+function getDiscountAmount(order: CustomerOrder) {
+  return Math.max(
+    0,
+    order.amountSubtotal + order.amountShipping + order.amountTax - order.amountTotal,
+  );
 }
 
 export default function OrderStatusPageClient() {
@@ -166,7 +176,17 @@ export default function OrderStatusPageClient() {
 
             {order ? (
               <div className="account-order-list">
-                <article className="account-order-card">
+                <article className="account-order-card order-receipt" aria-label="Order receipt">
+                  <div className="order-receipt-heading">
+                    <div>
+                      <span>Order receipt</span>
+                      <strong>ARMOZE LLC</strong>
+                      <small>Armoze is operated by ARMOZE LLC.</small>
+                    </div>
+                    <button className="order-receipt-print" type="button" onClick={() => window.print()}>
+                      Print receipt
+                    </button>
+                  </div>
                   <div className="account-order-topline">
                     <div>
                       <span>Order {shortOrderId(order.id)}</span>
@@ -207,19 +227,37 @@ export default function OrderStatusPageClient() {
                     {order.items.map((item, index) => (
                       <li key={`${order.id}-${item.productId}-${index}`}>
                         <span>
-                          {item.quantity} x {item.title}
+                          <strong>{item.title}</strong>
+                          <small>{[item.sizeLabel, item.frameLabel].filter(Boolean).join(' / ')}</small>
+                          <small>{item.quantity} x {formatPrice(item.unitAmount, order.currency)}</small>
                         </span>
-                        <small>{[item.sizeLabel, item.frameLabel].filter(Boolean).join(' / ')}</small>
+                        <strong>{formatPrice(item.lineTotal, order.currency)}</strong>
                       </li>
                     ))}
                   </ul>
 
+                  <dl className="order-receipt-totals">
+                    <div><dt>Subtotal</dt><dd>{formatPrice(order.amountSubtotal, order.currency)}</dd></div>
+                    {getDiscountAmount(order) > 0 ? (
+                      <div><dt>Discounts</dt><dd>-{formatPrice(getDiscountAmount(order), order.currency)}</dd></div>
+                    ) : null}
+                    <div><dt>Shipping</dt><dd>{order.amountShipping > 0 ? formatPrice(order.amountShipping, order.currency) : 'Free'}</dd></div>
+                    <div><dt>Tax</dt><dd>{formatPrice(order.amountTax, order.currency)}</dd></div>
+                    <div className="order-receipt-total"><dt>Total ({order.currency.toUpperCase()})</dt><dd>{formatPrice(order.amountTotal, order.currency)}</dd></div>
+                  </dl>
+
                   <div className="account-order-footer">
-                    <span>Expected arrival is 5–8 business days after checkout.</span>
+                    <span>Tracking and the latest delivery information appear above when available.</span>
                     <a href={`mailto:${supportEmail}?subject=${encodeURIComponent(`Armoze order ${shortOrderId(order.id)}`)}`}>
                       Get help
                     </a>
                   </div>
+                  <nav className="order-receipt-policies" aria-label="Policies for this order">
+                    <Link href="/shipping">Shipping</Link>
+                    <Link href="/returns">Returns</Link>
+                    <Link href="/terms">Terms</Link>
+                    <Link href="/privacy">Privacy</Link>
+                  </nav>
                 </article>
               </div>
             ) : null}

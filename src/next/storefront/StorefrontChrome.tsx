@@ -50,6 +50,7 @@ import { getProductTrackingItem, initStorefrontTracking, trackStorefrontEvent } 
 import { captureStorefrontAttribution, getCheckoutAttribution } from './attribution';
 import { getNewsletterDiscountCode, saveNewsletterDiscountCode } from './discount';
 import { ProductImage } from './OptimizedArtwork';
+import { CheckoutPolicyNotice } from './CheckoutPolicyNotice';
 
 const newsletterPopupDelayMs = 12000;
 const newsletterPopupDismissMs = 7 * 24 * 60 * 60 * 1000;
@@ -400,7 +401,10 @@ function NewsletterDiscountPopup() {
             <button type="submit" disabled={status === 'loading'}>
               {status === 'loading' ? 'Sending' : 'Send my code'}
             </button>
-            <small>By subscribing, you agree to occasional Armoze marketing emails. Unsubscribe anytime.</small>
+            <small>
+              By subscribing, you agree to occasional Armoze marketing emails. Unsubscribe anytime.{' '}
+              <Link href="/privacy">Privacy Policy</Link>.
+            </small>
           </form>
         )}
 
@@ -1214,6 +1218,7 @@ function CartDrawer({
                   <ArrowRight aria-hidden="true" size={14} />
                 </Link>
               </div>
+              <CheckoutPolicyNotice compact />
               {checkoutState === 'error' ? (
                 <p className="cart-drawer-error">
                   {checkoutError || 'Checkout could not be started. Please try again.'}
@@ -1349,7 +1354,8 @@ function NextSiteFooter() {
             Armoze
           </Link>
           <p>Motivational canvas prints made for focused rooms, ambitious routines, and better everyday walls.</p>
-          <p className="footer-copyright">&copy; 2026 Armoze.</p>
+          <p className="footer-legal-name">Armoze is operated by ARMOZE LLC.</p>
+          <p className="footer-copyright">&copy; 2026 ARMOZE LLC. All rights reserved.</p>
         </div>
 
         <nav className="footer-link-columns" aria-label="Footer navigation">
@@ -1395,7 +1401,8 @@ function NextSiteFooter() {
               </button>
             </div>
             <small className="newsletter-consent">
-              Occasional studio updates and new drops. Unsubscribe anytime.
+              Occasional studio updates and new drops. Unsubscribe anytime.{' '}
+              <Link href="/privacy">Privacy Policy</Link>.
             </small>
             <p className={`newsletter-message ${newsletterStatus}`} aria-live="polite">
               {newsletterMessage}
@@ -1440,7 +1447,7 @@ function NextSiteFooter() {
       </details>
 
       <div className="footer-bottom">
-        <p className="footer-bottom-copy">&copy; 2026 Armoze.</p>
+        <p className="footer-bottom-copy">&copy; 2026 ARMOZE LLC.</p>
         <ul className="footer-payment-badges" aria-label="Accepted payment methods">
           {footerPaymentMethods.map(({ id, label, Icon }) => (
             <li key={id}>

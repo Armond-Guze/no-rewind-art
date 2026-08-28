@@ -54,6 +54,7 @@ import {
   isSideMockupImage,
   sizeOptionMatches,
 } from './product-utils';
+import { CheckoutPolicyNotice } from './CheckoutPolicyNotice';
 import {
   getProductTrackingItem,
   initStorefrontTracking,
@@ -946,14 +947,12 @@ export default function ProductPageClient({
         : selectedFrameName === 'White Frame'
           ? 'frame-white'
           : 'frame-none';
-  // v2 baked mockups: the frame option swaps the actual rendered image
-  // instead of drawing a CSS frame around the flat art.
+  // Keep the baked black mockup when one exists. White Frame always uses the
+  // live artwork so the supplied white frame can wrap it without replacing it.
   const framedMockupSrc =
     selectedFrameName === 'Black Frame'
       ? product.framedBlackImage
-      : selectedFrameName === 'White Frame'
-        ? product.framedWhiteImage
-        : undefined;
+      : undefined;
   const mainCanvasSrc = framedMockupSrc || product.image;
   const mainCanvasFrameClass = framedMockupSrc ? 'frame-none' : frameClass;
   const selectedOptionId = selectedOption.id;
@@ -1464,6 +1463,8 @@ export default function ProductPageClient({
                 {addedToCart ? 'Added to cart' : 'Add to cart'}
               </button>
             </div>
+
+            <CheckoutPolicyNotice compact />
 
             {deliveryEstimate ? (
               <div className="product-delivery-note">

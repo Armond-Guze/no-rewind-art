@@ -1969,6 +1969,26 @@ h3 {
   color: #9a7219;
 }
 
+.checkout-policy-notice {
+  max-width: 620px;
+  margin: 10px auto 0;
+  color: #8a857d;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.checkout-policy-notice.compact {
+  margin-top: 12px;
+}
+
+.checkout-policy-notice a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* Interactive product size guide */
 .size-guide-lock {
   overflow: hidden;
@@ -4659,6 +4679,10 @@ h3 {
   opacity: 0.7;
 }
 
+.cart-drawer-footer .checkout-policy-notice {
+  color: #6c6c6c;
+}
+
 .cart-drawer-secondary-action {
   display: inline-flex;
   align-items: center;
@@ -5114,6 +5138,100 @@ h3 {
 .account-order-footer a {
   color: var(--gold);
   white-space: nowrap;
+}
+
+.order-receipt-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(244, 239, 230, 0.12);
+}
+
+.order-receipt-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.order-receipt-heading span,
+.order-receipt-heading small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.order-receipt-heading strong {
+  color: var(--paper);
+  font-size: 1.08rem;
+}
+
+.order-receipt-print {
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid rgba(244, 239, 230, 0.24);
+  background: transparent;
+  color: var(--paper);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.order-receipt .account-order-items li {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(244, 239, 230, 0.1);
+}
+
+.order-receipt .account-order-items li > span {
+  display: grid;
+  gap: 3px;
+}
+
+.order-receipt-totals {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 14px;
+  background: rgba(244, 239, 230, 0.05);
+}
+
+.order-receipt-totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.order-receipt-totals dt,
+.order-receipt-totals dd {
+  margin: 0;
+}
+
+.order-receipt-totals dd {
+  color: var(--paper);
+  font-weight: 800;
+}
+
+.order-receipt-totals .order-receipt-total {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(244, 239, 230, 0.14);
+  font-weight: 900;
+}
+
+.order-receipt-policies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 0.72rem;
+}
+
+.order-receipt-policies a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .admin-page {
@@ -7175,6 +7293,13 @@ a.admin-icon-button {
   margin-bottom: 0;
 }
 
+.policy-section a {
+  color: #7d5912;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .support-page {
   color-scheme: light;
   min-height: 100vh;
@@ -7405,6 +7530,11 @@ a.admin-icon-button {
   line-height: 1.3 !important;
 }
 
+.footer-legal-name {
+  color: rgba(244, 239, 230, 0.62) !important;
+  font-size: 0.84rem !important;
+}
+
 .footer-link-columns {
   display: grid;
   grid-template-columns: repeat(4, minmax(104px, 1fr));
@@ -7566,6 +7696,13 @@ a.admin-icon-button {
 
 .newsletter-consent {
   margin-top: 8px;
+}
+
+.newsletter-consent a,
+.newsletter-popup-form small a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .newsletter-popup-form small {
@@ -14640,11 +14777,95 @@ a.admin-icon-button {
 
 .listing-gallery > .main-product-image
   .detail-artwork-shell.front-product-shell
-  .product-canvas-image[class*="crop-square-source"]:is(.frame-black, .frame-white),
+  .product-canvas-image[class*="crop-square-source"].frame-black,
 .mobile-gallery-slide
   .detail-artwork-shell.front-product-shell
-  .product-canvas-image[class*="crop-square-source"]:is(.frame-black, .frame-white) {
+  .product-canvas-image[class*="crop-square-source"].frame-black {
   width: calc(100% - 2 * (var(--canvas-frame-rail) + var(--canvas-frame-gap)));
+}
+
+/* The White Frame option uses the customer's supplied frame artwork as a
+   nine-slice border. The empty middle of a border image is not painted, so the
+   live canvas touches the frame opening directly and keeps its own aspect
+   ratio. Only the rails stretch; the supplied corners stay intact. */
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white {
+  --white-frame-rail: clamp(18px, 2.4vw, 36px);
+  box-sizing: border-box;
+  width: calc(100% - 2 * var(--white-frame-rail));
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white {
+  --white-frame-rail: clamp(14px, 3.8vw, 24px);
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white[class*="crop-square-source"],
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white[class*="crop-square-source"] {
+  width: calc(100% - 2 * var(--white-frame-rail));
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white::before,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white::before {
+  content: none;
+  display: none;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white::after,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  inset: calc(1px - var(--white-frame-rail));
+  box-sizing: content-box;
+  border: var(--white-frame-rail) solid transparent;
+  border-image-source: url("/product-support/white-frame-overlay.png");
+  border-image-slice: 29 33 29 31;
+  border-image-width: 1;
+  border-image-repeat: stretch;
+  pointer-events: none;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white > div,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white > div {
+  background: transparent;
+  box-shadow: none;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white img,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-white img {
+  object-fit: cover;
 }
 
 .listing-gallery > .main-product-image
@@ -16822,6 +17043,56 @@ a.admin-icon-button {
   border-radius: 3px;
   background: #151515;
   color: #fff;
+}
+
+.standalone-cart-page .checkout-policy-notice {
+  color: #6f6a62;
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .order-receipt,
+  .order-receipt * {
+    visibility: visible !important;
+  }
+
+  .order-receipt {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    border: 0;
+    background: #fff;
+    color: #111;
+  }
+
+  .order-receipt-print,
+  .order-receipt-policies,
+  .account-order-tracking,
+  .account-order-footer {
+    display: none !important;
+  }
+
+  .order-receipt-heading strong,
+  .order-receipt .account-order-topline strong,
+  .order-receipt .account-order-items span,
+  .order-receipt .account-order-items li > strong,
+  .order-receipt-totals dd {
+    color: #111 !important;
+  }
+
+  .order-receipt-heading span,
+  .order-receipt-heading small,
+  .order-receipt .account-order-topline time,
+  .order-receipt .account-order-items small {
+    color: #555 !important;
+  }
+
+  .order-receipt-totals {
+    background: #f3f3f3;
+  }
 }
 
 .standalone-cart-page .cart-confidence {

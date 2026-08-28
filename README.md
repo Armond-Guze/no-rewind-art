@@ -413,7 +413,9 @@ authenticated admin explicitly requests one. Owner order alerts remain
 automatic and separate. Set `CUSTOMER_EMAILS_AUTOMATIC=true` only when all three
 automatic customer flows should be enabled:
 
-1. Order confirmation: sent once when an order first becomes paid.
+1. Order receipt and confirmation: sent once when an order first becomes paid.
+   It identifies ARMOZE LLC as the seller and itemizes products, discounts,
+   shipping, tax, and the USD total.
 2. Shipping notification: sent once when the admin dashboard marks an order as
    shipped. It includes the carrier, tracking number, and tracking link, so set
    those fields before changing the status to shipped.
@@ -490,6 +492,10 @@ for Production before deploying checkout live:
 STRIPE_SECRET_KEY=sk_live_or_test_key
 STRIPE_WEBHOOK_SECRET=whsec_from_the_armoze_com_webhook_endpoint
 STRIPE_AUTOMATIC_TAX=false
+STRIPE_REQUIRE_TERMS_ACCEPTANCE=true
+# Optional paid Stripe invoice for one-time Checkout purchases. Keep false when
+# the itemized Armoze receipt is sufficient.
+STRIPE_POST_PURCHASE_INVOICES=false
 STRIPE_WEBHOOK_ALLOW_UNSIGNED=false
 CLIENT_URL=https://armoze.com
 VITE_SUPABASE_URL=https://your-project.supabase.co
@@ -503,7 +509,14 @@ RESEND_API_KEY=re_...
 ORDER_NOTIFICATION_EMAIL=owner@example.com
 ORDER_NOTIFICATION_FROM=Armoze Orders <orders@resend.dev>
 CUSTOMER_EMAILS_AUTOMATIC=false
+CUSTOMER_EMAIL_REPLY_TO=hello@armoze.com
 ```
+
+`STRIPE_REQUIRE_TERMS_ACCEPTANCE=true` relies on the Terms of Service URL set
+in Stripe Dashboard. `STRIPE_POST_PURCHASE_INVOICES=true` also creates a
+Stripe-hosted post-payment invoice, but Stripe charges its additional invoicing
+fee. The storefront's itemized email and printable order receipt do not require
+that paid invoice option.
 
 Production should use `DATABASE_URL` or the Supabase/Vercel integration's
 `POSTGRES_URL`; Vercel serverless functions should not depend on local JSON

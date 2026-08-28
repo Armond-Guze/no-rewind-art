@@ -42,6 +42,8 @@ const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const clientUrl = process.env.CLIENT_URL || 'http://127.0.0.1:3000';
 const automaticTaxEnabled = process.env.STRIPE_AUTOMATIC_TAX === 'true';
 const stripeProductTaxCode = process.env.STRIPE_PRODUCT_TAX_CODE || '';
+const requireTermsAcceptance = process.env.STRIPE_REQUIRE_TERMS_ACCEPTANCE !== 'false';
+const postPurchaseInvoicesEnabled = process.env.STRIPE_POST_PURCHASE_INVOICES === 'true';
 const googleCustomerReviewsMerchantId = Number(process.env.GOOGLE_CUSTOMER_REVIEWS_MERCHANT_ID || 5793512839);
 const allowUnsignedWebhooks = process.env.STRIPE_WEBHOOK_ALLOW_UNSIGNED === 'true';
 const supabaseUrl = normalizeSupabaseUrl(process.env.SUPABASE_URL || '');
@@ -1177,6 +1179,7 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
   const orderNote = normalizeOrderNote(body?.orderNote);
   const checkoutMetadata = {
     brand: 'Armoze',
+    legalBusinessName: 'ARMOZE LLC',
     orderSource: 'next-storefront',
     ...(checkoutRequestId ? { checkoutRequestId } : {}),
     ...(orderNote ? { orderNote } : {}),
@@ -1188,6 +1191,7 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
       line_items: buildLineItems(cartItems),
       payment_method_types: ['card', 'amazon_pay', 'klarna', 'cashapp'],
       ...(customer?.email ? { customer_email: customer.email } : {}),
+      ...(postPurchaseInvoicesEnabled ? { customer_creation: 'always' } : {}),
       billing_address_collection: 'auto',
       phone_number_collection: {
         enabled: true,
@@ -1227,8 +1231,27 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
       automatic_tax: {
         enabled: automaticTaxEnabled,
       },
+      ...(requireTermsAcceptance
+        ? {
+            consent_collection: {
+              terms_of_service: 'required',
+            },
+          }
+        : {}),
+      ...(postPurchaseInvoicesEnabled
+        ? {
+            invoice_creation: {
+              enabled: true,
+              invoice_data: {
+                description: 'Made-to-order canvas wall art purchased from Armoze.',
+                footer: 'Armoze is operated by ARMOZE LLC. Support: hello@armoze.com',
+                metadata: checkoutMetadata,
+              },
+            },
+          }
+        : {}),
       payment_intent_data: {
-        description: 'Armoze canvas print order',
+        description: 'ARMOZE LLC - Armoze canvas wall art order',
         metadata: checkoutMetadata,
       },
       success_url: `${clientUrl}/cart?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
