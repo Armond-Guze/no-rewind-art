@@ -50,7 +50,7 @@
       {
         "id": "24x32",
         "label": "24 x 32",
-        "priceInCents": 11400,
+        "priceInCents": 8200,
         "badge": "Best Value",
         "previewScale": 1.08
       },
@@ -63,7 +63,7 @@
       {
         "id": "45x60",
         "label": "45 x 60",
-        "priceInCents": 27400,
+        "priceInCents": 34000,
         "badge": "Statement",
         "previewScale": 1.21
       }
