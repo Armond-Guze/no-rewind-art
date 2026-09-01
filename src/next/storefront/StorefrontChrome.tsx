@@ -47,7 +47,11 @@ import {
   supportMailto,
 } from './product-utils';
 import { getProductTrackingItem, initStorefrontTracking, trackStorefrontEvent } from './analytics';
-import { captureStorefrontAttribution, getCheckoutAttribution } from './attribution';
+import {
+  captureStorefrontAttribution,
+  getCheckoutAttribution,
+  getSafeStorefrontPagePath,
+} from './attribution';
 import { getNewsletterDiscountCode, saveNewsletterDiscountCode } from './discount';
 import { ProductImage } from './OptimizedArtwork';
 import { CheckoutPolicyNotice } from './CheckoutPolicyNotice';
@@ -134,9 +138,11 @@ export function StorefrontTracker({
   useEffect(() => {
     captureStorefrontAttribution();
     initStorefrontTracking();
+    const pagePath = getSafeStorefrontPagePath();
+
     trackStorefrontEvent('page_view', {
-      page_location: window.location.href,
-      page_path: `${window.location.pathname}${window.location.search}`,
+      page_location: new URL(pagePath, window.location.origin).toString(),
+      page_path: pagePath,
       page_title: document.title,
     });
   }, [pathname]);

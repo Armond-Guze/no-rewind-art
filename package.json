@@ -21,6 +21,7 @@
     "prices:drop-tiers": "node scripts/apply-size-price-drop.mjs",
     "prices:normalize-endings": "node scripts/normalize-price-endings.mjs",
     "test:notification": "node scripts/send-test-order-notification.mjs",
+    "test": "node --test",
     "build": "next build",
     "deploy": "npm --prefix armoze run deploy",
     "preview": "next start -H 127.0.0.1",

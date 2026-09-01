@@ -1,6 +1,7 @@
 'use client';
 
 import type { Product, FrameOption, SizeOption } from '../../data/products';
+import { buildMerchantOfferId } from '../../merchant-offer-id.js';
 import { getPublicEnv } from '../../env';
 import { getBaseFrameOption, getConfiguredUnitPrice, getFeaturedSizeOption } from './product-utils';
 import {
@@ -8,6 +9,7 @@ import {
   ensureOpenAiAdsPixel,
   type OpenAiAdsQueue,
 } from './openai-ads';
+import { buildGoogleAdsPurchaseCall } from './google-ads';
 
 type EcommercePayload = {
   currency?: string;
@@ -141,19 +143,15 @@ export function trackStorefrontEvent(eventName: string, payload: EcommercePayloa
   window.gtag?.('event', eventName, payload);
 
   if (eventName === 'purchase' && googleAdsId) {
-    const conversionPayload = {
-      value: payload.value,
-      currency: payload.currency || 'USD',
-      ...(payload.transaction_id ? { transaction_id: payload.transaction_id } : {}),
-    };
+    const googleAdsPurchaseCall = buildGoogleAdsPurchaseCall(
+      googleAdsId,
+      googleAdsPurchaseLabel,
+      googleAdsPurchaseEventName,
+      payload,
+    );
 
-    if (googleAdsPurchaseLabel) {
-      window.gtag?.('event', 'conversion', {
-        send_to: `${googleAdsId}/${googleAdsPurchaseLabel}`,
-        ...conversionPayload,
-      });
-    } else if (googleAdsPurchaseEventName) {
-      window.gtag?.('event', googleAdsPurchaseEventName, conversionPayload);
+    if (googleAdsPurchaseCall) {
+      window.gtag?.(...googleAdsPurchaseCall);
     }
   }
 
@@ -197,7 +195,7 @@ export function getProductTrackingItem(
   quantity = 1,
 ) {
   return {
-    item_id: product.id,
+    item_id: buildMerchantOfferId(product.id, sizeOption.id),
     item_name: product.title,
     item_category: product.tone,
     price: getConfiguredUnitPrice(product, sizeOption, frameOption) / 100,

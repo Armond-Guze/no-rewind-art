@@ -7,6 +7,9 @@ export type AttributionTouch = {
   content?: string;
   term?: string;
   campaignId?: string;
+  adGroupId?: string;
+  adId?: string;
+  adAccountId?: string;
   referrer?: string;
   landingPage: string;
   capturedAt: string;
@@ -19,6 +22,7 @@ export type AttributionTouch = {
   ttclid?: string;
   srsltid?: string;
   fbclid?: string;
+  oppref?: string;
 };
 
 export type CheckoutAttribution = {
@@ -154,6 +158,15 @@ function getSourceAndMedium(params: URLSearchParams, referrer: string) {
     return { source: 'facebook', medium: 'social' };
   }
 
+  if (
+    params.get('oppref') ||
+    params.get('campaign_id') ||
+    params.get('ad_group_id') ||
+    params.get('ad_id')
+  ) {
+    return { source: 'openai', medium: 'cpc' };
+  }
+
   if (referrer) {
     try {
       const source = new URL(referrer).hostname.replace(/^www\./, '').toLowerCase();
@@ -173,6 +186,10 @@ const landingPageParameterNames = [
   'utm_content',
   'utm_term',
   'utm_id',
+  'campaign_id',
+  'ad_group_id',
+  'ad_id',
+  'ad_account_id',
   'gclid',
   'gbraid',
   'wbraid',
@@ -182,6 +199,7 @@ const landingPageParameterNames = [
   'ttclid',
   'srsltid',
   'fbclid',
+  'oppref',
 ] as const;
 
 function buildSafeLandingPage(params: URLSearchParams) {
@@ -199,6 +217,14 @@ function buildSafeLandingPage(params: URLSearchParams) {
   return `${window.location.pathname}${query ? `?${query}` : ''}`;
 }
 
+export function getSafeStorefrontPagePath() {
+  if (typeof window === 'undefined') {
+    return '/';
+  }
+
+  return buildSafeLandingPage(new URLSearchParams(window.location.search));
+}
+
 function buildCurrentTouch(): AttributionTouch {
   const params = new URLSearchParams(window.location.search);
   const referrer = getExternalReferrer();
@@ -208,9 +234,18 @@ function buildCurrentTouch(): AttributionTouch {
     source,
     medium,
     ...(params.get('utm_campaign') ? { campaign: params.get('utm_campaign')!.trim() } : {}),
-    ...(params.get('utm_content') ? { content: params.get('utm_content')!.trim() } : {}),
+    ...(params.get('utm_content') || params.get('ad_id')
+      ? { content: (params.get('utm_content') || params.get('ad_id'))!.trim() }
+      : {}),
     ...(params.get('utm_term') ? { term: params.get('utm_term')!.trim() } : {}),
-    ...(params.get('utm_id') ? { campaignId: params.get('utm_id')!.trim() } : {}),
+    ...(params.get('utm_id') || params.get('campaign_id')
+      ? { campaignId: (params.get('utm_id') || params.get('campaign_id'))!.trim() }
+      : {}),
+    ...(params.get('ad_group_id') ? { adGroupId: params.get('ad_group_id')!.trim() } : {}),
+    ...(params.get('ad_id') ? { adId: params.get('ad_id')!.trim() } : {}),
+    ...(params.get('ad_account_id')
+      ? { adAccountId: params.get('ad_account_id')!.trim() }
+      : {}),
     ...(referrer ? { referrer } : {}),
     landingPage: buildSafeLandingPage(params),
     capturedAt: new Date().toISOString(),
@@ -223,6 +258,7 @@ function buildCurrentTouch(): AttributionTouch {
     ...(params.get('ttclid') ? { ttclid: params.get('ttclid')!.trim() } : {}),
     ...(params.get('srsltid') ? { srsltid: params.get('srsltid')!.trim() } : {}),
     ...(params.get('fbclid') ? { fbclid: params.get('fbclid')!.trim() } : {}),
+    ...(params.get('oppref') ? { oppref: params.get('oppref')!.trim() } : {}),
   };
 }
 
@@ -253,7 +289,13 @@ export function captureStorefrontAttribution() {
     writeTouch(firstTouchKey, currentTouch);
   }
 
-  if (!lastTouch || !sessionLandingPage || hasExplicitAttribution) {
+  // Keep the last meaningful marketing touch when a customer returns directly.
+  // This preserves click IDs needed for reliable server-side attribution later.
+  const isDirectTouch = currentTouch.source === 'direct' && currentTouch.medium === 'none';
+  const shouldUpdateLastTouch =
+    !lastTouch || hasExplicitAttribution || (!sessionLandingPage && !isDirectTouch);
+
+  if (shouldUpdateLastTouch) {
     writeTouch(lastTouchKey, currentTouch);
   }
 
@@ -267,10 +309,7 @@ export function captureStorefrontAttribution() {
 
   return {
     firstTouch: firstTouch || currentTouch,
-    lastTouch:
-      !lastTouch || !sessionLandingPage || hasExplicitAttribution
-        ? currentTouch
-        : lastTouch,
+    lastTouch: shouldUpdateLastTouch ? currentTouch : lastTouch || currentTouch,
   };
 }
 
