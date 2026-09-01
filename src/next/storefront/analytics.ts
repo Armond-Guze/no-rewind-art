@@ -3,6 +3,11 @@
 import type { Product, FrameOption, SizeOption } from '../../data/products';
 import { getPublicEnv } from '../../env';
 import { getBaseFrameOption, getConfiguredUnitPrice, getFeaturedSizeOption } from './product-utils';
+import {
+  buildOpenAiAdsMeasureCall,
+  ensureOpenAiAdsPixel,
+  type OpenAiAdsQueue,
+} from './openai-ads';
 
 type EcommercePayload = {
   currency?: string;
@@ -37,18 +42,13 @@ type QueuedMetaPixel = {
   version?: string;
 };
 
-type QueuedOpenAiPixel = {
-  (...args: unknown[]): void;
-  q: unknown[][];
-};
-
 declare global {
   interface Window {
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
     fbq?: QueuedMetaPixel;
     _fbq?: QueuedMetaPixel;
-    oaiq?: QueuedOpenAiPixel;
+    oaiq?: OpenAiAdsQueue;
   }
 }
 
@@ -127,16 +127,8 @@ export function initStorefrontTracking() {
     window.fbq('init', metaPixelId);
   }
 
-  if (openAiAdsPixelId && !window.oaiq) {
-    const queue: unknown[][] = [];
-    const oaiq = function oaiq(...args: unknown[]) {
-      queue.push(args);
-    } as QueuedOpenAiPixel;
-    oaiq.q = queue;
-
-    window.oaiq = oaiq;
-    appendScript('https://bzrcdn.openai.com/sdk/oaiq.min.js', 'armoze-openai-ads-pixel');
-    window.oaiq('init', { pixelId: openAiAdsPixelId });
+  if (openAiAdsPixelId) {
+    ensureOpenAiAdsPixel(openAiAdsPixelId);
   }
 }
 
@@ -165,35 +157,12 @@ export function trackStorefrontEvent(eventName: string, payload: EcommercePayloa
     }
   }
 
-  if (eventName === 'purchase' && openAiAdsPixelId) {
-    const currency = (payload.currency || 'USD').toUpperCase();
-    const value = Number(payload.value);
-    const amount = Number.isFinite(value) ? Math.max(0, Math.round(value * 100)) : undefined;
-    const contents = payload.items?.map((item) => {
-      const itemPrice = Number(item.price);
-      const itemAmount = Number.isFinite(itemPrice)
-        ? Math.max(0, Math.round(itemPrice * 100))
-        : undefined;
+  if (openAiAdsPixelId) {
+    const openAiMeasureCall = buildOpenAiAdsMeasureCall(eventName, payload);
 
-      return {
-        id: item.item_id,
-        name: item.item_name,
-        content_type: 'product',
-        quantity: Math.max(1, Math.round(item.quantity || 1)),
-        ...(itemAmount !== undefined ? { amount: itemAmount, currency } : {}),
-      };
-    });
-
-    window.oaiq?.(
-      'measure',
-      'order_created',
-      {
-        type: 'contents',
-        ...(amount !== undefined ? { amount, currency } : {}),
-        ...(contents?.length ? { contents } : {}),
-      },
-      ...(payload.transaction_id ? [{ event_id: payload.transaction_id }] : []),
-    );
+    if (openAiMeasureCall) {
+      window.oaiq?.(...openAiMeasureCall);
+    }
   }
 
   const metaEventByName: Record<string, string> = {
