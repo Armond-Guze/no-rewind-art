@@ -25,7 +25,6 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-  Clock,
   Play,
   Ruler,
   ShieldCheck,
@@ -54,7 +53,6 @@ import {
   isSideMockupImage,
   sizeOptionMatches,
 } from './product-utils';
-import { CheckoutPolicyNotice } from './CheckoutPolicyNotice';
 import {
   getProductTrackingItem,
   initStorefrontTracking,
@@ -70,6 +68,9 @@ import {
 } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 import { useUrlSearchParam } from './url-search';
+import ProductFaqSection from './ProductFaqSection';
+import ProductHighlights from './ProductHighlights';
+import './product-purchase.css';
 
 function addBusinessDays(start: Date, businessDays: number) {
   const next = new Date(start);
@@ -91,7 +92,7 @@ function getDeliveryEstimate() {
   const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
   const now = new Date();
 
-  return `${formatter.format(addBusinessDays(now, 5))} – ${formatter.format(addBusinessDays(now, 8))}`;
+  return `${formatter.format(addBusinessDays(now, 3))} – ${formatter.format(addBusinessDays(now, 6))}`;
 }
 
 const framePreviewImages: Record<string, string> = {
@@ -558,8 +559,9 @@ function StoreRating({ product }: { product: Product }) {
           return <Star key={index} size={17} strokeWidth={2.4} />;
         })}
       </span>
-      <span>{rating.toFixed(1)} stars</span>
-      <span>{reviewCount} reviews</span>
+      <Star className="store-rating-mobile-star" aria-hidden="true" fill="currentColor" size={17} />
+      <span className="store-rating-value">{rating.toFixed(1)}</span>
+      <span className="store-rating-count">{reviewCount} reviews</span>
     </div>
   );
 }
@@ -1374,10 +1376,12 @@ export default function ProductPageClient({
           </div>
 
           <aside className="listing-panel">
-            <p className="listing-kicker">Armoze Original</p>
-            <StoreRating product={product} />
-            <h1>{product.title}</h1>
-            <p className="listing-price">{formatPrice(selectedUnitPrice)}</p>
+            <div className="listing-heading">
+              <p className="listing-kicker">Armoze Original</p>
+              <h1>{product.title}</h1>
+              <p className="listing-price">{formatPrice(selectedUnitPrice)}</p>
+              <StoreRating product={product} />
+            </div>
             <ProductTrustStrip />
 
             <div className="option-group">
@@ -1418,54 +1422,42 @@ export default function ProductPageClient({
                 </button>
               </div>
               <div className="size-options">
-                {product.sizeOptions.map((option, index) => {
-                  const badge = option.badge?.trim().toLowerCase() === 'popular' ? option.badge : null;
-
-                  return (
+                {product.sizeOptions.map((option, index) => (
                     <button
-                      className={[
-                        index === selectedSize ? 'selected' : '',
-                        badge ? 'has-badge' : '',
-                      ].filter(Boolean).join(' ')}
+                      className={index === selectedSize ? 'selected' : ''}
                       key={option.id}
                       type="button"
                       onClick={() => setSelectedSizeId(option.id)}
                     >
-                      {badge ? <span>{badge}</span> : null}
                       {option.label}
                       <em className="size-option-price">
                         {formatPrice(getConfiguredUnitPrice(product, option, selectedFrameOption))}
                       </em>
                     </button>
-                  );
-                })}
+                ))}
               </div>
             </div>
 
-            <div className="installment-note">
-              Pay in 4 interest-free installments with eligible payment methods at checkout.
-            </div>
-
             <div className="listing-purchase-actions" ref={purchaseActionsRef}>
+              <button
+                className="button button-primary listing-cart-button listing-add-cart-button"
+                type="button"
+                onClick={addSelectionToCart}
+              >
+                <span>
+                  {addedToCart ? 'Added to cart' : 'Add to cart'} &nbsp;–&nbsp; {formatPrice(selectedUnitPrice)}
+                </span>
+              </button>
+
               <button
                 className="button button-secondary listing-cart-button listing-buy-now-button"
                 type="button"
                 disabled={checkoutState === 'loading'}
                 onClick={() => void startBuyNow()}
               >
-                {checkoutState === 'loading' ? 'Opening checkout' : 'Buy it now'}
-              </button>
-
-              <button
-                className="button button-primary listing-cart-button listing-add-cart-button"
-                type="button"
-                onClick={addSelectionToCart}
-              >
-                {addedToCart ? 'Added to cart' : 'Add to cart'}
+                <span>{checkoutState === 'loading' ? 'Opening checkout' : 'Buy it now'}</span>
               </button>
             </div>
-
-            <CheckoutPolicyNotice compact />
 
             {deliveryEstimate ? (
               <div className="product-delivery-note">
@@ -1569,7 +1561,7 @@ export default function ProductPageClient({
                   <div className="product-details-content" id={`${product.id}-shipping-returns`}>
                     <ul className="product-info-list">
                       <li><FaTruckFast className="product-info-icon product-info-icon-blue" aria-hidden="true" /> Free U.S. shipping</li>
-                      <li><FaCalendarDays className="product-info-icon product-info-icon-violet" aria-hidden="true" /> Expected arrival in 5–8 business days</li>
+                      <li><FaCalendarDays className="product-info-icon product-info-icon-violet" aria-hidden="true" /> Expected arrival in 3–6 business days</li>
                       <li><FaArrowRotateLeft className="product-info-icon product-info-icon-terracotta" aria-hidden="true" /> 30-day returns on eligible orders</li>
                       <li><FaShield className="product-info-icon product-info-icon-green" aria-hidden="true" /> Support for damaged or incorrect orders</li>
                     </ul>
@@ -1594,93 +1586,7 @@ export default function ProductPageClient({
           </section>
         ) : null}
 
-        <section className="product-proof-section" aria-labelledby="product-proof-title">
-          <div className="product-section-heading">
-            <p className="eyebrow">What arrives</p>
-            <h2 id="product-proof-title">Made to arrive ready</h2>
-            <p className="product-proof-subline">
-              Stretched, finished, and protected before it ships. All that is left is choosing
-              the wall.
-            </p>
-          </div>
-
-          <div className="product-proof-grid">
-            <article className="product-proof-card">
-              <div className="product-proof-image">
-                <OptimizedRawImage
-                  src="/product-support/what-arrives-packaging-v2.jpg"
-                  alt="Stretched canvas print being unpacked from protective wrapping and corner guards"
-                  aspectRatio="3 / 2"
-                  sizes="(max-width: 900px) 92vw, 33vw"
-                  fill
-                />
-              </div>
-              <div className="product-proof-copy">
-                <div className="product-proof-kicker">
-                  <span className="product-proof-icon" aria-hidden="true">
-                    <Box size={17} strokeWidth={2.2} />
-                  </span>
-                  <p className="product-proof-step">01 / Protected</p>
-                </div>
-                <h3>Packed with intention</h3>
-                <p>
-                  Protective wrap, corner guards, and a snug box help keep every surface and edge
-                  protected in transit.
-                </p>
-              </div>
-            </article>
-
-            <article className="product-proof-card">
-              <div className="product-proof-image">
-                <OptimizedRawImage
-                  src="/product-support/what-arrives-canvas-detail-v2.jpg"
-                  alt="Macro detail of woven canvas texture and a clean gallery-wrapped corner"
-                  aspectRatio="3 / 2"
-                  sizes="(max-width: 900px) 92vw, 33vw"
-                  fill
-                />
-              </div>
-              <div className="product-proof-copy">
-                <div className="product-proof-kicker">
-                  <span className="product-proof-icon" aria-hidden="true">
-                    <BadgeCheck size={17} strokeWidth={2.2} />
-                  </span>
-                  <p className="product-proof-step">02 / Finished</p>
-                </div>
-                <h3>Detail in every edge</h3>
-                <p>
-                  Fine woven texture, clean folds, and crisp matte color give the canvas a premium
-                  finish from every angle.
-                </p>
-              </div>
-            </article>
-
-            <article className="product-proof-card">
-              <div className="product-proof-image">
-                <OptimizedRawImage
-                  src="/product-support/what-arrives-ready-to-hang-v2.jpg"
-                  alt="Finished gallery-wrapped canvas being positioned on a wall"
-                  aspectRatio="3 / 2"
-                  sizes="(max-width: 900px) 92vw, 33vw"
-                  fill
-                />
-              </div>
-              <div className="product-proof-copy">
-                <div className="product-proof-kicker">
-                  <span className="product-proof-icon" aria-hidden="true">
-                    <Clock size={17} strokeWidth={2.2} />
-                  </span>
-                  <p className="product-proof-step">03 / Wall-ready</p>
-                </div>
-                <h3>Up in minutes</h3>
-                <p>
-                  Your canvas arrives stretched and ready to hang, so it can go from the box to
-                  your wall without extra setup.
-                </p>
-              </div>
-            </article>
-          </div>
-        </section>
+        <ProductHighlights />
 
         <section className="storefront-social-proof product-reviews" aria-labelledby="product-reviews-title">
           <div className="storefront-social-proof-heading">
@@ -1705,6 +1611,8 @@ export default function ProductPageClient({
             ))}
           </div>
         </section>
+
+        <ProductFaqSection />
 
         <div
           className={`product-mobile-purchase-bar${showMobilePurchaseBar ? ' is-visible' : ''}`}

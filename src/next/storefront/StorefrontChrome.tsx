@@ -65,6 +65,7 @@ import { useCartDiscount } from './useCartDiscount';
 import { getCartOrderNote, saveCartOrderNote } from './cart-preferences';
 import './storefront-navigation.css';
 import './cart-drawer.css';
+import './footer-benefits.css';
 
 const newsletterPopupDelayMs = 12000;
 const newsletterPopupDismissMs = 7 * 24 * 60 * 60 * 1000;
@@ -1355,6 +1356,59 @@ type FooterLinkGroup = {
   links: FooterLink[];
 };
 
+const footerBenefits = [
+  { title: 'Customer service', description: 'Here to help, every step of the way.', Icon: Headphones },
+  { title: 'Always free shipping', description: 'Free shipping on every order. No minimum.', Icon: Package },
+  { title: 'Your first order, 15% off', description: 'Join the newsletter for your welcome offer.', Icon: Tag },
+  { title: 'Secure payment', description: 'Your payment information is processed securely.', Icon: ShieldCheck },
+];
+
+function FooterBenefits() {
+  const [activeBenefit, setActiveBenefit] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  function showBenefit(index: number) {
+    const track = trackRef.current;
+    if (!track) return;
+    track.scrollTo({
+      left: index * track.clientWidth,
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+    });
+  }
+
+  return (
+    <section className="footer-benefits" aria-label="Shopping with Armoze">
+      <div className="footer-benefits-surface">
+        <div className="footer-benefits-inner" id="footer-benefits-track" ref={trackRef} onScroll={(event) => {
+          const track = event.currentTarget;
+          if (!track.clientWidth) return;
+          setActiveBenefit(Math.max(0, Math.min(footerBenefits.length - 1, Math.round(track.scrollLeft / track.clientWidth))));
+        }}>
+          {footerBenefits.map(({ title, description, Icon }, index) => (
+            <div className="footer-benefit" key={title} id={`footer-benefit-${index}`}>
+              <Icon aria-hidden="true" size={24} strokeWidth={1.6} />
+              <div><h2>{title}</h2><p>{description}</p></div>
+            </div>
+          ))}
+        </div>
+        <div className="footer-benefit-dots" role="group" aria-label="Choose a shopping benefit">
+          {footerBenefits.map(({ title }, index) => (
+            <button key={title} type="button" aria-label={`Show ${title.toLowerCase()}`} aria-controls={`footer-benefit-${index}`} aria-current={activeBenefit === index ? 'true' : undefined} onClick={() => showBenefit(index)} onKeyDown={(event) => {
+              const nextIndex = event.key === 'ArrowRight' ? Math.min(index + 1, footerBenefits.length - 1)
+                : event.key === 'ArrowLeft' ? Math.max(index - 1, 0)
+                  : event.key === 'Home' ? 0 : event.key === 'End' ? footerBenefits.length - 1 : null;
+              if (nextIndex === null) return;
+              event.preventDefault();
+              showBenefit(nextIndex);
+              event.currentTarget.parentElement?.querySelectorAll('button')[nextIndex]?.focus({ preventScroll: true });
+            }}><span /></button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function NextSiteFooter() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -1461,26 +1515,7 @@ function NextSiteFooter() {
 
   return (
     <footer className="site-footer">
-      <section className="footer-benefits" aria-label="Shopping with Armoze">
-        <div className="footer-benefits-inner">
-          <div className="footer-benefit">
-            <Headphones aria-hidden="true" size={24} strokeWidth={1.6} />
-            <div><h2>Customer service</h2><p>Here to help, every step of the way.</p></div>
-          </div>
-          <div className="footer-benefit">
-            <Package aria-hidden="true" size={24} strokeWidth={1.6} />
-            <div><h2>Always free shipping</h2><p>Free shipping on every order. No minimum.</p></div>
-          </div>
-          <div className="footer-benefit">
-            <Tag aria-hidden="true" size={24} strokeWidth={1.6} />
-            <div><h2>Your first order, 15% off</h2><p>Join the newsletter for your welcome offer.</p></div>
-          </div>
-          <div className="footer-benefit">
-            <ShieldCheck aria-hidden="true" size={24} strokeWidth={1.6} />
-            <div><h2>Secure payment</h2><p>Your payment information is processed securely.</p></div>
-          </div>
-        </div>
-      </section>
+      <FooterBenefits />
       <div className="footer-main">
         <div className="footer-brand">
           <Link className="footer-logo" href="/" aria-label="Armoze home">

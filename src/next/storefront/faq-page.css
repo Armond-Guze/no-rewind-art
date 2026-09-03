@@ -27,22 +27,9 @@
 .faq-answer-inner { padding: 0 30px 24px 0; color: #666; font-size: 15px; line-height: 1.75; }
 .faq-answer a { display: inline-block; margin-top: 12px; color: #191919; text-decoration: underline; text-underline-offset: 4px; }
 .faq-contact { position: sticky; top: 176px; min-width: 0; }
-.faq-contact-form { display: grid; gap: 16px; margin-top: 30px; }
-.faq-contact-form label { display: block; min-width: 0; }
-.faq-contact-form input, .faq-contact-form textarea { display: block; width: 100%; min-height: 54px; padding: 17px 20px; border: 1px solid transparent; border-radius: 5px; background: #f8f8f8; color: #191919; font: inherit; font-size: 14px; line-height: 20px; }
-.faq-contact-form textarea { min-height: 150px; resize: vertical; }
-.faq-contact-form input::placeholder, .faq-contact-form textarea::placeholder { color: #777; opacity: 1; }
-.faq-contact-form input:focus, .faq-contact-form textarea:focus { outline: 1px solid #888; outline-offset: 0; }
-.faq-send { justify-self: start; min-height: 50px; padding: 15px 30px; border: 0; border-radius: 99px; background: #191919; color: #fff; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 200ms ease; }
-.faq-send:hover { background: #3b3b3b; }
-.faq-send:disabled { opacity: 0.6; cursor: wait; }
-.faq-contact-form .faq-honeypot { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .faq-contact-links { display: grid; justify-items: start; gap: 14px; margin-top: 28px; font-size: 14px; line-height: 1.5; }
 .faq-contact-links a { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: #aaa; }
 .faq-contact .faq-reply-time { margin-top: 22px !important; font-size: 12px; }
-.faq-form-message { font-size: 14px; line-height: 1.6; }
-.faq-form-message.error { color: #a12525; }
-.faq-form-message.success { color: #22603c; }
 .faq-page button:focus-visible, .faq-page a:focus-visible { outline: 2px solid #191919; outline-offset: 4px; }
 
 @media (max-width: 1000px) {
@@ -63,7 +50,6 @@
   .faq-item h3 button { min-height: 68px; gap: 16px; padding-block: 20px; font-size: 16px; }
   .faq-answer-inner { padding-right: 0; }
   .faq-contact { position: static; }
-  .faq-contact-form input, .faq-contact-form textarea { font-size: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

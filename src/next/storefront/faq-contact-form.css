@@ -1,0 +1,21 @@
+.faq-contact-form { display: grid; gap: 16px; margin-top: 30px; }
+.faq-contact-form label { display: block; min-width: 0; }
+.faq-contact-form input, .faq-contact-form textarea { display: block; width: 100%; min-height: 54px; padding: 17px 20px; border: 1px solid transparent; border-radius: 5px; background: #f8f8f8; color: #191919; font: inherit; font-size: 14px; line-height: 20px; }
+.faq-contact-form textarea { min-height: 150px; resize: vertical; }
+.faq-contact-form input::placeholder, .faq-contact-form textarea::placeholder { color: #777; opacity: 1; }
+.faq-contact-form input:focus, .faq-contact-form textarea:focus { outline: 1px solid #888; outline-offset: 0; }
+.faq-send { justify-self: start; min-height: 50px; padding: 15px 30px; border: 0; border-radius: 99px; background: #191919; color: #fff; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 200ms ease; }
+.faq-send:hover { background: #3b3b3b; }
+.faq-send:disabled { opacity: 0.6; cursor: wait; }
+.faq-contact-form .faq-honeypot { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.faq-form-message { font-size: 14px; line-height: 1.6; }
+.faq-form-message.error { color: #a12525; }
+.faq-form-message.success { color: #22603c; }
+
+@media (max-width: 760px) {
+  .faq-contact-form input, .faq-contact-form textarea { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-send { transition: none; }
+}
