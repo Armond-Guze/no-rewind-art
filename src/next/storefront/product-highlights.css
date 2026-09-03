@@ -19,6 +19,14 @@
 .product-highlight:nth-child(even) .product-highlight-media { grid-column: 2; grid-row: 1; }
 .product-highlight:nth-child(even) .product-highlight-copy { grid-column: 1; grid-row: 1; }
 
+@media (min-width: 1101px) {
+  .product-highlights { padding-inline: 48px; }
+  .product-highlights-inner { max-width: 1600px; }
+  .product-highlight-media { min-height: 480px; }
+  .product-highlight-copy h2 { font-size: clamp(32px, 3vw, 52px); }
+  .product-highlight-copy p { font-size: 18px; }
+}
+
 @media (max-width: 1100px) and (min-width: 761px) {
   .product-highlights-inner { gap: 64px; }
   .product-highlight-media { aspect-ratio: auto; min-height: 430px; }

@@ -71,6 +71,7 @@ import { useUrlSearchParam } from './url-search';
 import ProductFaqSection from './ProductFaqSection';
 import ProductHighlights from './ProductHighlights';
 import './product-purchase.css';
+import './product-gallery.css';
 
 function addBusinessDays(start: Date, businessDays: number) {
   const next = new Date(start);
@@ -101,10 +102,8 @@ const framePreviewImages: Record<string, string> = {
   white: '/product-support/frame-option-white.jpg',
 };
 
-const desktopMainProductGalleryImageSizes =
-  '(max-width: 760px) 92vw, (max-width: 1900px) 1020px, 1120px';
-const desktopSecondaryProductGalleryImageSizes =
-  '(max-width: 760px) 92vw, (max-width: 1900px) 860px, 920px';
+const desktopProductGalleryImageSizes =
+  '(max-width: 760px) 92vw, (max-width: 1180px) 55vw, (max-width: 1679px) calc(100vw - 700px), (max-width: 1899px) calc(50vw - 100px), 920px';
 
 function FrameOptionPreview({ option }: { option: FrameOption }) {
   const variant = getFramePreviewVariant(option);
@@ -1323,11 +1322,12 @@ export default function ProductPageClient({
             </div>
 
             <div
-              className={`main-product-image ${
+              className={`main-product-image desktop-gallery-stage ${
                 selectedGalleryImage || selectedGalleryVideo ? 'gallery-product-image' : ''
               } ${selectedGalleryVideo ? 'video-product-image' : ''} ${
                 isMockupGalleryImage ? 'mockup-product-image' : ''
               } ${selectedGalleryImage ? 'has-lightbox' : ''}`}
+              style={{ '--desktop-artwork-ratio': productAspectRatio } as CSSProperties}
               onClick={selectedGalleryImage ? () => setLightboxOpen(true) : undefined}
             >
               <div
@@ -1353,7 +1353,7 @@ export default function ProductPageClient({
                         aspectRatio={productAspectRatio}
                         sanityImage={framedMockupSrc ? undefined : selectedGalleryImageMetadata}
                         shape={productDisplayShape}
-                        sizes={desktopMainProductGalleryImageSizes}
+                        sizes={desktopProductGalleryImageSizes}
                         priority
                       />
                     ) : selectedGalleryImage ? (
@@ -1363,7 +1363,7 @@ export default function ProductPageClient({
                         alt={selectedGalleryImageMetadata?.alt || product.imageAlt}
                         aspectRatio={productAspectRatio}
                         sanityImage={selectedGalleryImageMetadata}
-                        sizes={desktopSecondaryProductGalleryImageSizes}
+                        sizes={desktopProductGalleryImageSizes}
                         priority
                       />
                     ) : (

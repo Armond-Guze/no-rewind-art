@@ -43,6 +43,18 @@
 .product-faq .faq-form-message.success { color: #b9eac5; }
 .product-faq :is(button, a):focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 
+@media (min-width: 1101px) {
+  .product-faq { max-width: 1600px; }
+  .product-faq-heading h2 { font-size: clamp(52px, 4.5vw, 78px); }
+  .product-faq-heading p { font-size: 13px; }
+  .product-faq-item button { min-height: 82px; font-size: 17px; }
+  .product-faq-answer-inner { font-size: 15px; }
+  .product-faq-contact h3 { font-size: 26px; }
+  .product-faq-contact > p { font-size: 14px; }
+  .product-faq .faq-contact-form :is(input, textarea) { min-height: 58px; font-size: 15px; }
+  .product-faq .faq-contact-form textarea { min-height: 160px; }
+}
+
 @media (max-width: 1100px) {
   .product-faq { width: calc(100% - 56px); grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
   .product-faq-heading { align-items: flex-start; flex-direction: column; gap: 20px; margin-bottom: 24px; }

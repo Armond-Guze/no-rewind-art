@@ -28,7 +28,7 @@ export default function ProductHighlights() {
         {highlights.map(({ id, title, description, image, alt, Icon }) => (
           <article className="product-highlight" key={id} aria-labelledby={`${id}-title`}>
             <div className="product-highlight-media">
-              <OptimizedRawImage src={image} alt={alt} fill sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1600px) 45vw, 720px" />
+              <OptimizedRawImage src={image} alt={alt} fill sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1100px) 45vw, (max-width: 1696px) calc(50vw - 48px), 800px" />
             </div>
             <div className="product-highlight-copy">
               <span className="product-highlight-icon" aria-hidden="true"><Icon size={32} strokeWidth={1.4} /></span>
