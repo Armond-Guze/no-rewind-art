@@ -127,7 +127,9 @@ export default function AboutPageClient({ allProducts, featuredProduct }: {
       <StorefrontTracker />
       <main className="story-page">
         <section className="story-hero" aria-labelledby="story-title">
-          <OptimizedRawImage className="story-hero-image" src={heroImage} alt="Bookshelf Mindset canvas in a warm, thoughtfully styled workspace" fill priority sizes="100vw" />
+          <div className="story-hero-art">
+            <OptimizedRawImage className="story-hero-image" src={dialedImage} alt="Dialed In canvas displayed in a sunlit workspace" fill priority sizes="(max-width: 760px) 100vw, (max-width: 1207px) 58vw, 700px" />
+          </div>
           <div className="story-hero-shade" aria-hidden="true" />
           <div className="story-container story-hero-copy">
             <p>Our Story</p>
