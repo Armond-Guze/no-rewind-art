@@ -72,10 +72,10 @@ function AuthShell({ children }: { children: ReactNode }) {
 
       <div className="mx-auto flex min-h-[calc(100svh-57px)] w-full max-w-6xl items-start justify-center px-5 pt-9 pb-10 sm:min-h-[calc(100svh-73px)] sm:px-6 sm:pt-10 sm:pb-14">
         <div className="w-full max-w-[460px] text-center sm:max-w-[540px]">
-          <img
-            className="mx-auto mb-4 w-[124px] sm:mb-6 sm:w-[176px]"
-            src="/armoze-site-logo.png"
-            alt="Armoze"
+          <span
+            className="auth-brand-mark mx-auto mb-4 block size-[124px] sm:mb-6 sm:size-[176px]"
+            role="img"
+            aria-label="Armoze"
           />
           <h1 className="text-[0.98rem] font-semibold leading-tight tracking-tight text-white sm:text-[2.15rem]">
             Log in or sign up

@@ -8,11 +8,16 @@ import {
   ArrowRight,
   ChevronRight,
   CircleUserRound,
+  Globe,
+  Headphones,
   Menu,
   Minus,
+  Package,
   Plus,
   Search,
   ShoppingBag,
+  ShieldCheck,
+  Tag,
   X,
 } from 'lucide-react';
 import {
@@ -53,7 +58,7 @@ import {
   getSafeStorefrontPagePath,
 } from './attribution';
 import { getNewsletterDiscountCode, saveNewsletterDiscountCode } from './discount';
-import { ProductImage } from './OptimizedArtwork';
+import { OptimizedRawImage, ProductImage } from './OptimizedArtwork';
 import { CheckoutPolicyNotice } from './CheckoutPolicyNotice';
 
 const newsletterPopupDelayMs = 12000;
@@ -232,30 +237,39 @@ function rememberNewsletterPopupDismissal(durationMs: number) {
 }
 
 function NewsletterDiscountPopup() {
-  const emailInputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
+  const touchStartY = useRef<number | null>(null);
   const [email, setEmail] = useState('');
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState(`Join the list and get ${launchOfferDiscount} off your first order.`);
+  const [message, setMessage] = useState('');
   const [discountCode, setDiscountCode] = useState(launchOfferCode);
+
+  const handleClose = useCallback(() => {
+    setOpen(false);
+    rememberNewsletterPopupDismissal(submitted ? newsletterPopupSubscribedDismissMs : newsletterPopupDismissMs);
+  }, [submitted]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
       return undefined;
     }
 
-    if (window.localStorage.getItem(newsletterPopupSubscribedKey) === 'true') {
+    const preview = process.env.NODE_ENV === 'development' &&
+      new URLSearchParams(window.location.search).get('newsletter') === 'preview';
+
+    if (!preview && window.localStorage.getItem(newsletterPopupSubscribedKey) === 'true') {
       return undefined;
     }
 
-    if (getStoredDismissedUntil() > Date.now()) {
+    if (!preview && getStoredDismissedUntil() > Date.now()) {
       return undefined;
     }
 
     const timer = window.setTimeout(() => {
       setOpen(true);
-    }, newsletterPopupDelayMs);
+    }, preview ? 0 : newsletterPopupDelayMs);
 
     const handleExitIntent = (event: globalThis.MouseEvent) => {
       if (event.clientY > 24 || event.relatedTarget) {
@@ -283,19 +297,40 @@ function NewsletterDiscountPopup() {
       return undefined;
     }
 
-    emailInputRef.current?.focus();
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    document.body.classList.add('newsletter-popup-lock');
+    dialogRef.current?.focus({ preventScroll: true });
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setOpen(false);
-        rememberNewsletterPopupDismissal(newsletterPopupDismissMs);
+        handleClose();
+      }
+
+      if (event.key === 'Tab') {
+        const controls = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled])',
+        ) || []).filter((element) => element.getClientRects().length > 0);
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
 
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open]);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.classList.remove('newsletter-popup-lock');
+      previousFocus?.focus({ preventScroll: true });
+    };
+  }, [open, handleClose]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -350,73 +385,115 @@ function NewsletterDiscountPopup() {
     }
   }
 
-  function handleClose() {
-    setOpen(false);
-    rememberNewsletterPopupDismissal(submitted ? newsletterPopupSubscribedDismissMs : newsletterPopupDismissMs);
-  }
-
   if (!open) {
     return null;
   }
 
   return (
-    <div className="newsletter-popup-overlay" role="presentation">
+    <div
+      className="newsletter-popup-overlay"
+      role="presentation"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) handleClose();
+      }}
+    >
       <section
+        ref={dialogRef}
         aria-labelledby="newsletter-popup-title"
         aria-modal="true"
         className="newsletter-popup"
         role="dialog"
+        tabIndex={-1}
       >
+        <div className="newsletter-popup-artwork">
+          <OptimizedRawImage
+            src="/images/newsletter-dialed-in.webp"
+            alt="Dialed In canvas artwork with focus, growth, and purpose controls"
+            sizes="310px"
+            fill
+          />
+        </div>
+        <button
+          type="button"
+          className="newsletter-popup-handle"
+          onClick={handleClose}
+          onTouchStart={(event) => { touchStartY.current = event.touches[0].clientY; }}
+          onTouchEnd={(event) => {
+            if (touchStartY.current !== null && event.changedTouches[0].clientY - touchStartY.current > 40) {
+              handleClose();
+            }
+            touchStartY.current = null;
+          }}
+          aria-label="Close newsletter discount popup"
+        >
+          <span />
+        </button>
         <button
           type="button"
           className="newsletter-popup-close"
           onClick={handleClose}
           aria-label="Close newsletter discount popup"
         >
-          <X aria-hidden="true" size={18} strokeWidth={2.4} />
+          <X aria-hidden="true" size={18} strokeWidth={1.6} />
         </button>
 
-        <div className="newsletter-popup-copy">
-          <p>{launchOfferDiscount} off your first order</p>
-          <h2 id="newsletter-popup-title">Get the launch code.</h2>
-          <span>Bold canvas drops, restocks, and studio updates.</span>
-        </div>
-
-        {submitted ? (
-          <div className="newsletter-popup-success">
-            <span className="newsletter-popup-code">{discountCode}</span>
-            <button type="button" onClick={handleCopyCode}>
-              Copy code
-            </button>
+        <div className="newsletter-popup-content">
+          <div className="newsletter-popup-copy">
+            <p>{submitted ? "You're on the list" : 'First timer?'}</p>
+            <h2 id="newsletter-popup-title">
+              {submitted ? <>Enjoy <span className="newsletter-popup-offer">{launchOfferDiscount} off</span> your first order</> :
+                <>Sign up and get <span className="newsletter-popup-offer">{launchOfferDiscount} off</span> your first order</>}
+            </h2>
           </div>
-        ) : (
-          <form className="newsletter-popup-form" onSubmit={handleSubmit}>
-            <label className="sr-only" htmlFor="newsletter-popup-email">
-              Email address
-            </label>
-            <input
-              id="newsletter-popup-email"
-              ref={emailInputRef}
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="Your E-mail"
-              autoComplete="email"
-              required
-            />
-            <button type="submit" disabled={status === 'loading'}>
-              {status === 'loading' ? 'Sending' : 'Send my code'}
-            </button>
-            <small>
-              By subscribing, you agree to occasional Armoze marketing emails. Unsubscribe anytime.{' '}
-              <Link href="/privacy">Privacy Policy</Link>.
-            </small>
-          </form>
-        )}
 
-        <p className={`newsletter-popup-message ${status}`} aria-live="polite">
-          {message}
-        </p>
+          {submitted ? (
+            <div className="newsletter-popup-success">
+              <span className="newsletter-popup-code">{discountCode}</span>
+              <button type="button" onClick={handleCopyCode}>
+                Copy code
+              </button>
+            </div>
+          ) : (
+            <form className="newsletter-popup-form" onSubmit={handleSubmit}>
+              <label className="sr-only" htmlFor="newsletter-popup-email">
+                Email address
+              </label>
+              <div className="newsletter-popup-input-row">
+                <input
+                  id="newsletter-popup-email"
+                  type="email"
+                  name="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="Enter your email"
+                  autoComplete="email"
+                  required
+                />
+                <button type="submit" disabled={status === 'loading'} aria-label={status === 'loading' ? 'Subscribing' : 'Sign up for 15% off'}>
+                  <ArrowRight aria-hidden="true" size={22} strokeWidth={1.7} />
+                </button>
+              </div>
+            </form>
+          )}
+
+          <p className={`newsletter-popup-message ${status}`} aria-live="polite">
+            {message}
+          </p>
+          <p className="newsletter-popup-description">
+            Subscribe to our newsletter and be the first to hear about our new arrivals, special promotions and online exclusives.
+          </p>
+          <div className="newsletter-popup-socials" aria-label="Follow Armoze">
+            <a href={storefrontSocialLinks.instagram} target="_blank" rel="noreferrer" aria-label="Armoze on Instagram">
+              <InstagramIcon size={20} />
+            </a>
+            <a href={storefrontSocialLinks.tiktok} target="_blank" rel="noreferrer" aria-label="Armoze on TikTok">
+              <TikTokIcon size={18} />
+            </a>
+            <a href={storefrontSocialLinks.youtube} target="_blank" rel="noreferrer" aria-label="Armoze on YouTube">
+              <YouTubeIcon size={21} />
+            </a>
+          </div>
+        </div>
       </section>
     </div>
   );
@@ -497,7 +574,7 @@ function LaunchPromoBar({
   return (
     <section className={className} aria-label="Launch offer">
       <p>
-        {launchOfferDiscount} off your first order with code <strong>{launchOfferCode}</strong>
+        {launchOfferDiscount} off with code <strong>{launchOfferCode}</strong>
       </p>
     </section>
   );
@@ -609,8 +686,7 @@ function NextSiteHeader({
       }${isHidden ? ' is-hidden' : ''}`}
     >
       <Link className="brand" href="/" aria-label="Armoze home">
-        <img className="brand-mark" src="/armoze-site-logo.png" alt="" aria-hidden="true" />
-        <img className="brand-wordmark" src="/armoze-wordmark.svg" alt="" aria-hidden="true" />
+        <span className="brand-mark" aria-hidden="true" />
       </Link>
       <button
         className="mobile-menu-toggle"
@@ -707,7 +783,7 @@ function NextSiteHeader({
         aria-label="Primary navigation"
       >
         <div className="mobile-menu-brand" aria-hidden="true">
-          <img className="brand-mark" src="/armoze-site-logo.png" alt="" />
+          <span className="brand-mark" aria-hidden="true" />
         </div>
         <Link href="/collections/best-sellers" onClick={closeMenu}>
           <span>Best Sellers</span>
@@ -1309,6 +1385,20 @@ function NextSiteFooter() {
       links: footerSocialLinks,
     },
   ];
+  const desktopFooterGroups: FooterLinkGroup[] = [
+    { title: 'Collections', links: footerLinkGroups[0].links },
+    {
+      title: 'Information',
+      links: [
+        { href: '/about', label: 'Our Story' },
+        { href: '/support', label: 'Contact Us' },
+        { href: '/shipping', label: 'Shipping' },
+        { href: '/returns', label: 'Returns' },
+        { href: '/privacy', label: 'Privacy Policy' },
+        { href: '/terms', label: 'Terms of Service' },
+      ],
+    },
+  ];
 
   async function handleNewsletterSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1354,10 +1444,31 @@ function NextSiteFooter() {
 
   return (
     <footer className="site-footer">
+      <section className="footer-benefits" aria-label="Shopping with Armoze">
+        <div className="footer-benefits-inner">
+          <Link href="/support" className="footer-benefit">
+            <Headphones aria-hidden="true" size={24} strokeWidth={1.6} />
+            <div><h2>Customer service</h2><p>Here to help, every step of the way.</p></div>
+          </Link>
+          <Link href="/shipping" className="footer-benefit">
+            <Package aria-hidden="true" size={24} strokeWidth={1.6} />
+            <div><h2>Always free shipping</h2><p>Free shipping on every order. No minimum.</p></div>
+          </Link>
+          <a href="#footer-newsletter-title" className="footer-benefit">
+            <Tag aria-hidden="true" size={24} strokeWidth={1.6} />
+            <div><h2>Your first order, 15% off</h2><p>Join the newsletter for your welcome offer.</p></div>
+          </a>
+          <div className="footer-benefit">
+            <ShieldCheck aria-hidden="true" size={24} strokeWidth={1.6} />
+            <div><h2>Secure payment</h2><p>Your payment information is processed securely.</p></div>
+          </div>
+        </div>
+      </section>
       <div className="footer-main">
         <div className="footer-brand">
           <Link className="footer-logo" href="/" aria-label="Armoze home">
-            Armoze
+            <span className="footer-mobile-only">Armoze</span>
+            <span className="brand-mark footer-desktop-only" aria-hidden="true" />
           </Link>
           <p>Motivational canvas prints made for focused rooms, ambitious routines, and better everyday walls.</p>
           <p className="footer-legal-name">Armoze is operated by ARMOZE LLC.</p>
@@ -1365,7 +1476,7 @@ function NextSiteFooter() {
         </div>
 
         <nav className="footer-link-columns" aria-label="Footer navigation">
-          {footerLinkGroups.map((group) => (
+          {desktopFooterGroups.map((group) => (
             <section className="footer-link-column" key={group.title}>
               <h2>{group.title}</h2>
               {group.links.map((link) => (
@@ -1375,19 +1486,15 @@ function NextSiteFooter() {
               ))}
             </section>
           ))}
-          <section className="footer-link-column">
-            <h2>Socials</h2>
-            {footerSocialLinks.map((link) => (
-              <a href={link.href} key={link.href} target="_blank" rel="noopener noreferrer">
-                {link.label}
-              </a>
-            ))}
-          </section>
+          <a className="footer-contact-email" href={supportMailto}>{supportEmail}</a>
         </nav>
 
         <section className="footer-newsletter" aria-label="Newsletter signup">
           <p className="footer-newsletter-kicker">Newsletter</p>
-          <h2>Sign up to receive 15% off your first order</h2>
+          <h2 id="footer-newsletter-title">
+            <span className="footer-mobile-only">Sign up to receive 15% off your first order</span>
+            <span className="footer-desktop-only">Stay in the loop with our newsletter</span>
+          </h2>
           <form onSubmit={handleNewsletterSubmit}>
             <label className="sr-only" htmlFor="next-newsletter-email">
               Email address
@@ -1403,7 +1510,8 @@ function NextSiteFooter() {
                 required
               />
               <button type="submit" disabled={newsletterStatus === 'loading'} aria-label="Sign up for the newsletter">
-                {newsletterStatus === 'loading' ? 'Subscribing' : 'Subscribe'}
+                <span className="footer-mobile-only">{newsletterStatus === 'loading' ? 'Subscribing' : 'Subscribe'}</span>
+                <ArrowRight className="footer-desktop-only" aria-hidden="true" size={20} strokeWidth={1.8} />
               </button>
             </div>
             <small className="newsletter-consent">
@@ -1414,6 +1522,11 @@ function NextSiteFooter() {
               {newsletterMessage}
             </p>
           </form>
+          <div className="footer-social-icons" aria-label="Follow Armoze">
+            <a href={storefrontSocialLinks.instagram} target="_blank" rel="noreferrer" aria-label="Armoze on Instagram"><InstagramIcon size={22} /></a>
+            <a href={storefrontSocialLinks.tiktok} target="_blank" rel="noreferrer" aria-label="Armoze on TikTok"><TikTokIcon size={20} /></a>
+            <a href={storefrontSocialLinks.youtube} target="_blank" rel="noreferrer" aria-label="Armoze on YouTube"><YouTubeIcon size={23} /></a>
+          </div>
         </section>
 
         <nav className="footer-mobile-accordions" aria-label="Footer mobile navigation">
@@ -1467,8 +1580,8 @@ function NextSiteFooter() {
           ))}
         </ul>
         <div className="footer-market-selectors" aria-label="Store settings">
-          <span className="footer-market-pill">United States (USD $)</span>
-          <span className="footer-market-pill">English</span>
+          <span className="footer-market-pill"><Globe className="footer-desktop-only" aria-hidden="true" size={16} />United States (USD $)</span>
+          <span className="footer-market-pill"><Globe className="footer-desktop-only" aria-hidden="true" size={16} />English</span>
         </div>
       </div>
     </footer>
