@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type { PolicyPageContent } from './policy-content';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 
@@ -31,6 +32,7 @@ export default function PolicyPageClient({ page }: { page: PolicyPageContent }) 
           <h1>{page.title}</h1>
           {!page.hideDescription && <p>{page.description}</p>}
           <span>Last updated: {page.updated}</span>
+          {page.faqHref ? <p><Link href={page.faqHref} style={{ textDecoration: 'underline', textUnderlineOffset: '4px' }}>Looking for a quick answer? Browse our FAQs.</Link></p> : null}
         </section>
 
         <section className="policy-content" aria-label={page.title}>

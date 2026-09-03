@@ -8,6 +8,7 @@ import './search-drawer.css';
 const informationLinks = [
   { href: '/about', label: 'About' },
   { href: '/support', label: 'Contact' },
+  { href: '/faqs', label: 'FAQs' },
   { href: '/order-status', label: 'Track an Order' },
 ];
 

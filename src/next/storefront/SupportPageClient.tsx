@@ -150,6 +150,7 @@ export default function SupportPageClient() {
             Send a message below. We usually reply within 1 business day.
           </p>
           <div className="support-quick-links">
+            <Link href="/faqs">Browse FAQs</Link>
             <Link href="/order-status">Track an order</Link>
             <a href={`mailto:${supportEmail}`}>{supportEmail}</a>
           </div>

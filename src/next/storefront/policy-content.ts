@@ -18,6 +18,7 @@ export type PolicyPageContent = {
   title: string;
   description: string;
   hideDescription?: boolean;
+  faqHref?: string;
   updated: string;
   sections: Array<{
     title: string;
@@ -28,6 +29,7 @@ export type PolicyPageContent = {
 export const policyPages: Record<PolicyPageKey, PolicyPageContent> = {
   shipping: {
     title: 'Shipping Policy',
+    faqHref: '/faqs#shipping-returns',
     hideDescription: true,
     description:
       'Learn how Armoze ships made-to-order canvas prints, including processing, delivery estimates, tracking, delays, and address changes.',
@@ -72,6 +74,7 @@ export const policyPages: Record<PolicyPageKey, PolicyPageContent> = {
   },
   returns: {
     title: 'Returns & Refunds',
+    faqHref: '/faqs#shipping-returns',
     description:
       'Review the Armoze returns and refunds policy for canvas prints, including the 30-day return window, return shipping, damaged orders, cancellations, and refunds.',
     updated: 'August 27, 2026',

@@ -780,7 +780,7 @@ function NextSiteHeader({
   return (
     <>
     <header
-      className={`site-header storefront-navigation${isHome ? ' home-header' : ''}${menuOpen ? ' menu-open' : ''}${
+      className={`site-header storefront-navigation${pathname === '/about' ? ' story-header' : ''}${isHome ? ' home-header' : ''}${menuOpen ? ' menu-open' : ''}${
         searchOpen ? ' search-open' : ''
       }${
         isScrolled ? ' is-scrolled' : ''
@@ -1381,6 +1381,7 @@ function NextSiteFooter() {
       title: 'Information',
       links: [
         { href: '/support', label: 'Contact' },
+        { href: '/faqs', label: 'FAQs' },
         { href: '/shipping', label: 'Shipping' },
         { href: '/returns', label: 'Returns' },
         { href: '/privacy', label: 'Privacy' },
@@ -1407,6 +1408,7 @@ function NextSiteFooter() {
       links: [
         { href: '/about', label: 'Our Story' },
         { href: '/support', label: 'Contact Us' },
+        { href: '/faqs', label: 'FAQs' },
         { href: '/shipping', label: 'Shipping' },
         { href: '/returns', label: 'Returns' },
         { href: '/privacy', label: 'Privacy Policy' },

@@ -318,7 +318,7 @@ function getAboutStructuredData() {
     name: 'About Armoze',
     url: absoluteUrl('/about'),
     description:
-      'Learn why Armoze creates made-to-order motivational canvas artwork for bedrooms, offices, studios, and focused spaces.',
+      'Armoze began on Etsy in 2020 during the COVID pandemic. Discover the story behind our made-to-order canvas artwork for meaningful everyday spaces.',
     mainEntity: getOrganizationStructuredData(),
   };
 }
@@ -653,7 +653,7 @@ export async function getRouteSeo(pathParts = [], { sizeId } = {}) {
       metadata: baseMetadata({
         title: 'Our Story',
         description:
-          'Learn why Armoze creates made-to-order motivational canvas artwork for bedrooms, offices, studios, and focused spaces.',
+          'Armoze began on Etsy in 2020 during the COVID pandemic. Discover the story behind our made-to-order canvas artwork for meaningful everyday spaces.',
         path: '/about',
         image: catalog.products.find((product) => product.slug === 'bookshelf')?.image || searchLogoPath,
       }),
