@@ -1119,7 +1119,8 @@ export default function ProductPageClient({
         quantity: 1,
       },
     ];
-    const checkoutSignature = JSON.stringify(checkoutItems);
+    const discountCode = getNewsletterDiscountCode();
+    const checkoutSignature = JSON.stringify({ items: checkoutItems, discountCode });
 
     if (!checkoutRequest.current || checkoutRequest.current.signature !== checkoutSignature) {
       checkoutRequest.current = {
@@ -1149,7 +1150,7 @@ export default function ProductPageClient({
           attribution: getCheckoutAttribution(),
           checkoutRequestId: checkoutRequest.current.id,
           items: checkoutItems,
-          ...(getNewsletterDiscountCode() ? { discountCode: getNewsletterDiscountCode() } : {}),
+          ...(discountCode ? { discountCode } : {}),
         }),
       });
 

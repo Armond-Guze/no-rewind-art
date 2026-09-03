@@ -36,6 +36,7 @@ import {
 } from './order-email-policy.js';
 import { createOrderStore } from './order-store.js';
 import { createProductStore } from './product-store.js';
+import { resolveCartDiscount } from './cart-discount.js';
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -1146,26 +1147,12 @@ export async function listPublicCatalog() {
   return productStore.listCatalog();
 }
 
-const promotionCodeCache = new Map();
-
-async function findActivePromotionCodeId(code) {
-  const cached = promotionCodeCache.get(code);
-
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.id;
-  }
-
-  try {
-    const result = await stripe.promotionCodes.list({ code, active: true, limit: 1 });
-    const id = result.data[0]?.id || null;
-
-    promotionCodeCache.set(code, { id, expiresAt: Date.now() + 10 * 60 * 1000 });
-
-    return id;
-  } catch (error) {
-    console.error(`Unable to look up Stripe promotion code ${code}.`, error);
-    return null;
-  }
+export async function previewCartDiscount(body) {
+  await ensureProductStoreReady();
+  if (!stripe) throw httpError('Discount codes are temporarily unavailable. Please try again later.', 503);
+  const items = await normalizeCartItems(body?.items);
+  const { code, amount, subtotal } = await resolveCartDiscount(stripe, body?.discountCode, items);
+  return { code, amount, subtotal };
 }
 
 export async function createCheckoutSession(body, authorizationHeader = '') {
@@ -1179,15 +1166,9 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
   const requestedDiscountCode = String(body?.discountCode || '').trim().toUpperCase();
   let checkoutDiscounts;
 
-  if (
-    requestedDiscountCode &&
-    requestedDiscountCode === String(newsletterDiscountCode).toUpperCase()
-  ) {
-    const promotionCodeId = await findActivePromotionCodeId(requestedDiscountCode);
-
-    if (promotionCodeId) {
-      checkoutDiscounts = [{ promotion_code: promotionCodeId }];
-    }
+  if (requestedDiscountCode) {
+    const { promotionCodeId } = await resolveCartDiscount(stripe, requestedDiscountCode, cartItems);
+    checkoutDiscounts = [{ promotion_code: promotionCodeId }];
   }
   const customer = await getOptionalCustomerFromAuthorizationHeader(authorizationHeader);
   const attribution = normalizeCheckoutAttribution(body?.attribution);

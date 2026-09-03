@@ -18107,11 +18107,6 @@ body.newsletter-popup-lock {
     line-height: 1.5;
   }
 
-  .footer-benefit[href]:hover h2 {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-
   .site-footer .footer-main {
     display: grid;
     grid-template-columns: minmax(64px, 0.12fr) minmax(0, 0.38fr) minmax(0, 0.5fr);

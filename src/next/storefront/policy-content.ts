@@ -17,6 +17,7 @@ export type PolicyParagraph =
 export type PolicyPageContent = {
   title: string;
   description: string;
+  hideDescription?: boolean;
   updated: string;
   sections: Array<{
     title: string;
@@ -27,6 +28,7 @@ export type PolicyPageContent = {
 export const policyPages: Record<PolicyPageKey, PolicyPageContent> = {
   shipping: {
     title: 'Shipping Policy',
+    hideDescription: true,
     description:
       'Learn how Armoze ships made-to-order canvas prints, including processing, delivery estimates, tracking, delays, and address changes.',
     updated: 'August 27, 2026',

@@ -1,18 +1,10 @@
 'use client';
 
+import './support-page.css';
+
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import Link from 'next/link';
-import {
-  Clock,
-  ImagePlus,
-  Mail,
-  PackageCheck,
-  RotateCcw,
-  Send,
-  ShieldCheck,
-  Truck,
-  X,
-} from 'lucide-react';
+import { ImagePlus, Send, X } from 'lucide-react';
 import { supportEmail } from './product-utils';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 
@@ -33,45 +25,6 @@ type SupportPhoto = {
 };
 
 type SubmitState = 'idle' | 'sending' | 'success' | 'error';
-
-const supportCards = [
-  {
-    title: 'One clear request',
-    body: 'Send the order details and photos together so support can review everything without extra back-and-forth.',
-    icon: Mail,
-  },
-  {
-    title: 'Response time',
-    body: 'Most requests receive a reply within 1 business day, Monday through Friday.',
-    icon: Clock,
-  },
-  {
-    title: 'Order lookup',
-    body: 'Use the email from checkout and include your order number when you have it.',
-    icon: PackageCheck,
-  },
-];
-
-const helpTopics = [
-  {
-    title: 'Shipping and tracking',
-    body: 'Most orders are expected to arrive in 5–8 business days.',
-    href: '/shipping',
-    icon: Truck,
-  },
-  {
-    title: 'Damage or wrong item',
-    body: 'Send your order number, checkout email, photos of the item, and photos of the packaging within 7 days of delivery.',
-    href: '/returns',
-    icon: ShieldCheck,
-  },
-  {
-    title: 'Returns and refunds',
-    body: 'Returns are accepted within 30 days of delivery. Customers pay return shipping for non-defective returns; damaged, defective, or incorrect items are handled free of extra return cost when approved.',
-    href: '/returns',
-    icon: RotateCcw,
-  },
-];
 
 function formatFileSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -191,61 +144,37 @@ export default function SupportPageClient() {
       <StorefrontTracker />
       <main className="support-page">
         <section className="support-hero">
-          <p className="eyebrow">Customer support</p>
-          <h1>We are here to help.</h1>
+          <h1>Contact Us</h1>
           <p>
-            Tell us what happened, add your order details, and include photos when they help.
-            Everything arrives together for a faster review.
+            We’d love to hear from you. Our team is here to help.<br />
+            Send a message below. We usually reply within 1 business day.
           </p>
-          <div className="support-hero-actions">
-            <a className="button button-primary" href="#support-request">
-              Start a Request
-            </a>
-            <Link className="button button-secondary" href="/order-status">
-              Track an Order
-            </Link>
-            <Link className="button button-secondary" href="/account">
-              View Orders
-            </Link>
+          <div className="support-quick-links">
+            <Link href="/order-status">Track an order</Link>
+            <a href={`mailto:${supportEmail}`}>{supportEmail}</a>
           </div>
-          <p className="support-hero-note">
-            Checking on a delivery? <Link href="/order-status">Look up your order status</Link> with
-            your order reference and email — no account needed.
-          </p>
         </section>
 
         <section className="support-request-section" id="support-request" aria-labelledby="support-request-title">
-          <div className="support-request-intro">
-            <p className="eyebrow">Send a request</p>
-            <h2 id="support-request-title">Put every detail in one place.</h2>
-            <p>
-              For a damaged or incorrect item, include one photo of the full canvas, one close-up,
-              and one photo of the shipping box when possible.
-            </p>
-            <div className="support-response-note">
-              <Clock aria-hidden="true" size={19} />
-              <span><strong>Typical reply:</strong> within 1 business day</span>
-            </div>
-          </div>
-
+          <h2 id="support-request-title" className="sr-only">Send a request</h2>
           <form className="support-request-form" onSubmit={handleSubmit} encType="multipart/form-data">
             <div className="support-form-grid">
               <label>
-                <span>Name</span>
-                <input name="name" type="text" autoComplete="name" maxLength={80} required />
+                <span className="sr-only">Name</span>
+                <input name="name" type="text" placeholder="Name" autoComplete="name" minLength={2} maxLength={80} required />
               </label>
               <label>
-                <span>Email used at checkout</span>
-                <input name="email" type="email" autoComplete="email" maxLength={160} required />
+                <span className="sr-only">Email address</span>
+                <input name="email" type="email" placeholder="Email" autoComplete="email" maxLength={160} required />
               </label>
               <label>
-                <span>Order number <small>Optional</small></span>
-                <input name="orderNumber" type="text" autoComplete="off" maxLength={100} placeholder="Order or checkout ID" />
+                <span className="sr-only">Order number (optional)</span>
+                <input name="orderNumber" type="text" autoComplete="off" maxLength={100} placeholder="Order number (optional)" />
               </label>
               <label>
-                <span>What do you need help with?</span>
+                <span className="sr-only">Subject</span>
                 <select name="topic" defaultValue="" required>
-                  <option value="" disabled>Select a topic</option>
+                  <option value="" disabled>Subject</option>
                   <option value="Order status or tracking">Order status or tracking</option>
                   <option value="Damaged item">Damaged item</option>
                   <option value="Wrong item">Wrong item</option>
@@ -258,26 +187,27 @@ export default function SupportPageClient() {
             </div>
 
             <label className="support-message-field">
-              <span>How can we help?</span>
+              <span className="sr-only">Message</span>
               <textarea
                 name="message"
-                rows={6}
+                rows={5}
                 minLength={10}
                 maxLength={3000}
-                placeholder="Describe the issue and the outcome you need."
+                placeholder="Message"
                 required
               />
             </label>
 
-            <div className="support-photo-field">
-              <div>
-                <span>Photos <small>Optional</small></span>
-                <p>Up to 3 photos. JPG, PNG, WEBP, HEIC, or HEIF. 3.5 MB combined.</p>
-              </div>
+            <div className="support-form-actions">
+              <button className="button button-primary" type="submit" disabled={submitState === 'sending'}>
+                <Send aria-hidden="true" size={17} />
+                {submitState === 'sending' ? 'Sending Request' : 'Send Request'}
+              </button>
               <button
                 className="support-photo-button"
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
+                aria-describedby="support-photo-guidance"
                 disabled={photos.length >= maxPhotos}
               >
                 <ImagePlus aria-hidden="true" size={18} />
@@ -292,6 +222,10 @@ export default function SupportPageClient() {
                 onChange={handlePhotoChange}
               />
             </div>
+
+            <p className="support-photo-guidance" id="support-photo-guidance">
+              Optional photos: up to 3 JPG, PNG, WEBP, HEIC, or HEIF files. 3 MB each, 3.5 MB total.
+            </p>
 
             {photos.length ? (
               <div className="support-photo-list" aria-label="Selected photos">
@@ -318,16 +252,9 @@ export default function SupportPageClient() {
               <input name="company" type="text" tabIndex={-1} autoComplete="off" />
             </label>
 
-            <div className="support-form-footer">
-              <p>
-                By sending this request, you allow Armoze to use these details only to review
-                and resolve your support case.
-              </p>
-              <button className="button button-primary" type="submit" disabled={submitState === 'sending'}>
-                <Send aria-hidden="true" size={17} />
-                {submitState === 'sending' ? 'Sending Request' : 'Send Request'}
-              </button>
-            </div>
+            <p className="support-privacy-note">
+              Your details are used only to review and resolve your request.
+            </p>
 
             {submitMessage ? (
               <p
@@ -340,52 +267,10 @@ export default function SupportPageClient() {
           </form>
         </section>
 
-        <section className="support-channel-grid" aria-label="Customer support details">
-          {supportCards.map((card) => {
-            const Icon = card.icon;
-
-            return (
-              <article key={card.title}>
-                <Icon aria-hidden="true" size={24} />
-                <h2>{card.title}</h2>
-                <p>{card.body}</p>
-              </article>
-            );
-          })}
-        </section>
-
-        <section className="support-help-grid" aria-label="Common support topics">
-          <div className="support-section-heading">
-            <p className="eyebrow">Common help</p>
-            <h2>Before you send.</h2>
-          </div>
-          <div className="support-topic-list">
-            {helpTopics.map((topic) => {
-              const Icon = topic.icon;
-
-              return (
-                <article key={topic.title}>
-                  <Icon aria-hidden="true" size={22} />
-                  <div>
-                    <h3>{topic.title}</h3>
-                    <p>{topic.body}</p>
-                    <Link href={topic.href}>Read policy</Link>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="support-note" aria-label="Support availability">
-          <h2>Support availability</h2>
-          <p>
-            Phone support and live chat are not currently offered. The form above is the official
-            support channel for orders, shipping questions, damaged items, returns, refunds, and
-            account help. You can also email us directly.
-          </p>
-          <a href={`mailto:${supportEmail}`}>{supportEmail}</a>
-        </section>
+        <nav className="support-policy-links" aria-label="Support policies">
+          <Link href="/shipping">Shipping policy</Link>
+          <Link href="/returns">Returns &amp; refunds</Link>
+        </nav>
       </main>
     </StorefrontShell>
   );

@@ -1,9 +1,11 @@
 import Image, { type ImageLoaderProps } from 'next/image';
 import type { Product, ProductGalleryImage } from '../../data/products';
 import {
+  getCartProductImage,
   getDisplayArtworkShape,
   getImageDimensions,
   getProductAspectRatio,
+  getProductGallery,
 } from './product-utils';
 
 function isSanityImageUrl(src: string) {
@@ -355,4 +357,22 @@ export function ProductImage({
   }
 
   return <ProductVisual product={product} />;
+}
+
+// Small cart previews use the source image itself. Canvas mockup geometry and
+// decorative edges belong to larger product displays, not fixed thumbnail boxes.
+export function ProductThumbnail({ product, sizes = '96px' }: { product: Product; sizes?: string }) {
+  const src = getCartProductImage(product);
+  if (!src) return <span>{product.title}</span>;
+
+  return (
+    <OptimizedRawImage
+      src={src}
+      alt={`${product.title} canvas print`}
+      sanityImage={getProductGallery(product).find((image) => image.url === src)}
+      className="cart-product-thumbnail"
+      sizes={sizes}
+      fill
+    />
+  );
 }

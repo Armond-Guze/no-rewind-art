@@ -39,6 +39,7 @@ import { supabaseClient } from '../../lib/supabase';
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
 import { getCheckoutAttribution } from './attribution';
 import { getNewsletterDiscountCode } from './discount';
+import { getCartOrderNote, saveCartOrderNote } from './cart-preferences';
 import { GoogleCustomerReviewsOptIn } from './GoogleCustomerReviewsOptIn';
 import { ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
@@ -360,6 +361,7 @@ export default function CartPageClient({
         trackStorefrontEvent('purchase', data.conversion);
         markPurchaseTracked(trackingKey);
         writeStoredCart([]);
+        saveCartOrderNote('');
         notifyStoredCartUpdated([]);
         setCheckoutVerificationState('verified');
       } catch (error) {
@@ -435,7 +437,9 @@ export default function CartPageClient({
       frameId: item.frameOption.id,
       quantity: item.quantity,
     }));
-    const checkoutSignature = JSON.stringify(checkoutItems);
+    const discountCode = getNewsletterDiscountCode();
+    const orderNote = getCartOrderNote();
+    const checkoutSignature = JSON.stringify({ items: checkoutItems, discountCode, orderNote });
 
     if (!checkoutRequest.current || checkoutRequest.current.signature !== checkoutSignature) {
       checkoutRequest.current = {
@@ -465,7 +469,8 @@ export default function CartPageClient({
           attribution: getCheckoutAttribution(),
           checkoutRequestId: checkoutRequest.current.id,
           items: checkoutItems,
-          ...(getNewsletterDiscountCode() ? { discountCode: getNewsletterDiscountCode() } : {}),
+          ...(discountCode ? { discountCode } : {}),
+          ...(orderNote ? { orderNote } : {}),
         }),
       });
 

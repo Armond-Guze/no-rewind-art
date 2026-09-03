@@ -2,6 +2,7 @@ const buckets = new Map();
 let nextPruneAt = 0;
 
 export const rateLimits = {
+  discount: { key: 'cart-discount', limit: 40, windowMs: 10 * 60 * 1000 },
   checkout: {
     key: 'checkout',
     limit: 20,

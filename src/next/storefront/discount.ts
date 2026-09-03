@@ -21,3 +21,7 @@ export function getNewsletterDiscountCode(): string {
     return '';
   }
 }
+
+export function clearNewsletterDiscountCode() {
+  try { window.localStorage.removeItem(newsletterCodeStorageKey); } catch { /* Storage may be unavailable. */ }
+}

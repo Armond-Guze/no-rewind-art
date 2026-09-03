@@ -8,14 +8,17 @@ import {
   ArrowRight,
   ChevronRight,
   CircleUserRound,
+  ChevronLeft,
   Globe,
   Headphones,
+  LockKeyhole,
   Menu,
   Minus,
   Package,
   Plus,
   Search,
   ShoppingBag,
+  StickyNote,
   ShieldCheck,
   Tag,
   X,
@@ -41,11 +44,9 @@ import { supabaseClient } from '../../lib/supabase';
 import {
   createCheckoutRequestId,
   formatPrice,
-  getCartProductImage,
   getConfiguredUnitPrice,
   getFrameOption,
   getSizeOption,
-  getSizeOptionAspectRatio,
   launchOfferDiscount,
   launchOfferCode,
   supportEmail,
@@ -57,9 +58,13 @@ import {
   getCheckoutAttribution,
   getSafeStorefrontPagePath,
 } from './attribution';
-import { getNewsletterDiscountCode, saveNewsletterDiscountCode } from './discount';
-import { OptimizedRawImage, ProductImage } from './OptimizedArtwork';
-import { CheckoutPolicyNotice } from './CheckoutPolicyNotice';
+import { saveNewsletterDiscountCode } from './discount';
+import { OptimizedRawImage, ProductThumbnail } from './OptimizedArtwork';
+import { SearchDrawer } from './SearchDrawer';
+import { useCartDiscount } from './useCartDiscount';
+import { getCartOrderNote, saveCartOrderNote } from './cart-preferences';
+import './storefront-navigation.css';
+import './cart-drawer.css';
 
 const newsletterPopupDelayMs = 12000;
 const newsletterPopupDismissMs = 7 * 24 * 60 * 60 * 1000;
@@ -580,6 +585,90 @@ function LaunchPromoBar({
   );
 }
 
+const primaryNavigationLinks = [
+  { href: '/collections/best-sellers', label: 'Best Sellers' },
+  { href: '/collections/money-ambition', label: 'Money' },
+  { href: '/collections/music', label: 'Music' },
+  { href: '/collections/new-arrivals', label: 'New Arrivals' },
+];
+
+function MobileNavigationSheet({ open, onClose, accountHref, signedIn }: {
+  open: boolean;
+  onClose: () => void;
+  accountHref: string;
+  signedIn: boolean;
+}) {
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const sheet = sheetRef.current;
+    sheet?.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true });
+    const trapFocus = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const items = sheet?.querySelectorAll<HTMLElement>('a[href], button');
+      if (!items?.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !sheet?.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !sheet?.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', trapFocus);
+    return () => {
+      document.removeEventListener('keydown', trapFocus);
+      previousFocus?.focus({ preventScroll: true });
+    };
+  }, [open]);
+
+  return (
+    <div className={`navigation-sheet-overlay${open ? ' is-open' : ''}`} inert={!open} aria-hidden={!open}>
+      <div className="navigation-sheet-scrim" onClick={onClose} aria-hidden="true" />
+      <div ref={sheetRef} className="navigation-sheet" id="mobile-navigation" role="dialog" aria-modal={open ? true : undefined} aria-label="Navigation menu">
+        <button
+          className="navigation-sheet-handle"
+          type="button"
+          aria-label="Close menu"
+          onClick={onClose}
+          onTouchStart={(event) => { touchStartY.current = event.touches[0].clientY; }}
+          onTouchEnd={(event) => {
+            if (touchStartY.current !== null && event.changedTouches[0].clientY - touchStartY.current > 45) onClose();
+            touchStartY.current = null;
+          }}
+        ><span /></button>
+        <nav className="navigation-sheet-links" aria-label="Mobile primary navigation">
+          {primaryNavigationLinks.map(({ href, label }) => (
+            <Link key={href} href={href} onClick={onClose}>
+              <span>{label}</span><ChevronRight size={19} strokeWidth={1.6} aria-hidden="true" />
+            </Link>
+          ))}
+        </nav>
+        <div className="navigation-sheet-footer">
+          <div className="navigation-sheet-locale" aria-label="Store language and currency">
+            <span>English</span><span>United States (USD $)</span>
+          </div>
+          <div className="navigation-sheet-account-row">
+            <Link className="navigation-sheet-login" href={accountHref} onClick={onClose}>
+              <CircleUserRound size={18} strokeWidth={1.6} aria-hidden="true" />{signedIn ? 'Account' : 'Login'}
+            </Link>
+            <div className="navigation-sheet-socials" aria-label="Follow Armoze">
+              <a href={storefrontSocialLinks.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram @itsarmoze" onClick={onClose}><InstagramIcon /></a>
+              <a href={storefrontSocialLinks.tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok @itsarmoze" onClick={onClose}><TikTokIcon /></a>
+              <a href={storefrontSocialLinks.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube @itsarmoze" onClick={onClose}><YouTubeIcon /></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function NextSiteHeader({
   menuOpen,
   setMenuOpen,
@@ -614,6 +703,17 @@ function NextSiteHeader({
   const isHome = pathname === '/';
   const accountHref = user ? '/account' : '/sign-in';
   const accountLabel = user ? 'View account' : 'Sign in or create account';
+
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 761px)');
+    const closeOnDesktop = () => {
+      if (desktop.matches) {
+        setMenuOpen(false);
+      }
+    };
+    desktop.addEventListener('change', closeOnDesktop);
+    return () => desktop.removeEventListener('change', closeOnDesktop);
+  }, [setMenuOpen]);
 
   useEffect(() => {
     const syncCartCount = () => setCartCount(getStoredCartCount());
@@ -678,8 +778,9 @@ function NextSiteHeader({
   }, [menuOpen, searchOpen, setMenuOpen, setSearchOpen]);
 
   return (
+    <>
     <header
-      className={`site-header${isHome ? ' home-header' : ''}${menuOpen ? ' menu-open' : ''}${
+      className={`site-header storefront-navigation${isHome ? ' home-header' : ''}${menuOpen ? ' menu-open' : ''}${
         searchOpen ? ' search-open' : ''
       }${
         isScrolled ? ' is-scrolled' : ''
@@ -691,7 +792,7 @@ function NextSiteHeader({
       <button
         className="mobile-menu-toggle"
         type="button"
-        aria-controls="primary-navigation"
+        aria-controls="mobile-navigation"
         aria-expanded={menuOpen}
         aria-label={menuOpen ? 'Close menu' : 'Open menu'}
         onClick={() => {
@@ -708,7 +809,7 @@ function NextSiteHeader({
       <button
         className="mobile-search-nav-button"
         type="button"
-        aria-controls="mobile-site-search"
+        aria-controls="storefront-search"
         aria-expanded={searchOpen}
         aria-label={searchOpen ? 'Close search' : 'Open search'}
         onClick={() => {
@@ -739,123 +840,27 @@ function NextSiteHeader({
         <span className="mobile-cart-count" aria-hidden="true">{cartCount}</span>
         <span className="sr-only">View cart</span>
       </Link>
-      <button
-        className={`mobile-menu-backdrop${menuOpen || searchOpen ? ' open' : ''}`}
-        type="button"
-        aria-label="Close navigation overlay"
-        onClick={closeOverlays}
-      />
-      <section
-        className={`mobile-search-panel${searchOpen ? ' open' : ''}`}
-        id="mobile-site-search"
-        aria-label="Site search"
-        aria-hidden={searchOpen ? undefined : true}
-      >
-        <button className="mobile-search-close" type="button" onClick={closeSearch}>
-          Close
-        </button>
-        <form className="mobile-search-form" action="/collections/best-sellers">
-          <label className="sr-only" htmlFor="mobile-search-query">
-            Search products
-          </label>
-          <input
-            id="mobile-search-query"
-            name="search"
-            type="search"
-            placeholder="Search products, categories, inspiration"
-            autoComplete="off"
-          />
-          <button type="submit" aria-label="Submit search">
-            <ArrowRight aria-hidden="true" size={18} />
-          </button>
-        </form>
-        <p>Search for products, categories, information, inspiration, etc.</p>
-        <div className="mobile-search-suggestions" aria-label="Search suggestions">
-          <strong>Suggestions:</strong>
-          <Link href="/collections/best-sellers" onClick={closeSearch}>Best Sellers</Link>
-          <Link href="/collections/music" onClick={closeSearch}>Music</Link>
-          <Link href="/collections/money-ambition" onClick={closeSearch}>Money</Link>
-        </div>
-      </section>
       <nav
-        className={`nav-links${menuOpen ? ' open' : ''}`}
+        className="nav-links"
         id="primary-navigation"
         aria-label="Primary navigation"
       >
-        <div className="mobile-menu-brand" aria-hidden="true">
-          <span className="brand-mark" aria-hidden="true" />
-        </div>
-        <Link href="/collections/best-sellers" onClick={closeMenu}>
-          <span>Best Sellers</span>
-          <ChevronRight className="mobile-menu-link-chevron" aria-hidden="true" size={18} strokeWidth={2.4} />
-        </Link>
-        <Link href="/collections/money-ambition" onClick={closeMenu}>
-          <span>Money</span>
-          <ChevronRight className="mobile-menu-link-chevron" aria-hidden="true" size={18} strokeWidth={2.4} />
-        </Link>
-        <Link href="/collections/music" onClick={closeMenu}>
-          <span>Music</span>
-          <ChevronRight className="mobile-menu-link-chevron" aria-hidden="true" size={18} strokeWidth={2.4} />
-        </Link>
-        <Link href="/collections/new-arrivals" onClick={closeMenu}>
-          <span>New Arrivals</span>
-          <ChevronRight className="mobile-menu-link-chevron" aria-hidden="true" size={18} strokeWidth={2.4} />
-        </Link>
-        <div className="mobile-menu-footer">
-          <span className="mobile-menu-social-handle">@itsarmoze</span>
-          <div className="mobile-menu-social-links" aria-label="Follow Armoze">
-            <a
-              className="mobile-menu-social-link"
-              href={storefrontSocialLinks.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram @itsarmoze"
-              title="Instagram @itsarmoze"
-              onClick={closeMenu}
-            >
-              <InstagramIcon />
-            </a>
-            <a
-              className="mobile-menu-social-link"
-              href={storefrontSocialLinks.tiktok}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="TikTok @itsarmoze"
-              title="TikTok @itsarmoze"
-              onClick={closeMenu}
-            >
-              <TikTokIcon />
-            </a>
-            <a
-              className="mobile-menu-social-link"
-              href={storefrontSocialLinks.youtube}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="YouTube @itsarmoze"
-              title="YouTube @itsarmoze"
-              onClick={closeMenu}
-            >
-              <YouTubeIcon />
-            </a>
-          </div>
-        </div>
+        {primaryNavigationLinks.map(({ href, label }) => (
+          <Link key={href} href={href} onClick={closeMenu}>{label}</Link>
+        ))}
       </nav>
       <div className="desktop-header-actions">
-        <form className="desktop-search-form" action="/collections/best-sellers">
-          <label className="sr-only" htmlFor="desktop-search-query">
-            Search products
-          </label>
-          <input
-            id="desktop-search-query"
-            name="search"
-            type="search"
-            placeholder="Search"
-            autoComplete="off"
-          />
-          <button type="submit" aria-label="Submit search">
-            <Search aria-hidden="true" size={18} strokeWidth={2.4} />
-          </button>
-        </form>
+        <button
+          className="desktop-search-nav-button"
+          type="button"
+          aria-controls="storefront-search"
+          aria-expanded={searchOpen}
+          aria-label={searchOpen ? 'Close search' : 'Open search'}
+          onClick={() => {
+            setMenuOpen(false);
+            setSearchOpen((open) => !open);
+          }}
+        ><Search aria-hidden="true" size={23} strokeWidth={1.6} /></button>
         <Link
           className={`desktop-login-nav-link${user ? ' signed-in' : ''}`}
           href={accountHref}
@@ -877,6 +882,9 @@ function NextSiteHeader({
         </Link>
       </div>
     </header>
+    <MobileNavigationSheet open={menuOpen} onClose={closeMenu} accountHref={accountHref} signedIn={Boolean(user)} />
+    <SearchDrawer open={searchOpen} onClose={closeSearch} categories={primaryNavigationLinks} />
+    </>
   );
 }
 
@@ -936,16 +944,55 @@ function CartDrawer({
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [checkoutError, setCheckoutError] = useState('');
   const [orderNote, setOrderNote] = useState('');
+  const [noteDraft, setNoteDraft] = useState('');
+  const [codeDraft, setCodeDraft] = useState('');
+  const [activePanel, setActivePanel] = useState<'note' | 'shipping' | 'discount' | null>(null);
+  const [panelView, setPanelView] = useState<'note' | 'shipping' | 'discount'>('note');
+  const [activeTab, setActiveTab] = useState<'cart' | 'recent'>('cart');
+  const [recentSlugs, setRecentSlugs] = useState<string[]>([]);
+  const [suggestionIndex, setSuggestionIndex] = useState(0);
+  const drawerRef = useRef<HTMLElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
   const checkoutRequest = useRef<{ id: string; signature: string } | null>(null);
   const trackedDrawerView = useRef(false);
   const drawerProducts = shouldFetchCatalog ? fetchedProducts ?? products : products;
   const cartLines = useMemo(() => buildCartDrawerLines(cart, drawerProducts), [cart, drawerProducts]);
   const subtotal = useMemo(() => getCartDrawerSubtotal(cartLines), [cartLines]);
   const itemCount = cartLines.reduce((total, item) => total + item.quantity, 0);
+  const cartSignature = JSON.stringify(cartLines.map((item) => ({ id: item.productId, sizeId: item.sizeOption.id, frameId: item.frameOption.id, quantity: item.quantity })));
+  const discount = useCartDiscount(isOpen, cartSignature, subtotal);
+  const discountedSubtotal = subtotal - (discount.quote?.amount || 0);
+  const suggestions = drawerProducts.filter((product) => !cartLines.some((line) => line.productId === product.id)).slice(0, 8);
+  const suggestion = suggestions[suggestionIndex % (suggestions.length || 1)];
+  const recentlyViewed = recentSlugs.map((slug) => drawerProducts.find((product) => product.slug === slug)).filter((product): product is Product => Boolean(product));
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setOrderNote(getCartOrderNote());
+      try {
+      const saved: unknown = JSON.parse(window.localStorage.getItem('armoze-recent-prints') || '[]');
+      const slugs = Array.isArray(saved) ? saved.filter((slug): slug is string => typeof slug === 'string') : [];
+      const current = pathname?.startsWith('/products/') ? pathname.split('/')[2] : '';
+      const next = (current ? [current, ...slugs.filter((slug) => slug !== current)] : slugs).slice(0, 8);
+      setRecentSlugs(next);
+      window.localStorage.setItem('armoze-recent-prints', JSON.stringify(next));
+      } catch { /* Recently viewed is optional when storage is unavailable. */ }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [pathname]);
+
+  function openPanel(panel: 'note' | 'shipping' | 'discount') {
+    setNoteDraft(orderNote);
+    setCodeDraft(discount.quote?.code || '');
+    setPanelView(panel);
+    setActivePanel(panel);
+  }
 
   const closeDrawer = useCallback(() => {
     setCheckoutError('');
     setCheckoutState('idle');
+    setActivePanel(null);
     onClose();
   }, [onClose]);
 
@@ -1019,10 +1066,25 @@ function CartDrawer({
     }
 
     document.body.classList.add('cart-drawer-lock');
+    const surface = activePanel ? panelRef.current : drawerRef.current;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        closeDrawer();
+        if (activePanel) setActivePanel(null);
+        else closeDrawer();
+      }
+      if (event.key === 'Tab') {
+        const items = Array.from(surface?.querySelectorAll<HTMLElement>('a[href], button:not(:disabled), input, textarea') ?? [])
+          .filter((element) => element.tabIndex >= 0 && element.getClientRects().length > 0 && !element.closest('[inert]'));
+        if (!items.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        const focusInside = items.includes(document.activeElement as HTMLElement);
+        if (event.shiftKey && (!focusInside || document.activeElement === first)) {
+          event.preventDefault(); last.focus();
+        } else if (!event.shiftKey && (!focusInside || document.activeElement === last)) {
+          event.preventDefault(); first.focus();
+        }
       }
     };
 
@@ -1032,7 +1094,24 @@ function CartDrawer({
       document.body.classList.remove('cart-drawer-lock');
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, closeDrawer]);
+  }, [isOpen, closeDrawer, activePanel]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    drawerRef.current?.focus({ preventScroll: true });
+    return () => previousFocus?.focus({ preventScroll: true });
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!activePanel) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const drawer = drawerRef.current;
+    panelRef.current?.focus({ preventScroll: true });
+    return () => {
+      if (drawer?.classList.contains('open')) previousFocus?.focus({ preventScroll: true });
+    };
+  }, [activePanel]);
 
   useEffect(() => {
     if (!isOpen || !cartReady || !cartLines.length || trackedDrawerView.current) {
@@ -1124,7 +1203,8 @@ function CartDrawer({
       frameId: item.frameOption.id,
       quantity: item.quantity,
     }));
-    const checkoutSignature = JSON.stringify({ items: checkoutItems, orderNote: orderNote.trim() });
+    const discountCode = discount.quote?.code || '';
+    const checkoutSignature = JSON.stringify({ items: checkoutItems, orderNote: orderNote.trim(), discountCode });
 
     if (!checkoutRequest.current || checkoutRequest.current.signature !== checkoutSignature) {
       checkoutRequest.current = {
@@ -1155,7 +1235,7 @@ function CartDrawer({
           checkoutRequestId: checkoutRequest.current.id,
           items: checkoutItems,
           orderNote: orderNote.trim(),
-          ...(getNewsletterDiscountCode() ? { discountCode: getNewsletterDiscountCode() } : {}),
+          ...(discountCode ? { discountCode } : {}),
         }),
       });
 
@@ -1180,155 +1260,90 @@ function CartDrawer({
 
   return (
     <>
-      <button
-        aria-label="Close shopping bag"
-        className={`cart-drawer-backdrop${isOpen ? ' open' : ''}`}
-        type="button"
-        onClick={closeDrawer}
-      />
-      <aside
-        aria-hidden={isOpen ? undefined : true}
-        aria-label="Shopping bag"
-        aria-modal="true"
-        className={`cart-drawer${isOpen ? ' open' : ''}`}
-        role="dialog"
-      >
-        <header className="cart-drawer-header">
-          <div>
-            <strong>Bag</strong>
-            <span>
-              {cartReady ? `${itemCount} item${itemCount === 1 ? '' : 's'}` : 'Loading'}
-            </span>
-          </div>
-          <button className="cart-drawer-close" type="button" onClick={closeDrawer}>
-            Close
-          </button>
-        </header>
-
-        {cartReady && cartLines.length ? (
-          <>
-            <div className="cart-drawer-body">
-              <div className="cart-drawer-items">
-                {cartLines.map(({ frameOption, lineKey, product, quantity, sizeOption, unitPrice }) => (
-                  <article className="cart-drawer-item" key={lineKey}>
-                    <Link
-                      className="cart-drawer-item-media"
-                      href={`/products/${product.slug}`}
-                      onClick={closeDrawer}
-                      style={{ aspectRatio: getSizeOptionAspectRatio(sizeOption) }}
-                    >
-                      <ProductImage
-                        product={product}
-                        src={getCartProductImage(product)}
-                        aspectRatio={getSizeOptionAspectRatio(sizeOption)}
-                        className="cart-line-product-image"
-                        priority
-                        sizes="180px"
-                      />
-                    </Link>
-                    <div className="cart-drawer-item-main">
-                      <div className="cart-drawer-item-topline">
-                        <div>
-                          <h3>
-                            <Link href={`/products/${product.slug}`} onClick={closeDrawer}>
-                              {product.title}
-                            </Link>
-                          </h3>
-                          <p>{sizeOption.label}</p>
-                          <p>{frameOption.label}</p>
-                        </div>
-                        <strong>{formatPrice(unitPrice)}</strong>
-                      </div>
-                      <div className="cart-drawer-item-actions">
-                        <div className="cart-drawer-quantity-controls" aria-label={`${product.title} quantity`}>
-                          <button
-                            aria-label={`Decrease ${product.title} quantity`}
-                            type="button"
-                            onClick={() => updateQuantity(lineKey, quantity - 1)}
-                          >
-                            <Minus aria-hidden="true" size={15} />
-                          </button>
-                          <span>{quantity}</span>
-                          <button
-                            aria-label={`Increase ${product.title} quantity`}
-                            type="button"
-                            onClick={() => updateQuantity(lineKey, quantity + 1)}
-                          >
-                            <Plus aria-hidden="true" size={15} />
-                          </button>
-                        </div>
-                        <button className="cart-drawer-remove" type="button" onClick={() => removeItem(lineKey)}>
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
+      <div className={`bag-backdrop${isOpen ? ' open' : ''}`} onClick={closeDrawer} aria-hidden="true" />
+      <aside ref={drawerRef} tabIndex={-1} inert={!isOpen} aria-hidden={!isOpen} aria-label="Shopping cart" aria-modal={isOpen ? true : undefined} className={`cart-drawer concept-cart${isOpen ? ' open' : ''}`} role="dialog">
+        <div className="bag-base" inert={Boolean(activePanel)} aria-hidden={activePanel ? true : undefined}>
+          <button className="bag-handle" type="button" aria-label="Close cart" onClick={closeDrawer}><span /></button>
+          <header className="bag-header">
+            <div className="bag-tabs" role="tablist" aria-label="Cart views" onKeyDown={(event) => {
+              if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+              event.preventDefault();
+              const next = event.key === 'Home' ? 'cart' : event.key === 'End' ? 'recent' : activeTab === 'cart' ? 'recent' : 'cart';
+              setActiveTab(next);
+              event.currentTarget.querySelector<HTMLButtonElement>(`#bag-${next}-tab`)?.focus();
+            }}>
+              <button id="bag-cart-tab" type="button" role="tab" tabIndex={activeTab === 'cart' ? 0 : -1} aria-selected={activeTab === 'cart'} aria-controls="bag-cart-content" onClick={() => setActiveTab('cart')}>Cart<sup>{itemCount || ''}</sup></button>
+              <button id="bag-recent-tab" type="button" role="tab" tabIndex={activeTab === 'recent' ? 0 : -1} aria-selected={activeTab === 'recent'} aria-controls="bag-recent-content" onClick={() => setActiveTab('recent')}>Recently viewed</button>
             </div>
-
-            <footer className="cart-drawer-footer">
-              <details className="cart-drawer-note">
-                <summary>Add order note +</summary>
-                <textarea
-                  aria-label="Order note"
-                  maxLength={500}
-                  rows={3}
-                  value={orderNote}
-                  onChange={(event) => setOrderNote(event.target.value)}
-                />
-              </details>
-              <div className="cart-drawer-summary-row">
-                <span>Subtotal</span>
-                <strong>{formatPrice(subtotal)} USD</strong>
-              </div>
-              <div className="cart-drawer-summary-row">
-                <span>Delivery Charges</span>
-                <small>Free shipping. Tax calculated at checkout.</small>
-              </div>
-              <div className="cart-drawer-footer-actions">
-                <button
-                  className="cart-drawer-checkout"
-                  disabled={checkoutState === 'loading'}
-                  type="button"
-                  onClick={startCheckout}
-                >
-                  {checkoutState === 'loading' ? 'Opening checkout' : 'Checkout'}
-                </button>
-                <Link className="cart-drawer-secondary-action" href="/cart" onClick={closeDrawer}>
-                  Shopping bag
-                  <ArrowRight aria-hidden="true" size={14} />
+            <button className="bag-close" type="button" aria-label="Close cart" onClick={closeDrawer}><X size={21} strokeWidth={1.5} aria-hidden="true" /></button>
+          </header>
+          {activeTab === 'recent' ? (
+            <div className="bag-body" id="bag-recent-content" role="tabpanel" aria-labelledby="bag-recent-tab">
+              {recentlyViewed.length ? recentlyViewed.map((product) => (
+                <Link className="bag-recent-item" key={product.id} href={`/products/${product.slug}`} onClick={closeDrawer}>
+                  <span className="bag-suggestion-image"><ProductThumbnail product={product} sizes="(max-width: 760px) 64px, 84px" /></span>
+                  <span>{product.title}<small>{formatPrice(getConfiguredUnitPrice(product, getSizeOption(product, ''), getFrameOption(product, '', getSizeOption(product, ''))))}</small></span>
+                  <ChevronRight size={19} aria-hidden="true" />
                 </Link>
+              )) : <div className="bag-empty"><h3>Your next favorite is waiting.</h3><p>The prints you view will appear here.</p><Link className="bag-pill" href="/collections/best-sellers" onClick={closeDrawer}>Explore prints</Link></div>}
+            </div>
+          ) : (
+            <div className="bag-cart-content" id="bag-cart-content" role="tabpanel" aria-labelledby="bag-cart-tab">
+              <div className="bag-body">
+                <div className="bag-shipping-promise"><p><Package size={18} strokeWidth={1.5} aria-hidden="true" /><span>Free shipping on every order. No minimum.</span></p><span className="bag-shipping-line" /></div>
+                {cartReady && cartLines.length ? (
+                  <>
+                    <div className="bag-items">
+                      {cartLines.map(({ frameOption, lineKey, product, quantity, sizeOption, unitPrice }) => (
+                        <article className="bag-item" key={lineKey}>
+                          <Link className="bag-item-image" href={`/products/${product.slug}`} onClick={closeDrawer}>
+                            <ProductThumbnail product={product} sizes="(max-width: 760px) 72px, 96px" />
+                          </Link>
+                          <div className="bag-item-description"><h3><Link href={`/products/${product.slug}`} onClick={closeDrawer}>{product.title}</Link></h3><p>{sizeOption.label} · {frameOption.label}</p><strong>{formatPrice(unitPrice)}</strong></div>
+                          <div className="bag-item-controls">
+                            <div className="bag-quantity" aria-label={`${product.title} quantity`}>
+                              <button type="button" aria-label={`Decrease ${product.title} quantity`} disabled={checkoutState === 'loading'} onClick={() => updateQuantity(lineKey, quantity - 1)}><Minus size={12} aria-hidden="true" /></button>
+                              <span aria-live="polite">{quantity}</span>
+                              <button type="button" aria-label={`Increase ${product.title} quantity`} disabled={quantity >= 10 || checkoutState === 'loading'} onClick={() => updateQuantity(lineKey, quantity + 1)}><Plus size={12} aria-hidden="true" /></button>
+                            </div>
+                            <button className="bag-remove" type="button" disabled={checkoutState === 'loading'} aria-label={`Remove ${product.title}`} onClick={() => removeItem(lineKey)}>Remove</button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                    {suggestion ? <section className="bag-recommendations" aria-label="You may also like">
+                      <div className="bag-recommendation-heading"><h3>You may also like</h3><button type="button" aria-label="Previous suggested print" onClick={() => setSuggestionIndex((index) => (index - 1 + suggestions.length) % suggestions.length)}><ChevronLeft size={17} aria-hidden="true" /></button><button type="button" aria-label="Next suggested print" onClick={() => setSuggestionIndex((index) => index + 1)}><ChevronRight size={17} aria-hidden="true" /></button></div>
+                      <div className="bag-suggestion"><Link className="bag-suggestion-image" href={`/products/${suggestion.slug}`} onClick={closeDrawer}><ProductThumbnail product={suggestion} sizes="(max-width: 760px) 64px, 84px" /></Link><div><h4>{suggestion.title}</h4><p>{formatPrice(getConfiguredUnitPrice(suggestion, getSizeOption(suggestion, ''), getFrameOption(suggestion, '', getSizeOption(suggestion, ''))))}</p></div><Link className="bag-pill" href={`/products/${suggestion.slug}`} onClick={closeDrawer}><Plus size={16} aria-hidden="true" />View</Link></div>
+                    </section> : null}
+                  </>
+                ) : <div className="bag-empty"><ShoppingBag size={34} strokeWidth={1.4} aria-hidden="true" /><h3>{cartReady ? 'Your cart is empty' : 'Loading your cart'}</h3><p>{cartReady ? 'Find a print that moves you.' : 'Checking your saved prints.'}</p>{cartReady ? <Link className="bag-pill" href="/collections/best-sellers" onClick={closeDrawer}>Explore prints</Link> : null}</div>}
               </div>
-              <CheckoutPolicyNotice compact />
-              {checkoutState === 'error' ? (
-                <p className="cart-drawer-error">
-                  {checkoutError || 'Checkout could not be started. Please try again.'}
-                </p>
-              ) : null}
-            </footer>
-          </>
-        ) : (
-          <div className="cart-drawer-empty">
-            <ShoppingBag aria-hidden="true" size={34} />
-            <h3>{cartReady ? 'Your bag is empty' : 'Loading your bag'}</h3>
-            <p>
-              {cartReady
-                ? 'Add a print from the shop to start checkout.'
-                : 'Checking your saved Armoze prints.'}
-            </p>
-            {cartReady ? (
-              <Link className="cart-drawer-browse" href="/collections/best-sellers" onClick={closeDrawer}>
-                Browse prints
-              </Link>
-            ) : null}
+              {cartReady && cartLines.length ? <footer className="bag-footer">
+                <div className="bag-tools"><button type="button" onClick={() => openPanel('note')}><StickyNote size={21} strokeWidth={1.5} aria-hidden="true" /><span>Order note{orderNote ? ' ✓' : ''}</span></button><button type="button" onClick={() => openPanel('shipping')}><Package size={21} strokeWidth={1.5} aria-hidden="true" /><span>Shipping</span></button><button type="button" onClick={() => openPanel('discount')}><Tag size={21} strokeWidth={1.5} aria-hidden="true" /><span>Discount</span></button></div>
+                <div className="bag-totals">
+                  {discount.quote ? <div className="bag-discount-row"><span><Tag size={18} strokeWidth={1.5} aria-hidden="true" />Order discount <small>{discount.quote.code}</small></span><strong>−{formatPrice(discount.quote.amount)}</strong></div> : null}
+                  <div className="bag-total-row"><p>Taxes calculated at checkout.<br />Shipping is always free.</p><div><span>Subtotal</span><strong>{formatPrice(discountedSubtotal)} <small>USD</small></strong></div></div>
+                  <button className="bag-checkout bag-pill" disabled={checkoutState === 'loading' || discount.loading} type="button" onClick={startCheckout}><LockKeyhole size={18} strokeWidth={1.5} aria-hidden="true" />{checkoutState === 'loading' ? 'Opening checkout…' : discount.loading ? 'Checking discount…' : 'Check out'}</button>
+                  {checkoutState === 'error' ? <p className="bag-error" role="alert">{checkoutError || 'Checkout could not be started. Please try again.'}</p> : null}
+                  {discount.error ? <p className="bag-error" role="status">{discount.error}</p> : null}
+                </div>
+              </footer> : null}
+            </div>
+          )}
+        </div>
+        <div className={`bag-panel-layer${activePanel ? ' open' : ''}`} inert={!activePanel} aria-hidden={!activePanel}>
+          <div className="bag-panel-scrim" aria-hidden="true" onClick={() => setActivePanel(null)} />
+          <div className="bag-panel" data-panel={panelView} ref={panelRef} tabIndex={-1} role="dialog" aria-modal={activePanel ? true : undefined} aria-labelledby="bag-panel-title">
+            <div className="bag-panel-heading"><h3 id="bag-panel-title">{panelView === 'note' ? 'Order note' : panelView === 'shipping' ? 'Shipping' : 'Discount'}</h3><button type="button" aria-label="Close cart options" onClick={() => setActivePanel(null)}><X size={20} strokeWidth={1.5} aria-hidden="true" /></button></div>
+            {panelView === 'note' ? <form onSubmit={(event) => { event.preventDefault(); const note = noteDraft.trim(); setOrderNote(note); saveCartOrderNote(note); setActivePanel(null); }}><label className="sr-only" htmlFor="bag-order-note">Order note</label><textarea id="bag-order-note" value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} maxLength={500} rows={2} placeholder="Add a note to your order" /><button className="bag-pill" type="submit">Save</button></form> : null}
+            {panelView === 'shipping' ? <div className="bag-shipping-details"><div><span>Standard shipping</span><strong>Free</strong></div><p>Most orders arrive in 5–8 business days.</p><Link href="/shipping" onClick={closeDrawer}>Shipping policy</Link><button type="button" className="bag-pill" onClick={() => setActivePanel(null)}>Done</button></div> : null}
+            {panelView === 'discount' ? <form onSubmit={(event) => { event.preventDefault(); discount.apply(codeDraft); }}><label className="sr-only" htmlFor="bag-discount-code">Discount code</label><input id="bag-discount-code" value={codeDraft} onChange={(event) => setCodeDraft(event.target.value)} placeholder="Discount code" autoComplete="off" maxLength={80} required /><div className="bag-panel-actions"><button className="bag-pill" type="submit" disabled={discount.loading}>{discount.loading ? 'Applying…' : 'Apply'}</button>{discount.quote ? <button className="bag-remove" type="button" onClick={() => { discount.remove(); setCodeDraft(''); }}>Remove code</button> : null}</div>{discount.error ? <p className="bag-error" role="alert">{discount.error}</p> : null}{discount.quote ? <p className="bag-applied" role="status">{discount.quote.code} applied. You save {formatPrice(discount.quote.amount)}.</p> : null}</form> : null}
           </div>
-        )}
+        </div>
       </aside>
     </>
   );
 }
-
 type FooterLink = {
   href: string;
   label: string;
@@ -1446,18 +1461,18 @@ function NextSiteFooter() {
     <footer className="site-footer">
       <section className="footer-benefits" aria-label="Shopping with Armoze">
         <div className="footer-benefits-inner">
-          <Link href="/support" className="footer-benefit">
+          <div className="footer-benefit">
             <Headphones aria-hidden="true" size={24} strokeWidth={1.6} />
             <div><h2>Customer service</h2><p>Here to help, every step of the way.</p></div>
-          </Link>
-          <Link href="/shipping" className="footer-benefit">
+          </div>
+          <div className="footer-benefit">
             <Package aria-hidden="true" size={24} strokeWidth={1.6} />
             <div><h2>Always free shipping</h2><p>Free shipping on every order. No minimum.</p></div>
-          </Link>
-          <a href="#footer-newsletter-title" className="footer-benefit">
+          </div>
+          <div className="footer-benefit">
             <Tag aria-hidden="true" size={24} strokeWidth={1.6} />
             <div><h2>Your first order, 15% off</h2><p>Join the newsletter for your welcome offer.</p></div>
-          </a>
+          </div>
           <div className="footer-benefit">
             <ShieldCheck aria-hidden="true" size={24} strokeWidth={1.6} />
             <div><h2>Secure payment</h2><p>Your payment information is processed securely.</p></div>

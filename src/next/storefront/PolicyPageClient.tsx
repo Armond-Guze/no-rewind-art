@@ -29,7 +29,7 @@ export default function PolicyPageClient({ page }: { page: PolicyPageContent }) 
         <section className="policy-hero">
           <p className="eyebrow">Store policy</p>
           <h1>{page.title}</h1>
-          <p>{page.description}</p>
+          {!page.hideDescription && <p>{page.description}</p>}
           <span>Last updated: {page.updated}</span>
         </section>
 
