@@ -9,6 +9,11 @@ import {
 } from 'sanity'
 import {ProductIdInput} from './ProductIdInput'
 import {SizePresetInput} from './SizePresetInput'
+import {ArtworkHighlightsInput, SeoAliasesInput} from './SuggestedTextArrayInput'
+import {
+  buildDefaultArtworkHighlights,
+  buildDefaultSeoAliases,
+} from '../../shared/product-content.js'
 
 const validationApiVersion = '2025-05-21'
 
@@ -43,6 +48,18 @@ function getStringArray(value: unknown) {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
     : []
+}
+
+function validateUniqueNormalizedStrings(value: unknown) {
+  const values = getStringArray(value)
+  const normalizedValues = values.map((item) => normalizeIdentityValue(item))
+  const duplicateIndex = normalizedValues.findIndex(
+    (item, index) => normalizedValues.indexOf(item) !== index,
+  )
+
+  return duplicateIndex >= 0
+    ? `"${values[duplicateIndex]}" is already listed. Capitalization does not make it unique.`
+    : true
 }
 
 function getCurrentDocumentId(context: ValidationContext | SlugValidationContext) {
@@ -193,9 +210,11 @@ async function validatePreviousSlugs(value: unknown, context: ValidationContext)
 
 const collectionSlugOptions = [
   {title: 'Best Sellers', value: 'best-sellers'},
+  {title: 'Discipline & Focus', value: 'discipline-focus'},
   {title: 'Money & Ambition', value: 'money-ambition'},
   {title: 'Music', value: 'music'},
   {title: 'New Arrivals', value: 'new-arrivals'},
+  {title: 'Study & Creative', value: 'study-creative'},
 ]
 
 const sizeOptionFields = [
@@ -220,17 +239,29 @@ export const artworkProductType = defineType({
   name: 'artworkProduct',
   title: 'Artwork Product',
   type: 'document',
+  groups: [
+    {name: 'content', title: 'Content', default: true},
+    {name: 'media', title: 'Media'},
+    {name: 'selling', title: 'Format & Selling'},
+    {name: 'seo', title: 'SEO & Search'},
+    {name: 'advanced', title: 'Advanced'},
+  ],
   fields: [
     defineField({
       name: 'title',
       title: 'Title',
       type: 'string',
-      validation: (rule) => rule.required(),
+      group: 'content',
+      validation: (rule) => [
+        rule.required(),
+        rule.max(80).warning('Shorter product titles are easier to scan and share.'),
+      ],
     }),
     defineField({
       name: 'productId',
       title: 'Product ID',
       type: 'string',
+      group: 'advanced',
       description:
         'Stable storefront/cart ID, like life-has-no-rewind-canvas. Set this before the first publish; it is locked afterward.',
       components: {input: ProductIdInput},
@@ -240,6 +271,7 @@ export const artworkProductType = defineType({
       name: 'slug',
       title: 'Slug',
       type: 'slug',
+      group: 'seo',
       description:
         'Changing the title will not automatically change this after the product exists. Click Generate or edit this when you want the storefront URL to change.',
       options: {source: 'title', isUnique: isSlugUnique},
@@ -249,6 +281,7 @@ export const artworkProductType = defineType({
       name: 'previousSlugs',
       title: 'Previous Slugs',
       type: 'array',
+      group: 'seo',
       description:
         'Add old slug values here when changing a product URL. Example: old-artwork-name. The storefront will redirect old URLs to the current slug.',
       of: [defineArrayMember({type: 'string'})],
@@ -256,39 +289,122 @@ export const artworkProductType = defineType({
     }),
     defineField({
       name: 'published',
-      title: 'Published',
+      title: 'Visible on Storefront',
       type: 'boolean',
-      initialValue: true,
+      group: 'content',
+      description:
+        'Turn this on only when the copy, primary image, format, and collections are ready. This is separate from Sanity\'s Publish action.',
+      initialValue: false,
     }),
     defineField({
       name: 'sortOrder',
       title: 'Sort Order',
       type: 'number',
+      group: 'advanced',
       description:
         'Optional manual storefront order. Lower numbers show first. If two products match, the site falls back to title order.',
       initialValue: 100,
+      validation: (rule) => rule.integer().min(0),
     }),
     defineField({
       name: 'description',
       title: 'Short Description',
       type: 'text',
+      group: 'content',
+      description: 'One concise selling sentence used on product and discovery surfaces.',
       rows: 3,
-      validation: (rule) => rule.required(),
+      validation: (rule) => [
+        rule.required(),
+        rule.min(50).warning('Aim for at least 50 characters so this says something specific.'),
+        rule.max(180).warning('Keep this under 180 characters for easy scanning.'),
+      ],
     }),
     defineField({
       name: 'longDescription',
       title: 'Long Description',
       type: 'text',
+      group: 'content',
+      description: 'Customer-facing story and room context. Avoid repeating shipping or material facts.',
       rows: 5,
+      validation: (rule) => [
+        rule.required(),
+        rule.min(100).warning('Aim for at least 100 characters of useful, product-specific copy.'),
+      ],
+    }),
+    defineField({
+      name: 'details',
+      title: 'Artwork Highlights',
+      type: 'array',
+      group: 'content',
+      description:
+        'Two or three details specific to this artwork. Shared facts such as made-to-order production, matte canvas, and shipping are shown automatically.',
+      components: {input: ArtworkHighlightsInput},
+      initialValue: buildDefaultArtworkHighlights('minimal'),
+      of: [
+        defineArrayMember({
+          type: 'string',
+          validation: (rule) => rule.required().min(15).max(140),
+        }),
+      ],
+      validation: (rule) => [
+        rule.required().min(2).max(3),
+        rule.custom(validateUniqueNormalizedStrings),
+      ],
+    }),
+    defineField({
+      name: 'tone',
+      title: 'Artwork Theme',
+      type: 'string',
+      group: 'content',
+      description:
+        'Used to suggest artwork highlights, search phrases, and SEO fallback copy. Choose the closest match.',
+      options: {
+        list: [
+          {title: 'Cassette / Retro', value: 'cassette'},
+          {title: 'Focus / Discipline', value: 'focus'},
+          {title: 'Space / Future', value: 'space'},
+          {title: 'Money / Ambition', value: 'money'},
+          {title: 'Minimal / Study', value: 'minimal'},
+        ],
+      },
+      initialValue: 'minimal',
       validation: (rule) => rule.required(),
     }),
-    defineField({name: 'label', title: 'Visual Label', type: 'string'}),
+    defineField({
+      name: 'collectionSlugs',
+      title: 'Collections',
+      type: 'array',
+      group: 'content',
+      description: 'Choose where this product should be discoverable on the storefront.',
+      options: {list: collectionSlugOptions},
+      of: [defineArrayMember({type: 'string'})],
+      validation: (rule) =>
+        rule.required().min(1).unique().custom((slugs) => {
+          if (
+            Array.isArray(slugs) &&
+            slugs.includes('best-sellers') &&
+            slugs.includes('new-arrivals')
+          ) {
+            return 'Best Sellers products cannot also be New Arrivals.'
+          }
+
+          return true
+        }),
+    }),
+    defineField({
+      name: 'label',
+      title: 'Artwork Card Label Override',
+      type: 'string',
+      group: 'advanced',
+      description: 'Optional. Leave blank to use the product title on artwork cards.',
+    }),
     defineField({
       name: 'mainImage',
-      title: 'Main Image',
+      title: 'Primary Product Image',
       type: 'image',
+      group: 'media',
       description:
-        'Upload the primary storefront image here. Products can be imported before artwork is ready, but published products should have a main image before launch.',
+        'Used first in the product gallery, on collection cards, and in search and merchant surfaces.',
       options: {hotspot: true},
       fields: [
         defineField({
@@ -298,17 +414,19 @@ export const artworkProductType = defineType({
           validation: (rule) => rule.required(),
         }),
       ],
-    }),
-    defineField({
-      name: 'imageAlt',
-      title: 'Fallback Image Alt Text',
-      type: 'string',
-      validation: (rule) => rule.required(),
+      validation: (rule) =>
+        rule.custom((image, context) => {
+          if (context.document?.published !== true) return true
+          return image && typeof image === 'object' && 'asset' in image
+            ? true
+            : 'A primary image is required when this product is visible on the storefront.'
+        }),
     }),
     defineField({
       name: 'mockupFramedBlack',
       title: 'Framed Mockup (Black)',
       type: 'image',
+      group: 'media',
       description:
         'Pre-rendered black float frame mockup. Shown on the product page when the customer selects the Black Frame option.',
     }),
@@ -316,6 +434,7 @@ export const artworkProductType = defineType({
       name: 'mockupFramedWhite',
       title: 'Framed Mockup (White)',
       type: 'image',
+      group: 'media',
       description:
         'Pre-rendered white float frame mockup. Shown on the product page when the customer selects the White Frame option.',
     }),
@@ -323,11 +442,20 @@ export const artworkProductType = defineType({
       name: 'galleryImages',
       title: 'Gallery Images',
       type: 'array',
+      group: 'media',
       of: [
         defineArrayMember({
           type: 'image',
           options: {hotspot: true},
-          fields: [defineField({name: 'alt', title: 'Alt Text', type: 'string'})],
+          fields: [
+            defineField({
+              name: 'alt',
+              title: 'Alt Text',
+              type: 'string',
+              validation: (rule) =>
+                rule.required().warning('Add concise alt text for accessibility and image search.'),
+            }),
+          ],
         }),
       ],
     }),
@@ -335,6 +463,7 @@ export const artworkProductType = defineType({
       name: 'productVideos',
       title: 'Product Videos',
       type: 'array',
+      group: 'media',
       description: 'Optional product videos for the storefront gallery and Google Merchant Center.',
       of: [
         defineArrayMember({
@@ -374,52 +503,12 @@ export const artworkProductType = defineType({
       ],
     }),
     defineField({
-      name: 'tone',
-      title: 'Tone',
-      type: 'string',
-      options: {
-        list: [
-          {title: 'Cassette', value: 'cassette'},
-          {title: 'Focus', value: 'focus'},
-          {title: 'Space', value: 'space'},
-          {title: 'Money', value: 'money'},
-          {title: 'Minimal', value: 'minimal'},
-        ],
-      },
-      initialValue: 'minimal',
-    }),
-    defineField({
-      name: 'collectionSlugs',
-      title: 'Collection Slugs',
-      type: 'array',
-      options: {list: collectionSlugOptions},
-      of: [defineArrayMember({type: 'string'})],
-      validation: (rule) =>
-        rule.unique().custom((slugs) => {
-          if (
-            Array.isArray(slugs) &&
-            slugs.includes('best-sellers') &&
-            slugs.includes('new-arrivals')
-          ) {
-            return 'Best Sellers products cannot also be New Arrivals.'
-          }
-
-          return true
-        }),
-    }),
-    defineField({name: 'priceInCents', title: 'Base Price In Cents', type: 'number'}),
-    defineField({
-      name: 'size',
-      title: 'Product Type Label',
-      type: 'string',
-      initialValue: 'Canvas print',
-    }),
-    defineField({
       name: 'sizePreset',
-      title: 'Size Preset',
+      title: 'Canvas Format & Size Set',
       type: 'string',
+      group: 'selling',
       description:
-        'Choose the artwork ratio. This controls the five size buttons, prices, and product mockup shape automatically.',
+        'This one choice controls the storefront canvas shape, size buttons, and shared prices. Edit shared prices in Catalog Settings.',
       options: {
         list: [
           {title: 'Landscape 2:1', value: 'landscapeWide'},
@@ -435,27 +524,10 @@ export const artworkProductType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'aspectRatio',
-      title: 'Canvas Aspect Ratio',
-      type: 'string',
-      description:
-        'Controls the visible canvas shape on the website. Use width / height, for example 2 / 1, 3 / 2, 2 / 3, or 1 / 1.',
-      options: {
-        list: [
-          {title: '1 / 1 Square', value: '1 / 1'},
-          {title: '2 / 1 Panoramic', value: '2 / 1'},
-          {title: '3 / 2 Landscape', value: '3 / 2'},
-          {title: '4 / 3 Landscape', value: '4 / 3'},
-          {title: '3 / 4 Portrait', value: '3 / 4'},
-          {title: '4 / 5 Portrait', value: '4 / 5'},
-          {title: '2 / 3 Portrait', value: '2 / 3'},
-        ],
-      },
-    }),
-    defineField({
       name: 'useCustomSizeOptions',
       title: 'Use Custom Size Options',
       type: 'boolean',
+      group: 'selling',
       description:
         'Leave off for normal products so this artwork uses the shared prices from Catalog Settings. Turn on only when this product needs its own sizes or prices.',
       initialValue: false,
@@ -464,36 +536,89 @@ export const artworkProductType = defineType({
       name: 'sizeOptions',
       title: 'Custom Size Options',
       type: 'array',
+      group: 'selling',
       description:
         'Only used when Use Custom Size Options is turned on. Otherwise the storefront uses the Size Preset prices from Catalog Settings.',
       hidden: ({document}) => document?.useCustomSizeOptions !== true,
       of: [defineArrayMember({type: 'object', fields: sizeOptionFields})],
+      validation: (rule) =>
+        rule.custom((options, context) => {
+          if (context.document?.useCustomSizeOptions !== true) return true
+          return Array.isArray(options) && options.length > 0
+            ? true
+            : 'Add at least one custom size or turn off Use Custom Size Options.'
+        }),
     }),
-    defineField({name: 'rating', title: 'Rating', type: 'number'}),
-    defineField({name: 'reviewCount', title: 'Review Count', type: 'number'}),
     defineField({
-      name: 'details',
-      title: 'Product Details',
-      type: 'array',
-      of: [defineArrayMember({type: 'string'})],
+      name: 'seoTitle',
+      title: 'SEO Title Override',
+      type: 'string',
+      group: 'seo',
+      description: 'Optional. Leave blank to generate a title from the product name and Artwork Theme.',
+      validation: (rule) =>
+        rule.max(65).warning('Search results may truncate titles longer than about 65 characters.'),
     }),
-    defineField({name: 'seoTitle', title: 'SEO Title', type: 'string'}),
-    defineField({name: 'seoDescription', title: 'SEO Description', type: 'text', rows: 2}),
+    defineField({
+      name: 'seoDescription',
+      title: 'SEO Description Override',
+      type: 'text',
+      group: 'seo',
+      description:
+        'Optional. Leave blank to generate a focused description from the title, theme, and search phrases.',
+      rows: 3,
+      validation: (rule) =>
+        rule.max(160).warning('Search results may truncate descriptions longer than about 160 characters.'),
+    }),
     defineField({
       name: 'seoAliases',
-      title: 'SEO Aliases',
+      title: 'Search Phrases',
       type: 'array',
+      group: 'seo',
       description:
-        'Natural keyword phrases and alternate search intents for this product, like office wall art, entrepreneur canvas print, or gym motivation decor.',
-      of: [defineArrayMember({type: 'string'})],
-      validation: (rule) => rule.unique(),
+        'Natural search intents, not alternate URLs. Suggested automatically from Artwork Theme and used for discovery and SEO fallback copy.',
+      components: {input: SeoAliasesInput},
+      initialValue: buildDefaultSeoAliases('minimal'),
+      of: [
+        defineArrayMember({
+          type: 'string',
+          validation: (rule) => rule.required().min(3).max(60),
+        }),
+      ],
+      validation: (rule) => [
+        rule.required().min(4).max(8),
+        rule.custom(validateUniqueNormalizedStrings),
+      ],
+    }),
+    defineField({
+      name: 'rating',
+      title: 'Product-specific Rating',
+      type: 'number',
+      group: 'advanced',
+      description: 'Only use for a verified review summary tied to this exact product.',
+      validation: (rule) => rule.min(0).max(5),
+    }),
+    defineField({
+      name: 'reviewCount',
+      title: 'Product-specific Review Count',
+      type: 'number',
+      group: 'advanced',
+      description: 'Only use for verified reviews tied to this exact product.',
+      validation: (rule) => rule.integer().min(0),
     }),
   ],
   preview: {
     select: {
       title: 'title',
-      subtitle: 'productId',
+      productId: 'productId',
+      published: 'published',
       media: 'mainImage',
+    },
+    prepare(selection) {
+      return {
+        title: selection.title || 'Untitled artwork',
+        subtitle: `${selection.published === false ? 'Hidden · ' : ''}${selection.productId || 'Missing Product ID'}`,
+        media: selection.media,
+      }
     },
   },
 })

@@ -26,6 +26,19 @@
 .navigation-sheet-overlay,
 .mobile-header-actions { display: none; }
 
+.site-header.storefront-navigation .nav-link-label,
+.navigation-sheet-links .nav-link-label {
+  display: inline-block;
+  transform-origin: center;
+  transition: transform 150ms cubic-bezier(0.22, 0.72, 0.22, 1), opacity 150ms ease;
+}
+
+.site-header.storefront-navigation .nav-links > a:active .nav-link-label,
+.navigation-sheet-links a:active .nav-link-label {
+  transform: translateY(1px) scale(0.96);
+  opacity: 0.72;
+}
+
 .launch-promo-bar {
   min-height: 46px;
   padding-block: 0;
@@ -382,6 +395,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .site-header.storefront-navigation .nav-links > a,
+  .site-header.storefront-navigation .nav-link-label,
+  .navigation-sheet-links .nav-link-label,
   .navigation-sheet-overlay,
   .navigation-sheet-scrim,
   .navigation-sheet { transition: none; }

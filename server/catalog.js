@@ -1,5 +1,9 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import {
+  resolveArtworkHighlights,
+  resolveProductSeoAliases,
+} from '../shared/product-content.js';
 
 export const seedCatalog = JSON.parse(
   readFileSync(path.resolve(process.cwd(), 'src/data/catalog.json'), 'utf8'),
@@ -244,6 +248,8 @@ export function normalizeProduct(product, sizePresets = seedCatalog.sizePresets,
 
   return {
     ...product,
+    seoAliases: resolveProductSeoAliases(product.seoAliases, product.tone),
+    details: resolveArtworkHighlights(product.details, product.tone),
     videos: normalizeProductVideos([...(product.videos || []), ...defaultProductVideos]),
     collectionSlugs: normalizeCollectionSlugs(product.collectionSlugs),
     name: product.title,

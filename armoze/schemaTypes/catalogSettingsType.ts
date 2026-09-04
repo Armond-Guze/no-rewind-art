@@ -19,6 +19,52 @@ const sizeOptionFields = [
   }),
 ]
 
+function getCanonicalSizeId(label: unknown) {
+  if (typeof label !== 'string') return ''
+
+  return label
+    .toLowerCase()
+    .replace(/×/g, 'x')
+    .replace(/\s+/g, '')
+}
+
+function validateSizeOptionIds(value: unknown) {
+  if (!Array.isArray(value)) return true
+
+  for (const option of value) {
+    if (!option || typeof option !== 'object') continue
+
+    const {id, label} = option as {id?: unknown; label?: unknown}
+    const expectedId = getCanonicalSizeId(label)
+
+    if (typeof id === 'string' && expectedId && id !== expectedId) {
+      return `Size ID "${id}" does not match label "${label}". Expected "${expectedId}". Preserve legacy IDs before changing a live size.`
+    }
+  }
+
+  return true
+}
+
+function validateAscendingPrices(value: unknown) {
+  if (!Array.isArray(value)) return true
+
+  const prices = value
+    .map((option) =>
+      option && typeof option === 'object'
+        ? (option as {priceInCents?: unknown}).priceInCents
+        : undefined,
+    )
+    .filter((price): price is number => typeof price === 'number')
+
+  const decreasingIndex = prices.findIndex(
+    (price, index) => index > 0 && price < prices[index - 1],
+  )
+
+  return decreasingIndex >= 0
+    ? 'A larger listed size costs less than the size before it. Confirm that this pricing is intentional.'
+    : true
+}
+
 const sizePresetField = (
   name: string,
   title: string,
@@ -30,9 +76,32 @@ const sizePresetField = (
     title,
     type: 'array',
     description,
-    of: [defineArrayMember({type: 'object', fields: sizeOptionFields})],
+    of: [
+      defineArrayMember({
+        type: 'object',
+        fields: sizeOptionFields,
+        preview: {
+          select: {title: 'label', priceInCents: 'priceInCents', subtitle: 'id'},
+          prepare(selection) {
+            const price =
+              typeof selection.priceInCents === 'number'
+                ? `$${(selection.priceInCents / 100).toFixed(2)}`
+                : 'Price missing'
+
+            return {
+              title: selection.title || 'Unnamed size',
+              subtitle: `${price} · ${selection.subtitle || 'ID missing'}`,
+            }
+          },
+        },
+      }),
+    ],
     initialValue,
-    validation: (rule) => rule.required().min(1),
+    validation: (rule) => [
+      rule.required().min(1),
+      rule.custom(validateSizeOptionIds).warning(),
+      rule.custom(validateAscendingPrices).warning(),
+    ],
   })
 
 export const catalogSettingsType = defineType({

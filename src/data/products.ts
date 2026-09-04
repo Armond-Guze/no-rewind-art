@@ -1,4 +1,8 @@
 import catalog from './catalog.json';
+import {
+  resolveArtworkHighlights,
+  resolveProductSeoAliases,
+} from '../../shared/product-content.js';
 
 export type ProductTone = 'cassette' | 'focus' | 'space' | 'money' | 'minimal';
 export type ArtworkShape = 'portrait' | 'landscape' | 'square';
@@ -400,9 +404,8 @@ export function normalizeProduct(
 
   return {
     ...product,
-    seoAliases: Array.isArray(product.seoAliases)
-      ? [...new Set(product.seoAliases.map((alias) => String(alias).trim()).filter(Boolean))]
-      : [],
+    seoAliases: resolveProductSeoAliases(product.seoAliases, product.tone),
+    details: resolveArtworkHighlights(product.details, product.tone),
     videos: normalizeProductVideos([...(product.videos || []), ...defaultProductVideos]),
     collectionSlugs: normalizeCollectionSlugs(product.collectionSlugs || []),
     artworkShape: product.artworkShape || getArtworkShapeFromSizePreset(product.sizePreset),

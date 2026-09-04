@@ -22,7 +22,7 @@
 @media (min-width: 1101px) {
   .product-highlights { padding-inline: 48px; }
   .product-highlights-inner { max-width: 1600px; }
-  .product-highlight-media { min-height: 480px; }
+  .product-highlight-media { width: 100%; min-height: 480px; aspect-ratio: auto; }
   .product-highlight-copy h2 { font-size: clamp(32px, 3vw, 52px); }
   .product-highlight-copy p { font-size: 18px; }
 }

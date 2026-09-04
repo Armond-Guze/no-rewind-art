@@ -7,8 +7,8 @@ const highlights = [
     id: 'ready-for-your-wall',
     title: 'Ready for your wall',
     description: 'Your canvas arrives stretched over a wooden frame and ready to hang. Choose your spot, find the right light, and bring a little more purpose to the room. From your workspace to your favorite corner, it’s ready to make itself at home.',
-    image: '/product-support/canvas-ready-for-wall-v1.webp',
-    alt: 'Natural wooden stretcher bars and neatly folded canvas edges in a softly lit interior',
+    image: '/product-support/black-frame-back-ready-for-wall.jpeg',
+    alt: 'Back of a black floating frame with stretched canvas, wooden bars, staples, and a sawtooth hanger',
     Icon: Frame,
   },
   {

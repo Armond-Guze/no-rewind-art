@@ -760,7 +760,7 @@ function MobileNavigationSheet({ open, onClose, accountHref, signedIn }: {
         <nav className="navigation-sheet-links" aria-label="Mobile primary navigation">
           {primaryNavigationLinks.map(({ href, label }) => (
             <Link key={href} href={href} onClick={onClose}>
-              <span>{label}</span><ChevronRight size={19} strokeWidth={1.6} aria-hidden="true" />
+              <span className="nav-link-label">{label}</span><ChevronRight size={19} strokeWidth={1.6} aria-hidden="true" />
             </Link>
           ))}
         </nav>
@@ -953,7 +953,9 @@ function NextSiteHeader({
         aria-label="Primary navigation"
       >
         {primaryNavigationLinks.map(({ href, label }) => (
-          <Link key={href} href={href} onClick={closeMenu}>{label}</Link>
+          <Link key={href} href={href} onClick={closeMenu}>
+            <span className="nav-link-label">{label}</span>
+          </Link>
         ))}
       </nav>
       <div className="desktop-header-actions">

@@ -14957,11 +14957,9 @@ body.newsletter-popup-lock {
   .detail-artwork-shell.front-product-shell
   .product-canvas-image.frame-black {
   --black-frame-rail: clamp(20px, 2.35vw, 36px);
-  --black-frame-clearance: clamp(8px, 1vw, 12px);
   box-sizing: border-box;
-  width: calc(
-    100% - 2 * (var(--black-frame-rail) + var(--black-frame-clearance))
-  );
+  /* Keep the live artwork at its unframed size; the frame expands outward. */
+  width: 100%;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -14974,7 +14972,6 @@ body.newsletter-popup-lock {
   .detail-artwork-shell.front-product-shell
   .product-canvas-image.frame-black {
   --black-frame-rail: clamp(16px, 4.5vw, 22px);
-  --black-frame-clearance: clamp(6px, 2vw, 10px);
 }
 
 .listing-gallery > .main-product-image
@@ -14983,9 +14980,7 @@ body.newsletter-popup-lock {
 .mobile-gallery-slide
   .detail-artwork-shell.front-product-shell
   .product-canvas-image.frame-black[class*="crop-square-source"] {
-  width: calc(
-    100% - 2 * (var(--black-frame-rail) + var(--black-frame-clearance))
-  );
+  width: 100%;
 }
 
 .listing-gallery > .main-product-image
@@ -15049,11 +15044,9 @@ body.newsletter-popup-lock {
   .detail-artwork-shell.front-product-shell
   .product-canvas-image.frame-white {
   --white-frame-rail: clamp(20px, 2.35vw, 36px);
-  --white-frame-clearance: clamp(8px, 1vw, 12px);
   box-sizing: border-box;
-  width: calc(
-    100% - 2 * (var(--white-frame-rail) + var(--white-frame-clearance))
-  );
+  /* Keep the live artwork at its unframed size; the frame expands outward. */
+  width: 100%;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -15066,7 +15059,6 @@ body.newsletter-popup-lock {
   .detail-artwork-shell.front-product-shell
   .product-canvas-image.frame-white {
   --white-frame-rail: clamp(16px, 4.5vw, 22px);
-  --white-frame-clearance: clamp(6px, 2vw, 10px);
 }
 
 .listing-gallery > .main-product-image
@@ -15075,9 +15067,7 @@ body.newsletter-popup-lock {
 .mobile-gallery-slide
   .detail-artwork-shell.front-product-shell
   .product-canvas-image.frame-white[class*="crop-square-source"] {
-  width: calc(
-    100% - 2 * (var(--white-frame-rail) + var(--white-frame-clearance))
-  );
+  width: 100%;
 }
 
 .listing-gallery > .main-product-image

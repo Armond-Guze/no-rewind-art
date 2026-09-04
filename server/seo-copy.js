@@ -1,3 +1,5 @@
+import { resolveProductSeoAliases } from '../shared/product-content.js';
+
 const defaultAudience = 'offices, bedrooms, studios, and focused workspaces';
 const metaDescriptionMaxLength = 155;
 
@@ -107,9 +109,9 @@ function getProfileForProduct(product) {
 }
 
 export function getProductSeoAliases(product, limit = 0) {
-  const aliases = Array.isArray(product?.seoAliases)
-    ? [...new Set(product.seoAliases.map((alias) => normalizeText(alias)).filter(Boolean))]
-    : [];
+  const aliases = resolveProductSeoAliases(product?.seoAliases, product?.tone)
+    .map((alias) => normalizeText(alias))
+    .filter(Boolean);
 
   return limit > 0 ? aliases.slice(0, limit) : aliases;
 }
