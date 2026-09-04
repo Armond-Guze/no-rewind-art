@@ -14947,6 +14947,97 @@ body.newsletter-popup-lock {
   width: calc(100% - 2 * (var(--canvas-frame-rail) + var(--canvas-frame-gap)));
 }
 
+/* Black Frame uses the supplied full, uncropped frame artwork as a nine-slice
+   border. Its transparent middle reveals only the live canvas while keeping
+   every outer rail, miter, recess, and shadow edge visible. */
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black {
+  --black-frame-rail: clamp(20px, 2.35vw, 36px);
+  --black-frame-clearance: clamp(8px, 1vw, 12px);
+  box-sizing: border-box;
+  width: calc(
+    100% - 2 * (var(--black-frame-rail) + var(--black-frame-clearance))
+  );
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black {
+  --black-frame-rail: clamp(16px, 4.5vw, 22px);
+  --black-frame-clearance: clamp(6px, 2vw, 10px);
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black[class*="crop-square-source"],
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black[class*="crop-square-source"] {
+  width: calc(
+    100% - 2 * (var(--black-frame-rail) + var(--black-frame-clearance))
+  );
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black::before,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black::before {
+  content: none;
+  display: none;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black::after,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  inset: calc(1px - var(--black-frame-rail));
+  box-sizing: border-box;
+  border: var(--black-frame-rail) solid transparent;
+  border-image-source: url("/product-support/black-frame-overlay.png?v=full-frame-20260904");
+  /* Transparent opening in the 1386 x 989 source: x 66..1317, y 66..925. */
+  border-image-slice: 66 68 63 66;
+  border-image-width: 1;
+  border-image-repeat: stretch;
+  filter: drop-shadow(0 9px 10px rgba(16, 16, 15, 0.28));
+  pointer-events: none;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black > div,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black > div {
+  background: transparent;
+  box-shadow: none;
+}
+
+.listing-gallery > .main-product-image
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black img,
+.mobile-gallery-slide
+  .detail-artwork-shell.front-product-shell
+  .product-canvas-image.frame-black img {
+  object-fit: cover;
+}
+
 /* The White Frame option uses the customer's full, uncropped frame artwork as
    a nine-slice border. The transparent middle is not painted, so the live
    canvas fills only the opening while all four outer edges remain visible.
@@ -15011,7 +15102,7 @@ body.newsletter-popup-lock {
   inset: calc(1px - var(--white-frame-rail));
   box-sizing: border-box;
   border: var(--white-frame-rail) solid transparent;
-  border-image-source: url("/product-support/white-frame-overlay.png");
+  border-image-source: url("/product-support/white-frame-overlay.png?v=full-frame-20260904");
   /* Transparent opening in the 1386 x 989 source: x 66..1316, y 64..921. */
   border-image-slice: 64 69 67 66;
   border-image-width: 1;

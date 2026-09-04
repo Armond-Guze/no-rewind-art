@@ -948,14 +948,10 @@ export default function ProductPageClient({
         : selectedFrameName === 'White Frame'
           ? 'frame-white'
           : 'frame-none';
-  // Keep the baked black mockup when one exists. White Frame always uses the
-  // live artwork so the supplied white frame can wrap it without replacing it.
-  const framedMockupSrc =
-    selectedFrameName === 'Black Frame'
-      ? product.framedBlackImage
-      : undefined;
-  const mainCanvasSrc = framedMockupSrc || product.image;
-  const mainCanvasFrameClass = framedMockupSrc ? 'frame-none' : frameClass;
+  // Both frame options wrap the live artwork with their supplied transparent
+  // overlays, keeping the artwork crop consistent when the customer switches.
+  const mainCanvasSrc = product.image;
+  const mainCanvasFrameClass = frameClass;
   const selectedOptionId = selectedOption.id;
   const selectedFrameOptionId = selectedFrameOption.id;
 
@@ -1279,7 +1275,7 @@ export default function ProductPageClient({
                               src={mainCanvasSrc}
                               alt={mobileGalleryImageMetadata?.alt || product.imageAlt}
                               aspectRatio={productAspectRatio}
-                              sanityImage={framedMockupSrc ? undefined : mobileGalleryImageMetadata}
+                              sanityImage={mobileGalleryImageMetadata}
                               shape={productDisplayShape}
                               priority={index === 0}
                             />
@@ -1351,7 +1347,7 @@ export default function ProductPageClient({
                         src={mainCanvasSrc}
                         alt={selectedGalleryImageMetadata?.alt || product.imageAlt}
                         aspectRatio={productAspectRatio}
-                        sanityImage={framedMockupSrc ? undefined : selectedGalleryImageMetadata}
+                        sanityImage={selectedGalleryImageMetadata}
                         shape={productDisplayShape}
                         sizes={desktopProductGalleryImageSizes}
                         priority
