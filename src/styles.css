@@ -14947,10 +14947,10 @@ body.newsletter-popup-lock {
   width: calc(100% - 2 * (var(--canvas-frame-rail) + var(--canvas-frame-gap)));
 }
 
-/* The White Frame option uses the customer's supplied frame artwork as a
-   nine-slice border. The empty middle of a border image is not painted, so the
-   live canvas touches the frame opening directly and keeps its own aspect
-   ratio. Only the rails stretch; the supplied corners stay intact. */
+/* The White Frame option uses the customer's full, uncropped frame artwork as
+   a nine-slice border. The transparent middle is not painted, so the live
+   canvas fills only the opening while all four outer edges remain visible.
+   Only the rails stretch; the supplied corners stay intact. */
 .listing-gallery > .main-product-image
   .detail-artwork-shell.front-product-shell
   .product-canvas-image.frame-white,
@@ -15012,7 +15012,8 @@ body.newsletter-popup-lock {
   box-sizing: border-box;
   border: var(--white-frame-rail) solid transparent;
   border-image-source: url("/product-support/white-frame-overlay.png");
-  border-image-slice: 29 33 29 31;
+  /* Transparent opening in the 1386 x 989 source: x 66..1316, y 64..921. */
+  border-image-slice: 64 69 67 66;
   border-image-width: 1;
   border-image-repeat: stretch;
   filter: drop-shadow(0 9px 10px rgba(25, 25, 24, 0.2));
