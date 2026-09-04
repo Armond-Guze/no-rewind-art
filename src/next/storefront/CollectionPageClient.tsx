@@ -1,19 +1,62 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Star } from 'lucide-react';
+import { ChevronDown, Star, X } from 'lucide-react';
 import type { Collection, Product } from '../../data/products';
-import { formatPrice, hasProductSpecificReviewSummary } from './product-utils';
+import {
+  formatPrice,
+  getProductsForCollection as getCollectionProducts,
+  hasProductSpecificReviewSummary,
+} from './product-utils';
 import { OptimizedRawImage, ProductImage } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
+import './collection-navigation.css';
 
-const collectionNavItems = [
-  { slug: 'best-sellers', label: 'Best Sellers' },
-  { slug: 'music', label: 'Music' },
-  { slug: 'new-arrivals', label: 'New Arrivals' },
+type SortKey =
+  | 'featured'
+  | 'most-relevant'
+  | 'best-selling'
+  | 'alphabetical-ascending'
+  | 'alphabetical-descending'
+  | 'price-ascending'
+  | 'price-descending'
+  | 'date-ascending'
+  | 'date-descending';
+
+const sortOptions: { key: SortKey; label: string }[] = [
+  { key: 'featured', label: 'Featured' },
+  { key: 'most-relevant', label: 'Most relevant' },
+  { key: 'best-selling', label: 'Best selling' },
+  { key: 'alphabetical-ascending', label: 'Alphabetically, A–Z' },
+  { key: 'alphabetical-descending', label: 'Alphabetically, Z–A' },
+  { key: 'price-ascending', label: 'Price, low to high' },
+  { key: 'price-descending', label: 'Price, high to low' },
+  { key: 'date-ascending', label: 'Date, old to new' },
+  { key: 'date-descending', label: 'Date, new to old' },
 ];
+
+function sortProducts(products: Product[], sortKey: SortKey) {
+  const sorted = [...products];
+
+  switch (sortKey) {
+    case 'best-selling':
+      return sorted.sort((a, b) => b.reviewCount - a.reviewCount || b.rating - a.rating);
+    case 'alphabetical-ascending':
+      return sorted.sort((a, b) => a.title.localeCompare(b.title));
+    case 'alphabetical-descending':
+      return sorted.sort((a, b) => b.title.localeCompare(a.title));
+    case 'price-ascending':
+      return sorted.sort((a, b) => a.priceInCents - b.priceInCents);
+    case 'price-descending':
+      return sorted.sort((a, b) => b.priceInCents - a.priceInCents);
+    case 'date-descending':
+      return sorted.reverse();
+    default:
+      return sorted;
+  }
+}
 
 function getCardBadge(product: Product, collectionSlug: string, index: number) {
   if (collectionSlug === 'best-sellers' && index < 4) {
@@ -63,6 +106,7 @@ function getHoverImage(product: Product) {
 export default function CollectionPageClient({
   allProducts,
   collection,
+  collections,
   initialSearchTerm,
   products,
 }: {
@@ -73,14 +117,42 @@ export default function CollectionPageClient({
   products: Product[];
 }) {
   const searchTerm = initialSearchTerm?.trim() || '';
+  const sortPanelRef = useRef<HTMLDivElement>(null);
+  const [sortOpen, setSortOpen] = useState(false);
+  const [selectedSort, setSelectedSort] = useState<SortKey>(
+    collection.slug === 'best-sellers' ? 'best-selling' : 'featured',
+  );
 
-  const visibleProducts = useMemo(
+  const matchingProducts = useMemo(
     () =>
       searchTerm
         ? allProducts.filter((product) => productMatchesSearch(product, searchTerm))
         : products,
     [allProducts, products, searchTerm],
   );
+  const visibleProducts = useMemo(
+    () => sortProducts(matchingProducts, selectedSort),
+    [matchingProducts, selectedSort],
+  );
+  const currentSortLabel = sortOptions.find((option) => option.key === selectedSort)?.label || 'Featured';
+
+  useEffect(() => {
+    if (!sortOpen) return undefined;
+
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (!sortPanelRef.current?.contains(event.target as Node)) setSortOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSortOpen(false);
+    };
+
+    document.addEventListener('pointerdown', closeOnOutsideClick);
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick);
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [sortOpen]);
 
   useEffect(() => {
     if (searchTerm) {
@@ -111,24 +183,62 @@ export default function CollectionPageClient({
     <StorefrontShell products={allProducts}>
       <StorefrontTracker />
       <main className="collection-page">
-        <section className="collection-toolbar" aria-label="Shop category controls">
-          <div className="product-count">{visibleProducts.length} Products</div>
-          <nav className="collection-tabs" aria-label="Shop categories">
-            {collectionNavItems.map((item) => (
-              <Link
-                className={item.slug === collection.slug ? 'active' : ''}
-                key={item.slug}
-                href={`/collections/${item.slug}`}
-              >
-                {item.label}
-              </Link>
+        <section className="collection-navigation" aria-label="Collection controls">
+          <h1 className="sr-only">
+            {searchTerm ? `Search results for “${searchTerm}”` : collection.title}
+          </h1>
+          <nav className="collection-breadcrumbs" aria-label="Shop collections">
+            {collections.map((item, index) => (
+              <span className="collection-breadcrumb-item" key={item.slug}>
+                {index ? <span className="collection-breadcrumb-separator" aria-hidden="true">/</span> : null}
+                <Link
+                  aria-current={item.slug === collection.slug ? 'page' : undefined}
+                  className={item.slug === collection.slug ? 'active' : ''}
+                  href={`/collections/${item.slug}`}
+                >
+                  {item.navLabel || item.title}
+                  <sup>{getCollectionProducts(allProducts, item).length}</sup>
+                </Link>
+              </span>
             ))}
           </nav>
-        </section>
-
-        <section className="collection-heading">
-          <p className="eyebrow">Shop Prints</p>
-          <h1>{searchTerm ? `Search results for “${searchTerm}”` : collection.title}</h1>
+          <div className="collection-sort" ref={sortPanelRef}>
+            <button
+              className="collection-sort-trigger"
+              type="button"
+              aria-expanded={sortOpen}
+              aria-haspopup="dialog"
+              onClick={() => setSortOpen((open) => !open)}
+            >
+              <span>{currentSortLabel}</span>
+              <ChevronDown aria-hidden="true" size={16} strokeWidth={1.6} />
+            </button>
+            <div className={`collection-sort-panel${sortOpen ? ' is-open' : ''}`} role="dialog" aria-label="Sort products" inert={!sortOpen}>
+              <div className="collection-sort-heading">
+                <span>Sort by</span>
+                <button type="button" aria-label="Close sorting options" onClick={() => setSortOpen(false)}>
+                  <X aria-hidden="true" size={19} strokeWidth={1.7} />
+                </button>
+              </div>
+              <div className="collection-sort-options">
+                {sortOptions.map((option) => (
+                  <button
+                    className={option.key === selectedSort ? 'active' : ''}
+                    key={option.key}
+                    type="button"
+                    aria-pressed={option.key === selectedSort}
+                    onClick={() => {
+                      setSelectedSort(option.key);
+                      setSortOpen(false);
+                    }}
+                  >
+                    <span>{option.label}</span>
+                    {option.key === selectedSort ? <i aria-hidden="true" /> : null}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
           {searchTerm ? (
             <p className="collection-search-summary">
               {visibleProducts.length

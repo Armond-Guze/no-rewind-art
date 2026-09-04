@@ -1519,7 +1519,7 @@ h3 {
 
 .product-page {
   min-height: 100vh;
-  background: #f7f5f0;
+  background: #fff;
   color: #151515;
 }
 
@@ -1863,7 +1863,7 @@ h3 {
 }
 
 .main-product-image.video-product-image {
-  background: #f7f5f0;
+  background: #fff;
 }
 
 .listing-gallery > .main-product-image.gallery-product-image.mockup-product-image {
@@ -8659,7 +8659,7 @@ body.newsletter-popup-lock {
     place-items: center;
     padding: var(--mobile-gallery-pad-y) 8px;
     overflow: visible;
-    background: #f7f5f0;
+    background: #fff;
     transition:
       opacity 220ms ease,
       transform 220ms ease;
@@ -8675,7 +8675,7 @@ body.newsletter-popup-lock {
     min-height: var(--mobile-gallery-stage);
     height: var(--mobile-gallery-stage);
     padding: var(--mobile-gallery-pad-y) 8px;
-    background: #f7f5f0;
+    background: #fff;
   }
 
   .mobile-gallery-slide
@@ -14957,7 +14957,7 @@ body.newsletter-popup-lock {
 .mobile-gallery-slide
   .detail-artwork-shell.front-product-shell
   .product-canvas-image.frame-white {
-  --white-frame-rail: clamp(16px, 2.15vw, 32px);
+  --white-frame-rail: clamp(20px, 2.35vw, 36px);
   --white-frame-clearance: clamp(8px, 1vw, 12px);
   box-sizing: border-box;
   width: calc(
@@ -14974,7 +14974,7 @@ body.newsletter-popup-lock {
 .mobile-gallery-slide
   .detail-artwork-shell.front-product-shell
   .product-canvas-image.frame-white {
-  --white-frame-rail: clamp(12px, 3.2vw, 20px);
+  --white-frame-rail: clamp(16px, 4.5vw, 22px);
   --white-frame-clearance: clamp(6px, 2vw, 10px);
 }
 
@@ -15009,12 +15009,13 @@ body.newsletter-popup-lock {
   position: absolute;
   z-index: 3;
   inset: calc(1px - var(--white-frame-rail));
-  box-sizing: content-box;
+  box-sizing: border-box;
   border: var(--white-frame-rail) solid transparent;
   border-image-source: url("/product-support/white-frame-overlay.png");
   border-image-slice: 29 33 29 31;
   border-image-width: 1;
   border-image-repeat: stretch;
+  filter: drop-shadow(0 9px 10px rgba(25, 25, 24, 0.2));
   pointer-events: none;
 }
 
@@ -15718,7 +15719,7 @@ body.newsletter-popup-lock {
 /* === "What arrives" proof cards ======================================== */
 .product-proof-section {
   padding: clamp(44px, 5vw, 78px) clamp(18px, 4vw, 64px) clamp(58px, 7vw, 104px);
-  background: #f7f5f0;
+  background: #fff;
 }
 
 .product-proof-section .product-section-heading {

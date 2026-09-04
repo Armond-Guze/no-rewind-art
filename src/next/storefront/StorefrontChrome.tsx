@@ -5,14 +5,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import {
+  ArrowLeft,
   ArrowRight,
   ChevronRight,
   CircleUserRound,
   ChevronLeft,
+  Gift,
   Globe,
   Headphones,
   LockKeyhole,
-  Menu,
+  Mail,
   Minus,
   Package,
   Plus,
@@ -134,6 +136,27 @@ function YouTubeIcon({ size = 23 }: { size?: number }) {
       fill="currentColor"
     >
       <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.017 3.017 0 0 0 2.121 2.136c1.872.505 9.377.505 9.377.505s7.505 0 9.377-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814ZM9.545 15.568V8.432L15.818 12l-6.273 3.568Z" />
+    </svg>
+  );
+}
+
+function RefinedMenuIcon({ size = 24 }: { size?: number }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="mobile-menu-icon"
+      focusable="false"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.55"
+      strokeLinecap="round"
+    >
+      <path d="M4 7h15" />
+      <path d="M4 12h10.5" />
+      <path d="M4 17h6" />
     </svg>
   );
 }
@@ -571,6 +594,63 @@ function LaunchPromoBar({
   isScrolled: boolean;
   isHidden: boolean;
 }) {
+  const promoMessages = [
+    {
+      id: 'launch-offer',
+      Icon: Gift,
+      content: (
+        <span>
+          {launchOfferDiscount} off with code <strong>{launchOfferCode}</strong>
+        </span>
+      ),
+    },
+    {
+      id: 'contact',
+      Icon: Mail,
+      content: <Link href="/support">A question? Visit our contact page</Link>,
+    },
+  ] as const;
+  const [activePromoIndex, setActivePromoIndex] = useState(0);
+  const [previousPromoIndex, setPreviousPromoIndex] = useState<number | null>(null);
+  const [promoDirection, setPromoDirection] = useState<'forward' | 'backward'>('forward');
+  const [rotationVersion, setRotationVersion] = useState(0);
+  const activePromoIndexRef = useRef(0);
+  const transitionTimerRef = useRef<number | null>(null);
+
+  const showPromo = useCallback((step: 1 | -1) => {
+    const currentIndex = activePromoIndexRef.current;
+    const nextIndex = (currentIndex + step + promoMessages.length) % promoMessages.length;
+
+    if (transitionTimerRef.current !== null) {
+      window.clearTimeout(transitionTimerRef.current);
+    }
+
+    setPreviousPromoIndex(currentIndex);
+    setPromoDirection(step > 0 ? 'forward' : 'backward');
+    activePromoIndexRef.current = nextIndex;
+    setActivePromoIndex(nextIndex);
+    transitionTimerRef.current = window.setTimeout(() => {
+      setPreviousPromoIndex(null);
+      transitionTimerRef.current = null;
+    }, 520);
+  }, [promoMessages.length]);
+
+  useEffect(() => {
+    const rotationTimer = window.setInterval(() => showPromo(1), 2500);
+
+    return () => window.clearInterval(rotationTimer);
+  }, [rotationVersion, showPromo]);
+
+  useEffect(() => () => {
+    if (transitionTimerRef.current !== null) {
+      window.clearTimeout(transitionTimerRef.current);
+    }
+  }, []);
+
+  const movePromo = (step: 1 | -1) => {
+    showPromo(step);
+    setRotationVersion((version) => version + 1);
+  };
   const className = [
     'launch-promo-bar',
     isHome ? 'home-promo-bar' : undefined,
@@ -579,10 +659,43 @@ function LaunchPromoBar({
   ].filter(Boolean).join(' ');
 
   return (
-    <section className={className} aria-label="Launch offer">
-      <p>
-        {launchOfferDiscount} off with code <strong>{launchOfferCode}</strong>
-      </p>
+    <section className={className} aria-label="Store announcements">
+      <div className={`launch-promo-carousel direction-${promoDirection}`}>
+        <button
+          className="launch-promo-arrow"
+          type="button"
+          aria-label="Previous announcement"
+          onClick={() => movePromo(-1)}
+        >
+          <ArrowLeft aria-hidden="true" size={18} strokeWidth={1.7} />
+        </button>
+        <div className="launch-promo-viewport" aria-live="polite">
+          {promoMessages.map(({ id, Icon, content }, index) => {
+            const isActive = index === activePromoIndex;
+            const isPrevious = index === previousPromoIndex;
+
+            return (
+              <div
+                className={`launch-promo-slide${isActive ? ' is-active' : ''}${isPrevious ? ' is-previous' : ''}`}
+                aria-hidden={!isActive}
+                inert={!isActive}
+                key={id}
+              >
+                <Icon aria-hidden="true" size={15} strokeWidth={1.7} />
+                {content}
+              </div>
+            );
+          })}
+        </div>
+        <button
+          className="launch-promo-arrow"
+          type="button"
+          aria-label="Next announcement"
+          onClick={() => movePromo(1)}
+        >
+          <ArrowRight aria-hidden="true" size={18} strokeWidth={1.7} />
+        </button>
+      </div>
     </section>
   );
 }
@@ -805,43 +918,35 @@ function NextSiteHeader({
         {menuOpen ? (
           <X aria-hidden="true" size={22} />
         ) : (
-          <Menu aria-hidden="true" className="mobile-menu-icon" size={22} strokeWidth={2.8} />
+          <RefinedMenuIcon size={24} />
         )}
       </button>
-      <button
-        className="mobile-search-nav-button"
-        type="button"
-        aria-controls="storefront-search"
-        aria-expanded={searchOpen}
-        aria-label={searchOpen ? 'Close search' : 'Open search'}
-        onClick={() => {
-          setMenuOpen(false);
-          setSearchOpen((open) => !open);
-        }}
-      >
-        <Search aria-hidden="true" size={21} strokeWidth={2.2} />
-      </button>
-      <Link
-        className={`mobile-account-nav-link${user ? ' signed-in' : ''}`}
-        href={accountHref}
-        aria-label={accountLabel}
-        title={accountLabel}
-        onClick={closeOverlays}
-      >
-        <CircleUserRound aria-hidden="true" size={22} />
-        <span className="sr-only">{accountLabel}</span>
-      </Link>
-      <Link
-        className="mobile-cart-nav-link"
-        href="/cart"
-        aria-label={`View cart${cartCount ? `, ${cartCount} item${cartCount === 1 ? '' : 's'}` : ''}`}
-        title="View cart"
-        onClick={handleCartClick}
-      >
-        <ShoppingBag aria-hidden="true" size={22} />
-        <span className="mobile-cart-count" aria-hidden="true">{cartCount}</span>
-        <span className="sr-only">View cart</span>
-      </Link>
+      <div className="mobile-header-actions">
+        <button
+          className="mobile-search-nav-button"
+          type="button"
+          aria-controls="storefront-search"
+          aria-expanded={searchOpen}
+          aria-label={searchOpen ? 'Close search' : 'Open search'}
+          onClick={() => {
+            setMenuOpen(false);
+            setSearchOpen((open) => !open);
+          }}
+        >
+          <Search aria-hidden="true" size={21} strokeWidth={1.75} />
+        </button>
+        <Link
+          className="mobile-cart-nav-link"
+          href="/cart"
+          aria-label={`View cart${cartCount ? `, ${cartCount} item${cartCount === 1 ? '' : 's'}` : ''}`}
+          title="View cart"
+          onClick={handleCartClick}
+        >
+          <ShoppingBag aria-hidden="true" size={22} strokeWidth={1.65} />
+          <span className="mobile-cart-count" aria-hidden="true">{cartCount}</span>
+          <span className="sr-only">View cart</span>
+        </Link>
+      </div>
       <nav
         className="nav-links"
         id="primary-navigation"
