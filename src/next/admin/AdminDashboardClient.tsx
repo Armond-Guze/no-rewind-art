@@ -1987,31 +1987,17 @@ export default function AdminDashboardClient() {
 
               <div className="admin-form-grid">
                 <label>
-                  Artwork shape
+                  Canvas format &amp; size set
                   <select
-                    value={productDraft.artworkShape}
-                    onChange={(event) =>
-                      updateProductDraftField('artworkShape', event.target.value as Product['artworkShape'])
-                    }
+                    value={productDraft.sizePreset || 'landscapeWide'}
+                    onChange={(event) => updateProductDraftField('sizePreset', event.target.value)}
                   >
-                    <option value="landscape">Landscape</option>
-                    <option value="portrait">Portrait</option>
-                    <option value="square">Square</option>
-                  </select>
-                </label>
-                <label>
-                  Canvas aspect ratio
-                  <select
-                    value={productDraft.aspectRatio || getProductAspectRatio(productDraft)}
-                    onChange={(event) => updateProductDraftField('aspectRatio', event.target.value)}
-                  >
-                    <option value="1 / 1">1 / 1 Square</option>
-                    <option value="2 / 1">2 / 1 Panoramic</option>
-                    <option value="3 / 2">3 / 2 Landscape</option>
-                    <option value="4 / 3">4 / 3 Landscape</option>
-                    <option value="3 / 4">3 / 4 Portrait</option>
-                    <option value="4 / 5">4 / 5 Portrait</option>
-                    <option value="2 / 3">2 / 3 Portrait</option>
+                    <option value="landscapeWide">Landscape 2:1</option>
+                    <option value="landscapeThreeTwo">Landscape 3:2</option>
+                    <option value="landscapeFourThree">Landscape 4:3</option>
+                    <option value="portraitTwoThree">Portrait 2:3</option>
+                    <option value="portraitThreeFour">Portrait 3:4</option>
+                    <option value="squareStandard">Square 1:1</option>
                   </select>
                 </label>
                 <label>

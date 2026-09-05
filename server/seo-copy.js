@@ -109,7 +109,7 @@ function getProfileForProduct(product) {
 }
 
 export function getProductSeoAliases(product, limit = 0) {
-  const aliases = resolveProductSeoAliases(product?.seoAliases, product?.tone)
+  const aliases = resolveProductSeoAliases(product?.seoAliases, product?.tone, product?.title)
     .map((alias) => normalizeText(alias))
     .filter(Boolean);
 

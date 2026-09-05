@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef} from 'react'
+import {useCallback, useEffect, useMemo, useRef} from 'react'
 import {
   PatchEvent,
   set,
@@ -8,13 +8,14 @@ import {
 import {
   buildDefaultArtworkHighlights,
   buildDefaultSeoAliases,
+  isGeneratedSeoAliases,
 } from '../../shared/product-content.js'
 
 function arraysMatch(left: string[], right: string[]) {
   return left.length === right.length && left.every((value, index) => value === right[index])
 }
 
-function getStringValues(value: ArrayOfPrimitivesInputProps<string>['value']) {
+function getStringValues(value: ArrayOfPrimitivesInputProps['value']) {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === 'string')
     : []
@@ -25,26 +26,32 @@ function SuggestedTextArrayInput({
   suggestions,
   helpText,
   refreshLabel,
+  canRefreshGeneratedValue,
 }: {
-  props: ArrayOfPrimitivesInputProps<string>
+  props: ArrayOfPrimitivesInputProps
   suggestions: string[]
   helpText: string
   refreshLabel: string
+  canRefreshGeneratedValue?: (values: string[]) => boolean
 }) {
+  const {onChange, readOnly, value} = props
   const previousSuggestions = useRef(suggestions)
   const suggestionKey = suggestions.join('\u0000')
-  const values = getStringValues(props.value)
+  const values = getStringValues(value)
   const valueKey = values.join('\u0000')
 
   useEffect(() => {
     const previous = previousSuggestions.current
-    const shouldAutoFill = values.length === 0 || arraysMatch(values, previous)
+    const shouldAutoFill =
+      values.length === 0 ||
+      arraysMatch(values, previous) ||
+      canRefreshGeneratedValue?.(values) === true
     previousSuggestions.current = suggestions
 
-    if (!props.readOnly && shouldAutoFill && !arraysMatch(values, suggestions)) {
-      props.onChange(PatchEvent.from(set(suggestions)))
+    if (!readOnly && shouldAutoFill && !arraysMatch(values, suggestions)) {
+      onChange(PatchEvent.from(set(suggestions)))
     }
-  }, [props.onChange, props.readOnly, suggestionKey, suggestions, valueKey, values])
+  }, [canRefreshGeneratedValue, onChange, readOnly, suggestionKey, suggestions, valueKey, values])
 
   const matchesSuggestions = arraysMatch(values, suggestions)
 
@@ -66,17 +73,17 @@ function SuggestedTextArrayInput({
         </span>
         <button
           type="button"
-          disabled={props.readOnly || matchesSuggestions}
-          onClick={() => props.onChange(PatchEvent.from(set(suggestions)))}
+          disabled={readOnly || matchesSuggestions}
+          onClick={() => onChange(PatchEvent.from(set(suggestions)))}
           style={{
             background: 'var(--card-bg-color)',
             border: '1px solid var(--card-border-color)',
             borderRadius: 4,
             color: 'inherit',
-            cursor: props.readOnly || matchesSuggestions ? 'default' : 'pointer',
+            cursor: readOnly || matchesSuggestions ? 'default' : 'pointer',
             font: 'inherit',
             fontSize: 12,
-            opacity: props.readOnly || matchesSuggestions ? 0.55 : 1,
+            opacity: readOnly || matchesSuggestions ? 0.55 : 1,
             padding: '6px 9px',
           }}
         >
@@ -87,21 +94,27 @@ function SuggestedTextArrayInput({
   )
 }
 
-export function SeoAliasesInput(props: ArrayOfPrimitivesInputProps<string>) {
+export function SeoAliasesInput(props: ArrayOfPrimitivesInputProps) {
   const tone = useFormValue(['tone'])
-  const suggestions = useMemo(() => buildDefaultSeoAliases(tone), [tone])
+  const title = useFormValue(['title'])
+  const suggestions = useMemo(() => buildDefaultSeoAliases(tone, title), [title, tone])
+  const canRefreshGeneratedValue = useCallback(
+    (values: string[]) => isGeneratedSeoAliases(values, title),
+    [title],
+  )
 
   return (
     <SuggestedTextArrayInput
       props={props}
       suggestions={suggestions}
-      helpText="Filled automatically from Artwork Theme. Manual edits are preserved."
-      refreshLabel="Reset to theme suggestions"
+      helpText="Filled automatically from the product title and Artwork Theme. Manual edits are preserved."
+      refreshLabel="Reset to suggested phrases"
+      canRefreshGeneratedValue={canRefreshGeneratedValue}
     />
   )
 }
 
-export function ArtworkHighlightsInput(props: ArrayOfPrimitivesInputProps<string>) {
+export function ArtworkHighlightsInput(props: ArrayOfPrimitivesInputProps) {
   const tone = useFormValue(['tone'])
   const suggestions = useMemo(() => buildDefaultArtworkHighlights(tone), [tone])
 

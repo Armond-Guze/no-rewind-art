@@ -91,9 +91,9 @@ export function SizePresetInput(props: StringInputProps) {
 
   const selectedPreset = props.value ? sizePresetPreview[props.value] : null
   const configuredSizes = props.value ? catalogSizePresets?.[props.value] : undefined
-  const sizes = configuredSizes?.length
+  const sizes: SizeOption[] = configuredSizes?.length
     ? configuredSizes
-    : selectedPreset?.fallbackSizes.map((label) => ({label})) || []
+    : selectedPreset?.fallbackSizes.map((label): SizeOption => ({label})) || []
 
   return (
     <div>

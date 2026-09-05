@@ -404,7 +404,7 @@ export function normalizeProduct(
 
   return {
     ...product,
-    seoAliases: resolveProductSeoAliases(product.seoAliases, product.tone),
+    seoAliases: resolveProductSeoAliases(product.seoAliases, product.tone, product.title),
     details: resolveArtworkHighlights(product.details, product.tone),
     videos: normalizeProductVideos([...(product.videos || []), ...defaultProductVideos]),
     collectionSlugs: normalizeCollectionSlugs(product.collectionSlugs || []),

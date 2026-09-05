@@ -1,9 +1,13 @@
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { createReadStream, existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { config as loadDotenv } from 'dotenv'
 import { getCliClient } from 'sanity/cli'
+import {
+  resolveArtworkHighlights,
+  resolveProductSeoAliases,
+} from '../../shared/product-content.js'
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
 const studioRoot = path.resolve(scriptDir, '..')
@@ -12,7 +16,7 @@ const dryRun = process.argv.includes('--dry-run')
 const assetCache = new Map()
 const uploadRetryCount = 3
 
-loadDotenv({ path: path.join(projectRoot, '.env') })
+loadDotenv({ path: path.join(projectRoot, '.env'), quiet: true })
 
 // Import from the current non-Sanity catalog so this script can seed Sanity
 // even when the storefront is configured to prefer Sanity reads.
@@ -189,34 +193,54 @@ async function productToDocument(product, index) {
     title: product.title,
     seoTitle: product.seoTitle,
     seoDescription: product.seoDescription,
+    seoAliases: resolveProductSeoAliases(product.seoAliases, product.tone, product.title),
     description: product.description,
     longDescription: product.longDescription,
     label: product.label,
     mainImage,
-    imageAlt: product.imageAlt,
-    aspectRatio: product.aspectRatio,
     galleryImages,
     tone: product.tone,
     collectionSlugs: product.collectionSlugs || [],
-    priceInCents: product.priceInCents,
-    size: product.size,
     sizePreset: getSizePreset(product),
     useCustomSizeOptions: shouldUseCustomSizeOptions(product),
     sizeOptions: shouldUseCustomSizeOptions(product) ? product.sizeOptions : undefined,
     rating: product.rating,
     reviewCount: product.reviewCount,
-    details: product.details || [],
+    details: resolveArtworkHighlights(product.details, product.tone),
     published: product.published !== false,
     sortOrder: index,
   })
 }
 
 function catalogSettingsDocument() {
+  const keyedSizePresets = Object.fromEntries(
+    Object.entries(catalog.sizePresets || {}).map(([presetName, options]) => [
+      presetName,
+      Array.isArray(options)
+        ? options.map((option, index) =>
+            cleanObject({
+              _key:
+                option._key ||
+                createHash('sha1')
+                  .update(`${presetName}:${option.id || option.label || index}`)
+                  .digest('hex')
+                  .slice(0, 12),
+              id: option.id,
+              label: option.label,
+              priceInCents: option.priceInCents,
+              badge: option.badge,
+              previewScale: option.previewScale,
+            }),
+          )
+        : options,
+    ]),
+  )
+
   return cleanObject({
     _id: 'catalogSettings.default',
     _type: 'catalogSettings',
     title: 'Default catalog settings',
-    sizePresets: catalog.sizePresets,
+    sizePresets: keyedSizePresets,
   })
 }
 
@@ -267,8 +291,25 @@ async function writeDocument(document) {
     return
   }
 
-  await client.createOrReplace(document)
-  console.log(`Imported ${document._id} -> ${document.title}`)
+  const { _id, _type, ...fields } = document
+  await client.createIfNotExists(document)
+
+  if (_type === 'artworkProduct') {
+    await client
+      .patch(_id)
+      .setIfMissing(fields)
+      .unset([
+        'aspectRatio',
+        'artworkShape',
+        'frameOptions',
+        'imageAlt',
+        'size',
+        'priceInCents',
+      ])
+      .commit()
+  }
+
+  console.log(`${_type === 'artworkProduct' ? 'Seeded' : 'Created if missing'} ${document._id} -> ${document.title}`)
 }
 
 await writeDocument(catalogSettingsDocument())
@@ -281,6 +322,8 @@ for (const [index, product] of catalog.products.entries()) {
 
   if (!document.mainImage) {
     missingMainImages += 1
+    console.warn(`Skipping ${product.id}: no main image found`)
+    continue
   }
 
   await writeDocument(document)

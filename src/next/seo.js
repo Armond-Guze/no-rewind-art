@@ -6,7 +6,6 @@ import {
   buildProductSchemaDescription,
   buildProductSeoDescription,
   buildProductSeoTitle,
-  getProductSeoAliases,
 } from '../../server/seo-copy.js';
 import { policyPages } from './storefront/policy-content.ts';
 import {
@@ -244,12 +243,6 @@ export function getProductStructuredData(product, sizeId) {
   const productImages = [product.image, ...(product.gallery || [])]
     .filter(Boolean)
     .map((image) => absoluteUrl(image));
-  const seoAliases = getProductSeoAliases(product);
-  const additionalProperty = seoAliases.map((alias) => ({
-    '@type': 'PropertyValue',
-    name: 'Best for',
-    value: alias,
-  }));
   const aggregateRating =
     hasProductSpecificReviewSummary(product)
       ? {
@@ -275,7 +268,6 @@ export function getProductStructuredData(product, sizeId) {
     width: getDimensionValue(dimensions.width),
     height: getDimensionValue(dimensions.height),
     aggregateRating,
-    additionalProperty: additionalProperty.length ? additionalProperty : undefined,
     offers: getDefaultProductOffer(product, sizeOption, productPath),
   };
 }

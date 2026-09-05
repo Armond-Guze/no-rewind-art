@@ -87,6 +87,7 @@ function productMatchesSearch(product: Product, searchTerm: string) {
     product.label,
     product.tone,
     ...product.collectionSlugs,
+    ...(product.seoAliases || []),
     ...product.details,
   ].join(' '));
 

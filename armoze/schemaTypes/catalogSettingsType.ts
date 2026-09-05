@@ -8,7 +8,7 @@ const sizeOptionFields = [
     title: 'Price In Cents',
     type: 'number',
     description: '$75.00 should be entered as 7500.',
-    validation: (rule) => rule.required().min(0),
+    validation: (rule) => rule.required().integer().min(0),
   }),
   defineField({name: 'badge', title: 'Badge', type: 'string'}),
   defineField({
@@ -31,6 +31,8 @@ function getCanonicalSizeId(label: unknown) {
 function validateSizeOptionIds(value: unknown) {
   if (!Array.isArray(value)) return true
 
+  const mismatches = []
+
   for (const option of value) {
     if (!option || typeof option !== 'object') continue
 
@@ -38,11 +40,13 @@ function validateSizeOptionIds(value: unknown) {
     const expectedId = getCanonicalSizeId(label)
 
     if (typeof id === 'string' && expectedId && id !== expectedId) {
-      return `Size ID "${id}" does not match label "${label}". Expected "${expectedId}". Preserve legacy IDs before changing a live size.`
+      mismatches.push(`"${id}" for "${label}" (expected "${expectedId}")`)
     }
   }
 
-  return true
+  return mismatches.length
+    ? `Size IDs do not match their labels: ${mismatches.join(', ')}. Preserve legacy IDs before changing a live size.`
+    : true
 }
 
 function validateAscendingPrices(value: unknown) {
@@ -63,6 +67,21 @@ function validateAscendingPrices(value: unknown) {
   return decreasingIndex >= 0
     ? 'A larger listed size costs less than the size before it. Confirm that this pricing is intentional.'
     : true
+}
+
+function validateUniqueSizeIds(value: unknown) {
+  if (!Array.isArray(value)) return true
+
+  const ids = value
+    .map((option) =>
+      option && typeof option === 'object' && typeof (option as {id?: unknown}).id === 'string'
+        ? String((option as {id: string}).id).trim().toLowerCase()
+        : '',
+    )
+    .filter(Boolean)
+  const duplicateId = ids.find((id, index) => ids.indexOf(id) !== index)
+
+  return duplicateId ? `Size ID "${duplicateId}" is listed more than once.` : true
 }
 
 const sizePresetField = (
@@ -99,6 +118,7 @@ const sizePresetField = (
     initialValue,
     validation: (rule) => [
       rule.required().min(1),
+      rule.custom(validateUniqueSizeIds),
       rule.custom(validateSizeOptionIds).warning(),
       rule.custom(validateAscendingPrices).warning(),
     ],

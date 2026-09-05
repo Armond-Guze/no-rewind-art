@@ -92,7 +92,7 @@ function getRatioKey(fileName) {
 }
 
 function getProductAspectRatio(product) {
-  return product.aspectRatio || sizePresetToAspectRatio.get(product.sizePreset) || ''
+  return sizePresetToAspectRatio.get(product.sizePreset) || product.aspectRatio || ''
 }
 
 function hasImageAlready(product, fileName, alt) {

@@ -229,11 +229,81 @@ const sizeOptionFields = [
     name: 'priceInCents',
     title: 'Price In Cents',
     type: 'number',
-    validation: (rule) => rule.required().min(0),
+    validation: (rule) => rule.required().integer().min(0),
   }),
   defineField({name: 'badge', title: 'Badge', type: 'string'}),
   defineField({name: 'previewScale', title: 'Preview Scale', type: 'number'}),
 ]
+
+const sizePresetRatios: Record<string, number> = {
+  landscapeWide: 2,
+  portraitTwoThree: 2 / 3,
+  portraitThreeFour: 3 / 4,
+  landscapeThreeTwo: 3 / 2,
+  landscapeFourThree: 4 / 3,
+  squareStandard: 1,
+}
+
+function dimensionsFromSize(value: unknown) {
+  if (typeof value !== 'string') return null
+  const match = value.match(/(\d+(?:\.\d+)?)\s*(?:x|×)\s*(\d+(?:\.\d+)?)/i)
+  if (!match) return null
+
+  const width = Number(match[1])
+  const height = Number(match[2])
+  return width > 0 && height > 0 ? {width, height} : null
+}
+
+function validateCustomSizeOptions(value: unknown, context: ValidationContext) {
+  if (context.document?.useCustomSizeOptions !== true) return true
+  if (!Array.isArray(value) || !value.length) {
+    return 'Add at least one custom size or turn off Use Custom Size Options.'
+  }
+
+  const preset = String(context.document?.sizePreset || '')
+  const expectedRatio = sizePresetRatios[preset]
+  if (!expectedRatio) return 'Choose a Canvas Format & Size Set before adding custom sizes.'
+
+  const ids = new Set<string>()
+  const labels = new Set<string>()
+
+  for (const rawOption of value) {
+    if (!rawOption || typeof rawOption !== 'object') return 'Every custom size must be complete.'
+    const option = rawOption as {id?: unknown; label?: unknown; priceInCents?: unknown}
+    const id = typeof option.id === 'string' ? option.id.trim() : ''
+    const label = typeof option.label === 'string' ? option.label.trim() : ''
+    const normalizedId = id.toLowerCase()
+    const normalizedLabel = label.toLowerCase()
+
+    if (!id || !label || !Number.isInteger(option.priceInCents) || Number(option.priceInCents) < 0) {
+      return 'Every custom size needs an ID, label, and non-negative whole-cent price.'
+    }
+    if (ids.has(normalizedId)) return `Custom size ID "${id}" is listed more than once.`
+    if (labels.has(normalizedLabel)) return `Custom size label "${label}" is listed more than once.`
+    ids.add(normalizedId)
+    labels.add(normalizedLabel)
+
+    const labelDimensions = dimensionsFromSize(label)
+    const idDimensions = dimensionsFromSize(id)
+    if (
+      labelDimensions &&
+      idDimensions &&
+      (labelDimensions.width !== idDimensions.width || labelDimensions.height !== idDimensions.height)
+    ) {
+      return `Custom size ID "${id}" and label "${label}" describe different dimensions.`
+    }
+
+    const dimensions = labelDimensions || idDimensions
+    if (!dimensions) return `Custom size "${label}" needs dimensions such as 24 x 36.`
+
+    const actualRatio = dimensions.width / dimensions.height
+    if (Math.abs(actualRatio - expectedRatio) > 0.02) {
+      return `Custom size "${label}" does not match the selected canvas format.`
+    }
+  }
+
+  return true
+}
 
 export const artworkProductType = defineType({
   name: 'artworkProduct',
@@ -541,13 +611,7 @@ export const artworkProductType = defineType({
         'Only used when Use Custom Size Options is turned on. Otherwise the storefront uses the Size Preset prices from Catalog Settings.',
       hidden: ({document}) => document?.useCustomSizeOptions !== true,
       of: [defineArrayMember({type: 'object', fields: sizeOptionFields})],
-      validation: (rule) =>
-        rule.custom((options, context) => {
-          if (context.document?.useCustomSizeOptions !== true) return true
-          return Array.isArray(options) && options.length > 0
-            ? true
-            : 'Add at least one custom size or turn off Use Custom Size Options.'
-        }),
+      validation: (rule) => rule.custom(validateCustomSizeOptions),
     }),
     defineField({
       name: 'seoTitle',
@@ -575,7 +639,7 @@ export const artworkProductType = defineType({
       type: 'array',
       group: 'seo',
       description:
-        'Natural search intents, not alternate URLs. Suggested automatically from Artwork Theme and used for discovery and SEO fallback copy.',
+        'Natural search intents, not alternate URLs. Suggested automatically from the product title and Artwork Theme, then used for discovery and SEO fallback copy.',
       components: {input: SeoAliasesInput},
       initialValue: buildDefaultSeoAliases('minimal'),
       of: [

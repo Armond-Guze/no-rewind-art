@@ -4,6 +4,11 @@ import {open, readdir, readFile, stat} from 'node:fs/promises'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {getCliClient} from 'sanity/cli'
+import {
+  buildDefaultArtworkHighlights,
+  resolveArtworkHighlights,
+  resolveProductSeoAliases,
+} from '../../shared/product-content.js'
 
 const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif'])
 const genericFolderPattern = /^new folder(?: \(\d+\))?$/i
@@ -16,10 +21,23 @@ const dryRun = Boolean(args['dry-run'])
 const autoProducts = Boolean(args['auto-products'])
 const prune = Boolean(args.prune)
 const createOnly = Boolean(args['create-only'] || args['only-new'])
+const requestedSizePreset = typeof args['size-preset'] === 'string' ? args['size-preset'] : ''
+const supportedSizePresets = new Set([
+  'landscapeWide',
+  'portraitTwoThree',
+  'portraitThreeFour',
+  'landscapeThreeTwo',
+  'landscapeFourThree',
+  'squareStandard',
+])
 const onlyFolderKeys = typeof args.folders === 'string'
   ? new Set(args.folders.split(',').map((folder) => normalizePathKey(folder)).filter(Boolean))
   : null
 const assetRoot = args.folder ? path.resolve(args.folder) : path.resolve(projectRoot, 'dist', 'artwork')
+
+if (requestedSizePreset && !supportedSizePresets.has(requestedSizePreset)) {
+  throw new Error(`Unsupported --size-preset value: ${requestedSizePreset}`)
+}
 
 const client = getCliClient({apiVersion: '2025-05-21'})
 const imageIndex = await buildImageIndex(assetRoot)
@@ -221,6 +239,18 @@ function selectMainImage(images) {
   )
 }
 
+function selectArtworkSource(images) {
+  return (
+    images.find((image) => {
+      const filename = path.basename(image.relativePath)
+      return (
+        /(?:^|[-_\s])(file|source|design|print)(?:[-_\s.]|$)/i.test(filename) &&
+        !/(mockup|room|side|slide|detail|scale)/i.test(filename)
+      )
+    }) || null
+  )
+}
+
 async function uploadImagePath(imagePath, alt, sourceLabel = imagePath) {
   if (!imagePath) {
     console.warn(`Skipping missing image: ${sourceLabel}`)
@@ -360,103 +390,32 @@ function createGeneratedCopy(title, tone) {
   }
 }
 
-function buildFrameOptions() {
-  const priceDeltaBySizeIdInCents = {
-    '12x12': 2500,
-    '12x18': 2500,
-    '16x16': 2000,
-    '16x24': 2000,
-    '18x12': 2500,
-    '20x10': 2500,
-    '24x12': 2500,
-    '24x16': 2000,
-    '24x24': 7000,
-    '24x36': 3500,
-    '30x30': 5500,
-    '32x48': 5500,
-    '36x24': 3500,
-    '40x60': 7500,
-    '42x28': 5500,
-    '48x20': 5500,
-    '48x24': 5500,
-    '48x32': 5500,
-    '60x30': 7500,
-    '60x40': 7500,
-  }
-
-  return [
-    {id: 'canvas', label: 'Canvas', priceDeltaInCents: 0},
-    {
-      id: 'black-frame',
-      label: 'Black Frame',
-      priceDeltaInCents: 0,
-      priceDeltaBySizeIndexInCents: [2500, 2000, 3500, 5500, 7500],
-      priceDeltaBySizeIdInCents,
-      unavailableSizeIds: ['30x15', '40x20'],
-    },
-    {
-      id: 'white-frame',
-      label: 'White Frame',
-      priceDeltaInCents: 0,
-      priceDeltaBySizeIndexInCents: [2500, 2000, 3500, 5500, 7500],
-      priceDeltaBySizeIdInCents,
-      unavailableSizeIds: ['30x15', '40x20'],
-    },
-  ]
-}
-
-function baseDetailsForTone(tone) {
-  if (tone === 'money') {
-    return [
-      'Designed for entrepreneur offices, studios, and workspaces.',
-      'Money-focused artwork with a bold room presence.',
-      'Available as canvas, black frame, or white frame in multiple sizes.',
-      'Ships securely packed to protect corners and surface quality.',
-    ]
-  }
-
-  if (tone === 'minimal') {
-    return [
-      'Great for readers, students, creators, and home offices.',
-      'Printed on demand using premium wall-art materials.',
-      'Multiple canvas sizes are available.',
-      'Ships securely packed to protect corners and surface quality.',
-    ]
-  }
-
-  return [
-    'Built for bedrooms, offices, studios, gyms, and personal spaces.',
-    'Printed on demand using premium wall-art materials.',
-    'Available as canvas, black frame, or white frame in multiple sizes.',
-    'Ships securely packed to protect corners and surface quality.',
-  ]
-}
-
 async function inferShapeAndPreset(mainImagePath) {
   const dimensions = await imageDimensions(mainImagePath)
-  const ratio = dimensions ? dimensions.width / dimensions.height : 2
+  if (!dimensions) return null
+  const ratio = dimensions.width / dimensions.height
 
   if (ratio < 0.72) {
-    return {sizePreset: 'portraitTwoThree', aspectRatio: '2 / 3'}
+    return 'portraitTwoThree'
   }
 
   if (ratio < 0.9) {
-    return {sizePreset: 'portraitThreeFour', aspectRatio: '3 / 4'}
+    return 'portraitThreeFour'
   }
 
   if (ratio > 1.7) {
-    return {sizePreset: 'landscapeWide', aspectRatio: '2 / 1'}
+    return 'landscapeWide'
   }
 
   if (ratio > 1.42) {
-    return {sizePreset: 'landscapeThreeTwo', aspectRatio: '3 / 2'}
+    return 'landscapeThreeTwo'
   }
 
   if (ratio > 1.15) {
-    return {sizePreset: 'landscapeFourThree', aspectRatio: '4 / 3'}
+    return 'landscapeFourThree'
   }
 
-  return {sizePreset: 'squareStandard', aspectRatio: '1 / 1'}
+  return 'squareStandard'
 }
 
 function documentIdForProductId(productId) {
@@ -540,23 +499,20 @@ async function buildDocumentFromCatalogProduct(product, index, existingDocument)
     title: product.title,
     seoTitle: product.seoTitle,
     seoDescription: product.seoDescription,
+    seoAliases: resolveProductSeoAliases(product.seoAliases, product.tone, product.title),
     description: product.description,
     longDescription: product.longDescription,
     label: product.label,
     mainImage,
-    imageAlt: product.imageAlt,
-    aspectRatio: product.aspectRatio,
     galleryImages,
     tone: product.tone,
     collectionSlugs: product.collectionSlugs || [],
-    priceInCents: product.priceInCents,
-    size: product.size,
     sizePreset: product.sizePreset,
     useCustomSizeOptions: product.useCustomSizeOptions === true,
-    sizeOptions: product.sizeOptions,
+    sizeOptions: product.useCustomSizeOptions === true ? product.sizeOptions : undefined,
     rating: product.rating,
     reviewCount: product.reviewCount,
-    details: product.details || [],
+    details: resolveArtworkHighlights(product.details, product.tone),
     published: product.published !== false,
     sortOrder: index,
   })
@@ -570,7 +526,17 @@ async function buildDocumentFromFolder(folderName, index, existingDocument) {
     return null
   }
 
-  const {sizePreset, aspectRatio} = await inferShapeAndPreset(mainImageSource.absolutePath)
+  const artworkSource = selectArtworkSource(folderImages)
+  const sizePreset = requestedSizePreset ||
+    (artworkSource ? await inferShapeAndPreset(artworkSource.absolutePath) : null)
+
+  if (!sizePreset) {
+    console.warn(
+      `Skipping ${folderName}: no clearly named source-art file was found for safe format detection. ` +
+        'Name the source file with "file" or "source", or pass --size-preset.',
+    )
+    return null
+  }
   const title = titleCase(folderName)
   const slug = slugify(folderName)
   const tone = inferTone(folderName)
@@ -600,24 +566,35 @@ async function buildDocumentFromFolder(folderName, index, existingDocument) {
     title,
     seoTitle: `${title} Motivational Canvas Print`,
     seoDescription: `Shop ${title} by Armoze, a motivational canvas print for offices, bedrooms, studios, and creative spaces.`,
+    seoAliases: resolveProductSeoAliases([], tone, title),
     description,
     longDescription,
     label: title,
     mainImage,
-    imageAlt,
-    aspectRatio,
     galleryImages,
     tone,
     collectionSlugs: inferCollectionSlugs(tone),
-    size: 'Canvas print',
     sizePreset,
     rating: 4.8,
     reviewCount: 61,
-    details: baseDetailsForTone(tone),
-    frameOptions: buildFrameOptions(),
+    details: buildDefaultArtworkHighlights(tone),
     published: true,
     sortOrder: index,
   })
+}
+
+async function upsertArtworkDocument(document) {
+  const {_id} = document
+  const fields = Object.fromEntries(
+    Object.entries(document).filter(([key]) => !['_id', '_type'].includes(key)),
+  )
+
+  await client.createIfNotExists(document)
+  await client
+    .patch(_id)
+    .setIfMissing(fields)
+    .unset(['aspectRatio', 'artworkShape', 'frameOptions', 'imageAlt', 'size', 'priceInCents'])
+    .commit()
 }
 
 const existingDocuments = await client.fetch(`*[_type == "artworkProduct"]{_id, productId, title, "slug": slug.current}`)
@@ -649,7 +626,7 @@ for (const [index, product] of catalog.products.entries()) {
   if (dryRun) {
     console.log(`[dry-run] ${document._id} -> ${document.title}`)
   } else {
-    await client.createOrReplace(document)
+    await upsertArtworkDocument(document)
     console.log(`Imported ${document._id} -> ${document.title}${existingDocument ? ' (matched existing)' : ''}`)
   }
 
@@ -685,7 +662,7 @@ if (autoProducts) {
       await client.createIfNotExists(document)
       console.log(`Created if missing ${document._id} -> ${document.title}`)
     } else {
-      await client.createOrReplace(document)
+      await upsertArtworkDocument(document)
       console.log(`Imported ${document._id} -> ${document.title}${existingDocument ? ' (matched existing)' : ''}`)
     }
 

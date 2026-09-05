@@ -1530,6 +1530,16 @@ export default function ProductPageClient({
                 {detailsOpen ? (
                   <div className="product-details-content" id={`${product.id}-details`}>
                     <ul className="product-info-list">
+                      {product.details.slice(0, 3).map((detail) => (
+                        <li key={detail}>
+                          <Star
+                            className="product-info-icon product-info-icon-violet"
+                            aria-hidden="true"
+                            size={17}
+                          />
+                          {detail}
+                        </li>
+                      ))}
                       <li><span className="product-info-flag-badge" aria-hidden="true"><span className="product-info-flag" /></span> Made in USA</li>
                       <li><FaImage className="product-info-icon product-info-icon-blue" aria-hidden="true" /> Ready-to-hang canvas print</li>
                       <li><FaHammer className="product-info-icon product-info-icon-terracotta" aria-hidden="true" /> Made to order, just for you</li>

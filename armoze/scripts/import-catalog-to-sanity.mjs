@@ -4,6 +4,10 @@ import {readFile} from 'node:fs/promises'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {getCliClient} from 'sanity/cli'
+import {
+  resolveArtworkHighlights,
+  resolveProductSeoAliases,
+} from '../../shared/product-content.js'
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(scriptDir, '..', '..')
@@ -95,25 +99,37 @@ async function productToDocument(product, index) {
     title: product.title,
     seoTitle: product.seoTitle,
     seoDescription: product.seoDescription,
+    seoAliases: resolveProductSeoAliases(product.seoAliases, product.tone, product.title),
     description: product.description,
     longDescription: product.longDescription,
     label: product.label,
     mainImage,
-    imageAlt: product.imageAlt,
-    aspectRatio: product.aspectRatio,
     galleryImages,
     tone: product.tone,
     collectionSlugs: product.collectionSlugs || [],
-    priceInCents: product.priceInCents,
-    size: product.size,
     sizePreset: product.sizePreset,
-    sizeOptions: product.sizeOptions,
+    useCustomSizeOptions: product.useCustomSizeOptions === true,
+    sizeOptions: product.useCustomSizeOptions === true ? product.sizeOptions : undefined,
     rating: product.rating,
     reviewCount: product.reviewCount,
-    details: product.details || [],
+    details: resolveArtworkHighlights(product.details, product.tone),
     published: product.published !== false,
     sortOrder: index,
   })
+}
+
+async function upsertProductDocument(document) {
+  const {_id} = document
+  const fields = Object.fromEntries(
+    Object.entries(document).filter(([key]) => !['_id', '_type'].includes(key)),
+  )
+
+  await client.createIfNotExists(document)
+  await client
+    .patch(_id)
+    .setIfMissing(fields)
+    .unset(['aspectRatio', 'artworkShape', 'frameOptions', 'imageAlt', 'size', 'priceInCents'])
+    .commit()
 }
 
 let imported = 0
@@ -129,7 +145,7 @@ for (const [index, product] of catalog.products.entries()) {
   if (dryRun) {
     console.log(`[dry-run] ${document._id} -> ${document.title}`)
   } else {
-    await client.createOrReplace(document)
+    await upsertProductDocument(document)
     console.log(`Imported ${document._id} -> ${document.title}`)
   }
 
