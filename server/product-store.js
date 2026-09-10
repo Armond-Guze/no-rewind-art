@@ -237,6 +237,7 @@ function sanitizeSizeOptions(value) {
   return value
     .map((option) => ({
       id: sanitizeText(option.id),
+      ...(Array.isArray(option.legacyIds) ? { legacyIds: option.legacyIds.map(sanitizeText).filter(Boolean) } : {}),
       label: sanitizeText(option.label),
       priceInCents: Math.max(0, Math.round(sanitizeNumber(option.priceInCents))),
       ...(sanitizeText(option.badge) ? { badge: sanitizeText(option.badge) } : {}),
@@ -369,12 +370,12 @@ const SANITY_CATALOG_SETTINGS_QUERY = `*[
   && _id == "catalogSettings.default"
 ][0]{
   sizePresets{
-    portraitTwoThree[]{id, label, priceInCents, badge, previewScale},
-    portraitThreeFour[]{id, label, priceInCents, badge, previewScale},
-    landscapeWide[]{id, label, priceInCents, badge, previewScale},
-    landscapeThreeTwo[]{id, label, priceInCents, badge, previewScale},
-    landscapeFourThree[]{id, label, priceInCents, badge, previewScale},
-    squareStandard[]{id, label, priceInCents, badge, previewScale}
+    portraitTwoThree[]{id, label, priceInCents, badge, previewScale, legacyIds},
+    portraitThreeFour[]{id, label, priceInCents, badge, previewScale, legacyIds},
+    landscapeWide[]{id, label, priceInCents, badge, previewScale, legacyIds},
+    landscapeThreeTwo[]{id, label, priceInCents, badge, previewScale, legacyIds},
+    landscapeFourThree[]{id, label, priceInCents, badge, previewScale, legacyIds},
+    squareStandard[]{id, label, priceInCents, badge, previewScale, legacyIds}
   },
   "defaultProductVideo": defaultProductVideo{
     title,

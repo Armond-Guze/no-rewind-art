@@ -1,0 +1,146 @@
+/* Match the quiet white surface and Inter typography of the FAQ pages. */
+.standalone-cart-page.simple-cart-page {
+  background: #fff;
+  color: #191919;
+  font-family: var(--font-announcement), Arial, Helvetica, sans-serif;
+}
+
+.simple-cart-page.standalone-cart-page .cart-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 36px;
+  width: min(100%, 1040px);
+  min-height: 0;
+  padding: 64px 40px 96px;
+  scroll-margin-top: 160px;
+}
+
+.simple-cart-page.standalone-cart-page .cart-copy {
+  position: static;
+  gap: 14px;
+  padding: 0;
+}
+
+.simple-cart-page.standalone-cart-page .cart-copy h1 {
+  font-family: inherit;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1.1;
+  text-transform: none;
+}
+
+.simple-cart-page.standalone-cart-page .cart-copy p {
+  max-width: none;
+  color: #787878;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.simple-cart-page .cart-continue-link {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+}
+
+.simple-cart-page.standalone-cart-page .cart-panel {
+  min-height: 0;
+  padding: 32px;
+  border: 1px solid #e8e8e8;
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.simple-cart-page .cart-panel-heading h2 {
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  text-transform: none;
+}
+
+.simple-cart-page .cart-panel-heading span {
+  color: #787878;
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none;
+}
+
+.simple-cart-page.standalone-cart-page .cart-item {
+  min-height: 0;
+  padding-block: 20px;
+  border-color: #eaeaea;
+}
+
+.simple-cart-page.standalone-cart-page .cart-item h3 {
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.simple-cart-page.standalone-cart-page .cart-item-media {
+  position: relative;
+  aspect-ratio: 1;
+  min-height: 0;
+  padding: 0;
+  background: #f7f7f7;
+  border-radius: 8px;
+}
+
+.simple-cart-page .cart-item-media .cart-product-thumbnail {
+  object-fit: contain;
+  object-position: center !important;
+  padding: 7px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.simple-cart-page.standalone-cart-page .cart-total {
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  max-width: none;
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.simple-cart-page.standalone-cart-page .cart-total .cart-estimated-total,
+.simple-cart-page.standalone-cart-page .cart-total .cart-estimated-total strong {
+  color: #191919;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.simple-cart-page.standalone-cart-page .cart-total .cart-free-shipping {
+  color: #191919;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.simple-cart-page.standalone-cart-page .cart-total small { font-size: 12px; color: #787878; }
+.simple-cart-page.standalone-cart-page .checkout-button {
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.simple-cart-page.standalone-cart-page .checkout-policy-notice { margin-top: 16px; font-size: 12px; line-height: 1.6; }
+.simple-cart-page.standalone-cart-page .cart-promo-hint { margin: 16px 0 0; padding: 0; border: 0; background: none; color: #787878; font-size: 13px; font-weight: 400; }
+.simple-cart-page.standalone-cart-page .cart-promo-hint strong { color: #191919; }
+.simple-cart-page.standalone-cart-page .checkout-banner { max-width: 960px; margin: 24px auto 0; }
+.simple-cart-page button:focus-visible, .simple-cart-page a:focus-visible { outline: 2px solid #191919; outline-offset: 4px; }
+
+@media (max-width: 620px) {
+  .simple-cart-page.standalone-cart-page .cart-section { padding: 36px 20px 48px; gap: 28px; scroll-margin-top: 130px; }
+  .simple-cart-page.standalone-cart-page .cart-panel { padding: 24px 16px; border-radius: 16px; }
+  .simple-cart-page.standalone-cart-page .cart-copy p { font-size: 15px; }
+  .simple-cart-page.standalone-cart-page .quantity-controls { grid-template-columns: 40px 32px 40px; }
+  .simple-cart-page.standalone-cart-page .quantity-controls button { width: 40px; min-height: 40px; }
+  .simple-cart-page.standalone-cart-page .checkout-banner { margin: 20px 20px 0; }
+}

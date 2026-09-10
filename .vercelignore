@@ -8,6 +8,7 @@ server/data/
 node_modules/
 .next/
 .vercel/
+.codex-tmp/
 dist/
 tmp/
 armoze/

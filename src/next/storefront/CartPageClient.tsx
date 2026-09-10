@@ -4,17 +4,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Check,
-  Clock,
   Minus,
   Plus,
-  ShieldCheck,
   ShoppingBag,
   Trash2,
-  Truck,
 } from 'lucide-react';
 import {
-  addStoredCartItem,
   cartUpdatedEvent,
   makeCartLineKey,
   notifyStoredCartUpdated,
@@ -26,13 +21,9 @@ import type { FrameOption, Product, SizeOption } from '../../data/products';
 import {
   createCheckoutRequestId,
   formatPrice,
-  getCartProductImage,
   getConfiguredUnitPrice,
   getFrameOption,
   getSizeOption,
-  getSizeOptionAspectRatio,
-  launchOfferCode,
-  launchOfferDiscount,
   sizeOptionMatches,
 } from './product-utils';
 import { supabaseClient } from '../../lib/supabase';
@@ -41,9 +32,10 @@ import { getCheckoutAttribution } from './attribution';
 import { getNewsletterDiscountCode } from './discount';
 import { getCartOrderNote, saveCartOrderNote } from './cart-preferences';
 import { GoogleCustomerReviewsOptIn } from './GoogleCustomerReviewsOptIn';
-import { ProductImage } from './OptimizedArtwork';
+import { ProductThumbnail } from './OptimizedArtwork';
 import { StorefrontShell, StorefrontTracker } from './StorefrontChrome';
 import { CheckoutPolicyNotice } from './CheckoutPolicyNotice';
+import './cart-page.css';
 
 type CheckoutState = 'idle' | 'loading' | 'error';
 type CheckoutVerificationState = 'idle' | 'verifying' | 'verified' | 'error';
@@ -198,34 +190,6 @@ export default function CartPageClient({
     () => cartProducts.reduce((count, item) => count + item.quantity, 0),
     [cartProducts],
   );
-  const crossSellProducts = useMemo(() => {
-    const cartProductIds = new Set(cartProducts.map((line) => line.product.id));
-
-    return products
-      .filter((product) => product.published && !cartProductIds.has(product.id))
-      .slice(0, 3);
-  }, [cartProducts, products]);
-
-  function addCrossSellProduct(product: Product) {
-    const sizeOption = getSizeOption(
-      product,
-      product.defaultSizeId ?? product.sizeOptions[0]?.id ?? '',
-    );
-    const frameOption = getFrameOption(product, product.frameOptions[0]?.id ?? 'canvas', sizeOption);
-
-    addStoredCartItem({
-      productId: product.id,
-      sizeId: sizeOption.id,
-      frameId: frameOption.id,
-      quantity: 1,
-    });
-    trackStorefrontEvent('add_to_cart', {
-      currency: 'USD',
-      value: getConfiguredUnitPrice(product, sizeOption, frameOption) / 100,
-      items: [getProductTrackingItem(product, sizeOption, frameOption)],
-    });
-  }
-
   useEffect(() => {
     const syncStoredCart = () => {
       const storedCart = readStoredCart();
@@ -499,7 +463,7 @@ export default function CartPageClient({
       {googleCustomerReviewsServerRendered ? null : (
         <GoogleCustomerReviewsOptIn checkoutResult={checkoutResult} />
       )}
-      <main className="standalone-cart-page">
+      <main className="standalone-cart-page simple-cart-page">
         {checkoutResult === 'success' && checkoutVerificationState === 'verified' ? (
           <div className="checkout-banner success">
             <span>Payment complete. Your order is being prepared.</span>
@@ -519,25 +483,14 @@ export default function CartPageClient({
           </div>
         ) : null}
 
-        {checkoutResult === 'cancelled' ? (
-          <div className="checkout-banner cancelled">
-            Checkout was cancelled. Your cart is still here when you are ready.
-          </div>
-        ) : null}
-
         <section id="cart" className="cart-section">
           <div className="cart-copy">
-            <p className="eyebrow">Checkout</p>
-            <h1>Your Cart</h1>
-            <p>
-              Review your prints, then continue to secure checkout. Shipping and payment
-              details are confirmed before you place the order.
+            <h1>Your bag</h1>
+            <p role={checkoutResult === 'cancelled' ? 'status' : undefined}>
+              {checkoutResult === 'cancelled'
+                ? 'Your items are saved. Continue whenever you are ready.'
+                : 'Review your items and continue to checkout.'}
             </p>
-            <ul className="cart-page-benefits" aria-label="What to expect from your order">
-              <li><Truck aria-hidden="true" size={20} /><span><strong>Free U.S. shipping</strong> on every canvas order</span></li>
-              <li><Clock aria-hidden="true" size={20} /><span><strong>Expected arrival</strong> in 5–8 business days</span></li>
-              <li><ShieldCheck aria-hidden="true" size={20} /><span><strong>30-day returns</strong> and damage support</span></li>
-            </ul>
             <Link className="cart-continue-link" href="/collections/best-sellers">
               Continue shopping
             </Link>
@@ -556,15 +509,10 @@ export default function CartPageClient({
                       <Link
                         className="cart-item-media"
                         href={`/products/${product.slug}`}
-                        style={{ aspectRatio: getSizeOptionAspectRatio(sizeOption) }}
                       >
-                        <ProductImage
+                        <ProductThumbnail
                           product={product}
-                          src={getCartProductImage(product)}
-                          aspectRatio={getSizeOptionAspectRatio(sizeOption)}
-                          className="cart-line-product-image"
-                          priority
-                          sizes="180px"
+                          sizes="(max-width: 620px) 82px, 112px"
                         />
                       </Link>
                       <div className="cart-item-details">
@@ -629,16 +577,10 @@ export default function CartPageClient({
                   onClick={startCheckout}
                 >
                   <ShoppingBag aria-hidden="true" size={18} />
-                  {checkoutState === 'loading' ? 'Opening Checkout' : 'Secure Checkout'}
+                  {checkoutState === 'loading' ? 'Opening checkout...' : 'Continue to checkout'}
                 </button>
 
                 <CheckoutPolicyNotice />
-
-                <ul className="cart-confidence" aria-label="Order benefits">
-                  <li><Check aria-hidden="true" size={14} /> Free U.S. shipping</li>
-                  <li><Check aria-hidden="true" size={14} /> 30-day returns</li>
-                  <li><Check aria-hidden="true" size={14} /> Secure payment</li>
-                </ul>
 
                 {checkoutState === 'error' ? (
                   <p className="checkout-error">
@@ -648,52 +590,22 @@ export default function CartPageClient({
 
                 {appliedDiscountCode ? (
                   <p className="cart-promo-hint">
-                    Your code <strong>{appliedDiscountCode}</strong> is applied automatically at
-                    checkout.
+                    Code <strong>{appliedDiscountCode}</strong> will be applied at checkout.
                   </p>
-                ) : (
-                  <p className="cart-promo-hint">
-                    First order? Code <strong>{launchOfferCode}</strong> takes {launchOfferDiscount} off at
-                    checkout.
-                  </p>
-                )}
-
-                {crossSellProducts.length ? (
-                  <div className="cart-cross-sell" aria-label="Add another print">
-                    <h2>Add another print</h2>
-                    <div className="cart-cross-sell-grid">
-                      {crossSellProducts.map((product) => (
-                        <div className="cart-cross-sell-card" key={product.id}>
-                          <Link
-                            className="cart-cross-sell-thumb"
-                            href={`/products/${product.slug}`}
-                            aria-label={`View ${product.title}`}
-                          >
-                            <ProductImage product={product} sizes="140px" />
-                          </Link>
-                          <strong>{product.title}</strong>
-                          <span>{formatPrice(product.priceInCents)}</span>
-                          <button type="button" onClick={() => addCrossSellProduct(product)}>
-                            Add
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 ) : null}
               </>
             ) : (
               <div className="empty-cart">
                 <ShoppingBag aria-hidden="true" size={34} />
-                <h3>{cartReady ? 'Your cart is empty' : 'Loading your cart'}</h3>
+                <h3>{cartReady ? 'Your bag is empty' : 'Loading your cart'}</h3>
                 <p>
                   {cartReady
-                    ? 'Add a print from the first drop to start checkout.'
+                    ? 'Find a print you love and add it to your bag.'
                     : 'Checking your saved Armoze prints.'}
                 </p>
                 {cartReady ? (
                   <Link className="button button-secondary" href="/collections/best-sellers">
-                    Browse Prints
+                    Browse prints
                   </Link>
                 ) : null}
               </div>

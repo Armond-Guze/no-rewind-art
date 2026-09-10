@@ -161,14 +161,14 @@ export const catalogSettingsType = defineType({
           {id: '12x16', label: '12 x 16', priceInCents: 4900, previewScale: 0.94},
           {id: '18x24', label: '18 x 24', priceInCents: 8400, previewScale: 1},
           {id: '24x32', label: '24 x 32', priceInCents: 11400, badge: 'Best Value', previewScale: 1.08},
-          {id: '36x48', label: '36 x 48', priceInCents: 19900, previewScale: 1.15},
+          {id: '30x40', label: '30 x 40', priceInCents: 14000, previewScale: 1.15},
           {id: '45x60', label: '45 x 60', priceInCents: 27400, badge: 'Statement', previewScale: 1.21},
         ]),
         sizePresetField('landscapeThreeTwo', 'Landscape 3:2', 'For sizes like 18 x 12, 24 x 16, and 36 x 24.', [
           {id: '18x12', label: '18 x 12', priceInCents: 4999, previewScale: 0.94},
           {id: '24x16', label: '24 x 16', priceInCents: 6499, previewScale: 1},
           {id: '36x24', label: '36 x 24', priceInCents: 8499, badge: 'Best Value', previewScale: 1.08},
-          {id: '48x32', label: '48 x 32', priceInCents: 16999, badge: 'Popular', previewScale: 1.14},
+          {id: '45x30', label: '45 x 30', priceInCents: 14999, badge: 'Popular', previewScale: 1.14},
           {id: '60x40', label: '60 x 40', priceInCents: 32499, badge: 'Statement', previewScale: 1.21},
         ]),
         sizePresetField('landscapeFourThree', 'Landscape 4:3', 'For sizes like 16 x 12, 24 x 18, and 32 x 24.', [

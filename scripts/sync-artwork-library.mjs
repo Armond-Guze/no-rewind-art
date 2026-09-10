@@ -325,14 +325,17 @@ function buildFrameOptions() {
     '24x16': 2000,
     '24x24': 7000,
     '24x36': 3500,
+    '30x15': 2000,
     '30x30': 5500,
+    '30x40': 5500,
     '32x48': 5500,
     '36x24': 3500,
+    '40x20': 3500,
     '40x60': 7500,
     '42x28': 5500,
     '48x20': 5500,
     '48x24': 5500,
-    '48x32': 5500,
+    '45x30': 5500,
     '60x30': 7500,
     '60x40': 7500,
   }
@@ -345,7 +348,7 @@ function buildFrameOptions() {
       priceDeltaInCents: 0,
       priceDeltaBySizeIndexInCents: [2500, 2000, 3500, 5500, 7500],
       priceDeltaBySizeIdInCents,
-      unavailableSizeIds: ['30x15', '40x20'],
+      unavailableSizeIds: [],
     },
     {
       id: 'white-frame',
@@ -353,7 +356,7 @@ function buildFrameOptions() {
       priceDeltaInCents: 0,
       priceDeltaBySizeIndexInCents: [2500, 2000, 3500, 5500, 7500],
       priceDeltaBySizeIdInCents,
-      unavailableSizeIds: ['30x15', '40x20'],
+      unavailableSizeIds: [],
     },
   ]
 }
