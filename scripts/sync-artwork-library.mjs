@@ -347,7 +347,7 @@ function buildFrameOptions() {
       label: 'Black Frame',
       priceDeltaInCents: 0,
       priceDeltaBySizeIndexInCents: [2500, 2000, 3500, 5500, 7500],
-      priceDeltaBySizeIdInCents,
+      priceDeltaBySizeIdInCents: {...priceDeltaBySizeIdInCents, '45x30': 8500},
       unavailableSizeIds: [],
     },
     {
