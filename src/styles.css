@@ -16002,6 +16002,33 @@ body.newsletter-popup-lock {
 }
 
 /* === Conversion: promo hint, cross-sell, delivery note, card ratings === */
+.cart-discount-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cart-discount-form label,
+.cart-discount-form p {
+  grid-column: 1 / -1;
+}
+
+.cart-discount-form input {
+  min-width: 0;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #767676;
+  border-radius: 4px;
+  background: #fff;
+  color: #111;
+  font: inherit;
+}
+
+.cart-discount-form p button {
+  text-decoration: underline;
+}
+
 .cart-promo-hint {
   margin: 14px 0 0;
   padding: 12px 14px;

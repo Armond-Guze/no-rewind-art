@@ -37,3 +37,30 @@ test('a failed provider lookup never returns an applied discount', async () => {
   const stripe = { promotionCodes: { list: async () => { throw new Error('Connection unavailable'); } } };
   await assert.rejects(resolveCartDiscount(stripe, 'FIRST15', [{ unitAmount: 4999, quantity: 1 }]), { status: 503 });
 });
+
+const multiPromotion = { ...promotion, code: 'MULTI20', coupon: { valid: true, percent_off: 20 } };
+const multiStripe = { promotionCodes: { list: async () => ({ data: [multiPromotion] }) } };
+
+test('MULTI20 rejects a single expensive item and a cart reduced to one item', async () => {
+  await assert.rejects(resolveCartDiscount(multiStripe, 'MULTI20', [{ unitAmount: 39999, quantity: 1 }]), /at least two items/);
+  await resolveCartDiscount(multiStripe, 'MULTI20', [{ unitAmount: 8499, quantity: 2 }]);
+  await assert.rejects(resolveCartDiscount(multiStripe, 'MULTI20', [{ unitAmount: 8499, quantity: 1 }]), /at least two items/);
+});
+
+test('MULTI20 accepts two copies or mixed catalog items and discounts the full subtotal', async () => {
+  for (const items of [
+    [{ unitAmount: 8499, quantity: 2 }],
+    [{ unitAmount: 4999, quantity: 1 }, { unitAmount: 11999, quantity: 1 }],
+  ]) {
+    assert.deepEqual(await resolveCartDiscount(multiStripe, ' multi20 ', items), {
+      code: 'MULTI20', amount: 3400, subtotal: 16998, promotionCodeId: 'promo_test',
+    });
+  }
+});
+
+test('MULTI20 rejects an incorrectly configured percentage or inactive promotion', async () => {
+  for (const invalid of [{ ...multiPromotion, coupon: promotion.coupon }, { ...multiPromotion, active: false }]) {
+    const stripe = { promotionCodes: { list: async () => ({ data: [invalid] }) } };
+    await assert.rejects(resolveCartDiscount(stripe, 'MULTI20', [{ unitAmount: 8499, quantity: 2 }]), { status: 400 });
+  }
+});

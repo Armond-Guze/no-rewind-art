@@ -1218,11 +1218,12 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
           },
         },
       ],
-      ...(checkoutDiscounts ? { discounts: checkoutDiscounts } : { allow_promotion_codes: true }),
+      // All codes must pass server cart validation, including quantity rules.
+      ...(checkoutDiscounts ? { discounts: checkoutDiscounts } : { allow_promotion_codes: false }),
       after_expiration: {
         recovery: {
           enabled: true,
-          allow_promotion_codes: true,
+          allow_promotion_codes: false,
         },
       },
       automatic_tax: {

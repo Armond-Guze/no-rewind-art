@@ -29,7 +29,7 @@ import {
 import { supabaseClient } from '../../lib/supabase';
 import { getProductTrackingItem, trackStorefrontEvent } from './analytics';
 import { getCheckoutAttribution } from './attribution';
-import { getNewsletterDiscountCode } from './discount';
+import { useCartDiscount } from './useCartDiscount';
 import { getCartOrderNote, saveCartOrderNote } from './cart-preferences';
 import { GoogleCustomerReviewsOptIn } from './GoogleCustomerReviewsOptIn';
 import { ProductThumbnail } from './OptimizedArtwork';
@@ -176,16 +176,14 @@ export default function CartPageClient({
   );
   const checkoutRequest = useRef<{ id: string; signature: string } | null>(null);
   const hasTrackedCartView = useRef(false);
-  const [appliedDiscountCode, setAppliedDiscountCode] = useState('');
-
-  useEffect(() => {
-    queueMicrotask(() => {
-      setAppliedDiscountCode(getNewsletterDiscountCode());
-    });
-  }, []);
+  const [codeDraft, setCodeDraft] = useState('');
 
   const cartProducts = useMemo(() => buildCartLines(cart, products), [cart, products]);
   const subtotal = useMemo(() => getCartSubtotal(cartProducts), [cartProducts]);
+  const cartSignature = JSON.stringify(cartProducts.map((item) => ({
+    id: item.productId, sizeId: item.sizeOption.id, frameId: item.frameOption.id, quantity: item.quantity,
+  })));
+  const discount = useCartDiscount(cartReady, cartSignature, subtotal);
   const itemCount = useMemo(
     () => cartProducts.reduce((count, item) => count + item.quantity, 0),
     [cartProducts],
@@ -385,7 +383,7 @@ export default function CartPageClient({
   }
 
   async function startCheckout() {
-    if (!cartProducts.length) {
+    if (!cartProducts.length || discount.loading) {
       return;
     }
 
@@ -401,7 +399,7 @@ export default function CartPageClient({
       frameId: item.frameOption.id,
       quantity: item.quantity,
     }));
-    const discountCode = getNewsletterDiscountCode();
+    const discountCode = discount.quote?.code || '';
     const orderNote = getCartOrderNote();
     const checkoutSignature = JSON.stringify({ items: checkoutItems, discountCode, orderNote });
 
@@ -565,7 +563,7 @@ export default function CartPageClient({
                   </div>
                   <div className="cart-estimated-total">
                     <span>Estimated total</span>
-                    <strong>{formatPrice(subtotal)}</strong>
+                    <strong>{formatPrice(subtotal - (discount.quote?.amount || 0))}</strong>
                   </div>
                   <small>Taxes, when required, are calculated at secure checkout.</small>
                 </div>
@@ -573,7 +571,7 @@ export default function CartPageClient({
                 <button
                   className="button button-primary checkout-button"
                   type="button"
-                  disabled={checkoutState === 'loading'}
+                  disabled={checkoutState === 'loading' || discount.loading}
                   onClick={startCheckout}
                 >
                   <ShoppingBag aria-hidden="true" size={18} />
@@ -588,11 +586,13 @@ export default function CartPageClient({
                   </p>
                 ) : null}
 
-                {appliedDiscountCode ? (
-                  <p className="cart-promo-hint">
-                    Code <strong>{appliedDiscountCode}</strong> will be applied at checkout.
-                  </p>
-                ) : null}
+                <form className="cart-discount-form" onSubmit={(event) => { event.preventDefault(); discount.apply(codeDraft); }}>
+                  <label htmlFor="cart-discount-code">Discount code</label>
+                  <input id="cart-discount-code" value={codeDraft} onChange={(event) => setCodeDraft(event.target.value)} autoComplete="off" maxLength={80} required />
+                  <button className="button button-secondary" type="submit" disabled={discount.loading}>{discount.loading ? 'Applying…' : 'Apply'}</button>
+                  {discount.quote ? <p role="status">{discount.quote.code} applied. You save {formatPrice(discount.quote.amount)}. <button type="button" onClick={() => { discount.remove(); setCodeDraft(''); }}>Remove code</button></p> : null}
+                  {discount.error ? <p className="checkout-error" role="alert">{discount.error}</p> : null}
+                </form>
               </>
             ) : (
               <div className="empty-cart">

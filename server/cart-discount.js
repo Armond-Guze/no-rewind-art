@@ -36,6 +36,12 @@ export function calculateCartDiscount(promotion, subtotal, now = Date.now()) {
 export async function resolveCartDiscount(stripe, rawCode, cartItems) {
   const code = String(rawCode || '').trim().toUpperCase();
   if (!/^[A-Z0-9]{1,80}$/.test(code)) throw invalidDiscount('Enter a valid discount code.');
+  if (code === 'MULTI20') {
+    const quantity = cartItems.reduce((total, item) => total + item.quantity, 0);
+    if (!Number.isSafeInteger(quantity) || quantity < 2) {
+      throw invalidDiscount('MULTI20 requires at least two items in one order shipped to one address.');
+    }
+  }
   let result;
   try {
     result = await stripe.promotionCodes.list({ code, active: true, limit: 100 });
@@ -43,6 +49,9 @@ export async function resolveCartDiscount(stripe, rawCode, cartItems) {
     throw Object.assign(new Error('We could not verify your code right now. Please try again.'), { status: 503 });
   }
   const promotion = result.data.find((item) => !item.customer) || result.data[0];
+  if (code === 'MULTI20' && promotion?.coupon?.percent_off !== 20) {
+    throw invalidDiscount('This discount code is not available right now. Please contact us.');
+  }
   const subtotal = cartItems.reduce((total, item) => total + item.unitAmount * item.quantity, 0);
   return { ...calculateCartDiscount(promotion, subtotal), promotionCodeId: promotion.id };
 }
