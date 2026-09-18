@@ -1218,12 +1218,13 @@ export async function createCheckoutSession(body, authorizationHeader = '') {
           },
         },
       ],
-      // All codes must pass server cart validation, including quantity rules.
-      ...(checkoutDiscounts ? { discounts: checkoutDiscounts } : { allow_promotion_codes: false }),
+      // Privately shared codes may also be entered directly in Stripe Checkout.
+      // Those entries use Stripe's restrictions, not our cart quantity check.
+      ...(checkoutDiscounts ? { discounts: checkoutDiscounts } : { allow_promotion_codes: true }),
       after_expiration: {
         recovery: {
           enabled: true,
-          allow_promotion_codes: false,
+          allow_promotion_codes: true,
         },
       },
       automatic_tax: {
