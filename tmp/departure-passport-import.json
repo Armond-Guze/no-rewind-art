@@ -1,0 +1,73 @@
+{
+  "_id": "artworkProduct.departure-passport-canvas",
+  "_type": "artworkProduct",
+  "productId": "departure-passport-canvas",
+  "slug": {
+    "_type": "slug",
+    "current": "departure-passport"
+  },
+  "title": "Departure – Passport",
+  "description": "A navy-and-gold passport-inspired canvas with the reminder “Time once lost is never found,” made for travelers and spaces that inspire your next move.",
+  "longDescription": "Departure – Passport turns the familiar passport cover into a daily reminder to make time count. Gold lettering and an eagle emblem stand against a textured navy background, with “Time once lost is never found” at the heart of the design. The portrait composition brings a sense of travel, possibility, and purpose to a home office, entryway, or creative space.",
+  "details": [
+    "Passport-inspired design with gold lettering and an eagle emblem on textured navy.",
+    "“Time once lost is never found” brings a daily reminder to make time count.",
+    "Portrait composition suited to entryways, home offices, and travel-inspired spaces."
+  ],
+  "tone": "focus",
+  "collectionSlugs": [
+    "new-arrivals",
+    "discipline-focus"
+  ],
+  "sizePreset": "portraitThreeFour",
+  "useCustomSizeOptions": false,
+  "seoTitle": "Departure – Passport Canvas Wall Art | Armoze",
+  "seoDescription": "Explore Departure – Passport, navy-and-gold passport wall art with “Time once lost is never found.” A travel-inspired canvas for your office or entryway.",
+  "seoAliases": [
+    "passport canvas wall art",
+    "departure passport artwork",
+    "navy and gold wall art",
+    "travel inspired canvas print",
+    "time once lost is never found",
+    "motivational office wall art"
+  ],
+  "published": true,
+  "sortOrder": 30,
+  "mainImage": {
+    "_type": "image",
+    "asset": {
+      "_type": "reference",
+      "_ref": "image-a522190fa85a215db3a7b502bd748cb57ccf2333-2000x2000-png"
+    },
+    "alt": "Navy-and-gold passport canvas with an eagle emblem and the words “Time once lost is never found.”"
+  },
+  "galleryImages": [
+    {
+      "_type": "image",
+      "_key": "departure-1",
+      "asset": {
+        "_type": "reference",
+        "_ref": "image-b7fa26e20a23fbcb9f558935c7cd1678eb09634b-4000x4000-png"
+      },
+      "alt": "Departure – Passport canvas displayed above a console beside a lamp and travel books."
+    },
+    {
+      "_type": "image",
+      "_key": "departure-2",
+      "asset": {
+        "_type": "reference",
+        "_ref": "image-8caec3fa2e45b8bdb978704911af3c22184e7a22-4000x4000-png"
+      },
+      "alt": "Angled view of Departure – Passport canvas above a console with books and a vase."
+    },
+    {
+      "_type": "image",
+      "_key": "departure-3",
+      "asset": {
+        "_type": "reference",
+        "_ref": "image-5c481800b96dc2e58c4e0672ee0d85ff74e9d1d9-4000x4000-png"
+      },
+      "alt": "Close side view showing the navy-and-gold passport design and canvas edge."
+    }
+  ]
+}
