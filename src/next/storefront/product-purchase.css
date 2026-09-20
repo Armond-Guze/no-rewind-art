@@ -96,6 +96,16 @@
   font-family: inherit;
 }
 
+.listing-panel .size-options button.selected {
+  border-color: #181818;
+  background: #181818;
+  color: #fff;
+}
+
+.listing-panel .size-options button.selected .size-option-price {
+  color: inherit;
+}
+
 .listing-panel .listing-purchase-actions {
   display: grid;
   gap: 14px;
