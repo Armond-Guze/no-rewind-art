@@ -1,0 +1,41 @@
+/* Only registered main-image assets already contain face light, edge shading,
+   and an alpha-channel cast shadow. Keep all existing image dimensions and
+   crop offsets: making the surface overflow visible reveals the shadow in the
+   original transparent padding without enlarging or repositioning the art.
+   The scoped overrides beat legacy gallery/card rules regardless of load order. */
+.product-canvas-image.has-baked-main-image-lighting:not(.frame-black):not(.frame-white),
+.product-canvas-image.has-baked-main-image-lighting:not(.frame-black):not(.frame-white) > div {
+  overflow: visible !important;
+  box-shadow: none !important;
+}
+
+.product-canvas-image.has-baked-main-image-lighting:not(.frame-black):not(.frame-white) img {
+  filter: none !important;
+  /* The transparent square can extend beyond the art's layout box. It must
+     not cover nearby links with an invisible pointer target. */
+  pointer-events: none;
+}
+
+.product-canvas-image.has-baked-main-image-lighting:not(.frame-black):not(.frame-white)::before,
+.product-canvas-image.has-baked-main-image-lighting:not(.frame-black):not(.frame-white) > .product-canvas-shadow,
+.product-canvas-image.has-baked-main-image-lighting > div::before,
+.product-canvas-image.has-baked-main-image-lighting > div::after {
+  display: none !important;
+}
+
+/* Framed previews retain their crop and the frame's own outer shadow. The
+   baked face light remains visible; its cast shadow stays behind the rails. */
+.product-canvas-image.has-baked-main-image-lighting:is(.frame-black, .frame-white) > div {
+  overflow: hidden !important;
+}
+
+/* A source with artwork wider than the established crop must keep that crop
+   so the on-page artwork does not grow. Its baked shadow is clipped with the
+   transparent padding; this single directional shadow replaces it. */
+.product-canvas-image.has-baked-main-image-lighting.keep-main-image-crop:not(.frame-black):not(.frame-white) > div {
+  overflow: hidden !important;
+  box-shadow:
+    clamp(1px, 0.35vw, 4px) clamp(2px, 0.52vw, 6px) clamp(4px, 1.05vw, 12px) rgba(49, 43, 32, 0.2),
+    clamp(2px, 0.7vw, 8px) clamp(3px, 0.96vw, 11px) clamp(3px, 0.87vw, 10px) rgba(49, 43, 32, 0.3),
+    clamp(1px, 0.26vw, 3px) clamp(1px, 0.35vw, 4px) clamp(2px, 0.61vw, 7px) rgba(49, 43, 32, 0.39) !important;
+}

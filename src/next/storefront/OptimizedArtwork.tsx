@@ -1,5 +1,7 @@
 import Image, { type ImageLoaderProps } from 'next/image';
+import mainImageLightingAssets from '../../../shared/main-image-lighting-assets.json';
 import type { Product, ProductGalleryImage } from '../../data/products';
+import './main-image-lighting.css';
 import {
   getCartProductImage,
   getDisplayArtworkShape,
@@ -7,6 +9,19 @@ import {
   getProductAspectRatio,
   getProductGallery,
 } from './product-utils';
+
+const mainImageLightingHashes = new Set<string>(mainImageLightingAssets.assetHashes);
+const mainImageLightingKeepCropHashes = new Set<string>(mainImageLightingAssets.keepCropAssetHashes);
+
+function getBakedMainImageHash(src: string, mainImageSrc?: string) {
+  if (src !== mainImageSrc) return undefined;
+
+  const assetHash = src.match(
+    /^https:\/\/cdn\.sanity\.io\/images\/[^/]+\/[^/]+\/([a-f0-9]{40})-\d+x\d+\.[a-z0-9]+(?:[?#]|$)/i,
+  )?.[1]?.toLowerCase();
+
+  return assetHash && mainImageLightingHashes.has(assetHash) ? assetHash : undefined;
+}
 
 function isSanityImageUrl(src: string) {
   return /^https:\/\/cdn\.sanity\.io\//i.test(src);
@@ -279,8 +294,13 @@ export function OptimizedCanvasImage({
   const usesSquareSourceLandscapeCrop = hasSquareSource && displayShape === 'landscape' && normalizedAspectRatio === '3/2';
   const usesSourceRatioMismatch = isSourceRatioMismatch(src, aspectRatio, sanityImage);
   const imageFitClassName = usesSourceRatioMismatch ? 'object-contain' : 'object-cover';
+  const bakedMainImageHash = getBakedMainImageHash(src, product.image);
   const classNames = [
     'product-canvas-image',
+    bakedMainImageHash ? 'has-baked-main-image-lighting' : undefined,
+    bakedMainImageHash && mainImageLightingKeepCropHashes.has(bakedMainImageHash)
+      ? 'keep-main-image-crop'
+      : undefined,
     `shape-${displayShape}`,
     ratioClassName,
     usesSquareSourceWideCrop ? 'crop-square-source-2x1' : undefined,
