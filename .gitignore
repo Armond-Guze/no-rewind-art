@@ -31,3 +31,6 @@ outputs/
 
 # Staging area for files pending manual deletion
 _to_delete/
+
+# Photoshop templates are kept only on this computer
+/photoshop-template/
