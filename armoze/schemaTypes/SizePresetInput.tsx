@@ -25,7 +25,7 @@ const sizePresetPreview: Record<
   portraitThreeFour: {
     label: 'Portrait 3:4',
     note: 'Wider vertical artwork. The storefront canvas uses a 3:4 ratio.',
-    fallbackSizes: ['12 x 16', '18 x 24', '24 x 32', '36 x 48', '45 x 60'],
+    fallbackSizes: ['12 x 16', '18 x 24', '24 x 32', '30 x 40', '45 x 60'],
   },
   landscapeThreeTwo: {
     label: 'Landscape 3:2',
@@ -35,7 +35,7 @@ const sizePresetPreview: Record<
   landscapeFourThree: {
     label: 'Landscape 4:3',
     note: 'Classic horizontal artwork. The storefront canvas uses a 4:3 ratio.',
-    fallbackSizes: ['16 x 12', '24 x 18', '32 x 24', '48 x 36', '60 x 45'],
+    fallbackSizes: ['16 x 12', '24 x 18', '32 x 24', '40 x 30', '60 x 45'],
   },
   squareStandard: {
     label: 'Square',

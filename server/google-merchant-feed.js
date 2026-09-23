@@ -122,7 +122,7 @@ export function buildFeedItem(product, sizeOption, siteUrl) {
     xmlTag('g:price', '0.00 USD'),
     xmlTag('g:min_handling_time', '2'),
     xmlTag('g:max_handling_time', '3'),
-    xmlTag('g:min_transit_time', '2'),
+    xmlTag('g:min_transit_time', '3'),
     xmlTag('g:max_transit_time', '5'),
     '</g:shipping>',
     '</item>',

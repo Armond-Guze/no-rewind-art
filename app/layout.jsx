@@ -24,6 +24,9 @@ const announcementFont = localFont({
 export const metadata = {
   metadataBase: new URL('https://armoze.com'),
   applicationName: 'Armoze',
+  verification: {
+    google: 'jyP1CTQoGcH6Ax1-PYXY6MnPBWYTsE6y6HTThSuEYYk',
+  },
   icons: {
     icon: [
       {

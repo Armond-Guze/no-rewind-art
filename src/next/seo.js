@@ -1,5 +1,7 @@
 import { unstable_cache } from 'next/cache';
 import { createProductStore } from '../../server/product-store.js';
+import { buildMerchantImagePath } from '../../server/merchant-image-url.js';
+import { storefrontSocialLinks } from '../../shared/brand.js';
 import {
   buildCollectionSeoDescription,
   buildCollectionSeoTitle,
@@ -60,6 +62,10 @@ export function absoluteUrl(path = '/') {
 
 function titleWithBrand(title) {
   return title === 'Armoze' ? title : `${title} | Armoze`;
+}
+
+function getProductSearchImage(product) {
+  return buildMerchantImagePath(product) || product?.image || searchLogoPath;
 }
 
 function baseMetadata({ title, description, path = '/', image = searchLogoPath, robots }) {
@@ -165,7 +171,7 @@ function getDefaultProductOffer(product, option, productPath) {
         },
         transitTime: {
           '@type': 'QuantitativeValue',
-          minValue: 2,
+          minValue: 3,
           maxValue: 5,
           unitCode: 'DAY',
         },
@@ -216,12 +222,14 @@ function getCustomerSupportContactPoint() {
 
 function getOrganizationStructuredData() {
   return {
-    '@type': 'Organization',
+    '@type': 'OnlineStore',
     '@id': `${siteUrl}/#organization`,
     name: 'Armoze',
     legalName: 'ARMOZE LLC',
     url: siteUrl,
     description: siteDescription,
+    email: supportEmail,
+    sameAs: Object.values(storefrontSocialLinks),
     logo: {
       '@type': 'ImageObject',
       url: absoluteUrl(searchLogoPath),
@@ -240,9 +248,16 @@ export function getProductStructuredData(product, sizeId) {
   const productPath = getProductVariantPath(product, sizeOption, Boolean(requestedSizeOption));
   const itemId = `${product.id}-${sizeOption.id}`;
   const dimensions = getSizeDimensions(sizeOption);
-  const productImages = [product.image, ...(product.gallery || [])]
-    .filter(Boolean)
-    .map((image) => absoluteUrl(image));
+  // Organic Search and Shopping should discover the same opaque image with
+  // the shadow embedded. CSS effects on transparent cutouts don't travel
+  // with the image when Google displays it in its own result layout.
+  const primaryImage = absoluteUrl(getProductSearchImage(product));
+  const productImages = [...new Set([
+    primaryImage,
+    ...(product.gallery || [])
+      .filter((image) => image && image !== product.image)
+      .map((image) => absoluteUrl(image)),
+  ])];
   const aggregateRating =
     hasProductSpecificReviewSummary(product)
       ? {
@@ -257,6 +272,16 @@ export function getProductStructuredData(product, sizeId) {
     '@type': 'Product',
     name: product.title,
     image: productImages.length ? productImages : undefined,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': absoluteUrl(productPath),
+      url: absoluteUrl(productPath),
+      primaryImageOfPage: {
+        '@type': 'ImageObject',
+        url: primaryImage,
+        contentUrl: primaryImage,
+      },
+    },
     description: buildProductSchemaDescription(product),
     brand: {
       '@type': 'Brand',
@@ -556,7 +581,7 @@ export async function getRouteSeo(pathParts = [], { sizeId } = {}) {
         title: 'Motivational Canvas Prints for Offices & Bedrooms',
         description: homeDescription,
         path: '/',
-        image: heroProduct?.image || searchLogoPath,
+        image: getProductSearchImage(heroProduct),
       }),
       structuredData: getHomeStructuredData(featuredProducts),
     };
@@ -583,7 +608,7 @@ export async function getRouteSeo(pathParts = [], { sizeId } = {}) {
         title: buildProductSeoTitle(product),
         description: buildProductSeoDescription(product),
         path: productPath,
-        image: product.image || searchLogoPath,
+        image: getProductSearchImage(product),
       }),
       structuredData: getProductStructuredData(product, requestedSizeOption?.id),
     };
@@ -604,7 +629,7 @@ export async function getRouteSeo(pathParts = [], { sizeId } = {}) {
         title: buildCollectionSeoTitle(collection),
         description: buildCollectionSeoDescription(collection),
         path: `/collections/${collection.slug}`,
-        image: products[0]?.image || searchLogoPath,
+        image: getProductSearchImage(products[0]),
       }),
       structuredData: getCollectionStructuredData(collection, products),
     };
@@ -647,7 +672,7 @@ export async function getRouteSeo(pathParts = [], { sizeId } = {}) {
         description:
           'Armoze began on Etsy in 2020 during the COVID pandemic. Discover the story behind our made-to-order canvas artwork for meaningful everyday spaces.',
         path: '/about',
-        image: catalog.products.find((product) => product.slug === 'bookshelf')?.image || searchLogoPath,
+        image: getProductSearchImage(catalog.products.find((product) => product.slug === 'bookshelf')),
       }),
       structuredData: getAboutStructuredData(),
     };

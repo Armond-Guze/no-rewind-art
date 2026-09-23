@@ -64,6 +64,7 @@ import { saveNewsletterDiscountCode } from './discount';
 import { OptimizedRawImage, ProductThumbnail } from './OptimizedArtwork';
 import { SearchDrawer } from './SearchDrawer';
 import { useCartDiscount } from './useCartDiscount';
+import { storefrontSocialLinks } from '../../../shared/brand.js';
 import { getCartOrderNote, saveCartOrderNote } from './cart-preferences';
 import './storefront-navigation.css';
 import './cart-drawer.css';
@@ -75,11 +76,6 @@ const newsletterPopupDismissMs = 7 * 24 * 60 * 60 * 1000;
 const newsletterPopupSubscribedDismissMs = 365 * 24 * 60 * 60 * 1000;
 const newsletterPopupDismissedUntilKey = 'armoze-newsletter-popup-dismissed-until';
 const newsletterPopupSubscribedKey = 'armoze-newsletter-popup-subscribed';
-const storefrontSocialLinks = {
-  instagram: 'https://www.instagram.com/itsarmoze',
-  tiktok: 'https://www.tiktok.com/@itsarmoze',
-  youtube: 'https://www.youtube.com/@itsarmoze',
-} as const;
 const footerPaymentMethods = [
   { id: 'visa', label: 'Visa', Icon: SiVisa },
   { id: 'mastercard', label: 'Mastercard', Icon: SiMastercard },

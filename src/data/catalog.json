@@ -171,10 +171,13 @@
         "previewScale": 1.08
       },
       {
-        "id": "48x36",
-        "label": "48 x 36",
+        "id": "40x30",
+        "label": "40 x 30",
         "priceInCents": 19900,
-        "previewScale": 1.15
+        "previewScale": 1.15,
+        "legacyIds": [
+          "48x36"
+        ]
       },
       {
         "id": "60x45",

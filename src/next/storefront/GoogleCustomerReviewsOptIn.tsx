@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { googleCustomerReviewsPlatformScriptUrl } from '../google-customer-reviews.js';
 
 type GoogleCustomerReviewsOptInPayload = {
   merchantId: number;
@@ -46,18 +47,21 @@ function getCheckoutSessionId() {
 }
 
 function renderGoogleCustomerReviewsOptIn(
-  sessionId: string,
   optIn: GoogleCustomerReviewsOptInPayload,
 ) {
   const renderedSessions = window.__armozeGoogleCustomerReviewsSessions ?? new Set<string>();
   window.__armozeGoogleCustomerReviewsSessions = renderedSessions;
 
-  if (renderedSessions.has(sessionId)) {
+  if (renderedSessions.has(optIn.orderId)) {
     return;
   }
 
   window.gapi?.load('surveyoptin', () => {
-    window.gapi?.surveyoptin?.render({
+    if (renderedSessions.has(optIn.orderId) || !window.gapi?.surveyoptin?.render) {
+      return;
+    }
+
+    window.gapi.surveyoptin.render({
       merchant_id: optIn.merchantId,
       order_id: optIn.orderId,
       email: optIn.email,
@@ -65,7 +69,7 @@ function renderGoogleCustomerReviewsOptIn(
       estimated_delivery_date: optIn.estimatedDeliveryDate,
       opt_in_style: 'CENTER_DIALOG',
     });
-    renderedSessions.add(sessionId);
+    renderedSessions.add(optIn.orderId);
   });
 }
 
@@ -86,8 +90,7 @@ function loadGoogleCustomerReviewsScript(renderOptIn: () => void) {
 
   const script = document.createElement('script');
   script.id = googleCustomerReviewsScriptId;
-  script.src =
-    'https://apis.google.com/js/platform.js?onload=renderArmozeGoogleCustomerReviewsOptIn';
+  script.src = googleCustomerReviewsPlatformScriptUrl;
   script.async = true;
   script.defer = true;
   document.head.appendChild(script);
@@ -140,7 +143,7 @@ export function GoogleCustomerReviewsOptIn({
 
           if (!cancelled) {
             loadGoogleCustomerReviewsScript(() =>
-              renderGoogleCustomerReviewsOptIn(sessionId, optIn),
+              renderGoogleCustomerReviewsOptIn(optIn),
             );
           }
 

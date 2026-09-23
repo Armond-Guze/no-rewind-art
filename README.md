@@ -191,12 +191,22 @@ style applies to every product image. This works best when the image has real
 transparent pixels around the artwork. If an image has a solid background baked
 in, the shadow will follow that full rectangle.
 
-Google Shopping cannot see the storefront CSS. The Merchant feed therefore uses
+Google image previews do not include storefront CSS. The Merchant feed,
+product structured data, social previews, and image sitemap therefore use
 `/merchant-images/<product-id>/image.webp`, which renders the same two-layer
 shadow into a 1600 x 1600 white-background image. The clean `mainImage` remains
 unchanged, and its original URL still powers the storefront. Merchant image URLs
 include a version derived from the source asset so Google receives a new URL when
-the Sanity main image changes.
+the Sanity main image changes. Product pages also identify that image as
+`primaryImageOfPage`; Google still decides which image to display and when to
+recrawl it. Registered main-image lighting assets may already contain lighting
+and an alpha-channel shadow; the merchant image supplies a consistent opaque
+white background for search previews.
+
+The site's `OnlineStore` structured data identifies Armoze with its logo,
+support contact, return policy, and the social profiles shared with the footer.
+See [Google search setup](docs/google-search-setup.md) for the account setup and
+post-deployment checks.
 
 ## Generating Canvas Cutouts
 

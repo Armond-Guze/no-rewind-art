@@ -8,6 +8,7 @@ const SANITY_SITEMAP_PRODUCTS_QUERY = `*[
 ] | order(coalesce(sortOrder, 9999) asc, title asc) {
   _id,
   productId,
+  "image": mainImage.asset->url,
   "slug": slug.current,
   collectionSlugs,
   _updatedAt
@@ -49,6 +50,7 @@ export async function getSanitySitemapEntries() {
   const products = documents
     .map((document) => ({
       id: document.productId || document._id,
+      image: document.image || '',
       slug: document.slug,
       collectionSlugs: Array.isArray(document.collectionSlugs) ? document.collectionSlugs : [],
       updatedAt: document._updatedAt,

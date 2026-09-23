@@ -4,6 +4,7 @@ import {
   getSeoPageFactoryCollectionSlugs,
 } from '../server/seo-page-factory.js';
 import { seedCatalog } from '../server/catalog.js';
+import { buildMerchantImagePath } from '../server/merchant-image-url.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,7 @@ function getFallbackSitemapEntries() {
     .filter((product) => product.published !== false && product.slug)
     .map((product) => ({
       id: product.id,
+      image: product.image,
       slug: product.slug,
       collectionSlugs: Array.isArray(product.collectionSlugs) ? product.collectionSlugs : [],
       updatedAt: null,
@@ -64,6 +66,9 @@ export default async function sitemap() {
     })),
     ...products.map((product) => ({
       url: `${siteUrl}/products/${product.slug}`,
+      images: buildMerchantImagePath(product)
+        ? [`${siteUrl}${buildMerchantImagePath(product)}`]
+        : undefined,
       lastModified: product.updatedAt ? new Date(product.updatedAt) : now,
       priority: product.collectionSlugs.includes('best-sellers') ? 0.9 : 0.8,
     })),

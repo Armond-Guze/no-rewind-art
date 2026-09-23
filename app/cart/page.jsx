@@ -1,10 +1,7 @@
 import { headers } from 'next/headers';
 import CartPageClient from '../../src/next/storefront/CartPageClient.tsx';
 import { makeCartLineKey } from '../../src/cart.ts';
-import {
-  buildGoogleCustomerReviewsOptInScript,
-  googleCustomerReviewsPlatformScriptUrl,
-} from '../../src/next/google-customer-reviews.js';
+import { buildGoogleCustomerReviewsOptInScript } from '../../src/next/google-customer-reviews.js';
 import { getCatalog, getProductByGoogleItemId, getRouteSeo } from '../../src/next/seo.js';
 import { getFrameOption } from '../../src/next/storefront/product-utils.ts';
 import { getGoogleCustomerReviewOptIn } from '../../server/backend.js';
@@ -102,17 +99,9 @@ export default async function CartRoute({ searchParams }) {
         requestedFrameId={requestedFrameId}
       />
       {googleCustomerReviewsRenderScript ? (
-        <>
-          <script
-            dangerouslySetInnerHTML={{ __html: googleCustomerReviewsRenderScript }}
-          />
-          <script
-            async
-            defer
-            id="google-customer-reviews-platform"
-            src={googleCustomerReviewsPlatformScriptUrl}
-          />
-        </>
+        <script
+          dangerouslySetInnerHTML={{ __html: googleCustomerReviewsRenderScript }}
+        />
       ) : null}
     </>
   );

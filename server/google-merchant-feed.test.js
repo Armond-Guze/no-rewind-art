@@ -25,6 +25,6 @@ test('uses a baked-shadow merchant image as the primary Shopping image', () => {
   assert.doesNotMatch(xml, /<g:image_link>https:\/\/cdn\.sanity\.io/);
   assert.match(
     xml,
-    /<g:shipping><g:country>US<\/g:country><g:service>Standard shipping<\/g:service><g:price>0\.00 USD<\/g:price><g:min_handling_time>2<\/g:min_handling_time><g:max_handling_time>3<\/g:max_handling_time><g:min_transit_time>2<\/g:min_transit_time><g:max_transit_time>5<\/g:max_transit_time><\/g:shipping>/,
+    /<g:shipping><g:country>US<\/g:country><g:service>Standard shipping<\/g:service><g:price>0\.00 USD<\/g:price><g:min_handling_time>2<\/g:min_handling_time><g:max_handling_time>3<\/g:max_handling_time><g:min_transit_time>3<\/g:min_transit_time><g:max_transit_time>5<\/g:max_transit_time><\/g:shipping>/,
   );
 });

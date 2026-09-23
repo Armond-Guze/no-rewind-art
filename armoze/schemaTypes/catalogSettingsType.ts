@@ -175,7 +175,7 @@ export const catalogSettingsType = defineType({
           {id: '16x12', label: '16 x 12', priceInCents: 5500, previewScale: 0.94},
           {id: '24x18', label: '24 x 18', priceInCents: 9400, previewScale: 1},
           {id: '32x24', label: '32 x 24', priceInCents: 12400, badge: 'Best Value', previewScale: 1.08},
-          {id: '48x36', label: '48 x 36', priceInCents: 19900, previewScale: 1.15},
+          {id: '40x30', legacyIds: ['48x36'], label: '40 x 30', priceInCents: 19900, previewScale: 1.15},
           {id: '60x45', label: '60 x 45', priceInCents: 27400, badge: 'Statement', previewScale: 1.21},
         ]),
         sizePresetField('squareStandard', 'Square Standard', 'For sizes like 12 x 12, 16 x 16, and 24 x 24.', [
